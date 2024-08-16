@@ -14,7 +14,7 @@ main(int argCount, char* paArgs[])
     adt::ArenaAllocator alloc(adt::SIZE_1M * 100);
 
     int count = 0;
-    int total = 100000;
+    int total = 500000;
     adt::Array<int> aNums(&alloc.base);
 
     srand(1234);
@@ -47,11 +47,11 @@ main(int argCount, char* paArgs[])
         auto depth = adt::RBDepth(kek.pRoot);
 
         int i = 0;
-        for (; i < (int)a.size; i += 2)
+        for (; i < (int)a.size; i += 1)
         {
             adt::RBRemove(&kek, a[i]);
 
-            if (i % 100 == 0)
+            if (i % 10 == 0)
             {
                 auto r = rand();
                 adt::RBInsert(&kek, r);
@@ -100,10 +100,11 @@ main(int argCount, char* paArgs[])
         short depth = adt::AVLDepth(kek.pRoot);
 
         int i = 0;
-        for (; i < (int)a.size; i += 2)
+        for (; i < (int)a.size; i += 1)
         {
             adt::AVLRemove(&kek, a[i]);
-            if (i % 100 == 0)
+
+            if (i % 10 == 0)
             {
                 auto r = rand();
                 adt::AVLInsert(&kek, r);
@@ -117,7 +118,7 @@ main(int argCount, char* paArgs[])
         /*COUT("\n");*/
 
         COUT("AVL: depth: %d\n", depth);
-        COUT("count: %d, expected: %d, size: %d\n", count, total, a.size);
+        COUT("count: %d, total: %d, size: %d\n", count, total, a.size);
         COUT("time: %lf ms\n\n", t1 - t0);
 
         exit(0);

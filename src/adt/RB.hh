@@ -443,13 +443,13 @@ RBSearch(RBNode<T>* p, const T& data)
 }
 
 template<typename T>
-inline short
+inline int
 RBDepth(RBNode<T>* p)
 {
     if (p)
     {
-        short l = RBDepth(p->left);
-        short r = RBDepth(p->right);
+        int l = RBDepth(p->left);
+        int r = RBDepth(p->right);
         return 1 + max(l, r);
     } else return 0;
 }

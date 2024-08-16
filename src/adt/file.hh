@@ -55,11 +55,11 @@ loadFileToCharArray(Allocator* pAlloc, String path)
 }
 
 inline String
-replacePathSuffix(Allocator* pAlloc, adt::String path, adt::String suffix)
+replacePathEnding(Allocator* pAlloc, adt::String path, adt::String sEnding)
 {
-    auto lastSlash = adt::StringLastOf(path, '/') + 1;
-    adt::String pathToMtl = {&path[0], lastSlash};
-    auto r = adt::StringCat(pAlloc, pathToMtl, suffix);
+    auto lastSlash = adt::StringLastOf(path, '/');
+    adt::String sNoEnding = {&path[0], lastSlash + 1};
+    auto r = adt::StringCat(pAlloc, sNoEnding, sEnding);
     return r;
 }
 

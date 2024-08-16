@@ -14,11 +14,11 @@ enum class AVL_ORDER { PRE, IN, POST };
 template<typename T>
 struct AVLNode
 {
-    T data {};
-    short height = 0;
     AVLNode* pParent = nullptr;
     AVLNode* pLeft = nullptr;
     AVLNode* pRight = nullptr;
+    s16 height = 0;
+    T data {};
 };
 
 template<typename T>
@@ -42,14 +42,14 @@ AVLNodeAlloc(Allocator* pA, const T& data)
 }
 
 template<typename T>
-inline short
+inline s16
 AVLNodeHeight(AVLNode<T>* p)
 {
     return (p ? p->height : -1);
 }
 
 template<typename T>
-inline short
+inline s16
 AVLBalance(AVLNode<T>* p)
 {
     return AVLNodeHeight(p->pLeft) - AVLNodeHeight(p->pRight);
@@ -59,8 +59,8 @@ template<typename T>
 inline void
 AVLUpdateHeight(AVLNode<T>* p)
 {
-    short lh = AVLNodeHeight(p->pLeft);
-    short rh = AVLNodeHeight(p->pRight);
+    s16 lh = AVLNodeHeight(p->pLeft);
+    s16 rh = AVLNodeHeight(p->pRight);
     p->height = 1 + max(lh, rh);
 }
 
@@ -160,7 +160,7 @@ AVLRightLeftCase(AVL<T>* s, AVLNode<T>* p)
     return LeftRotate(s, p);
 }
 
-template <class T>
+template<typename T>
 inline AVLNode<T>*
 AVLMin(AVLNode<T>* p)
 {
@@ -169,7 +169,7 @@ AVLMin(AVLNode<T>* p)
     return p;
 }
 
-template <class T>
+template<typename T>
 inline AVLNode<T>*
 AVLMax(AVLNode<T>* p)
 {
@@ -195,7 +195,7 @@ AVLRebalance(AVL<T>* s, AVLNode<T>* p)
 {
     while (p)
     {
-        short diff = AVLBalance(p);
+        s16 diff = AVLBalance(p);
 
         if (diff <= -2)
         {
@@ -371,13 +371,13 @@ AVLSearch(AVLNode<T>* p, const T& data)
 }
 
 template<typename T>
-inline short
+inline int
 AVLDepth(AVLNode<T>* p)
 {
     if (p)
     {
-        short l = AVLDepth(p->pLeft);
-        short r = AVLDepth(p->pRight);
+        int l = AVLDepth(p->pLeft);
+        int r = AVLDepth(p->pRight);
         return 1 + max(l, r);
     } else return 0;
 }
