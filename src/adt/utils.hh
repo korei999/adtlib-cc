@@ -9,7 +9,7 @@
     #undef max
 #endif
 
-#include "ultratypes.h"
+#include "types.hh"
 
 namespace adt
 {

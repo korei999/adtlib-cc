@@ -6,7 +6,6 @@
 #include <stddef.h>
 
 #include "Allocator.hh"
-#include "ultratypes.h"
 
 #ifdef DEBUG
     #include "logs.hh"
