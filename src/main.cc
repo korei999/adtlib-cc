@@ -14,10 +14,10 @@ main(int argCount, char* paArgs[])
     adt::ArenaAllocator alloc(adt::SIZE_1M * 100);
 
     int count = 0;
-    int total = 500000;
+    int total = 1000000;
     adt::Array<int> aNums(&alloc.base);
 
-    srand(1234);
+    srand((int)adt::timeNowMS());
 
     if (argCount >= 2 && (adt::String(paArgs[1]) == "-rb" || adt::String(paArgs[1]) == "-tree"))
     {
