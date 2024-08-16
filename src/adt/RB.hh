@@ -357,7 +357,7 @@ RBInsert(RB<T>* s, RBNode<T>* elm)
 {
     RBNode<T>* tmp;
     RBNode<T>* parent = nullptr;
-    int comp = 0;
+    s64 comp = 0;
     tmp = s->pRoot;
     while (tmp)
     {
@@ -370,7 +370,9 @@ RBInsert(RB<T>* s, RBNode<T>* elm)
         else
             return tmp;
     }
+
     RBSet(elm, parent);
+
     if (parent != nullptr)
     {
         if (comp < 0)

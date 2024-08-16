@@ -2,6 +2,7 @@
 
 #include "Allocator.hh"
 #include "String.hh"
+#include "compare.hh"
 
 #include <stdio.h>
 
@@ -283,6 +284,7 @@ inline AVLNode<T>*
 AVLInsert(AVL<T>* s, AVLNode<T>* pNew)
 {
     AVLNode<T>** ppSelf = &s->pRoot, * pParent = nullptr;
+    s64 comp = 0;
     while (true)
     {
         AVLNode<T>* n = *ppSelf;
@@ -295,9 +297,11 @@ AVLInsert(AVL<T>* s, AVLNode<T>* pNew)
             break;
         }
 
-        if (pNew->data == n->data) return n;
+        comp = compare(pNew->data, n->data);
 
-        if (pNew->data < n->data)
+        if (comp == 0) return n;
+
+        if (comp < 0)
         {
             pParent = *ppSelf;
             ppSelf = &n->pLeft;
