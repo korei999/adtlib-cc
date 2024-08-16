@@ -1,9 +1,10 @@
+#include "adt/AVL.hh"
 #include "adt/ArenaAllocator.hh"
-
+#include "adt/RB.hh"
 #include "logs.hh"
 #include "json/Parser.hh"
-#include "adt/AVL.hh"
-#include "adt/RB.hh"
+
+#include <math.h>
 
 /*u8 BIG[adt::SIZE_1G * 4] {};*/
 
@@ -17,9 +18,9 @@ main(int argCount, char* paArgs[])
     int total = 1000000;
     adt::Array<int> aNums(&alloc.base);
 
-    srand((int)adt::timeNowMS());
+    srand(roundf(adt::timeNowMS()));
 
-    if (argCount >= 2 && (adt::String(paArgs[1]) == "-rb" || adt::String(paArgs[1]) == "-tree"))
+    if (argCount >= 2 && (adt::String(paArgs[1]) == "--rb" || adt::String(paArgs[1]) == "--tree"))
     {
         adt::RB<int> kek(&alloc.base);
         adt::Array<adt::RBNode<int>*> a(&alloc.base);
@@ -68,11 +69,11 @@ main(int argCount, char* paArgs[])
         COUT("count: %d, total: %d, size: %d\n", count, total, a.size);
         COUT("time: %lf ms\n\n", t1 - t0);
 
-        if (adt::String(paArgs[1]) != "-tree")
+        if (adt::String(paArgs[1]) != "--tree")
             exit(0);
     }
 
-    if (argCount >= 2 && (adt::String(paArgs[1]) == "-avl" || adt::String(paArgs[1]) == "-tree"))
+    if (argCount >= 2 && (adt::String(paArgs[1]) == "--avl" || adt::String(paArgs[1]) == "--tree"))
     {
         adt::AVL<int> kek {&alloc.base};
         adt::Array<adt::AVLNode<int>*> a(&alloc.base);

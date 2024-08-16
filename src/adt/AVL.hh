@@ -5,6 +5,7 @@
 #include "compare.hh"
 
 #include <stdio.h>
+#include <assert.h>
 
 namespace adt
 {

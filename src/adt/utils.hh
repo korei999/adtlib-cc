@@ -7,6 +7,8 @@
     #include <sysinfoapi.h>
     #undef min
     #undef max
+    #undef near
+    #undef far
 #endif
 
 #include "types.hh"
