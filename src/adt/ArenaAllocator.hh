@@ -47,8 +47,16 @@ struct ArenaAllocator
     ArenaAllocator(u32 blockCap);
 };
 
+inline void* ArenaAllocatorAlloc(ArenaAllocator* s, u64 mCount, u64 mSize);
+inline void* ArenaAllocatorRealloc(ArenaAllocator* s, void* p, u64 mCount, u64 mSize);
+inline void ArenaAllocatorFree([[maybe_unused]] ArenaAllocator* s, [[maybe_unused]] void* p);
+inline void ArenaAllocatorReset(ArenaAllocator* s);
+inline void ArenaAllocatorFreeAll(ArenaAllocator* s);
+
+inline ArenaBlock* __ArenaAllocatorNewBlock(ArenaAllocator* s, u64 size);
+
 inline ArenaBlock*
-ArenaAllocatorNewBlock(ArenaAllocator* s, u64 size)
+__ArenaAllocatorNewBlock(ArenaAllocator* s, u64 size)
 {
     ArenaBlock** ppLastBlock = &s->pBlocksHead;
     while (*ppLastBlock) ppLastBlock = &((*ppLastBlock)->pNext);
@@ -84,7 +92,7 @@ ArenaAllocatorAlloc(ArenaAllocator* s, u64 mCount, u64 mSize)
 #endif
 
         pFreeBlock = pFreeBlock->pNext;
-        if (!pFreeBlock) pFreeBlock =  ArenaAllocatorNewBlock(s, aligned * 2); /* NOTE: trying to double too big of an array situation */
+        if (!pFreeBlock) pFreeBlock =  __ArenaAllocatorNewBlock(s, aligned * 2); /* NOTE: trying to double too big of an array situation */
     }
 
 repeat:
@@ -97,7 +105,7 @@ repeat:
     if (nextAligned >= pFreeBlock->size)
     {
         pFreeBlock = pFreeBlock->pNext;
-        if (!pFreeBlock) pFreeBlock = ArenaAllocatorNewBlock(s, nextAligned);
+        if (!pFreeBlock) pFreeBlock = __ArenaAllocatorNewBlock(s, nextAligned);
         goto repeat;
     }
 
@@ -176,7 +184,7 @@ inline
 ArenaAllocator::ArenaAllocator(u32 blockCap)
     : base {&__ArenaAllocatorVTable}
 {
-    ArenaAllocatorNewBlock(this, align8(blockCap + sizeof(ArenaNode)));
+    __ArenaAllocatorNewBlock(this, align8(blockCap + sizeof(ArenaNode)));
 }
 
 } /* namespace adt */

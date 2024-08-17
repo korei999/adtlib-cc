@@ -20,6 +20,10 @@ struct FixedAllocator
     constexpr FixedAllocator(void* pMemory, u64 capacity);
 };
 
+constexpr void* FixedAllocatorAlloc(FixedAllocator* s, u64 mCount, u64 mSize);
+constexpr void* FixedAllocatorRealloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize);
+constexpr void FixedAllocatorFree([[maybe_unused]] FixedAllocator* s, [[maybe_unused]] void* p);
+
 constexpr void*
 FixedAllocatorAlloc(FixedAllocator* s, u64 mCount, u64 mSize)
 {
