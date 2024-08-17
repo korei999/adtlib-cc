@@ -59,6 +59,35 @@ struct RB
     RB(Allocator* pA) : pAlloc{pA} {}
 };
 
+template<typename T> inline void RBSetLinks(RBNode<T>* l, RBNode<T>* r);
+template<typename T> inline void RBSet(RBNode<T>* elm, RBNode<T>* parent);
+template<typename T> inline void RBSetBlackRed(RBNode<T>* black, RBNode<T>* red);
+template<typename T> inline RBNode<T>* RBNodeAlloc(Allocator* pA, const T& data);
+template<typename T> inline bool RBEmpty(RB<T>* s);
+template<typename T> inline void RBRotateLeft(RB<T>* s, RBNode<T>* elm);
+template<typename T> inline void RBRotateRight(RB<T>* s, RBNode<T>* elm);
+template<typename T> inline void RBInsertColor(RB<T>* s, RBNode<T>* elm);
+template<typename T> inline void RBRemoveColor(RB<T>* s, RBNode<T>* parent, RBNode<T>* elm);
+template<typename T> inline RBNode<T>* RBRemove(RB<T>* s, RBNode<T>* elm);
+template<typename T> inline RBNode<T>* RBInsert(RB<T>* s, RBNode<T>* elm);
+template<typename T> inline RBNode<T>* RBInsert(RB<T>* s, const T& data);
+template<typename T> inline void RBTraverse( RBNode<T>* p, bool (*pfn)(RBNode<T>*, void*), void* pUserData, enum RB_ORDER order);
+template<typename T> inline RBNode<T>* RBSearch(RBNode<T>* p, const T& data);
+template<typename T> inline int RBDepth(RBNode<T>* p);
+
+template<typename T>
+inline void
+RBPrintNodes(
+    Allocator* pA,
+    const RB<T>* s,
+    const RBNode<T>* pNode,
+    void (*pfnPrint)(const RBNode<T>*, void*),
+    void* pFnData,
+    FILE* pF,
+    const String sPrefix,
+    bool bLeft
+);
+
 template<typename T>
 inline void
 RBSetLinks(RBNode<T>* l, RBNode<T>* r)
@@ -103,7 +132,7 @@ RBEmpty(RB<T>* s)
 }
 
 template<typename T>
-constexpr void
+inline void
 RBRotateLeft(RB<T>* s, RBNode<T>* elm)
 {
     auto tmp = elm->right;
@@ -125,7 +154,7 @@ RBRotateLeft(RB<T>* s, RBNode<T>* elm)
 }
 
 template<typename T>
-constexpr void
+inline void
 RBRotateRight(RB<T>* s, RBNode<T>* elm)
 {
     auto tmp = elm->left;
@@ -200,7 +229,8 @@ RBInsertColor(RB<T>* s, RBNode<T>* elm)
 }
 
 template<typename T>
-void RBRemoveColor(RB<T>* s, RBNode<T>* parent, RBNode<T>* elm)                 
+inline void
+RBRemoveColor(RB<T>* s, RBNode<T>* parent, RBNode<T>* elm)
 {
     RBNode<T>* tmp;
     while ((elm == nullptr || elm->color == RB_COL::BLACK) && elm != s->pRoot)
@@ -284,7 +314,7 @@ void RBRemoveColor(RB<T>* s, RBNode<T>* parent, RBNode<T>* elm)
 
 template<typename T>
 inline RBNode<T>*
-RBRemove(RB<T>* s, RBNode<T>* elm)                       
+RBRemove(RB<T>* s, RBNode<T>* elm)
 {
     RBNode<T>* child, * parent, * old = elm;
     enum RB_COL color;
@@ -352,7 +382,7 @@ color:
 
 /* create RBNode outside then insert */
 template<typename T>
-inline struct RBNode<T>*
+inline RBNode<T>*
 RBInsert(RB<T>* s, RBNode<T>* elm)
 {
     RBNode<T>* tmp;
@@ -388,7 +418,7 @@ RBInsert(RB<T>* s, RBNode<T>* elm)
 }
 
 template<typename T>
-inline struct RBNode<T>*
+inline RBNode<T>*
 RBInsert(RB<T>* s, const T& data)
 {
     RBNode<T>* pNew = RBNodeAlloc(s->pAlloc, data);

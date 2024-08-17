@@ -8,6 +8,10 @@
 namespace adt
 {
 
+inline String loadFile(Allocator* pAlloc, String path);
+inline Array<u8> loadFileToCharArray(Allocator* pAlloc, String path);
+inline String replacePathEnding(Allocator* pAlloc, adt::String path, adt::String sEnding);
+
 inline String
 loadFile(Allocator* pAlloc, String path)
 {

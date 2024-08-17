@@ -5,6 +5,11 @@
 namespace adt
 {
 
+template<typename T> inline u64 fnHash(T& x);
+template<> inline u64 fnHash<u64>(u64& x);
+template<> inline u64 fnHash<void* const>(void* const& x);
+constexpr u64 hashFNV(const char* str, u32 size);
+
 template<typename T>
 inline u64
 fnHash(T& x)

@@ -3,12 +3,21 @@
 #ifdef __linux__
     #include <time.h>
 #elif _WIN32
-    #include <windows.h>
     #include <sysinfoapi.h>
-    #undef min
-    #undef max
-    #undef near
-    #undef far
+    #include <windows.h>
+
+    #ifdef min
+        #undef min
+    #endif
+    #ifdef max
+        #undef max
+    #endif
+    #ifdef near
+        #undef near
+    #endif
+    #ifdef far
+        #undef far
+    #endif
 #endif
 
 #include "types.hh"
@@ -18,6 +27,14 @@ namespace adt
 
 constexpr u32 NPOS = (u32)(-1U);
 constexpr u64 NPOS64 = (u64)(-1UL);
+
+template<typename A, typename B> constexpr A& max(A& l, B& r);
+template<typename A, typename B> constexpr A& min(A& l, B& r);
+template<typename T> constexpr u64 size(const T& a);
+template<typename T> constexpr bool odd(const T& a);
+template<typename T> constexpr bool even(const T& a);
+inline f64 timeNowMS();
+inline f64 timeNowS();
 
 template<typename A, typename B>
 constexpr A&

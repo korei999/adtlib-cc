@@ -55,6 +55,21 @@ struct String
     constexpr It rend() const { return {this->pData - 1}; }
 };
 
+constexpr bool StringEndsWith(String l, String r);
+constexpr bool operator==(const String& sL, const String& sR);
+constexpr bool operator==(const String& l, const char* r);
+constexpr bool operator!=(const String& sL, const String& sR);
+constexpr s64 operator-(const String& l, const String& r);
+constexpr u32 StringLastOf(String sv, char c);
+constexpr String StringCreate(Allocator* p, const char* str, u32 size);
+constexpr String StringCreate(Allocator* p, u32 size);
+constexpr String StringCreate(Allocator* p, const char* str);
+constexpr String StringCreate(Allocator* p, String s);
+template<> constexpr size_t fnHash<String>(String& str);
+template<> constexpr size_t fnHash<const String>(const String& str);
+constexpr size_t hashFNV(String str);
+constexpr String StringCat(Allocator* p, String l, String r);
+
 constexpr bool
 StringEndsWith(String l, String r)
 {

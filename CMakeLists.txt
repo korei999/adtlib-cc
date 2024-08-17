@@ -18,10 +18,8 @@ add_compile_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 include_directories(BEFORE "src/adt")
 
-message (STATUS "CMAKE_CXX_COMPILER_ID: '${CMAKE_CXX_COMPILER_ID}'")
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options(-Wno-class-memaccess)
-endif()
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 add_executable(
     ${CMAKE_PROJECT_NAME}

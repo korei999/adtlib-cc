@@ -16,7 +16,11 @@ struct Array
     u32 cap = 0;
 
     Array() = default;
-    Array(Allocator* pA, u32 capacity = SIZE_MIN);
+    Array(Allocator* pA, u32 capacity = SIZE_MIN)
+        : pAlloc{pA},
+          pData{(T*)alloc(pA, capacity, sizeof(T))},
+          size{0},
+          cap{capacity} {}
 
     T& operator[](u32 i) { assert(i < size && "out of range access"); return pData[i]; }
     const T& operator[](u32 i) const { assert(i < size && "out of range access"); return pData[i]; }
@@ -44,6 +48,14 @@ struct Array
     It rbegin() { return {&this->pData[this->size - 1]}; }
     It rend() { return {this->pData - 1}; }
 };
+
+template<typename T> inline T* ArrayPush(Array<T>* s, const T& data);
+template<typename T> inline void ArrayGrow(Array<T>* s, u32 size);
+template<typename T> inline T& ArrayLast(Array<T>* s);
+template<typename T> inline T& ArrayFirst(Array<T>* s);
+template<typename T> inline T* ArrayPop(Array<T>* s);
+template<typename T> inline void ArraySetSize(Array<T>* s, u32 size);
+template<typename T> inline void ArrayDestroy(Array<T>* s);
 
 template<typename T>
 inline T*
@@ -81,7 +93,6 @@ ArrayFirst(Array<T>* s)
     return s->pData[0];
 }
 
-
 template<typename T>
 inline T*
 ArrayPop(Array<T>* s)
@@ -106,12 +117,5 @@ ArrayDestroy(Array<T>* s)
 {
     free(s->pAlloc, s->pData);
 }
-
-template<typename T>
-Array<T>::Array(Allocator* pA, u32 capacity)
-    : pAlloc{pA},
-      pData{(T*)alloc(pA, capacity, sizeof(T))},
-      size{0},
-      cap{capacity} {}
 
 } /* namespace adt */
