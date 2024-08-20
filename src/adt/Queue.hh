@@ -71,7 +71,7 @@ QueueResize(Queue<T>* s, u32 size)
     auto nQ = Queue<T>(s->pAlloc, size);
 
     for (int i = QueueFirstI(s), t = 0; t < s->size; i = QueueNextI(s, i), t++)
-        QueuePushBack(s, s->pData[i]);
+        QueuePushBack(&nQ, s->pData[i]);
 
     QueueDestroy(s);
     *s = nQ;
