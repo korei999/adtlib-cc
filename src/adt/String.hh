@@ -65,10 +65,11 @@ constexpr String StringCreate(Allocator* p, const char* str, u32 size);
 constexpr String StringCreate(Allocator* p, u32 size);
 constexpr String StringCreate(Allocator* p, const char* str);
 constexpr String StringCreate(Allocator* p, String s);
-template<> constexpr size_t fnHash<String>(String& str);
-template<> constexpr size_t fnHash<const String>(const String& str);
-constexpr size_t hashFNV(String str);
+constexpr u64 hashFNV(String str);
 constexpr String StringCat(Allocator* p, String l, String r);
+
+template<> constexpr u64 hash::func<String>(String& str);
+template<> constexpr u64 hash::func<const String>(const String& str);
 
 constexpr bool
 StringEndsWith(String l, String r)
@@ -159,24 +160,10 @@ StringCreate(Allocator* p, String s)
     return StringCreate(p, s.pData, s.size);
 }
 
-template<>
-constexpr size_t
-fnHash<String>(String& str)
-{
-    return hashFNV(str.pData, str.size);
-}
-
-template<>
-constexpr size_t
-fnHash<const String>(const String& str)
-{
-    return hashFNV(str.pData, str.size);
-}
-
 constexpr size_t
 hashFNV(String str)
 {
-    return hashFNV(str.pData, str.size);
+    return hash::fnv(str.pData, str.size);
 }
 
 constexpr String
@@ -194,6 +181,20 @@ StringCat(Allocator* p, String l, String r)
     ret[len] = '\0';
 
     return {ret, len};
+}
+
+template<>
+constexpr u64
+hash::func<String>(String& str)
+{
+    return fnv(str.pData, str.size);
+}
+
+template<>
+constexpr u64
+hash::func<const String>(const String& str)
+{
+    return fnv(str.pData, str.size);
 }
 
 } /* namespace adt */

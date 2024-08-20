@@ -119,7 +119,7 @@ __ThreadPoolLoop(void* p)
 inline void
 ThreadPoolStart(ThreadPool* s)
 {
-    for (size_t i = 0; i < s->threadCount; i++)
+    for (u32 i = 0; i < s->threadCount; i++)
         thrd_create(&s->pThreads[i], __ThreadPoolLoop, s);
 }
 
