@@ -64,8 +64,7 @@ __ChunkAllocatorNewBlock(ChunkAllocator* s)
 inline void*
 ChunkAlloc(ChunkAllocator* s, [[maybe_unused]] u64 _ignored, [[maybe_unused]] u64 __ignored)
 {
-    ChunkAllocatorBlock** ppFreeBlock = &s->pBlocks;
-    ChunkAllocatorBlock* pBlock = *ppFreeBlock;
+    ChunkAllocatorBlock* pBlock = s->pBlocks;
     ChunkAllocatorBlock* pPrev = nullptr;
     while (pBlock)
     {
@@ -77,7 +76,6 @@ ChunkAlloc(ChunkAllocator* s, [[maybe_unused]] u64 _ignored, [[maybe_unused]] u6
         {
             pPrev = pBlock;
             pBlock = pBlock->next;
-            ppFreeBlock = &pBlock;
         }
     }
 

@@ -5,7 +5,6 @@
 #include "adt/logs.hh"
 #include "json/Parser.hh"
 #include "adt/format.hh"
-#include "adt/DefaultAllocator.hh"
 #include "adt/ChunkAllocator.hh"
 
 #include <math.h>
@@ -19,7 +18,6 @@ constexpr int total = 1000000;
 void
 testRB()
 {
-    DefaultAllocator alloc3 {};
     Arena alloc2 (SIZE_8M);
     ChunkAllocator alChunk (sizeof(RBNode<int>), SIZE_1M * 100);
 
