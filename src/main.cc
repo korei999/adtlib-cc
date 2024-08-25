@@ -1,116 +1,143 @@
 #include "adt/ThreadPool.hh"
-#include "adt/AVL.hh"
-#include "adt/ArenaAllocator.hh"
-#include "adt/RB.hh"
+#include "adt/AVLTree.hh"
+#include "adt/Arena.hh"
+#include "adt/RBTree.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
+#include "adt/format.hh"
+#include "adt/DefaultAllocator.hh"
+#include "adt/ChunkAllocator.hh"
 
 #include <math.h>
 
-/*u8 BIG[adt::SIZE_1G * 4] {};*/
+using namespace adt;
+
+/*u8 BIG[SIZE_1G * 4] {};*/
 
 constexpr int total = 1000000;
 
 void
 testRB()
 {
-    adt::ArenaAllocator alloc(adt::SIZE_8M);
+    DefaultAllocator alloc3 {};
+    Arena alloc2 (SIZE_8M);
+    ChunkAllocator alChunk (sizeof(RBNode<int>), SIZE_1M * 100);
 
-    adt::RB<int> kek(&alloc.base);
-    adt::Array<adt::RBNode<int>*> a(&alloc.base);
+    RBTree<int> kek (&alChunk.base);
+    Array<RBNode<int>*> a (&alloc2.base);
 
-    bool (*pfnCollect)(adt::RBNode<int>*, void* pArgs) = [](adt::RBNode<int>* pNode, void* pArgs) -> bool {
-        auto* a = (adt::Array<adt::RBNode<int>*>*)pArgs;
-        adt::ArrayPush(a, pNode);
+    bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = [](RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
+        auto* a = (Array<RBNode<int>*>*)pArgs;
+        ArrayPush(a, pNode);
         return false;
     };
 
-    /*void (*pfnPrintInt)(const adt::RBNode<int>*, void* pArgs) = [](const adt::RBNode<int>* pNode, void* pArgs) -> void {*/
-    /*    COUT("%s" COL_NORM " %d\n", pNode->color == adt::RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data);*/
-    /*    (*(int*)pArgs)++;*/
+    void (*pfnPrintInt)(const RBNode<int>*, void* pArgs) = [](const RBNode<int>* pNode, void* pArgs) -> void {
+        COUT("%s" COL_NORM " %d\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data);
+    };
+
+    /*void (*pfnPrintNodes)(const RBNode<FreeListNode>*, void* pArgs) = [](const RBNode<FreeListNode>* pNode, void* pArgs) -> void {*/
+    /*    COUT("%s" COL_NORM " %u\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data.size);*/
     /*};*/
 
-    f64 t0 = adt::timeNowMS();
+    f64 t0 = utils::timeNowMS();
+
+    /*RBPrintNodes(&alloc2.base, &alloc.tree, alloc.tree.pRoot, pfnPrintNodes, {}, stdout, {}, false);*/
+    /*COUT("\n");*/
 
     for (int i = 0; i < total; i++)
     {
         auto r = rand();
-        adt::RBInsert(&kek, r);
+        RBInsert(&kek, r, true);
+
+        /*COUT("inserting '%d'\n", r);*/
     }
 
-    adt::RBTraverse(kek.pRoot, pfnCollect, &a, adt::RB_ORDER::PRE);
-    auto depth = adt::RBDepth(kek.pRoot);
+    RBTraverse({}, kek.pRoot, pfnCollect, &a, RB_ORDER::PRE);
+    auto depth = RBDepth(kek.pRoot);
 
     int i = 0;
     for (; i < (int)a.size; i += 1)
     {
-        adt::RBRemove(&kek, a[i]);
+        RBRemoveAndFree(&kek, a[i]);
 
-        if (i % 10 == 0)
+        /*RBPrintNodes(&alloc2.base, &alloc.tree, alloc.tree.pRoot, pfnPrintNodes, {}, stdout, {}, false);*/
+        /*COUT("\n");*/
+
+        /*RBRemove(&kek, a[i]);*/
+
+        if (i % 2 == 0)
         {
             auto r = rand();
-            adt::RBInsert(&kek, r);
+            RBInsert(&kek, r, true);
         }
     }
 
-    f64 t1 = adt::timeNowMS();
+    f64 t1 = utils::timeNowMS();
 
+    /*COUT("alloc depth: %d\n", RBDepth(alloc.tree.pRoot));*/
+    /*RBPrintNodes(&alloc2.base, &alloc.tree, alloc.tree.pRoot, pfnPrintNodes, {}, stdout, {}, false);*/
+    /*COUT("\n");*/
+    /**/
     /*if (kek.pRoot)*/
-    /*    adt::RBPrintNodes(&alloc.base, &kek, kek.pRoot, pfnPrintInt, &count, stdout, {}, false);*/
+    /*    RBPrintNodes(&alloc2.base, &kek, kek.pRoot, pfnPrintInt, {}, stdout, {}, false);*/
     /*else COUT("tree is empty\n");*/
 
     COUT("RB: depth: %d\n", depth);
     COUT("total: %d, size: %d\n", total, a.size);
     COUT("time: %lf ms\n\n", t1 - t0);
 
-    adt::ArenaAllocatorFreeAll(&alloc);
+    RBDestroy(&kek);
+
+    ArenaFreeAll(&alloc2);
+    ChunkFreeAll(&alChunk);
 }
 
 void
 testAVL()
 {
-    adt::ArenaAllocator alloc(adt::SIZE_8M);
+    Arena alloc {SIZE_8M};
+    /*FreeList alloc(SIZE_1G);*/
 
-    adt::AVL<int> kek {&alloc.base};
-    adt::Array<adt::AVLNode<int>*> a(&alloc.base);
+    AVLTree<int> kek {&alloc.base};
+    Array<AVLNode<int>*> a {&alloc.base};
 
-    /*void (*pfnPrintInt)(const adt::AVLNode<int>*, void* pArgs) = [](const adt::AVLNode<int>* pNode, void* pArgs) -> void {*/
-    /*    COUT(COL_YELLOW "%d" COL_NORM " %d\n", pNode->height, pNode->data);*/
-    /*    (*(int*)pArgs)++;*/
-    /*};*/
+    void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, void* pArgs) -> void {
+        COUT(COL_YELLOW "%d" COL_NORM " %d\n", pNode->height, pNode->data);
+    };
 
-    bool (*pfnCollect)(adt::AVLNode<int>*, void* pArgs) = [](adt::AVLNode<int>* pNode, void* pArgs) -> bool {
-        auto* a = (adt::Array<adt::AVLNode<int>*>*)pArgs;
-        adt::ArrayPush(a, pNode);
+    bool (*pfnCollect)(AVLNode<int>*, void* pArgs) = [](AVLNode<int>* pNode, void* pArgs) -> bool {
+        auto* a = (Array<AVLNode<int>*>*)pArgs;
+        ArrayPush(a, pNode);
         return false;
     };
 
-    f64 t0 = adt::timeNowMS();
+    f64 t0 = utils::timeNowMS();
 
     for (int i = 0; i < total; i++)
     {
         auto r = rand();
-        adt::AVLInsert(&kek, r);
+        AVLInsert(&kek, r, true);
     }
 
-    adt::AVLTraverse(kek.pRoot, pfnCollect, &a, adt::AVL_ORDER::PRE);
-    short depth = adt::AVLDepth(kek.pRoot);
+    AVLTraverse(kek.pRoot, pfnCollect, &a, AVL_ORDER::PRE);
+    short depth = AVLDepth(kek.pRoot);
 
     int i = 0;
     for (; i < (int)a.size; i += 1)
     {
-        adt::AVLRemove(&kek, a[i]);
+        AVLRemove(&kek, a[i]);
 
-        if (i % 10 == 0)
+        if (i % 2 == 0)
         {
             auto r = rand();
-            adt::AVLInsert(&kek, r);
+            AVLInsert(&kek, r, true);
         }
     }
 
-    f64 t1 = adt::timeNowMS();
+    f64 t1 = utils::timeNowMS();
 
-    /*if (kek.pRoot) adt::AVLPrintNodes(&alloc.base, &kek, kek.pRoot, pfnPrintInt, &count, stdout, "", false);*/
+    /*if (kek.pRoot) AVLPrintNodes(&alloc.base, &kek, kek.pRoot, pfnPrintInt, {}, stdout, "", false);*/
     /*else COUT("tree is empty");*/
     /*COUT("\n");*/
 
@@ -118,59 +145,68 @@ testAVL()
     COUT("total: %d, size: %d\n", total, a.size);
     COUT("time: %lf ms\n\n", t1 - t0);
 
-    adt::ArenaAllocatorFreeAll(&alloc);
+    ArenaFreeAll(&alloc);
 }
 
 int
 main(int argCount, char* paArgs[])
 {
-    /*adt::FixedAllocator alloc(BIG, adt::size(BIG));*/
-    adt::ArenaAllocator alloc(adt::SIZE_1M * 100);
+    /*FixedAllocator alloc (BIG, size(BIG));*/
+    Arena alloc (SIZE_1M * 100);
+    ThreadPool tp (&alloc.base, 2);
+    ThreadPoolStart(&tp);
 
-    adt::ThreadPool tp(&alloc.base);
-    adt::ThreadPoolStart(&tp);
+    char buf[100] {};
+    char buf2[40] {};
 
-    srand(round(adt::timeNowMS()));
-
-    if (argCount >= 2 && (adt::String(paArgs[1]) == "--avl" || adt::String(paArgs[1]) == "--tree"))
-    {
-        adt::ThreadPoolSubmit(&tp, [](void*) -> int {
-            testAVL();
-            return 0;
-        }, nullptr);
-    }
-
-    if (argCount >= 2 && (adt::String(paArgs[1]) == "--rb" || adt::String(paArgs[1]) == "--tree"))
-    {
-        adt::ThreadPoolSubmit(&tp, [](void*) -> int {
-            testRB();
-            return 0;
-        }, nullptr);
-    }
-
-    adt::ThreadPoolWait(&tp);
-    adt::ThreadPoolDestroy(&tp);
-
-    if (adt::String(paArgs[1]) == "--avl" || adt::String(paArgs[1]) == "--rb" || adt::String(paArgs[1]) == "--tree")
-        return 0;
+    auto ten = format::toString(buf, utils::size(buf), -12341230);
+    COUT("ten: '%.*s'\n", ten.size, ten.pData);
+    auto onePointFive = format::toString(buf2, utils::size(buf2), -1.445990);
+    COUT("onePointFive: '%.*s', size: %d\n\n", onePointFive.size, onePointFive.pData, onePointFive.size);
 
     if (argCount <= 1)
     {
         COUT("jsonast version: %f\n\n", ADTLIB_CC_VERSION);
         COUT("usage: %s <path to json> [-p(print)|-e(json creation example)]\n", paArgs[0]);
-        return 1;
+        goto cleanup;
     }
 
+    /*srand(round(utils::timeNowMS()));*/
+
+    if (argCount >= 2 && (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--tree"))
+    {
+        ThreadPoolSubmit(&tp, [](void*) -> int {
+            testAVL();
+            return 0;
+        }, nullptr);
+    }
+
+    if (argCount >= 2 && (String(paArgs[1]) == "--rb" || String(paArgs[1]) == "--tree"))
+    {
+        ThreadPoolSubmit(&tp, [](void*) -> int {
+            testRB();
+            return 0;
+        }, nullptr);
+    }
+
+    ThreadPoolWait(&tp);
+    ThreadPoolDestroy(&tp);
+
+    if (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--rb" || String(paArgs[1]) == "--tree")
+    {
+        goto cleanup;
+    }
 
     if (argCount >= 2)
     {
-        json::Parser p(&alloc.base);
+        json::Parser p (&alloc.base);
         json::ParserLoad(&p, paArgs[1]);
         json::ParserParse(&p);
 
-        if (argCount >= 3 && "-p" == adt::String(paArgs[2]))
+        if (argCount >= 3 && "-p" == String(paArgs[2]))
             json::ParserPrint(&p);
     }
 
-    adt::ArenaAllocatorFreeAll(&alloc);
+cleanup:
+    ArenaFreeAll(&alloc);
 }

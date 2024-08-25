@@ -30,7 +30,7 @@ template<>
 inline u64
 func<void* const>(void* const& x)
 {
-    return reinterpret_cast<u64>(x);
+    return u64(x);
 }
 
 constexpr u64

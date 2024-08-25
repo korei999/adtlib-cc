@@ -1,6 +1,7 @@
 #include "Parser.hh"
-#include "utils.hh"
 #include "logs.hh"
+
+using namespace adt;
 
 namespace json
 {

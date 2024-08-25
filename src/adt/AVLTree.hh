@@ -2,7 +2,7 @@
 
 #include "Allocator.hh"
 #include "String.hh"
-#include "compare.hh"
+#include "utils.hh"
 
 #include <stdio.h>
 #include <assert.h>
@@ -23,21 +23,21 @@ struct AVLNode
 };
 
 template<typename T>
-struct AVL
+struct AVLTree
 {
     Allocator* pAlloc = nullptr;
     AVLNode<T>* pRoot = nullptr;
 
-    AVL() = default;
-    AVL(Allocator* pA) : pAlloc{pA} {}
+    AVLTree() = default;
+    AVLTree(Allocator* pA) : pAlloc{pA} {}
 };
 
 template<typename T> AVLNode<T>* AVLNodeAlloc(Allocator* pA, const T& data);
 template<typename T> inline AVLNode<T>* AVLMin(AVLNode<T>* p);
 template<typename T> inline AVLNode<T>* AVLMax(AVLNode<T>* p);
-template<typename T> inline void AVLRemove(AVL<T>* s, AVLNode<T>* d);
-template<typename T> inline AVLNode<T>* AVLInsert(AVL<T>* s, AVLNode<T>* pNew);
-template<typename T> inline AVLNode<T>* AVLInsert(AVL<T>* s, const T& data);
+template<typename T> inline void AVLRemove(AVLTree<T>* s, AVLNode<T>* d);
+template<typename T> inline AVLNode<T>* AVLInsert(AVLTree<T>* s, AVLNode<T>* pNew, bool bAllowDupticates);
+template<typename T> inline AVLNode<T>* AVLInsert(AVLTree<T>* s, const T& data, bool bAllowDupticates);
 template<typename T> inline void AVLTraverse( AVLNode<T>* p, bool (*pfn)(AVLNode<T>*, void*), void* pUserData, enum AVL_ORDER order);
 template<typename T> inline AVLNode<T>* AVLSearch(AVLNode<T>* p, const T& data);
 template<typename T> inline s16 AVLDepth(AVLNode<T>* p);
@@ -47,7 +47,7 @@ template<typename T>
 inline void
 AVLPrintNodes(
     Allocator* pA,
-    const AVL<T>* s,
+    const AVLTree<T>* s,
     const AVLNode<T>* pNode,
     void (*pfnPrint)(const AVLNode<T>*, void*),
     void* pFnData,
@@ -56,16 +56,16 @@ AVLPrintNodes(
     bool bLeft
 );
 
-template<typename T> inline s16 __AVLBalance(AVLNode<T>* p);
+template<typename T> inline s16 __AVLNodeBalance(AVLNode<T>* p);
 template<typename T> inline void __AVLUpdateHeight(AVLNode<T>* p);
-template<typename T> inline AVLNode<T>* __AVLRightRotate(AVL<T>* s, AVLNode<T>* a);
-template<typename T> inline AVLNode<T>* __AVLLeftRotate(AVL<T>* s, AVLNode<T>* b);
-template<typename T> inline AVLNode<T>* __AVLLeftLeftCase(AVL<T>* s, AVLNode<T>* node);
-template<typename T> inline AVLNode<T>* __AVLLeftRightCase(AVL<T>* s, AVLNode<T>* p);
-template<typename T> inline AVLNode<T>* __AVLRightRightCase(AVL<T>* s, AVLNode<T>* node);
-template<typename T> inline AVLNode<T>* __AVLRightLeftCase(AVL<T>* s, AVLNode<T>* p);
-template<typename T> inline void __AVLTransplant(AVL<T>* s, AVLNode<T>* u, AVLNode<T>* v);
-template<typename T> inline void __AVLRebalance(AVL<T>* s, AVLNode<T>* p);
+template<typename T> inline AVLNode<T>* __AVLRightRotate(AVLTree<T>* s, AVLNode<T>* a);
+template<typename T> inline AVLNode<T>* __AVLLeftRotate(AVLTree<T>* s, AVLNode<T>* b);
+template<typename T> inline AVLNode<T>* __AVLLeftLeftCase(AVLTree<T>* s, AVLNode<T>* node);
+template<typename T> inline AVLNode<T>* __AVLLeftRightCase(AVLTree<T>* s, AVLNode<T>* p);
+template<typename T> inline AVLNode<T>* __AVLRightRightCase(AVLTree<T>* s, AVLNode<T>* node);
+template<typename T> inline AVLNode<T>* __AVLRightLeftCase(AVLTree<T>* s, AVLNode<T>* p);
+template<typename T> inline void __AVLTransplant(AVLTree<T>* s, AVLNode<T>* u, AVLNode<T>* v);
+template<typename T> inline void __AVLRebalance(AVLTree<T>* s, AVLNode<T>* p);
 
 template<typename T>
 AVLNode<T>*
@@ -85,7 +85,7 @@ AVLNodeHeight(AVLNode<T>* p)
 
 template<typename T>
 inline s16
-__AVLBalance(AVLNode<T>* p)
+__AVLNodeBalance(AVLNode<T>* p)
 {
     return AVLNodeHeight(p->pLeft) - AVLNodeHeight(p->pRight);
 }
@@ -96,7 +96,7 @@ __AVLUpdateHeight(AVLNode<T>* p)
 {
     s16 lh = AVLNodeHeight(p->pLeft);
     s16 rh = AVLNodeHeight(p->pRight);
-    p->height = 1 + max(lh, rh);
+    p->height = 1 + utils::max(lh, rh);
 }
 
 /*            (P)                    (P)
@@ -108,7 +108,7 @@ __AVLUpdateHeight(AVLNode<T>* p)
  *      (D)  (E)                    (E)  (C)     */
 template<typename T>
 inline AVLNode<T>*
-__AVLRightRotate(AVL<T>* s, AVLNode<T>* a)
+__AVLRightRotate(AVLTree<T>* s, AVLNode<T>* a)
 {
     auto p = a->pParent;
     auto b = a->pLeft;
@@ -141,7 +141,7 @@ __AVLRightRotate(AVL<T>* s, AVLNode<T>* a)
  *        (E)  (C)            (D)  (E)          */
 template<typename T>
 inline AVLNode<T>*
-__AVLLeftRotate(AVL<T>* s, AVLNode<T>* b)
+__AVLLeftRotate(AVLTree<T>* s, AVLNode<T>* b)
 {
     auto p = b->pParent;
     auto a = b->pRight;
@@ -167,14 +167,14 @@ __AVLLeftRotate(AVL<T>* s, AVLNode<T>* b)
 
 template<typename T>
 inline AVLNode<T>*
-__AVLLeftLeftCase(AVL<T>* s, AVLNode<T>* node)
+__AVLLeftLeftCase(AVLTree<T>* s, AVLNode<T>* node)
 {
     return __AVLRightRotate(s, node);
 }
 
 template<typename T>
 inline AVLNode<T>*
-__AVLLeftRightCase(AVL<T>* s, AVLNode<T>* p)
+__AVLLeftRightCase(AVLTree<T>* s, AVLNode<T>* p)
 {
     p->pLeft = __AVLLeftRotate(s, p->pLeft);
     return __AVLRightRotate(s, p);
@@ -182,14 +182,14 @@ __AVLLeftRightCase(AVL<T>* s, AVLNode<T>* p)
 
 template<typename T>
 inline AVLNode<T>*
-__AVLRightRightCase(AVL<T>* s, AVLNode<T>* node)
+__AVLRightRightCase(AVLTree<T>* s, AVLNode<T>* node)
 {
     return __AVLLeftRotate(s, node);
 }
 
 template<typename T>
 inline AVLNode<T>*
-__AVLRightLeftCase(AVL<T>* s, AVLNode<T>* p)
+__AVLRightLeftCase(AVLTree<T>* s, AVLNode<T>* p)
 {
     p->pRight = __AVLRightRotate(s, p->pRight);
     return __AVLLeftRotate(s, p);
@@ -215,7 +215,7 @@ AVLMax(AVLNode<T>* p)
 
 template<typename T>
 inline void
-__AVLTransplant(AVL<T>* s, AVLNode<T>* u, AVLNode<T>* v)
+__AVLTransplant(AVLTree<T>* s, AVLNode<T>* u, AVLNode<T>* v)
 {
     if (!u->pParent) s->pRoot = v;
     else if (u == u->pParent->pLeft) u->pParent->pLeft = v;
@@ -226,11 +226,11 @@ __AVLTransplant(AVL<T>* s, AVLNode<T>* u, AVLNode<T>* v)
 
 template<typename T>
 inline void
-__AVLRebalance(AVL<T>* s, AVLNode<T>* p)
+__AVLRebalance(AVLTree<T>* s, AVLNode<T>* p)
 {
     while (p)
     {
-        s16 diff = __AVLBalance(p);
+        s16 diff = __AVLNodeBalance(p);
 
         if (diff <= -2)
         {
@@ -253,7 +253,7 @@ __AVLRebalance(AVL<T>* s, AVLNode<T>* p)
 
 template<typename T>
 inline void
-AVLRemove(AVL<T>* s, AVLNode<T>* d)
+AVLRemove(AVLTree<T>* s, AVLNode<T>* d)
 {
     AVLNode<T>* succ, * toBalance;
 
@@ -316,7 +316,7 @@ AVLRemove(AVL<T>* s, AVLNode<T>* d)
 
 template<typename T>
 inline AVLNode<T>*
-AVLInsert(AVL<T>* s, AVLNode<T>* pNew)
+AVLInsert(AVLTree<T>* s, AVLNode<T>* pNew, bool bAllowDupticates)
 {
     AVLNode<T>** ppSelf = &s->pRoot, * pParent = nullptr;
     s64 comp = 0;
@@ -332,11 +332,19 @@ AVLInsert(AVL<T>* s, AVLNode<T>* pNew)
             break;
         }
 
-        comp = compare(pNew->data, n->data);
+        comp = utils::compare(pNew->data, n->data);
 
-        if (comp == 0) return n;
-
-        if (comp < 0)
+        if (comp == 0)
+        {
+            if (bAllowDupticates)
+            {
+                /* left case */
+                pParent = *ppSelf;
+                ppSelf = &n->pLeft;
+            }
+            else return n;
+        }
+        else if (comp < 0)
         {
             pParent = *ppSelf;
             ppSelf = &n->pLeft;
@@ -354,10 +362,10 @@ AVLInsert(AVL<T>* s, AVLNode<T>* pNew)
 
 template<typename T>
 inline AVLNode<T>*
-AVLInsert(AVL<T>* s, const T& data)
+AVLInsert(AVLTree<T>* s, const T& data, bool bAllowDupticates)
 {
     auto* pNew = AVLNodeAlloc(s->pAlloc, data);
-    return AVLInsert(s, pNew);
+    return AVLInsert(s, pNew, bAllowDupticates);
 }
 
 /* early return if pfn returns true */
@@ -413,7 +421,7 @@ AVLDepth(AVLNode<T>* p)
     {
         s16 l = AVLDepth(p->pLeft);
         s16 r = AVLDepth(p->pRight);
-        return 1 + max(l, r);
+        return 1 + utils::max(l, r);
     } else return 0;
 }
 
@@ -421,7 +429,7 @@ template<typename T>
 inline void
 AVLPrintNodes(
     Allocator* pA,
-    const AVL<T>* s,
+    const AVLTree<T>* s,
     const AVLNode<T>* pNode,
     void (*pfnPrint)(const AVLNode<T>*, void*),
     void* pFnData,

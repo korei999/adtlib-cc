@@ -4,6 +4,7 @@
 #include "file.hh"
 #include "logs.hh"
 
+using namespace adt;
 
 namespace json
 {
@@ -11,7 +12,7 @@ namespace json
 void
 LexerLoadFile(Lexer* s, adt::String path)
 {
-    s->sFile = adt::loadFile(s->pAlloc, path);
+    s->sFile = file::load(s->pAlloc, path);
     s->pos = 0;
 }
 

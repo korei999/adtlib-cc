@@ -7,17 +7,19 @@
 
 namespace adt
 {
+namespace file
+{
 
-inline String loadFile(Allocator* pAlloc, String path);
-inline Array<u8> loadFileToCharArray(Allocator* pAlloc, String path);
-inline String replacePathEnding(Allocator* pAlloc, adt::String path, adt::String sEnding);
+inline String load(Allocator* pAlloc, String path);
+inline Array<u8> loadToCharArray(Allocator* pAlloc, String path);
+inline String replacePathEnding(Allocator* pAlloc, String path, String sEnding);
 
 inline String
-loadFile(Allocator* pAlloc, String path)
+load(Allocator* pAlloc, String path)
 {
     String ret;
 
-    auto sn = StringCreate(pAlloc, path);
+    auto sn = StringAlloc(pAlloc, path);
 
     FILE* pf = fopen(sn.pData, "rb");
     if (pf)
@@ -37,7 +39,7 @@ loadFile(Allocator* pAlloc, String path)
 }
 
 inline Array<u8>
-loadFileToCharArray(Allocator* pAlloc, String path)
+loadToCharArray(Allocator* pAlloc, String path)
 {
     Array<u8> ret(pAlloc);
 
@@ -59,12 +61,13 @@ loadFileToCharArray(Allocator* pAlloc, String path)
 }
 
 inline String
-replacePathEnding(Allocator* pAlloc, adt::String path, adt::String sEnding)
+replacePathEnding(Allocator* pAlloc, String path, String sEnding)
 {
-    auto lastSlash = adt::StringLastOf(path, '/');
-    adt::String sNoEnding = {&path[0], lastSlash + 1};
-    auto r = adt::StringCat(pAlloc, sNoEnding, sEnding);
+    auto lastSlash = StringLastOf(path, '/');
+    String sNoEnding = {&path[0], lastSlash + 1};
+    auto r = StringCat(pAlloc, sNoEnding, sEnding);
     return r;
 }
 
+} /* namespace file */
 } /* namespace adt */

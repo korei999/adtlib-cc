@@ -42,7 +42,7 @@ inline Object* ParserGetHeadObj(Parser* s) { return s->pHead; }
 inline Object*
 searchObject(adt::Array<Object>& aObj, adt::String svKey)
 {
-    for (u32 i = 0; i < aObj.size; i++)
+    for (adt::u32 i = 0; i < aObj.size; i++)
         if (aObj[i].svKey == svKey)
             return &aObj[i];
 

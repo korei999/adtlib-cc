@@ -73,6 +73,7 @@ inline
 ThreadPool::ThreadPool(Allocator* p, u32 _threadCount)
     : pAlloc(p), qTasks(p, _threadCount), threadCount(_threadCount), activeTaskCount(0), bDone(false)
 {
+    /*QueueResize(&qTasks, _threadCount);*/
     pThreads = (thrd_t*)alloc(p, _threadCount, sizeof(thrd_t));
     cnd_init(&cndQ);
     mtx_init(&mtxQ, mtx_plain);
@@ -119,7 +120,7 @@ __ThreadPoolLoop(void* p)
 inline void
 ThreadPoolStart(ThreadPool* s)
 {
-    for (u32 i = 0; i < s->threadCount; i++)
+    for (size_t i = 0; i < s->threadCount; i++)
         thrd_create(&s->pThreads[i], __ThreadPoolLoop, s);
 }
 

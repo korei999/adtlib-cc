@@ -31,7 +31,7 @@ struct Object;
 
 union Val
 {
-    Nullptr n;
+    adt::null n;
     adt::String sv;
     long l;
     double d;

@@ -18,8 +18,11 @@ add_compile_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 include_directories(BEFORE "src/adt")
 
-set(BUILD_SHARED_LIBS OFF)
-set(CMAKE_EXE_LINKER_FLAGS "-static")
+
+if (NOT CMAKE_BUILD_TYPE MATCHES "Asan")
+    set(BUILD_SHARED_LIBS OFF)
+    set(CMAKE_EXE_LINKER_FLAGS "-static")
+endif()
 
 add_executable(
     ${CMAKE_PROJECT_NAME}

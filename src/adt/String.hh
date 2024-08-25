@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Allocator.hh"
-#include "utils.hh"
 #include "hash.hh"
 
 namespace adt
@@ -17,7 +16,7 @@ nullTermStringSize(const char* str)
     return i;
 }
 
-/* just pointer + size, no allocations, use `StringCreate()` for that */
+/* just pointer + size, no allocations, use `StringAlloc()` for that */
 struct String
 {
     char* pData = nullptr;
@@ -61,10 +60,10 @@ constexpr bool operator==(const String& l, const char* r);
 constexpr bool operator!=(const String& sL, const String& sR);
 constexpr s64 operator-(const String& l, const String& r);
 constexpr u32 StringLastOf(String sv, char c);
-constexpr String StringCreate(Allocator* p, const char* str, u32 size);
-constexpr String StringCreate(Allocator* p, u32 size);
-constexpr String StringCreate(Allocator* p, const char* str);
-constexpr String StringCreate(Allocator* p, String s);
+constexpr String StringAlloc(Allocator* p, const char* str, u32 size);
+constexpr String StringAlloc(Allocator* p, u32 size);
+constexpr String StringAlloc(Allocator* p, const char* str);
+constexpr String StringAlloc(Allocator* p, String s);
 constexpr u64 hashFNV(String str);
 constexpr String StringCat(Allocator* p, String l, String r);
 
@@ -132,7 +131,7 @@ StringLastOf(String sv, char c)
 }
 
 constexpr String
-StringCreate(Allocator* p, const char* str, u32 size)
+StringAlloc(Allocator* p, const char* str, u32 size)
 {
     char* pData = (char*)alloc(p, size + 1, sizeof(char));
     for (u32 i = 0; i < size; i++)
@@ -142,32 +141,32 @@ StringCreate(Allocator* p, const char* str, u32 size)
 }
 
 constexpr String
-StringCreate(Allocator* p, u32 size)
+StringAlloc(Allocator* p, u32 size)
 {
     char* pData = (char*)alloc(p, size + 1, sizeof(char));
     return {pData, size};
 }
 
 constexpr String
-StringCreate(Allocator* p, const char* str)
+StringAlloc(Allocator* p, const char* str)
 {
-    return StringCreate(p, str, nullTermStringSize(str));
+    return StringAlloc(p, str, nullTermStringSize(str));
 }
 
 constexpr String
-StringCreate(Allocator* p, String s)
+StringAlloc(Allocator* p, const String s)
 {
-    return StringCreate(p, s.pData, s.size);
+    return StringAlloc(p, s.pData, s.size);
 }
 
-constexpr size_t
-hashFNV(String str)
+constexpr u64
+hashFNV(const String str)
 {
     return hash::fnv(str.pData, str.size);
 }
 
 constexpr String
-StringCat(Allocator* p, String l, String r)
+StringCat(Allocator* p, const String l, const String r)
 {
     u32 len = l.size + r.size;
     char* ret = (char*)alloc(p, len + 1, sizeof(char));
@@ -181,6 +180,15 @@ StringCat(Allocator* p, String l, String r)
     ret[len] = '\0';
 
     return {ret, len};
+}
+
+constexpr void
+StringAppend(String* l, const String r)
+{
+    for (long i = l->size, j = 0; i < long(l->size + r.size); i++, j++)
+        (*l)[i] = r[j];
+
+    l->size += r.size;
 }
 
 template<>

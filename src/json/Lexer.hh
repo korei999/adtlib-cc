@@ -8,7 +8,7 @@ namespace json
 
 struct Token
 {
-    enum TYPE : u8
+    enum TYPE : adt::u8
     {
         LBRACE = '{',
         RBRACE = '}',
@@ -33,7 +33,7 @@ struct Lexer
 {
     adt::Allocator* pAlloc {};
     adt::String sFile;
-    u32 pos = 0;
+    adt::u32 pos = 0;
 
     Lexer() = default;
     Lexer(adt::Allocator* p) : pAlloc(p) {}

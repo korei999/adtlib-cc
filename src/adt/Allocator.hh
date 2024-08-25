@@ -5,8 +5,9 @@
 namespace adt
 {
 
-constexpr u64 align8(u64 x) { return ((x) + 8 - 1) & (~(8 - 1)); }
 constexpr u64 align(u64 x, u64 to) { return ((x) + to - 1) & (~(to - 1)); }
+constexpr u64 align8(u64 x) { return align(x, 8); }
+constexpr bool isPowerOf2(u64 x) { return (x & (x-1)) == 0; }
 
 constexpr u64 SIZE_MIN = 2UL;
 constexpr u64 SIZE_1K = 1024UL;

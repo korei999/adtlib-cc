@@ -7,6 +7,8 @@
 namespace adt
 {
 
+#define ADT_ARRAY_FOREACH_I(A, I) for (u32 I = 0; I < (A)->size; I++)
+
 template<typename T>
 struct Array
 {
@@ -22,8 +24,8 @@ struct Array
           size{0},
           cap{capacity} {}
 
-    T& operator[](u32 i) { assert(i < cap && "out of range access"); return pData[i]; }
-    const T& operator[](u32 i) const { assert(i < cap && "out of range access"); return pData[i]; }
+    T& operator[](u32 i) { assert(i < size && "out of range access"); return pData[i]; }
+    const T& operator[](u32 i) const { assert(i < size && "out of range access"); return pData[i]; }
 
     struct It
     {

@@ -37,26 +37,26 @@ struct ArenaNode
     u8 pData[];
 };
 
-struct ArenaAllocator
+struct Arena
 {
     Allocator base {};
     ArenaBlock* pBlocksHead = nullptr;
     ArenaBlock* pLastBlockAllocation = nullptr;
 
-    ArenaAllocator() = default;
-    ArenaAllocator(u32 blockCap);
+    Arena() = default;
+    Arena(u32 blockCap);
 };
 
-inline void* ArenaAllocatorAlloc(ArenaAllocator* s, u64 mCount, u64 mSize);
-inline void* ArenaAllocatorRealloc(ArenaAllocator* s, void* p, u64 mCount, u64 mSize);
-inline void ArenaAllocatorFree([[maybe_unused]] ArenaAllocator* s, [[maybe_unused]] void* p);
-inline void ArenaAllocatorReset(ArenaAllocator* s);
-inline void ArenaAllocatorFreeAll(ArenaAllocator* s);
+inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
+inline void* ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize);
+inline void ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p);
+inline void ArenaReset(Arena* s);
+inline void ArenaFreeAll(Arena* s);
 
-inline ArenaBlock* __ArenaAllocatorNewBlock(ArenaAllocator* s, u64 size);
+inline ArenaBlock* __ArenaAllocatorNewBlock(Arena* s, u64 size);
 
 inline ArenaBlock*
-__ArenaAllocatorNewBlock(ArenaAllocator* s, u64 size)
+__ArenaAllocatorNewBlock(Arena* s, u64 size)
 {
     ArenaBlock** ppLastBlock = &s->pBlocksHead;
     while (*ppLastBlock) ppLastBlock = &((*ppLastBlock)->pNext);
@@ -76,7 +76,7 @@ __ArenaAllocatorNewBlock(ArenaAllocator* s, u64 size)
 }
 
 inline void*
-ArenaAllocatorAlloc(ArenaAllocator* s, u64 mCount, u64 mSize)
+ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 {
     u64 requested = mCount * mSize;
     u64 aligned = align8(requested + sizeof(ArenaNode));
@@ -116,7 +116,7 @@ repeat:
 }
 
 inline void*
-ArenaAllocatorRealloc(ArenaAllocator* s, void* p, u64 mCount, u64 mSize)
+ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize)
 {
     ArenaNode* pNode = ARENA_GET_NODE_FROM_DATA(p);
     ArenaBlock* pBlock = nullptr;
@@ -124,7 +124,10 @@ ArenaAllocatorRealloc(ArenaAllocator* s, void* p, u64 mCount, u64 mSize)
     /* figure out which block this node belongs to */
     ARENA_FOREACH(s, pB)
         if ((u8*)p > (u8*)pB && ((u8*)pB + pB->size) > (u8*)p)
+        {
             pBlock = pB;
+            break;
+        }
 
     assert(pBlock != nullptr && "block not found, bad pointer");
 
@@ -140,7 +143,7 @@ ArenaAllocatorRealloc(ArenaAllocator* s, void* p, u64 mCount, u64 mSize)
     }
     else
     {
-        void* pR = ArenaAllocatorAlloc(s, mCount, mSize);
+        void* pR = ArenaAlloc(s, mCount, mSize);
         memcpy(pR, p, ((u8*)pNode->pNext - (u8*)pNode));
 
         return pR;
@@ -148,13 +151,13 @@ ArenaAllocatorRealloc(ArenaAllocator* s, void* p, u64 mCount, u64 mSize)
 }
 
 inline void
-ArenaAllocatorFree([[maybe_unused]] ArenaAllocator* s, [[maybe_unused]] void* p)
+ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p)
 {
     /* no individual frees */
 }
 
 inline void
-ArenaAllocatorReset(ArenaAllocator* s)
+ArenaReset(Arena* s)
 {
     ARENA_FOREACH(s, pB)
     {
@@ -168,20 +171,20 @@ ArenaAllocatorReset(ArenaAllocator* s)
 }
 
 inline void
-ArenaAllocatorFreeAll(ArenaAllocator* s)
+ArenaFreeAll(Arena* s)
 {
     ARENA_FOREACH_SAFE(s, pB, tmp)
         ::free(pB);
 }
 
 inline const Allocator::Interface __ArenaAllocatorVTable {
-    .alloc = decltype(Allocator::Interface::alloc)(ArenaAllocatorAlloc),
-    .realloc = decltype(Allocator::Interface::realloc)(ArenaAllocatorRealloc),
-    .free = decltype(Allocator::Interface::free)(ArenaAllocatorFree)
+    .alloc = decltype(Allocator::Interface::alloc)(ArenaAlloc),
+    .realloc = decltype(Allocator::Interface::realloc)(ArenaRealloc),
+    .free = decltype(Allocator::Interface::free)(ArenaFree)
 };
 
 inline 
-ArenaAllocator::ArenaAllocator(u32 blockCap)
+Arena::Arena(u32 blockCap)
     : base {&__ArenaAllocatorVTable}
 {
     __ArenaAllocatorNewBlock(this, align8(blockCap + sizeof(ArenaNode)));
