@@ -22,13 +22,13 @@ testRB()
     RBTree<int> kek (&alChunk.base);
     Array<RBNode<int>*> a (&alloc2.base);
 
-    bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = [](RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
+    bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = []([[maybe_unused]] RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
         auto* a = (Array<RBNode<int>*>*)pArgs;
         ArrayPush(a, pNode);
         return false;
     };
 
-    void (*pfnPrintInt)(const RBNode<int>*, void* pArgs) = [](const RBNode<int>* pNode, void* pArgs) -> void {
+    [[maybe_unused]] void (*pfnPrintInt)(const RBNode<int>*, void* pArgs) = [](const RBNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT("%s" COL_NORM " %d\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data);
     };
 
@@ -98,7 +98,7 @@ testAVL()
     AVLTree<int> kek {&alloc.base};
     Array<AVLNode<int>*> a {&alloc.base};
 
-    void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, void* pArgs) -> void {
+    [[maybe_unused]] void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT(COL_YELLOW "%d" COL_NORM " %d\n", pNode->height, pNode->data);
     };
 
@@ -151,6 +151,33 @@ main(int argCount, char* paArgs[])
     Arena alloc (SIZE_1M * 100);
     ThreadPool tp (&alloc.base, 2);
     ThreadPoolStart(&tp);
+
+    Array<int> toSort (&alloc.base);
+    for (int i = 0; i < 10; i++)
+        ArrayPush(&toSort, rand() % 20);
+
+    /*for (auto n : toSort)*/
+    /*    COUT("%d, ", n);*/
+    /*COUT("\n");*/
+
+    /*auto fnCmp = [](const void* l, const void* r) -> int {*/
+    /*    return *(int*)l - *(int*)r;*/
+    /*};*/
+
+    for (auto n : toSort)
+        COUT("%d, ", n);
+    COUT("\n");
+
+    auto st0 = utils::timeNowMS();
+    /*qsort(toSort.pData, toSort.size, sizeof(int), fnCmp);*/
+    utils::qSort(&toSort);
+    /*utils::partition(toSort.pData, 3, toSort.size - 1);*/
+    auto st1 = utils::timeNowMS();
+    COUT("qSort in %.3lf ms\n", st1 - st0);
+
+    for (auto n : toSort)
+        COUT("%d, ", n);
+    COUT("\n");
 
     char buf[100] {};
     char buf2[40] {};

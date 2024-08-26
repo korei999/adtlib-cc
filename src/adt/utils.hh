@@ -27,6 +27,8 @@ namespace adt
 namespace utils
 {
 
+
+template<typename T> constexpr void swap(T* l, T* r);
 template<typename A, typename B> constexpr A& max(A& l, B& r);
 template<typename A, typename B> constexpr A& min(A& l, B& r);
 template<typename T> constexpr u64 size(const T& a);
@@ -35,6 +37,18 @@ template<typename T> constexpr bool even(const T& a);
 template<typename T> constexpr s64 compare(const T& l, const T& r);
 inline f64 timeNowMS();
 inline f64 timeNowS();
+template<typename T> constexpr int partition(T a[], int l, int h);
+template<typename T> constexpr void qSort(T a[], int l, int h);
+template<typename T> constexpr void qSort(T* a);
+
+template<typename T>
+constexpr void
+swap(T* l, T* r)
+{
+    auto tmp = *l;
+    *l = *r;
+    *r = tmp;
+}
 
 template<typename A, typename B>
 constexpr A&
@@ -104,6 +118,45 @@ inline f64
 timeNowS()
 {
     return timeNowMS() / 1000.0;
+}
+
+template<typename T>
+constexpr int
+partition(T a[], int l, int h)
+{
+    int p = h, firstHigh = l;
+
+    for (int i = l; i < h; i++)
+        if (a[i] < a[p])
+        {
+            swap(&a[i], &a[firstHigh]);
+            firstHigh++;
+        }
+
+    swap(&a[p], &a[firstHigh]);
+
+    return firstHigh;
+}
+
+template<typename T>
+constexpr void
+qSort(T a[], int l, int h)
+{
+    int p;
+
+    if (l < h)
+    {
+        p = partition(a, l, h);
+        qSort(a, l, p - 1);
+        qSort(a, p + 1, h);
+    }
+}
+
+template<typename T>
+constexpr void
+qSort(T* a)
+{
+    qSort(a->pData, 0, a->size - 1);
 }
 
 } /* namespace utils */
