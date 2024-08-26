@@ -1,11 +1,12 @@
-#include "adt/ThreadPool.hh"
 #include "adt/AVLTree.hh"
 #include "adt/Arena.hh"
+#include "adt/ChunkAllocator.hh"
+#include "adt/Heap.hh"
 #include "adt/RBTree.hh"
+#include "adt/ThreadPool.hh"
+#include "adt/format.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
-#include "adt/format.hh"
-#include "adt/ChunkAllocator.hh"
 
 using namespace adt;
 
@@ -178,6 +179,8 @@ main(int argCount, char* paArgs[])
     for (auto n : toSort)
         COUT("%d, ", n);
     COUT("\n");
+
+    Heap<int> heap (&alloc.base);
 
     char buf[100] {};
     char buf2[40] {};

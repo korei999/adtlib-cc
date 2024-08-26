@@ -27,7 +27,6 @@ namespace adt
 namespace utils
 {
 
-
 template<typename T> constexpr void swap(T* l, T* r);
 template<typename A, typename B> constexpr A& max(A& l, B& r);
 template<typename A, typename B> constexpr A& min(A& l, B& r);
