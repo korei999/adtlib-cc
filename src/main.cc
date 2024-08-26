@@ -7,8 +7,6 @@
 #include "adt/format.hh"
 #include "adt/ChunkAllocator.hh"
 
-#include <math.h>
-
 using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
