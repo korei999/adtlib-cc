@@ -181,6 +181,21 @@ main(int argCount, char* paArgs[])
     COUT("\n");
 
     Heap<int> heap (&alloc.base);
+    HeapInsert(&heap, 3);
+    HeapInsert(&heap, 7);
+    HeapInsert(&heap, -1);
+    HeapInsert(&heap, 5);
+    HeapInsert(&heap, 1);
+
+    for (auto& e : heap.a)
+        COUT("%d, ", e);
+    COUT("\n");
+
+    int min = HeapExtractMin(&heap);
+
+    for (auto& e : heap.a)
+        COUT("%d, ", e);
+    COUT("\n");
 
     char buf[100] {};
     char buf2[40] {};
