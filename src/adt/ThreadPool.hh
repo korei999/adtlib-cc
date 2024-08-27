@@ -49,7 +49,6 @@ struct ThreadPoolTask
 
 struct ThreadPool
 {
-    Allocator* pAlloc = nullptr;
     Queue<ThreadPoolTask> qTasks {};
     thrd_t* pThreads = nullptr;
     u32 threadCount = 0;
@@ -71,7 +70,7 @@ inline void ThreadPoolWait(ThreadPool* s);
 
 inline
 ThreadPool::ThreadPool(Allocator* p, u32 _threadCount)
-    : pAlloc(p), qTasks(p, _threadCount), threadCount(_threadCount), activeTaskCount(0), bDone(false)
+    : qTasks(p, _threadCount), threadCount(_threadCount), activeTaskCount(0), bDone(false)
 {
     /*QueueResize(&qTasks, _threadCount);*/
     pThreads = (thrd_t*)alloc(p, _threadCount, sizeof(thrd_t));
@@ -178,7 +177,7 @@ ThreadPoolDestroy(ThreadPool* s)
 {
     __ThreadPoolStop(s);
 
-    free(s->pAlloc, s->pThreads);
+    free(s->qTasks.pAlloc, s->pThreads);
     QueueDestroy(&s->qTasks);
     cnd_destroy(&s->cndQ);
     mtx_destroy(&s->mtxQ);
