@@ -82,6 +82,11 @@ struct Queue
     It end() { return {this, {}, this->size}; }
     It rbegin() { return {this, QueueLastI(this), 0}; }
     It rend() { return {this, {}, this->size}; }
+
+    const It begin() const { return {this, QueueFirstI(this), 0}; }
+    const It end() const { return {this, {}, this->size}; }
+    const It rbegin() const { return {this, QueueLastI(this), 0}; }
+    const It rend() const { return {this, {}, this->size}; }
 };
 
 template<typename T>

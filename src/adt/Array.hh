@@ -49,6 +49,11 @@ struct Array
     It end() { return {&this->pData[this->size]}; }
     It rbegin() { return {&this->pData[this->size - 1]}; }
     It rend() { return {this->pData - 1}; }
+
+    const It begin() const { return {&this->pData[0]}; }
+    const It end() const { return {&this->pData[this->size]}; }
+    const It rbegin() const { return {&this->pData[this->size - 1]}; }
+    const It rend() const { return {this->pData - 1}; }
 };
 
 template<typename T> inline T* ArrayPush(Array<T>* s, const T& data);

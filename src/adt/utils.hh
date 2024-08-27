@@ -22,6 +22,8 @@
 
 #include "types.hh"
 
+#include <string.h>
+
 namespace adt
 {
 namespace utils
@@ -39,6 +41,7 @@ inline f64 timeNowS();
 template<typename T> constexpr int partition(T a[], int l, int h);
 template<typename T> constexpr void qSort(T a[], int l, int h);
 template<typename T> constexpr void qSort(T* a);
+template<typename T> constexpr void copy(T* pDest, T* pSrc, u64 size); /* memcpy with size * sizeof(T) */
 
 template<typename T>
 constexpr void
@@ -156,6 +159,13 @@ constexpr void
 qSort(T* a)
 {
     qSort(a->pData, 0, a->size - 1);
+}
+
+template<typename T>
+constexpr void
+copy(T* pDest, T* pSrc, u64 size)
+{
+    memcpy(pDest, pSrc, size * sizeof(T));
 }
 
 } /* namespace utils */

@@ -180,21 +180,26 @@ main(int argCount, char* paArgs[])
         COUT("%d, ", n);
     COUT("\n");
 
-    Heap<int> heap (&alloc.base);
-    HeapPushMin(&heap, 3);
-    HeapPushMin(&heap, 7);
-    HeapPushMin(&heap, -1);
-    HeapPushMin(&heap, 5);
-    HeapPushMin(&heap, 1);
+    auto heap = HeapMaxFromArray(&alloc.base, toSort);
 
     for (auto& e : heap.a)
         COUT("%d, ", e);
     COUT("\n");
 
-    [[maybe_unused]] int min = HeapExtractMin(&heap);
-    min = HeapExtractMin(&heap);
+    [[maybe_unused]] int min = HeapMaxExtract(&heap);
+    min = HeapMaxExtract(&heap);
+    min = HeapMaxExtract(&heap);
+    min = HeapMaxExtract(&heap);
+    min = HeapMaxExtract(&heap);
 
     for (auto& e : heap.a)
+        COUT("%d, ", e);
+    COUT("\n");
+
+    HeapMaxSort(&alloc.base, &toSort);
+
+    COUT("heapSorted:\n");
+    for (auto& e : toSort)
         COUT("%d, ", e);
     COUT("\n");
 
