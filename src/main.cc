@@ -155,7 +155,7 @@ main(int argCount, char* paArgs[])
 
     Array<int> toSort (&alloc.base);
     for (int i = 0; i < 10; i++)
-        ArrayPush(&toSort, rand() % 20);
+        ArrayPush(&toSort, rand() % 100);
 
     /*for (auto n : toSort)*/
     /*    COUT("%d, ", n);*/
@@ -240,9 +240,7 @@ main(int argCount, char* paArgs[])
     ThreadPoolDestroy(&tp);
 
     if (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--rb" || String(paArgs[1]) == "--tree")
-    {
         goto cleanup;
-    }
 
     if (argCount >= 2)
     {

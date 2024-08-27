@@ -13,7 +13,7 @@ struct AtomicArena
     mtx_t mtx;
 
     AtomicArena() = default;
-    AtomicArena(u32 blockCap);
+    AtomicArena(u32 blockCap = SIZE_8K);
 };
 
 inline void*

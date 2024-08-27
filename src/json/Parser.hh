@@ -6,7 +6,6 @@
 namespace json
 {
 
-void printNode(Object* pNode, adt::String svEnd, int depth);
 
 struct Parser
 {
@@ -21,17 +20,9 @@ struct Parser
     Parser(adt::Allocator* p) : pAlloc(p), l(p) {}
 };
 
+void ParserPrintNode(Object* pNode, adt::String svEnd, int depth);
 void ParserLoad(Parser* s, adt::String path);
 void ParserParse(Parser* s);
-void ParserExpect(Parser*s, enum Token::TYPE t, adt::String svFile, int line);
-void ParserNext(Parser* s);
-void ParserParseNode(Parser* s, Object* pNode);
-void ParserParseIdent(Parser* s, TagVal* pTV);
-void ParserParseNumber(Parser* s, TagVal* pTV);
-void ParserParseObject(Parser* s, Object* pNode);
-void ParserParseArray(Parser* s, Object* pNode); /* arrays are same as objects */
-void ParserParseNull(Parser* s, TagVal* pTV);
-void ParserParseBool(Parser* s, TagVal* pTV);
 void ParserPrint(Parser* s);
 void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
 inline void ParserTraverse(Parser* s, bool (*pfn)(Object* p, void* a), void* args) { ParserTraverse(s, s->pHead, pfn, args); }

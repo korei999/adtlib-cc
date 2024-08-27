@@ -6,6 +6,16 @@ using namespace adt;
 namespace json
 {
 
+static void expect(Parser*s, enum Token::TYPE t, adt::String svFile, int line);
+static void next(Parser* s);
+static void parseNode(Parser* s, Object* pNode);
+static void parseIdent(Parser* s, TagVal* pTV);
+static void parseNumber(Parser* s, TagVal* pTV);
+static void parseObject(Parser* s, Object* pNode);
+static void parseArray(Parser* s, Object* pNode); /* arrays are same as objects */
+static void parseNull(Parser* s, TagVal* pTV);
+static void parseBool(Parser* s, TagVal* pTV);
+
 void
 ParserLoad(Parser* s, adt::String path)
 {
@@ -27,11 +37,11 @@ ParserLoad(Parser* s, adt::String path)
 void
 ParserParse(Parser* s)
 {
-    ParserParseNode(s, s->pHead);
+    parseNode(s, s->pHead);
 }
 
 void
-ParserExpect(Parser* s, enum Token::TYPE t, adt::String svFile, int line)
+expect(Parser* s, enum Token::TYPE t, adt::String svFile, int line)
 {
     if (s->tCurr.type != t)
     {
@@ -42,59 +52,59 @@ ParserExpect(Parser* s, enum Token::TYPE t, adt::String svFile, int line)
 }
 
 void
-ParserNext(Parser* s)
+next(Parser* s)
 {
     s->tCurr = s->tNext;
     s->tNext = LexerNext(&s->l);
 }
 
 void
-ParserParseNode(Parser* s, Object* pNode)
+parseNode(Parser* s, Object* pNode)
 {
     switch (s->tCurr.type)
     {
         default:
-            ParserNext(s);
+            next(s);
             break;
 
         case Token::IDENT:
-            ParserParseIdent(s, &pNode->tagVal);
+            parseIdent(s, &pNode->tagVal);
             break;
 
         case Token::NUMBER:
-            ParserParseNumber(s, &pNode->tagVal);
+            parseNumber(s, &pNode->tagVal);
             break;
 
         case Token::LBRACE:
-            ParserNext(s); /* skip brace */
-            ParserParseObject(s, pNode);
+            next(s); /* skip brace */
+            parseObject(s, pNode);
             break;
 
         case Token::LBRACKET:
-            ParserNext(s); /* skip bracket */
-            ParserParseArray(s, pNode);
+            next(s); /* skip bracket */
+            parseArray(s, pNode);
             break;
 
         case Token::NULL_:
-            ParserParseNull(s, &pNode->tagVal);
+            parseNull(s, &pNode->tagVal);
             break;
 
         case Token::TRUE_:
         case Token::FALSE_:
-            ParserParseBool(s, &pNode->tagVal);
+            parseBool(s, &pNode->tagVal);
             break;
     }
 }
 
 void
-ParserParseIdent(Parser* s, TagVal* pTV)
+parseIdent(Parser* s, TagVal* pTV)
 {
     *pTV = {.tag = TAG::STRING, .val {.sv = s->tCurr.sLiteral}};
-    ParserNext(s);
+    next(s);
 }
 
 void
-ParserParseNumber(Parser* s, TagVal* pTV)
+parseNumber(Parser* s, TagVal* pTV)
 {
     bool bReal = adt::StringLastOf(s->tCurr.sLiteral, '.') != adt::NPOS;
 
@@ -103,49 +113,49 @@ ParserParseNumber(Parser* s, TagVal* pTV)
     else
         *pTV = TagVal{.tag = TAG::LONG, .val = {.l = atol(s->tCurr.sLiteral.pData)}};
 
-    ParserNext(s);
+    next(s);
 }
 
 void
-ParserParseObject(Parser* s, Object* pNode)
+parseObject(Parser* s, Object* pNode)
 {
     pNode->tagVal.tag = TAG::OBJECT;
-    pNode->tagVal.val.o = adt::Array<Object>(s->pAlloc);
+    pNode->tagVal.val.o = adt::Array<Object> (s->pAlloc, 1);
     auto& aObjs = getObject(pNode);
 
-    for (; s->tCurr.type != Token::RBRACE; ParserNext(s))
+    for (; s->tCurr.type != Token::RBRACE; next(s))
     {
-        ParserExpect(s, Token::IDENT, __FILE__, __LINE__);
+        expect(s, Token::IDENT, __FILE__, __LINE__);
         Object ob {.svKey = s->tCurr.sLiteral, .tagVal = {}};
         adt::ArrayPush(&aObjs, ob);
 
         /* skip identifier and ':' */
-        ParserNext(s);
-        ParserExpect(s, Token::ASSIGN, __FILE__, __LINE__);
-        ParserNext(s);
+        next(s);
+        expect(s, Token::ASSIGN, __FILE__, __LINE__);
+        next(s);
 
-        ParserParseNode(s, &adt::ArrayLast(&aObjs));
+        parseNode(s, &adt::ArrayLast(&aObjs));
 
         if (s->tCurr.type != Token::COMMA)
         {
-            ParserNext(s);
+            next(s);
             break;
         }
     }
 
     if (aObjs.size == 0)
-        ParserNext(s);
+        next(s);
 }
 
 void
-ParserParseArray(Parser* s, Object* pNode)
+parseArray(Parser* s, Object* pNode)
 {
     pNode->tagVal.tag = TAG::ARRAY;
-    pNode->tagVal.val.a = adt::Array<Object>(s->pAlloc);
+    pNode->tagVal.val.a = adt::Array<Object> (s->pAlloc, 1);
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
-    for (; s->tCurr.type != Token::RBRACKET; ParserNext(s))
+    for (; s->tCurr.type != Token::RBRACKET; next(s))
     {
         adt::ArrayPush(&aTVs, {});
 
@@ -153,63 +163,63 @@ ParserParseArray(Parser* s, Object* pNode)
         {
             default:
             case Token::IDENT:
-                ParserParseIdent(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseIdent(s, &adt::ArrayLast(&aTVs).tagVal);
                 break;
 
             case Token::NULL_:
-                ParserParseNull(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseNull(s, &adt::ArrayLast(&aTVs).tagVal);
                 break;
 
             case Token::TRUE_:
             case Token::FALSE_:
-                ParserParseBool(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseBool(s, &adt::ArrayLast(&aTVs).tagVal);
                 break;
 
             case Token::NUMBER:
-                ParserParseNumber(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseNumber(s, &adt::ArrayLast(&aTVs).tagVal);
                 break;
 
             case Token::LBRACE:
-                ParserNext(s);
-                ParserParseObject(s, &adt::ArrayLast(&aTVs));
+                next(s);
+                parseObject(s, &adt::ArrayLast(&aTVs));
                 break;
         }
 
         if (s->tCurr.type != Token::COMMA)
         {
-            ParserNext(s);
+            next(s);
             break;
         }
     }
 
     if (aTVs.size == 0)
-        ParserNext(s);
+        next(s);
 }
 
 void
-ParserParseNull(Parser* s, TagVal* pTV)
+parseNull(Parser* s, TagVal* pTV)
 {
     *pTV = {.tag = TAG::NULL_, .val = {nullptr}};
-    ParserNext(s);
+    next(s);
 }
 
 void
-ParserParseBool(Parser* s, TagVal* pTV)
+parseBool(Parser* s, TagVal* pTV)
 {
     bool b = s->tCurr.type == Token::TRUE_ ? true : false;
     *pTV = {.tag = TAG::BOOL, .val = {.b = b}};
-    ParserNext(s);
+    next(s);
 }
 
 void
 ParserPrint(Parser* s)
 {
-    printNode(s->pHead, "", 0);
+    ParserPrintNode(s->pHead, "", 0);
     COUT("\n");
 }
 
 void
-printNode(Object* pNode, adt::String svEnd, int depth)
+ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
 {
     adt::String key = pNode->svKey;
 
@@ -239,7 +249,7 @@ printNode(Object* pNode, adt::String svEnd, int depth)
                 for (u32 i = 0; i < obj.size; i++)
                 {
                     adt::String slE = (i == obj.size - 1) ? "\n" : ",\n";
-                    printNode(&obj[i], slE, depth + 2);
+                    ParserPrintNode(&obj[i], slE, depth + 2);
                 }
                 COUT("%*s", depth, "");
                 COUT("}%.*s", svEnd.size, svEnd.pData);
@@ -317,7 +327,7 @@ printNode(Object* pNode, adt::String svEnd, int depth)
                             break;
 
                         case TAG::OBJECT:
-                                printNode(&arr[i], slE, depth + 2);
+                                ParserPrintNode(&arr[i], slE, depth + 2);
                             break;
                     }
                 }
@@ -373,8 +383,7 @@ ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* args), void
 
     switch (pNode->tagVal.tag)
     {
-        default:
-            break;
+        default: break;
 
         case TAG::ARRAY:
         case TAG::OBJECT:

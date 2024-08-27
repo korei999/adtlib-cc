@@ -44,7 +44,7 @@ struct Arena
     ArenaBlock* pLastBlockAllocation = nullptr;
 
     Arena() = default;
-    Arena(u32 blockCap);
+    Arena(u32 blockCap = SIZE_8K);
 };
 
 inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
