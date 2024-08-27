@@ -231,6 +231,8 @@ HeapMaxSort(Allocator* pA, Array<T>* a)
 
     for (u32 i = 0; i < a->size; i++)
         a->pData[i] = HeapMaxExtract(&s);
+
+    HeapDestroy(&s);
 }
 
 } /* namespace adt */
