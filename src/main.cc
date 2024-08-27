@@ -181,17 +181,18 @@ main(int argCount, char* paArgs[])
     COUT("\n");
 
     Heap<int> heap (&alloc.base);
-    HeapInsert(&heap, 3);
-    HeapInsert(&heap, 7);
-    HeapInsert(&heap, -1);
-    HeapInsert(&heap, 5);
-    HeapInsert(&heap, 1);
+    HeapPushMin(&heap, 3);
+    HeapPushMin(&heap, 7);
+    HeapPushMin(&heap, -1);
+    HeapPushMin(&heap, 5);
+    HeapPushMin(&heap, 1);
 
     for (auto& e : heap.a)
         COUT("%d, ", e);
     COUT("\n");
 
-    int min = HeapExtractMin(&heap);
+    [[maybe_unused]] int min = HeapExtractMin(&heap);
+    min = HeapExtractMin(&heap);
 
     for (auto& e : heap.a)
         COUT("%d, ", e);

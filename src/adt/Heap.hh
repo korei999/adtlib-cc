@@ -33,7 +33,7 @@ HeapParentI(u32 i)
 inline u32
 HeapLeftI(u32 i)
 {
-    return ((i + 1) / 2) - 1;
+    return ((i + 1) * 2) - 1;
 }
 
 inline u32
@@ -46,13 +46,14 @@ template<typename T>
 inline void
 HeapBubbleUp(Heap<T>* s, u32 i)
 {
-    if (HeapParentI(i) == -1U)
-        return; /* at root of heap, no parent */
+again:
+    if (HeapParentI(i) == NPOS) return;
 
     if (s->a[HeapParentI(i)] > s->a[i])
     {
         utils::swap(&s->a[i], &s->a[HeapParentI(i)]);
-        HeapBubbleUp(s, HeapParentI(i));
+        i = HeapParentI(i);
+        goto again;
     }
 }
 
@@ -60,7 +61,7 @@ template<typename T>
 inline void
 HeapBubbleDown(Heap<T>* s, u32 i)
 {
-    u32 smallest, left, right;
+    long smallest, left, right;
     Array<T>& a = s->a;
 
 again:
@@ -84,7 +85,7 @@ again:
 
 template<typename T>
 inline void
-HeapInsert(Heap<T>* s, const T& x)
+HeapPushMin(Heap<T>* s, const T& x)
 {
     ArrayPush(&s->a, x);
     HeapBubbleUp(s, s->a.size - 1);
@@ -92,12 +93,12 @@ HeapInsert(Heap<T>* s, const T& x)
 
 template<typename T>
 inline Heap<T>
-HeapFromArray(Allocator* pA, const Array<T>& a)
+HeapMinFromArray(Allocator* pA, const Array<T>& a)
 {
     Heap<T> heap {pA};
 
     for (auto& e : a)
-        HeapInsert(&heap, e);
+        HeapPushMin(&heap, e);
 
     return heap;
 }

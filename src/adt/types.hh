@@ -19,7 +19,7 @@ using f64 = double;
 
 using null = decltype(nullptr);
 
-constexpr u32 NPOS = (u32)(-1U);
-constexpr u64 NPOS64 = (u64)(-1UL);
+constexpr u32 NPOS = u32(-1U);
+constexpr u64 NPOS64 = u64(-1UL);
 
 } /* namespace adt */
