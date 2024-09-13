@@ -14,6 +14,9 @@ inline void* ChunkAlloc(ChunkAllocator* s, u64 _ignored, u64 __ignored);
 inline void ChunkFree(ChunkAllocator* s, void* p);
 inline void ChunkFreeAll(ChunkAllocator* s);
 
+inline void* alloc(ChunkAllocator* s, u64 mCount, u64 mSize) { return ChunkAlloc(s, mCount, mSize); }
+inline void free(ChunkAllocator* s, void* p) { ChunkFree(s, p); }
+
 struct ChunkAllocatorNode
 {
     ChunkAllocatorNode* next;
@@ -139,19 +142,17 @@ ChunkFreeAll(ChunkAllocator* s)
     }
 }
 
+inline const AllocatorInterface __CunkAllocatorVTable {
+    .alloc = decltype(AllocatorInterface::alloc)(ChunkAlloc),
+    .realloc = decltype(AllocatorInterface::realloc)(__ChunkRealloc),
+    .free = decltype(AllocatorInterface::free)(ChunkFree)
+};
+
 inline
 ChunkAllocator::ChunkAllocator(u64 chunkSize, u64 blockSize)
-    : blockCap{align(blockSize, chunkSize + sizeof(ChunkAllocatorNode))},
-      chunkSize{chunkSize + sizeof(ChunkAllocatorNode)},
-      pBlocks{__ChunkAllocatorNewBlock(this)}
-{
-    static const Allocator::Interface vTable {
-        .alloc = decltype(Allocator::Interface::alloc)(ChunkAlloc),
-        .realloc = decltype(Allocator::Interface::realloc)(__ChunkRealloc),
-        .free = decltype(Allocator::Interface::free)(ChunkFree)
-    };
-
-    this->base = {&vTable};
-}
+    : base {&__CunkAllocatorVTable},
+      blockCap {align(blockSize, chunkSize + sizeof(ChunkAllocatorNode))},
+      chunkSize {chunkSize + sizeof(ChunkAllocatorNode)},
+      pBlocks {__ChunkAllocatorNewBlock(this)} {}
 
 } /* namespace adt */

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Array.hh"
+#include "Vec.hh"
 #include "hash.hh"
 
 namespace adt
@@ -29,15 +29,15 @@ template<typename T>
 struct HashMap
 {
     Allocator* pAlloc;
-    Array<Bucket<T>> aBuckets;
+    Vec<Bucket<T>> aBuckets;
     f32 maxLoadFactor;
     u32 bucketCount = 0;
 
     HashMap() = default;
     HashMap(Allocator* pAllocator, u32 prealloc = SIZE_MIN)
-        : pAlloc(pAllocator),
-          aBuckets(pAllocator, prealloc),
-          maxLoadFactor(HASHMAP_DEFAULT_LOAD_FACTOR) {}
+        : pAlloc (pAllocator),
+          aBuckets (pAllocator, prealloc),
+          maxLoadFactor (HASHMAP_DEFAULT_LOAD_FACTOR) {}
 
     Bucket<T>& operator[](u32 i) { return aBuckets[i]; }
     const Bucket<T>& operator[](u32 i) const { return aBuckets[i]; }
@@ -153,7 +153,7 @@ template<typename T>
 inline void
 HashMapDestroy(HashMap<T>* s)
 {
-    ArrayDestroy(&s->aBuckets);
+    VecDestroy(&s->aBuckets);
 }
 
 } /* namespace adt */

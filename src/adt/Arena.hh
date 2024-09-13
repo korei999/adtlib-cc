@@ -11,12 +11,12 @@
     #include "logs.hh"
 #endif
 
-#define ARENA_FIRST(A) ((A)->pBlocksHead)
-#define ARENA_NEXT(AB) ((AB)->pNext)
-#define ARENA_FOREACH(A, IT) for (ArenaBlock* IT = ARENA_FIRST(A); IT; IT = ARENA_NEXT(IT))
-#define ARENA_FOREACH_SAFE(A, IT, TMP) for (ArenaBlock* IT = ARENA_FIRST(A), * TMP = nullptr; IT && ((TMP) = ARENA_NEXT(IT), true); (IT) = (TMP))
-#define ARENA_GET_NODE_FROM_BLOCK(PB) ((ArenaNode*)((u8*)(PB) + offsetof(ArenaBlock, pData)))
-#define ARENA_GET_NODE_FROM_DATA(PD) ((ArenaNode*)((u8*)(PD) - offsetof(ArenaNode, pData)))
+#define ADT_ARENA_FIRST(A) ((A)->pBlocksHead)
+#define ADT_ARENA_NEXT(AB) ((AB)->pNext)
+#define ADT_ARENA_FOREACH(A, IT) for (ArenaBlock* IT = ADT_ARENA_FIRST(A); IT; IT = ADT_ARENA_NEXT(IT))
+#define ADT_ARENA_FOREACH_SAFE(A, IT, TMP) for (ArenaBlock* IT = ADT_ARENA_FIRST(A), * TMP = nullptr; IT && ((TMP) = ADT_ARENA_NEXT(IT), true); (IT) = (TMP))
+#define ADT_ARENA_GET_NODE_FROM_BLOCK(PB) ((ArenaNode*)((u8*)(PB) + offsetof(ArenaBlock, pData)))
+#define ADT_ARENA_GET_NODE_FROM_DATA(PD) ((ArenaNode*)((u8*)(PD) - offsetof(ArenaNode, pData)))
 
 namespace adt
 {
@@ -44,7 +44,7 @@ struct Arena
     ArenaBlock* pLastBlockAllocation = nullptr;
 
     Arena() = default;
-    Arena(u32 blockCap = SIZE_8K);
+    Arena(u32 blockCap);
 };
 
 inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
@@ -52,6 +52,9 @@ inline void* ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize);
 inline void ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p);
 inline void ArenaReset(Arena* s);
 inline void ArenaFreeAll(Arena* s);
+
+inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
+inline void* realloc(Arena* s, void* p, u64 mCount, u64 mSize) { return ArenaRealloc(s, p, mCount, mSize); }
 
 inline ArenaBlock* __ArenaAllocatorNewBlock(Arena* s, u64 size);
 
@@ -67,7 +70,7 @@ __ArenaAllocatorNewBlock(Arena* s, u64 size)
 
     auto* pBlock = (ArenaBlock*)*ppLastBlock;
     pBlock->size = size;
-    auto* pNode = ARENA_GET_NODE_FROM_BLOCK(*ppLastBlock);
+    auto* pNode = ADT_ARENA_GET_NODE_FROM_BLOCK(*ppLastBlock);
     pNode->pNext = pNode; /* don't bump the very first node on `alloc()` */
     pBlock->pLast = pNode;
     s->pLastBlockAllocation = *ppLastBlock;
@@ -79,7 +82,7 @@ inline void*
 ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 {
     u64 requested = mCount * mSize;
-    u64 aligned = align8(requested + sizeof(ArenaNode));
+    u64 aligned = align8(requested) + sizeof(ArenaNode);
 
     /* TODO: find block that can fit */
     ArenaBlock* pFreeBlock = s->pBlocksHead;
@@ -97,7 +100,7 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 
 repeat:
     /* skip pNext */
-    ArenaNode* pNode = ARENA_GET_NODE_FROM_BLOCK(pFreeBlock);
+    ArenaNode* pNode = ADT_ARENA_GET_NODE_FROM_BLOCK(pFreeBlock);
     ArenaNode* pNextNode = pFreeBlock->pLast->pNext;
     u64 nextAligned = ((u8*)pNextNode + aligned) - (u8*)pNode;
 
@@ -118,11 +121,11 @@ repeat:
 inline void*
 ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize)
 {
-    ArenaNode* pNode = ARENA_GET_NODE_FROM_DATA(p);
+    ArenaNode* pNode = ADT_ARENA_GET_NODE_FROM_DATA(p);
     ArenaBlock* pBlock = nullptr;
 
     /* figure out which block this node belongs to */
-    ARENA_FOREACH(s, pB)
+    ADT_ARENA_FOREACH(s, pB)
         if ((u8*)p > (u8*)pB && ((u8*)pB + pB->size) > (u8*)p)
         {
             pBlock = pB;
@@ -132,7 +135,7 @@ ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize)
     assert(pBlock != nullptr && "block not found, bad pointer");
 
     auto aligned = align8(mCount * mSize);
-    u64 nextAligned = ((u8*)pNode + aligned) - (u8*)ARENA_GET_NODE_FROM_BLOCK(pBlock);
+    u64 nextAligned = ((u8*)pNode + aligned) - (u8*)ADT_ARENA_GET_NODE_FROM_BLOCK(pBlock);
 
     if (pNode == pBlock->pLast && nextAligned < pBlock->size)
     {
@@ -159,28 +162,28 @@ ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p)
 inline void
 ArenaReset(Arena* s)
 {
-    ARENA_FOREACH(s, pB)
+    ADT_ARENA_FOREACH(s, pB)
     {
-        ArenaNode* pNode = ARENA_GET_NODE_FROM_BLOCK(pB);
+        ArenaNode* pNode = ADT_ARENA_GET_NODE_FROM_BLOCK(pB);
         pB->pLast = pNode;
         pNode->pNext = pNode;
     }
 
-    auto first = ARENA_FIRST(s);
+    auto first = ADT_ARENA_FIRST(s);
     s->pLastBlockAllocation = first;
 }
 
 inline void
 ArenaFreeAll(Arena* s)
 {
-    ARENA_FOREACH_SAFE(s, pB, tmp)
+    ADT_ARENA_FOREACH_SAFE(s, pB, tmp)
         ::free(pB);
 }
 
-inline const Allocator::Interface __ArenaAllocatorVTable {
-    .alloc = decltype(Allocator::Interface::alloc)(ArenaAlloc),
-    .realloc = decltype(Allocator::Interface::realloc)(ArenaRealloc),
-    .free = decltype(Allocator::Interface::free)(ArenaFree)
+inline const AllocatorInterface __ArenaAllocatorVTable {
+    .alloc = decltype(AllocatorInterface::alloc)(ArenaAlloc),
+    .realloc = decltype(AllocatorInterface::realloc)(ArenaRealloc),
+    .free = decltype(AllocatorInterface::free)(ArenaFree)
 };
 
 inline 

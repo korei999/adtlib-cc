@@ -12,10 +12,11 @@ namespace adt
 
 template<typename T> struct Queue;
 
-template<typename T> bool QueueEmpty(Queue<T>* s);
+template<typename T> inline bool QueueEmpty(Queue<T>* s);
 template<typename T> inline T* QueuePushBack(Queue<T>* s, const T& val);
 template<typename T> inline void QueueResize(Queue<T>* s, u32 size);
 template<typename T> inline T* QueuePopFront(Queue<T>* s);
+template<typename T> inline T* QueuePopBack(Queue<T>* s);
 template<typename T> inline void QueueDestroy(Queue<T>*s);
 
 template<typename T> inline int QueueNextI(Queue<T>*s, int i) { return (i + 1) >= s->cap ? 0 : (i + 1); }
@@ -36,9 +37,9 @@ struct Queue
     Queue() = default;
     Queue(Allocator* p) : Queue(p, SIZE_MIN) {}
     Queue(Allocator* p, u32 prealloc)
-        : pAlloc(p),
-          pData{(T*)alloc(pAlloc, prealloc, sizeof(T))},
-          cap(prealloc) {}
+        : pAlloc (p),
+          pData {(T*)alloc(pAlloc, prealloc, sizeof(T))},
+          cap (prealloc) {}
 
     T& operator[](int i) { return pData[i]; }
     const T& operator[](int i) const { return pData[i]; }
@@ -47,7 +48,7 @@ struct Queue
     {
         Queue* s = nullptr;
         int i = 0;
-        int counter = 0;
+        int counter = 0; /* inc each iteration */
 
         It(Queue* _s, int _i, int _counter) : s{_s}, i{_i}, counter{_counter} {}
 
@@ -62,7 +63,7 @@ struct Queue
             return {s, i, counter};
         }
 
-        It operator++(int) { It tmp = *this; *this++; return tmp; }
+        It operator++(int) { It tmp = *this; ++(*this); return tmp; }
 
         It
         operator--()
@@ -72,7 +73,7 @@ struct Queue
             return {s, i, counter};
         }
 
-        It operator--(int) { It tmp = *this; *this--; return tmp; }
+        It operator--(int) { It tmp = *this; --(*this); return tmp; }
 
         friend bool operator==(const It& l, const It& r) { return l.counter == r.counter; }
         friend bool operator!=(const It& l, const It& r) { return l.counter != r.counter; }
@@ -83,14 +84,14 @@ struct Queue
     It rbegin() { return {this, QueueLastI(this), 0}; }
     It rend() { return {this, {}, this->size}; }
 
-    const It begin() const { return {this, QueueFirstI(this), 0}; }
-    const It end() const { return {this, {}, this->size}; }
-    const It rbegin() const { return {this, QueueLastI(this), 0}; }
-    const It rend() const { return {this, {}, this->size}; }
+    const It begin() const { return begin(); }
+    const It end() const { return end(); }
+    const It rbegin() const { return rbegin(); }
+    const It rend() const { return rend(); }
 };
 
 template<typename T>
-bool
+inline bool
 QueueEmpty(Queue<T>* s)
 {
     return s->size == 0;
@@ -134,6 +135,19 @@ QueuePopFront(Queue<T>* s)
 
     T* ret = &s->pData[s->first];
     s->first = QueueNextI(s, s->first);
+    s->size--;
+
+    return ret;
+}
+
+template<typename T>
+inline T*
+QueuePopBack(Queue<T>* s)
+{
+    assert(s->size > 0);
+
+    T* ret = &s->pData[QueueLastI(s)];
+    s->last = QueuePrevI(s, QueueLastI(s));
     s->size--;
 
     return ret;

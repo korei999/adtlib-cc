@@ -47,7 +47,7 @@ struct RBNode
     RBNode* right;
     RBNode* parent;
     enum RB_COL color;
-    T data; /* last member for flexible array members */
+    T data;
 };
 
 template<typename T>
@@ -57,7 +57,7 @@ struct RBTree
     RBNode<T>* pRoot = nullptr;
 
     RBTree() = default;
-    RBTree(Allocator* pA) : pAlloc{pA} {}
+    RBTree(Allocator* pA) : pAlloc {pA} {}
 };
 
 template<typename T> inline RBNode<T>* RBNodeAlloc(Allocator* pA, const T& data);
@@ -66,8 +66,6 @@ template<typename T> inline RBNode<T>* RBRemove(RBTree<T>* s, RBNode<T>* elm);
 template<typename T> inline void RBRemoveAndFree(RBTree<T>* s, RBNode<T>* elm);
 template<typename T> inline RBNode<T>* RBInsert(RBTree<T>* s, RBNode<T>* elm, bool bAllowDuplicates);
 template<typename T> inline RBNode<T>* RBInsert(RBTree<T>* s, const T& data, bool bAllowDuplicates);
-
-template<typename T> bool (*RBpfnTraverse)(RBNode<T>* parent, RBNode<T>* node, void*);
 
 template<typename T>
 inline Pair<RBNode<T>*, RBNode<T>*>
@@ -81,14 +79,6 @@ RBTraverse(
 
 template<typename T> inline RBNode<T>* RBSearch(RBNode<T>* p, const T& data);
 template<typename T> inline int RBDepth(RBNode<T>* p);
-
-template<typename T> inline void __RBSetBlackRed(RBNode<T>* black, RBNode<T>* red);
-template<typename T> inline void __RBSet(RBNode<T>* elm, RBNode<T>* parent);
-template<typename T> inline void __RBSetLinks(RBNode<T>* l, RBNode<T>* r);
-template<typename T> inline void __RBRotateLeft(RBTree<T>* s, RBNode<T>* elm);
-template<typename T> inline void __RBRotateRight(RBTree<T>* s, RBNode<T>* elm);
-template<typename T> inline void __RBInsertColor(RBTree<T>* s, RBNode<T>* elm);
-template<typename T> inline void __RBRemoveColor(RBTree<T>* s, RBNode<T>* parent, RBNode<T>* elm);
 
 template<typename T>
 inline void
@@ -104,6 +94,14 @@ RBPrintNodes(
 );
 
 template<typename T> inline void RBDestroy(RBTree<T>* s);
+
+template<typename T> inline void __RBSetBlackRed(RBNode<T>* black, RBNode<T>* red);
+template<typename T> inline void __RBSet(RBNode<T>* elm, RBNode<T>* parent);
+template<typename T> inline void __RBSetLinks(RBNode<T>* l, RBNode<T>* r);
+template<typename T> inline void __RBRotateLeft(RBTree<T>* s, RBNode<T>* elm);
+template<typename T> inline void __RBRotateRight(RBTree<T>* s, RBNode<T>* elm);
+template<typename T> inline void __RBInsertColor(RBTree<T>* s, RBNode<T>* elm);
+template<typename T> inline void __RBRemoveColor(RBTree<T>* s, RBNode<T>* parent, RBNode<T>* elm);
 
 template<typename T>
 inline void
@@ -528,13 +526,15 @@ RBPrintNodes(
 {
     if (pNode)
     {
-        fprintf(pF, "%.*s%s", sPrefix.size, sPrefix.pData, bLeft ? "├──" : "└──");
+        fprintf(pF, "%.*s%s", sPrefix.size, sPrefix.pData, bLeft ? "|__" : "\\__");
         pfnPrint(pNode, pFnData);
 
-        String sCat = StringCat(pA, sPrefix, bLeft ? "│   " : "    ");
+        String sCat = StringCat(pA, sPrefix, bLeft ? "|   " : "    ");
 
         RBPrintNodes(pA, s, pNode->left, pfnPrint, pFnData, pF, sCat, true);
         RBPrintNodes(pA, s, pNode->right, pfnPrint, pFnData, pF, sCat, false);
+
+        free(pA, sCat.pData);
     }
 }
 
@@ -542,13 +542,13 @@ template<typename T>
 inline void
 RBDestroy(RBTree<T>* s)
 {
-    decltype(RBpfnTraverse<T>) postFree = []([[maybe_unused]] RBNode<T>* pPar, RBNode<T>* p, void* data) -> bool {
+    auto pfnFree = +[]([[maybe_unused]] RBNode<T>* pPar, RBNode<T>* p, void* data) -> bool {
         free(((RBTree<T>*)data)->pAlloc, p);
 
         return false;
     };
 
-    RBTraverse({}, s->pRoot, postFree, s, RB_ORDER::POST);
+    RBTraverse({}, s->pRoot, pfnFree, s, RB_ORDER::POST);
 }
 
 } /* namespace adt */

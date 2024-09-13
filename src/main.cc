@@ -7,6 +7,7 @@
 #include "adt/format.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
+#include "adt/Result.hh"
 
 using namespace adt;
 
@@ -21,11 +22,11 @@ testRB()
     ChunkAllocator alChunk (sizeof(RBNode<int>), SIZE_1M * 100);
 
     RBTree<int> kek (&alChunk.base);
-    Array<RBNode<int>*> a (&alloc2.base);
+    Vec<RBNode<int>*> a (&alloc2.base);
 
     bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = []([[maybe_unused]] RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
-        auto* a = (Array<RBNode<int>*>*)pArgs;
-        ArrayPush(a, pNode);
+        auto* a = (Vec<RBNode<int>*>*)pArgs;
+        VecPush(a, pNode);
         return false;
     };
 
@@ -97,15 +98,15 @@ testAVL()
     /*FreeList alloc(SIZE_1G);*/
 
     AVLTree<int> kek {&alloc.base};
-    Array<AVLNode<int>*> a {&alloc.base};
+    Vec<AVLNode<int>*> a {&alloc.base};
 
     [[maybe_unused]] void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT(COL_YELLOW "%d" COL_NORM " %d\n", pNode->height, pNode->data);
     };
 
     bool (*pfnCollect)(AVLNode<int>*, void* pArgs) = [](AVLNode<int>* pNode, void* pArgs) -> bool {
-        auto* a = (Array<AVLNode<int>*>*)pArgs;
-        ArrayPush(a, pNode);
+        auto* a = (Vec<AVLNode<int>*>*)pArgs;
+        VecPush(a, pNode);
         return false;
     };
 
@@ -117,7 +118,7 @@ testAVL()
         AVLInsert(&kek, r, true);
     }
 
-    AVLTraverse(kek.pRoot, pfnCollect, &a, AVL_ORDER::PRE);
+    // AVLTraverse(kek.pRoot, pfnCollect, &a, AVL_ORDER::PRE);
     short depth = AVLDepth(kek.pRoot);
 
     int i = 0;
@@ -148,14 +149,19 @@ testAVL()
 int
 main(int argCount, char* paArgs[])
 {
+    Result<int> kekw;
+    COUT("has val?: %d\n", bool(kekw));
+    kekw = 1;
+    COUT("has val?: %d\n", bool(kekw));
+
     /*FixedAllocator alloc (BIG, size(BIG));*/
     Arena alloc (SIZE_1M * 100);
     ThreadPool tp (&alloc.base, 2);
     ThreadPoolStart(&tp);
 
-    Array<int> toSort (&alloc.base);
+    Vec<int> toSort (&alloc.base);
     for (int i = 0; i < 10; i++)
-        ArrayPush(&toSort, rand() % 100);
+        VecPush(&toSort, rand() % 100);
 
     /*for (auto n : toSort)*/
     /*    COUT("%d, ", n);*/
@@ -180,7 +186,7 @@ main(int argCount, char* paArgs[])
         COUT("%d, ", n);
     COUT("\n");
 
-    auto heap = HeapMaxFromArray(&alloc.base, toSort);
+    auto heap = HeapMaxFromVec(&alloc.base, toSort);
 
     for (auto& e : heap.a)
         COUT("%d, ", e);

@@ -13,20 +13,21 @@ inline void* DefaultAlloc(DefaultAllocator* s, u64 mCount, u64 mSize);
 inline void* DefaultRealloc(DefaultAllocator* s, void* p, u64 mCount, u64 mSize);
 inline void DefaultFree(DefaultAllocator* s, void* p);
 
+inline void* alloc(DefaultAllocator* s, u64 mCount, u64 mSize) { return DefaultAlloc(s, mCount, mSize); }
+inline void* realloc(DefaultAllocator* s, void* p, u64 mCount, u64 mSize) { return DefaultRealloc(s, p, mCount, mSize); }
+inline void free(DefaultAllocator* s, void* p) { DefaultFree(s, p); }
+
+inline const AllocatorInterface __DefaultAllocatorVTable {
+    .alloc = (decltype(AllocatorInterface::alloc))DefaultAlloc,
+    .realloc = (decltype(AllocatorInterface::realloc))DefaultRealloc,
+    .free = (decltype(AllocatorInterface::free))DefaultFree
+};
+
 struct DefaultAllocator
 {
     Allocator base {};
 
-    DefaultAllocator()
-    {
-        static const Allocator::Interface vTable {
-            .alloc = (decltype(Allocator::Interface::alloc))DefaultAlloc,
-            .realloc = (decltype(Allocator::Interface::realloc))DefaultRealloc,
-            .free = (decltype(Allocator::Interface::free))DefaultFree
-        };
-
-        this->base = {&vTable};
-    }
+    DefaultAllocator() : base {&__DefaultAllocatorVTable} {}
 };
 
 inline void*
@@ -46,6 +47,5 @@ DefaultFree([[maybe_unused]] DefaultAllocator* s, void* p)
 {
     ::free(p);
 }
-
 
 } /* namespace adt */

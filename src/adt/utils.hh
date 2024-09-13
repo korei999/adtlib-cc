@@ -3,21 +3,14 @@
 #ifdef __linux__
     #include <time.h>
 #elif _WIN32
-    #include <sysinfoapi.h>
+#ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN 1
+#endif
+    #ifndef NOMINMAX
+    #define NOMINMAX
+#endif
     #include <windows.h>
-
-    #ifdef min
-        #undef min
-    #endif
-    #ifdef max
-        #undef max
-    #endif
-    #ifdef near
-        #undef near
-    #endif
-    #ifdef far
-        #undef far
-    #endif
+    #include <sysinfoapi.h>
 #endif
 
 #include "types.hh"
@@ -30,8 +23,8 @@ namespace utils
 {
 
 template<typename T> constexpr void swap(T* l, T* r);
-template<typename A, typename B> constexpr A& max(A& l, B& r);
-template<typename A, typename B> constexpr A& min(A& l, B& r);
+[[nodiscard]] constexpr auto& max(const auto& l, const auto& r);
+[[nodiscard]] constexpr auto& min(const auto& l, const auto& r);
 template<typename T> constexpr u64 size(const T& a);
 template<typename T> constexpr bool odd(const T& a);
 template<typename T> constexpr bool even(const T& a);
@@ -42,6 +35,7 @@ template<typename T> constexpr int partition(T a[], int l, int h);
 template<typename T> constexpr void qSort(T a[], int l, int h);
 template<typename T> constexpr void qSort(T* a);
 template<typename T> constexpr void copy(T* pDest, T* pSrc, u64 size); /* memcpy with size * sizeof(T) */
+template<typename T> [[nodiscard]] constexpr T clamp(const T& x, const T& _min, const T& _max);
 
 template<typename T>
 constexpr void
@@ -52,16 +46,16 @@ swap(T* l, T* r)
     *r = tmp;
 }
 
-template<typename A, typename B>
-constexpr A&
-max(A& l, B& r)
+[[nodiscard]]
+constexpr auto&
+max(const auto& l, const auto& r)
 {
     return l > r ? l : r;
 }
 
-template<typename A, typename B>
-constexpr A&
-min(A& l, B& r)
+[[nodiscard]]
+constexpr auto&
+min(const auto& l, const auto& r)
 {
     return l < r ? l : r;
 }
@@ -166,6 +160,14 @@ constexpr void
 copy(T* pDest, T* pSrc, u64 size)
 {
     memcpy(pDest, pSrc, size * sizeof(T));
+}
+
+template<typename T>
+[[nodiscard]]
+constexpr T
+clamp(const T& x, const T& _min, const T& _max)
+{
+    return max(_min, min(_max, x));
 }
 
 } /* namespace utils */

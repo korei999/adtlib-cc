@@ -22,4 +22,10 @@ using null = decltype(nullptr);
 constexpr u32 NPOS = u32(-1U);
 constexpr u64 NPOS64 = u64(-1UL);
 
+#if defined __clang__ || __GNUC__
+    #define ADT_NO_UB __attribute__((no_sanitize("undefined")))
+#else
+    #define ADT_NO_UB
+#endif
+
 } /* namespace adt */

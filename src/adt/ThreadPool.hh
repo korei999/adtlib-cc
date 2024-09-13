@@ -7,10 +7,11 @@
 
 #ifdef __linux__
     #include <sys/sysinfo.h>
+
     #define getLogicalCoresCount() get_nprocs()
 #elif _WIN32
-    #include <sysinfoapi.h>
     #include <windows.h>
+    #include <sysinfoapi.h>
 
 inline DWORD
 getLogicalCoresCountWIN32()
@@ -21,8 +22,6 @@ getLogicalCoresCountWIN32()
 }
 
     #define getLogicalCoresCount() getLogicalCoresCountWIN32()
-#else
-    #define getLogicalCoresCount() 4
 
     #ifdef min
         #undef min
@@ -36,6 +35,8 @@ getLogicalCoresCountWIN32()
     #ifdef far
         #undef far
     #endif
+#else
+    #define getLogicalCoresCount() 4
 #endif
 
 namespace adt
@@ -70,7 +71,7 @@ inline void ThreadPoolWait(ThreadPool* s);
 
 inline
 ThreadPool::ThreadPool(Allocator* p, u32 _threadCount)
-    : qTasks(p, _threadCount), threadCount(_threadCount), activeTaskCount(0), bDone(false)
+    : qTasks (p, _threadCount), threadCount (_threadCount), activeTaskCount (0), bDone (false)
 {
     /*QueueResize(&qTasks, _threadCount);*/
     pThreads = (thrd_t*)alloc(p, _threadCount, sizeof(thrd_t));
@@ -91,7 +92,7 @@ __ThreadPoolLoop(void* p)
         {
             mtx_lock(&s->mtxQ);
 
-            while (!(!QueueEmpty(&s->qTasks) || s->bDone))
+            while (QueueEmpty(&s->qTasks) && !s->bDone)
                 cnd_wait(&s->cndQ, &s->mtxQ);
 
             if (s->bDone)
@@ -166,10 +167,7 @@ __ThreadPoolStop(ThreadPool* s)
     s->bDone = true;
     cnd_broadcast(&s->cndQ);
     for (u32 i = 0; i < s->threadCount; i++)
-    {
-        assert(s->pThreads[i] && "joining a thread with id of '0'");
         thrd_join(s->pThreads[i], nullptr);
-    }
 }
 
 inline void

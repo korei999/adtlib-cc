@@ -13,7 +13,7 @@ struct AtomicArena
     mtx_t mtx;
 
     AtomicArena() = default;
-    AtomicArena(u32 blockCap = SIZE_8K);
+    AtomicArena(u32 blockCap);
 };
 
 inline void*
@@ -42,15 +42,15 @@ AtomicArenaFree([[maybe_unused]] AtomicArena* s, [[maybe_unused]] void* p)
     /* no individual frees */
 }
 
-inline const Allocator::Interface __AtomicArenaAllocatorVTable {
-    .alloc = decltype(Allocator::Interface::alloc)(AtomicArenaAlloc),
-    .realloc = decltype(Allocator::Interface::realloc)(AtomicArenaRealloc),
-    .free = decltype(Allocator::Interface::free)(AtomicArenaFree)
+inline const AllocatorInterface __AtomicArenaAllocatorVTable {
+    .alloc = decltype(AllocatorInterface::alloc)(AtomicArenaAlloc),
+    .realloc = decltype(AllocatorInterface::realloc)(AtomicArenaRealloc),
+    .free = decltype(AllocatorInterface::free)(AtomicArenaFree)
 };
 
 inline
 AtomicArena::AtomicArena(u32 blockCap)
-    : arena(blockCap)
+    : arena (blockCap)
 {
     arena.base = {&__AtomicArenaAllocatorVTable};
     mtx_init(&mtx, mtx_plain);
@@ -62,5 +62,8 @@ AtomicArenaFreeAll(AtomicArena* s)
     ArenaFreeAll(&s->arena);
     mtx_destroy(&s->mtx);
 }
+
+inline void* alloc(AtomicArena* s, u64 mCount, u64 mSize) { return AtomicArenaAlloc(s, mCount, mSize); }
+inline void* realloc(AtomicArena* s, void* p, u64 mCount, u64 mSize) { return AtomicArenaRealloc(s, p, mCount, mSize); }
 
 } /* namespace adt */

@@ -1,5 +1,6 @@
 #include "Parser.hh"
-#include "logs.hh"
+
+#include "adt/logs.hh"
 
 using namespace adt;
 
@@ -40,7 +41,7 @@ ParserParse(Parser* s)
     parseNode(s, s->pHead);
 }
 
-void
+static void
 expect(Parser* s, enum Token::TYPE t, adt::String svFile, int line)
 {
     if (s->tCurr.type != t)
@@ -51,14 +52,14 @@ expect(Parser* s, enum Token::TYPE t, adt::String svFile, int line)
     }
 }
 
-void
+static void
 next(Parser* s)
 {
     s->tCurr = s->tNext;
     s->tNext = LexerNext(&s->l);
 }
 
-void
+static void
 parseNode(Parser* s, Object* pNode)
 {
     switch (s->tCurr.type)
@@ -96,14 +97,14 @@ parseNode(Parser* s, Object* pNode)
     }
 }
 
-void
+static void
 parseIdent(Parser* s, TagVal* pTV)
 {
     *pTV = {.tag = TAG::STRING, .val {.sv = s->tCurr.sLiteral}};
     next(s);
 }
 
-void
+static void
 parseNumber(Parser* s, TagVal* pTV)
 {
     bool bReal = adt::StringLastOf(s->tCurr.sLiteral, '.') != adt::NPOS;
@@ -116,25 +117,25 @@ parseNumber(Parser* s, TagVal* pTV)
     next(s);
 }
 
-void
+static void
 parseObject(Parser* s, Object* pNode)
 {
     pNode->tagVal.tag = TAG::OBJECT;
-    pNode->tagVal.val.o = adt::Array<Object> (s->pAlloc, 1);
+    pNode->tagVal.val.o = adt::Vec<Object> (s->pAlloc, 1);
     auto& aObjs = getObject(pNode);
 
     for (; s->tCurr.type != Token::RBRACE; next(s))
     {
-        expect(s, Token::IDENT, __FILE__, __LINE__);
+        expect(s, Token::IDENT, ADT_FILE, __LINE__);
         Object ob {.svKey = s->tCurr.sLiteral, .tagVal = {}};
-        adt::ArrayPush(&aObjs, ob);
+        adt::VecPush(&aObjs, ob);
 
         /* skip identifier and ':' */
         next(s);
-        expect(s, Token::ASSIGN, __FILE__, __LINE__);
+        expect(s, Token::ASSIGN, ADT_FILE, __LINE__);
         next(s);
 
-        parseNode(s, &adt::ArrayLast(&aObjs));
+        parseNode(s, &adt::VecLast(&aObjs));
 
         if (s->tCurr.type != Token::COMMA)
         {
@@ -143,45 +144,44 @@ parseObject(Parser* s, Object* pNode)
         }
     }
 
-    if (aObjs.size == 0)
-        next(s);
+    if (aObjs.size == 0) next(s);
 }
 
-void
+static void
 parseArray(Parser* s, Object* pNode)
 {
     pNode->tagVal.tag = TAG::ARRAY;
-    pNode->tagVal.val.a = adt::Array<Object> (s->pAlloc, 1);
+    pNode->tagVal.val.a = adt::Vec<Object> (s->pAlloc, 1);
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
     for (; s->tCurr.type != Token::RBRACKET; next(s))
     {
-        adt::ArrayPush(&aTVs, {});
+        adt::VecPush(&aTVs, {});
 
         switch (s->tCurr.type)
         {
             default:
             case Token::IDENT:
-                parseIdent(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseIdent(s, &adt::VecLast(&aTVs).tagVal);
                 break;
 
             case Token::NULL_:
-                parseNull(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseNull(s, &adt::VecLast(&aTVs).tagVal);
                 break;
 
             case Token::TRUE_:
             case Token::FALSE_:
-                parseBool(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseBool(s, &adt::VecLast(&aTVs).tagVal);
                 break;
 
             case Token::NUMBER:
-                parseNumber(s, &adt::ArrayLast(&aTVs).tagVal);
+                parseNumber(s, &adt::VecLast(&aTVs).tagVal);
                 break;
 
             case Token::LBRACE:
                 next(s);
-                parseObject(s, &adt::ArrayLast(&aTVs));
+                parseObject(s, &adt::VecLast(&aTVs));
                 break;
         }
 
@@ -192,18 +192,17 @@ parseArray(Parser* s, Object* pNode)
         }
     }
 
-    if (aTVs.size == 0)
-        next(s);
+    if (aTVs.size == 0) next(s);
 }
 
-void
+static void
 parseNull(Parser* s, TagVal* pTV)
 {
     *pTV = {.tag = TAG::NULL_, .val = {nullptr}};
     next(s);
 }
 
-void
+static void
 parseBool(Parser* s, TagVal* pTV)
 {
     bool b = s->tCurr.type == Token::TRUE_ ? true : false;
@@ -225,8 +224,7 @@ ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
 
     switch (pNode->tagVal.tag)
     {
-        default:
-            break;
+        default: break;
 
         case TAG::OBJECT:
             {
@@ -253,8 +251,7 @@ ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
                 }
                 COUT("%*s", depth, "");
                 COUT("}%.*s", svEnd.size, svEnd.pData);
-            }
-            break;
+            } break;
 
         case TAG::ARRAY:
             {
@@ -294,8 +291,7 @@ ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
                                 adt::String sl = getString(&arr[i]);
                                 COUT("%*s", depth + 2, "");
                                 COUT("\"%.*s\"%.*s", sl.size, sl.pData, slE.size, slE.pData);
-                            }
-                            break;
+                            } break;
 
                         case TAG::NULL_:
                                 COUT("%*s", depth + 2, "");
@@ -307,24 +303,21 @@ ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
                                 long num = getLong(&arr[i]);
                                 COUT("%*s", depth + 2, "");
                                 COUT("%ld%.*s", num, slE.size, slE.pData);
-                            }
-                            break;
+                            } break;
 
                         case TAG::DOUBLE:
                             {
                                 double dnum = getDouble(&arr[i]);
                                 COUT("%*s", depth + 2, "");
                                 COUT("%.17lf%.*s", dnum, slE.size, slE.pData);
-                            }
-                            break;
+                            } break;
 
                         case TAG::BOOL:
                             {
                                 bool b = getBool(&arr[i]);
                                 COUT("%*s", depth + 2, "");
                                 COUT("%s%.*s", b ? "true" : "false", slE.size, slE.pData);
-                            }
-                            break;
+                            } break;
 
                         case TAG::OBJECT:
                                 ParserPrintNode(&arr[i], slE, depth + 2);
@@ -333,25 +326,21 @@ ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
                 }
                 COUT("%*s", depth, "");
                 COUT("]%.*s", (int)svEnd.size, svEnd.pData);
-            }
-            break;
+            } break;
 
         case TAG::DOUBLE:
             {
-                /* TODO: add some sort formatting for floats */
                 double f = getDouble(pNode);
                 COUT("%*s", depth, "");
                 COUT("\"%.*s\": %.17lf%.*s", key.size, key.pData, f, svEnd.size, svEnd.pData);
-            }
-            break;
+            } break;
 
         case TAG::LONG:
             {
                 long i = getLong(pNode);
                 COUT("%*s", depth, "");
                 COUT("\"%.*s\": %ld%.*s", key.size, key.pData, i, svEnd.size, svEnd.pData);
-            }
-            break;
+            } break;
 
         case TAG::NULL_:
                 COUT("%*s", depth, "");
@@ -363,16 +352,14 @@ ParserPrintNode(Object* pNode, adt::String svEnd, int depth)
                 adt::String sl = getString(pNode);
                 COUT("%*s", depth, "");
                 COUT("\"%.*s\": \"%.*s\"%.*s", key.size, key.pData, sl.size, sl.pData, svEnd.size, svEnd.pData);
-            }
-            break;
+            } break;
 
         case TAG::BOOL:
             {
                 bool b = getBool(pNode);
                 COUT("%*s", depth, "");
                 COUT("\"%.*s\": %s%.*s", key.size, key.pData, b ? "true" : "false", svEnd.size, svEnd.pData);
-            }
-            break;
+            } break;
     }
 }
 

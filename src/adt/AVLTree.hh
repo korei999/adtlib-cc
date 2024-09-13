@@ -3,6 +3,7 @@
 #include "Allocator.hh"
 #include "String.hh"
 #include "utils.hh"
+#include "Pair.hh"
 
 #include <stdio.h>
 #include <assert.h>
@@ -29,7 +30,7 @@ struct AVLTree
     AVLNode<T>* pRoot = nullptr;
 
     AVLTree() = default;
-    AVLTree(Allocator* pA) : pAlloc{pA} {}
+    AVLTree(Allocator* pA) : pAlloc {pA} {}
 };
 
 template<typename T> AVLNode<T>* AVLNodeAlloc(Allocator* pA, const T& data);
@@ -38,7 +39,17 @@ template<typename T> inline AVLNode<T>* AVLMax(AVLNode<T>* p);
 template<typename T> inline void AVLRemove(AVLTree<T>* s, AVLNode<T>* d);
 template<typename T> inline AVLNode<T>* AVLInsert(AVLTree<T>* s, AVLNode<T>* pNew, bool bAllowDupticates);
 template<typename T> inline AVLNode<T>* AVLInsert(AVLTree<T>* s, const T& data, bool bAllowDupticates);
-template<typename T> inline void AVLTraverse( AVLNode<T>* p, bool (*pfn)(AVLNode<T>*, void*), void* pUserData, enum AVL_ORDER order);
+
+template<typename T>
+inline Pair<AVLNode<T>*, AVLNode<T>*>
+AVLTraverse(
+    AVLNode<T>* parent,
+    AVLNode<T>* p,
+    bool (*pfn)(AVLNode<T>*, AVLNode<T>*, void*),
+    void* pUserData,
+    enum AVL_ORDER order
+);
+
 template<typename T> inline AVLNode<T>* AVLSearch(AVLNode<T>* p, const T& data);
 template<typename T> inline s16 AVLDepth(AVLNode<T>* p);
 template<typename T> inline s16 AVLNodeHeight(AVLNode<T>* p);
@@ -55,6 +66,8 @@ AVLPrintNodes(
     const String sPrefix,
     bool bLeft
 );
+
+template<typename T> inline void AVLDestroy(AVLTree<T>* s);
 
 template<typename T> inline s16 __AVLNodeBalance(AVLNode<T>* p);
 template<typename T> inline void __AVLUpdateHeight(AVLNode<T>* p);
@@ -262,7 +275,7 @@ AVLRemove(AVLTree<T>* s, AVLNode<T>* d)
     /* root is the single element case */
     if (!d->pParent && !d->pRight && !d->pLeft)
     {
-        free(s->pAlloc, d);
+        /*free(s->pAlloc, d);*/
         s->pRoot = nullptr;
         return;
     }
@@ -274,7 +287,7 @@ AVLRemove(AVLTree<T>* s, AVLNode<T>* d)
 
         if (!toBalance) toBalance = d->pRight;
 
-        free(s->pAlloc, d);
+        /*free(s->pAlloc, d);*/
     }
     else if (!d->pRight)
     {
@@ -283,7 +296,7 @@ AVLRemove(AVLTree<T>* s, AVLNode<T>* d)
 
         if (!toBalance) toBalance = d->pLeft;
 
-        free(s->pAlloc, d);
+        /*free(s->pAlloc, d);*/
     }
     else
     {
@@ -307,11 +320,14 @@ AVLRemove(AVLTree<T>* s, AVLNode<T>* d)
         succ->pLeft = d->pLeft;
         succ->pLeft->pParent = succ;
 
-        free(s->pAlloc, d);
+        /*free(s->pAlloc, d);*/
     }
 
     __AVLUpdateHeight(toBalance);
     __AVLRebalance(s, toBalance);
+
+    /* FIXME: add real free */
+    /*free(s->pAlloc, d);*/
 }
 
 template<typename T>
@@ -370,10 +386,11 @@ AVLInsert(AVLTree<T>* s, const T& data, bool bAllowDupticates)
 
 /* early return if pfn returns true */
 template<typename T>
-inline void
+inline Pair<AVLNode<T>*, AVLNode<T>*>
 AVLTraverse(
+    AVLNode<T>* parent,
     AVLNode<T>* p,
-    bool (*pfn)(AVLNode<T>*, void*),
+    bool (*pfn)(AVLNode<T>*, AVLNode<T>*, void*),
     void* pUserData,
     enum AVL_ORDER order
 )
@@ -383,22 +400,24 @@ AVLTraverse(
         switch (order)
         {
             case AVL_ORDER::PRE:
-                if (pfn(p, pUserData)) return;
-                AVLTraverse(p->pLeft, pfn, pUserData, order);
-                AVLTraverse(p->pRight, pfn, pUserData, order);
+                if (pfn(parent, p, pUserData)) return {parent, p};
+                AVLTraverse(p, p->pLeft, pfn, pUserData, order);
+                AVLTraverse(p, p->pRight, pfn, pUserData, order);
                 break;
             case AVL_ORDER::IN:
-                AVLTraverse(p->pLeft, pfn, pUserData, order);
-                if (pfn(p, pUserData)) return;
-                AVLTraverse(p->pRight, pfn, pUserData, order);
+                AVLTraverse(p, p->pLeft, pfn, pUserData, order);
+                if (pfn(parent, p, pUserData)) return {parent, p};
+                AVLTraverse(p, p->pRight, pfn, pUserData, order);
                 break;
             case AVL_ORDER::POST:
-                AVLTraverse(p->pLeft, pfn, pUserData, order);
-                AVLTraverse(p->pRight, pfn, pUserData, order);
-                if (pfn(p, pUserData)) return;
+                AVLTraverse(p, p->pLeft, pfn, pUserData, order);
+                AVLTraverse(p, p->pRight, pfn, pUserData, order);
+                if (pfn(parent, p, pUserData)) return {parent, p};
                 break;
         }
     }
+
+    return {};
 }
 
 template<typename T>
@@ -440,14 +459,27 @@ AVLPrintNodes(
 {
     if (pNode)
     {
-        fprintf(pF, "%.*s%s", sPrefix.size, sPrefix.pData, bLeft ? "├──" : "└──");
+        fprintf(pF, "%.*s%s", sPrefix.size, sPrefix.pData, bLeft ? "|__" : "\\__");
         pfnPrint(pNode, pFnData);
 
-        String sCat = StringCat(pA, sPrefix, bLeft ? "│   " : "    ");
+        String sCat = StringCat(pA, sPrefix, bLeft ? "|   " : "    ");
 
         AVLPrintNodes(pA, s, pNode->pLeft, pfnPrint, pFnData, pF, sCat, true);
         AVLPrintNodes(pA, s, pNode->pRight, pfnPrint, pFnData, pF, sCat, false);
     }
+}
+
+template<typename T>
+inline void
+AVLDestroy(AVLTree<T>* s)
+{
+    auto pfnFree = +[]([[maybe_unused]] AVLNode<T>* pPar, AVLNode<T>* p, void* data) -> bool {
+        free(((AVLTree<T>*)data)->pAlloc, p);
+
+        return false;
+    };
+
+    AVLTraverse({}, s->pRoot, pfnFree, s, AVL_ORDER::POST);
 }
 
 } /* namespace adt */

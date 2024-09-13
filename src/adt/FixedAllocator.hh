@@ -22,7 +22,11 @@ struct FixedAllocator
 
 constexpr void* FixedAllocatorAlloc(FixedAllocator* s, u64 mCount, u64 mSize);
 constexpr void* FixedAllocatorRealloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize);
-constexpr void FixedAllocatorFree([[maybe_unused]] FixedAllocator* s, [[maybe_unused]] void* p);
+constexpr void FixedAllocatorFree(FixedAllocator* s, void* p);
+constexpr void FixedAllocatorReset(FixedAllocator* s);
+
+inline void* alloc(FixedAllocator* s, u64 mCount, u64 mSize) { return FixedAllocatorAlloc(s, mCount, mSize); }
+inline void* realloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize) { return FixedAllocatorRealloc(s, p, mCount, mSize); }
 
 constexpr void*
 FixedAllocatorAlloc(FixedAllocator* s, u64 mCount, u64 mSize)
@@ -67,13 +71,19 @@ FixedAllocatorFree([[maybe_unused]] FixedAllocator* s, [[maybe_unused]] void* p)
     /* not needed since stack memory should be used as a buffer */
 }
 
-inline const Allocator::Interface __FixedAllocatorVTable {
-    .alloc = decltype(Allocator::Interface::alloc)(FixedAllocatorAlloc),
-    .realloc = decltype(Allocator::Interface::realloc)(FixedAllocatorRealloc),
-    .free = decltype(Allocator::Interface::free)(FixedAllocatorFree)
+constexpr void
+FixedAllocatorReset(FixedAllocator* s)
+{
+    s->size = 0;
+}
+
+inline const AllocatorInterface __FixedAllocatorVTable {
+    .alloc = decltype(AllocatorInterface::alloc)(FixedAllocatorAlloc),
+    .realloc = decltype(AllocatorInterface::realloc)(FixedAllocatorRealloc),
+    .free = decltype(AllocatorInterface::free)(FixedAllocatorFree)
 };
 
 constexpr FixedAllocator::FixedAllocator(void* pMemory, u64 capacity)
-    : base{.pVTable = &__FixedAllocatorVTable}, pMemBuffer{(u8*)pMemory}, cap{capacity} {}
+    : base {.pVTable = &__FixedAllocatorVTable}, pMemBuffer {(u8*)pMemory}, cap {capacity} {}
 
 } /* namespace adt */

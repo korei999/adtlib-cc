@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hh"
+
 namespace adt
 {
 
@@ -18,7 +20,7 @@ struct Pair
     };
 
     Pair() = default;
-    Pair(const A& _a, const B& _b) : a(_a), b(_b) {}
+    Pair(const A& _a, const B& _b) : a (_a), b (_b) {}
 };
 
 } /* namespace adt */

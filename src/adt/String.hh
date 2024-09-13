@@ -23,9 +23,9 @@ struct String
     u32 size = 0;
 
     constexpr String() = default;
-    constexpr String(char* sNullTerminated) : pData(sNullTerminated), size(nullTermStringSize(sNullTerminated)) {}
-    constexpr String(const char* sNullTerminated) : pData(const_cast<char*>(sNullTerminated)), size(nullTermStringSize(sNullTerminated)) {}
-    constexpr String(char* pStr, u32 len) : pData(pStr), size(len) {}
+    constexpr String(char* sNullTerminated) : pData (sNullTerminated), size (nullTermStringSize(sNullTerminated)) {}
+    constexpr String(const char* sNullTerminated) : pData (const_cast<char*>(sNullTerminated)), size (nullTermStringSize(sNullTerminated)) {}
+    constexpr String(char* pStr, u32 len) : pData (pStr), size (len) {}
 
     constexpr char& operator[](u32 i) { return pData[i]; }
     constexpr const char& operator[](u32 i) const { return pData[i]; }
