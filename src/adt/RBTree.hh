@@ -528,7 +528,7 @@ RBTraverse(
         return RBTraverseIN(parent, p, pfn, pUserData);
 
         case RB_ORDER::POST:
-        return RBTraverseIN(parent, p, pfn, pUserData);
+        return RBTraversePOST(parent, p, pfn, pUserData);
     }
 
     assert(false && "[RbTree]: incorrect RB_ORDER");

@@ -12,13 +12,17 @@ using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
 
-constexpr int total = 1000000;
+constexpr int total = 10000;
 
-void
+static void
 testRB()
 {
-    Arena alloc2 (SIZE_8M);
-    ChunkAllocator alChunk (sizeof(RBNode<int>), SIZE_1M * 100);
+    /*ChunkAllocator alChunk(sizeof(RBNode<int>), SIZE_1M * 100);*/
+    Buddy alChunk(SIZE_8M);
+
+    Arena alloc2(SIZE_8M);
+    defer( ArenaFreeAll(&alloc2) );
+    defer( freeAll(&alChunk) );
 
     RBTree<int> kek (&alChunk.base);
     Vec<RBNode<int>*> a (&alloc2.base);
@@ -85,12 +89,9 @@ testRB()
     COUT("time: {:.3} ms\n\n", t1 - t0);
 
     RBDestroy(&kek);
-
-    ArenaFreeAll(&alloc2);
-    ChunkFreeAll(&alChunk);
 }
 
-void
+static void
 testAVL()
 {
     Arena alloc {SIZE_8M};
@@ -144,13 +145,51 @@ testAVL()
     ArenaFreeAll(&alloc);
 }
 
-int
-main(int argCount, char* paArgs[])
+static void
+testBuddy()
 {
-    if (argCount <= 1)
+    Buddy buddy(128);
+    defer( BuddyFreeAll(&buddy) );
+
+    struct BigStruct
+    {
+        String what {};
+    };
+
+    int* pInt = (decltype(pInt))BuddyAlloc(&buddy, 1, sizeof(*pInt));
+    long* pLong = (decltype(pLong))BuddyAlloc(&buddy, 1, sizeof(*pLong));
+    BigStruct* pBig = (decltype(pBig))BuddyAlloc(&buddy, 1, sizeof(*pBig));
+
+    pBig->what = "What";
+    *pLong = 2;
+    *pInt = 1;
+
+    pInt = (decltype(pInt))BuddyAlloc(&buddy, 1, sizeof(*pInt));
+    *pInt = 4;
+
+    pLong = (decltype(pLong))BuddyAlloc(&buddy, 1, sizeof(*pLong));
+    *pLong = 10;
+
+    pBig = (decltype(pBig))BuddyAlloc(&buddy, 1, sizeof(*pBig));
+    /*pBig->what = "kekw";*/
+
+    BuddyFree(&buddy, pInt);
+    BuddyFree(&buddy, pLong);
+}
+
+int
+main(int argc, char* argv[])
+{
+    if (argc <= 1)
     {
         COUT("jsonast version: {:.1}\n\n", ADTLIB_CC_VERSION);
-        COUT("usage: {} <path to json> [-p(print)|-e(json creation example)]\n", paArgs[0]);
+        COUT("usage: {} <path to json> [-p(print)|-e(json creation example)]\n", argv[0]);
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--buddy"))
+    {
+        testBuddy();
         return 0;
     }
 
@@ -160,7 +199,7 @@ main(int argCount, char* paArgs[])
     ThreadPoolStart(&tp);
     defer( ArenaFreeAll(&alloc) );
 
-    if (argCount >= 2 && (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--tree"))
+    if (argc >= 2 && (String(argv[1]) == "--avl" || String(argv[1]) == "--tree"))
     {
         ThreadPoolSubmit(&tp, [](void*) -> int {
             testAVL();
@@ -168,7 +207,7 @@ main(int argCount, char* paArgs[])
         }, nullptr);
     }
 
-    if (argCount >= 2 && (String(paArgs[1]) == "--rb" || String(paArgs[1]) == "--tree"))
+    if (argc >= 2 && (String(argv[1]) == "--rb" || String(argv[1]) == "--tree"))
     {
         ThreadPoolSubmit(&tp, [](void*) -> int {
             testRB();
@@ -179,16 +218,16 @@ main(int argCount, char* paArgs[])
     ThreadPoolWait(&tp);
     ThreadPoolDestroy(&tp);
 
-    if (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--rb" || String(paArgs[1]) == "--tree")
+    if (String(argv[1]) == "--avl" || String(argv[1]) == "--rb" || String(argv[1]) == "--tree")
         return 0;
 
-    if (argCount >= 2)
+    if (argc >= 2)
     {
         json::Parser p (&alloc.base);
-        json::ParserLoad(&p, paArgs[1]);
+        json::ParserLoad(&p, argv[1]);
         json::ParserParse(&p);
 
-        if (argCount >= 3 && "-p" == String(paArgs[2]))
+        if (argc >= 3 && "-p" == String(argv[2]))
             json::ParserPrint(&p, stdout);
     }
 }
