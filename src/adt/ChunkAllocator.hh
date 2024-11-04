@@ -2,8 +2,8 @@
 
 #include "Allocator.hh"
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 
 namespace adt
 {
@@ -48,6 +48,7 @@ __ChunkAllocatorNewBlock(ChunkAllocator* s)
 {
     u64 total = s->blockCap + sizeof(ChunkAllocatorBlock);
     auto* r = (ChunkAllocatorBlock*)::calloc(1, total);
+    assert(r != nullptr && "[ChunkAllocator]: calloc failed");
     r->head = (ChunkAllocatorNode*)r->pMem;
 
     u32 chunks = s->blockCap / s->chunkSize;
@@ -145,7 +146,8 @@ ChunkFreeAll(ChunkAllocator* s)
 inline const AllocatorInterface __CunkAllocatorVTable {
     .alloc = decltype(AllocatorInterface::alloc)(ChunkAlloc),
     .realloc = decltype(AllocatorInterface::realloc)(__ChunkRealloc),
-    .free = decltype(AllocatorInterface::free)(ChunkFree)
+    .free = decltype(AllocatorInterface::free)(ChunkFree),
+    .freeAll = decltype(AllocatorInterface::freeAll)(ChunkFreeAll),
 };
 
 inline

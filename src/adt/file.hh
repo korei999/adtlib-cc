@@ -2,46 +2,54 @@
 
 #include "String.hh"
 #include "logs.hh"
+#include "Option.hh"
+#include "defer.hh"
 
 namespace adt
 {
 namespace file
 {
 
-inline String load(Allocator* pAlloc, String path);
-inline String replacePathEnding(Allocator* pAlloc, String path, String sEnding);
-
-inline String
-load(Allocator* pAlloc, String path)
+[[nodiscard]]
+inline Option<String>
+load(Allocator* pAlloc, String sPath)
 {
-    String ret;
-
-    auto sn = StringAlloc(pAlloc, path);
-
-    FILE* pf = fopen(sn.pData, "rb");
-    if (pf)
+    FILE* pf = fopen(sPath.pData, "rb");
+    if (!pf)
     {
-        fseek(pf, 0, SEEK_END);
-        long size = ftell(pf) + 1;
-        rewind(pf);
-
-        ret.pData = (char*)alloc(pAlloc, size, sizeof(char));
-        ret.size = size - 1;
-        fread(ret.pData, 1, ret.size, pf);
-
-        fclose(pf);
+        LOG_WARN("Error opening '{}' file\n", sPath);
+        return {};
     }
-    else LOG_WARN("ret(%p): Error opening '%.*s' file\n", pf, path.size, path.pData);
+    defer(fclose(pf));
 
-    return ret;
+    String ret {};
+
+    fseek(pf, 0, SEEK_END);
+    long size = ftell(pf) + 1;
+    rewind(pf);
+
+    ret.pData = (char*)alloc(pAlloc, size, sizeof(char));
+    ret.size = size - 1;
+    fread(ret.pData, 1, ret.size, pf);
+
+    return {ret, true};
 }
 
-inline String
-replacePathEnding(Allocator* pAlloc, String path, String sEnding)
+[[nodiscard]]
+constexpr String
+getPathEnding(String sPath)
 {
-    auto lastSlash = StringLastOf(path, '/');
-    String sNoEnding = {&path[0], lastSlash + 1};
-    auto r = StringCat(pAlloc, sNoEnding, sEnding);
+    u32 lastSlash = StringLastOf(sPath, '/');
+    return String(&sPath[lastSlash + 1], &sPath[sPath.size - 1] - &sPath[lastSlash]);
+}
+
+[[nodiscard]]
+inline String
+replacePathEnding(Allocator* pAlloc, String sPath, String sEnding)
+{
+    u32 lastSlash = StringLastOf(sPath, '/');
+    String sNoEnding = {&sPath[0], lastSlash + 1};
+    String r = StringCat(pAlloc, sNoEnding, sEnding);
     return r;
 }
 

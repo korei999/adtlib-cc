@@ -20,32 +20,33 @@ struct Parser
     Parser(adt::Allocator* p) : pAlloc(p), l(p) {}
 };
 
-void ParserPrintNode(Object* pNode, adt::String svEnd, int depth);
+void ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
 void ParserLoad(Parser* s, adt::String path);
 void ParserParse(Parser* s);
-void ParserPrint(Parser* s);
+void ParserLoadAndParse(Parser* s, adt::String path);
+void ParserPrint(Parser* s, FILE* fp);
 void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
 inline void ParserTraverse(Parser* s, bool (*pfn)(Object* p, void* a), void* args) { ParserTraverse(s, s->pHead, pfn, args); }
 inline Object* ParserGetHeadObj(Parser* s) { return s->pHead; }
 
 /* Linear search inside JSON object. Returns nullptr if not found */
 inline Object*
-searchObject(adt::Vec<Object>& aObj, adt::String svKey)
+searchObject(adt::VecBase<Object>& aObj, adt::String svKey)
 {
-    for (adt::u32 i = 0; i < aObj.size; i++)
+    for (adt::u32 i = 0; i < VecSize(&aObj); i++)
         if (aObj[i].svKey == svKey)
             return &aObj[i];
 
     return nullptr;
 }
 
-inline adt::Vec<Object>&
+inline adt::VecBase<Object>&
 getObject(Object* obj)
 {
     return obj->tagVal.val.o;
 }
 
-inline adt::Vec<Object>&
+inline adt::VecBase<Object>&
 getArray(Object* obj)
 {
     return obj->tagVal.val.a;
@@ -139,15 +140,15 @@ putNull(adt::String key)
 }
 
 inline void
-pushToObject(Object* pObj, Object o)
+pushToObject(Object* pObj, adt::Allocator* p, Object o)
 {
-    adt::VecPush(&pObj->tagVal.val.o, o);
+    adt::VecPush(&pObj->tagVal.val.o, p, o);
 }
 
 inline void
-pushToArray(Object* pObj, Object o)
+pushToArray(Object* pObj, adt::Allocator* p, Object o)
 {
-    adt::VecPush(&pObj->tagVal.val.a, o);
+    adt::VecPush(&pObj->tagVal.val.a, p, o);
 }
 
 } /* namespace json */

@@ -1,7 +1,7 @@
 #include "Lexer.hh"
 
 #include "adt/file.hh"
-#include "adt/logs.hh"
+#include "logs.hh"
 
 #include <ctype.h>
 
@@ -13,7 +13,10 @@ namespace json
 void
 LexerLoadFile(Lexer* s, adt::String path)
 {
-    s->sFile = file::load(s->pAlloc, path);
+    Option<String> rs = file::load(s->pAlloc, path);
+    if (!rs) LOG_FATAL("error opening file: '%.*s'\n", path.size, path.pData);
+
+    s->sFile = rs.data;
     s->pos = 0;
 }
 

@@ -1,25 +1,21 @@
+#pragma once
+
 #include "types.hh"
 
 namespace adt
 {
 
-template<typename T>
+enum RESULT : u8 { SUCCES = 0, FAILURE };
+
+template<typename T, typename E = RESULT>
 struct Result
 {
-    bool bHasValue = false;
     T data;
-
-    constexpr Result() = default;
-
-    constexpr Result(const T& x)
-    {
-        bHasValue = true;
-        data = x;
-    }
+    E eCode;
 
     constexpr explicit operator bool() const
     {
-        return this->bHasValue;
+        return int(eCode) == 0;
     }
 };
 

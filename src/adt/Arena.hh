@@ -1,14 +1,14 @@
 #pragma once
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stddef.h>
-
 #include "Allocator.hh"
 
-#ifdef DEBUG
-    #include "logs.hh"
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <cstddef>
+
+#ifndef NDEBUG
+    #include <cstdio>
 #endif
 
 #define ADT_ARENA_FIRST(A) ((A)->pBlocksHead)
@@ -49,24 +49,26 @@ struct Arena
 
 inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
 inline void* ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize);
-inline void ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p);
+inline void _ArenaFree(Arena* s, void* p);
 inline void ArenaReset(Arena* s);
 inline void ArenaFreeAll(Arena* s);
 
 inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
 inline void* realloc(Arena* s, void* p, u64 mCount, u64 mSize) { return ArenaRealloc(s, p, mCount, mSize); }
+inline void free(Arena* s, void* p) { _ArenaFree(s, p); }
+inline void freeAll(Arena* s) { ArenaFreeAll(s); }
 
-inline ArenaBlock* __ArenaAllocatorNewBlock(Arena* s, u64 size);
+inline ArenaBlock* _ArenaAllocatorNewBlock(Arena* s, u64 size);
 
 inline ArenaBlock*
-__ArenaAllocatorNewBlock(Arena* s, u64 size)
+_ArenaAllocatorNewBlock(Arena* s, u64 size)
 {
     ArenaBlock** ppLastBlock = &s->pBlocksHead;
     while (*ppLastBlock) ppLastBlock = &((*ppLastBlock)->pNext);
 
     u64 addedSize = size + sizeof(ArenaBlock);
-
     *ppLastBlock = (ArenaBlock*)(calloc(1, addedSize));
+    assert(*ppLastBlock != nullptr && "[Arena]: calloc failed");
 
     auto* pBlock = (ArenaBlock*)*ppLastBlock;
     pBlock->size = size;
@@ -84,18 +86,20 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
     u64 requested = mCount * mSize;
     u64 aligned = align8(requested) + sizeof(ArenaNode);
 
-    /* TODO: find block that can fit */
     ArenaBlock* pFreeBlock = s->pBlocksHead;
 
     while (aligned >= pFreeBlock->size)
     {
-#ifdef DEBUG
-        LOG_WARN("requested size > than one block\n"
-                 "aligned: %zu, blockSize: %zu, requested: %zu\n", aligned, pFreeBlock->size, requested);
+#ifndef NDEBUG
+        fprintf(stderr,
+            "[ARENA]: requested size > than one block\n"
+            "\taligned: %zu, blockSize: %zu, requested: %zu\n",
+            aligned, pFreeBlock->size, requested
+        );
 #endif
 
         pFreeBlock = pFreeBlock->pNext;
-        if (!pFreeBlock) pFreeBlock =  __ArenaAllocatorNewBlock(s, aligned * 2); /* NOTE: trying to double too big of an array situation */
+        if (!pFreeBlock) pFreeBlock =  _ArenaAllocatorNewBlock(s, aligned * 2); /* NOTE: trying to double too big of an array situation */
     }
 
 repeat:
@@ -108,11 +112,12 @@ repeat:
     if (nextAligned >= pFreeBlock->size)
     {
         pFreeBlock = pFreeBlock->pNext;
-        if (!pFreeBlock) pFreeBlock = __ArenaAllocatorNewBlock(s, nextAligned);
+        if (!pFreeBlock) pFreeBlock = _ArenaAllocatorNewBlock(s, nextAligned);
         goto repeat;
     }
 
-    pNextNode->pNext = (ArenaNode*)((u8*)pNextNode + aligned);
+    auto* nextAddr = (ArenaNode*)((u8*)pNextNode + aligned);
+    pNextNode->pNext = nextAddr;
     pFreeBlock->pLast = pNextNode;
 
     return &pNextNode->pData;
@@ -126,11 +131,13 @@ ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize)
 
     /* figure out which block this node belongs to */
     ADT_ARENA_FOREACH(s, pB)
+    {
         if ((u8*)p > (u8*)pB && ((u8*)pB + pB->size) > (u8*)p)
         {
             pBlock = pB;
             break;
         }
+    }
 
     assert(pBlock != nullptr && "block not found, bad pointer");
 
@@ -140,23 +147,26 @@ ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize)
     if (pNode == pBlock->pLast && nextAligned < pBlock->size)
     {
         /* NOTE: + sizeof(ArenaNode) is necessary */
-        pNode->pNext = (ArenaNode*)((u8*)pNode + aligned + sizeof(ArenaNode));
+        auto* nextAddr = (ArenaNode*)((u8*)pNode + aligned + sizeof(ArenaNode));
+
+        pNode->pNext = nextAddr;
 
         return p;
     }
     else
     {
         void* pR = ArenaAlloc(s, mCount, mSize);
-        memcpy(pR, p, ((u8*)pNode->pNext - (u8*)pNode));
+        /* BUG?: sanitizer sees heap-overflow without - sizeof(ArenaNode) */
+        memcpy(pR, p, ((u8*)pNode->pNext - (u8*)pNode) - sizeof(ArenaNode));
 
         return pR;
     }
 }
 
 inline void
-ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p)
+_ArenaFree([[maybe_unused]] Arena* s, [[maybe_unused]] void* p)
 {
-    /* no individual frees */
+    // TODO: it's possible to free the last allocation i guess
 }
 
 inline void
@@ -180,17 +190,18 @@ ArenaFreeAll(Arena* s)
         ::free(pB);
 }
 
-inline const AllocatorInterface __ArenaAllocatorVTable {
+inline const AllocatorInterface _inl_ArenaAllocatorVTable {
     .alloc = decltype(AllocatorInterface::alloc)(ArenaAlloc),
     .realloc = decltype(AllocatorInterface::realloc)(ArenaRealloc),
-    .free = decltype(AllocatorInterface::free)(ArenaFree)
+    .free = decltype(AllocatorInterface::free)(_ArenaFree),
+    .freeAll = decltype(AllocatorInterface::freeAll)(ArenaFreeAll),
 };
 
 inline 
 Arena::Arena(u32 blockCap)
-    : base {&__ArenaAllocatorVTable}
+    : base {&_inl_ArenaAllocatorVTable}
 {
-    __ArenaAllocatorNewBlock(this, align8(blockCap + sizeof(ArenaNode)));
+    _ArenaAllocatorNewBlock(this, align8(blockCap + sizeof(ArenaNode)));
 }
 
 } /* namespace adt */

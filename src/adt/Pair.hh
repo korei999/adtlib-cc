@@ -1,26 +1,55 @@
 #pragma once
 
-#include "types.hh"
-
 namespace adt
 {
 
 template<typename A, typename B>
 struct Pair
 {
-    union {
-        A first;
-        A a;
-        A x;
-    };
-    union {
-        A second;
-        A b;
-        A y;
-    };
-
-    Pair() = default;
-    Pair(const A& _a, const B& _b) : a (_a), b (_b) {}
+    A x {};
+    B y {};
 };
+
+template<typename A, typename B>
+constexpr bool
+operator==(const Pair<A, B>& l, const Pair<A, B>& r)
+{
+    return l.x == r.x && l.y == r.y;
+}
+
+template<typename A, typename B>
+constexpr bool
+operator!=(const Pair<A, B>& l, const Pair<A, B>& r)
+{
+    return !(l == r);
+}
+
+template<typename A, typename B>
+constexpr bool
+operator<(const Pair<A, B>& l, const Pair<A, B>& r)
+{
+    return l.x < r.x && l.y < r.y;
+}
+
+template<typename A, typename B>
+constexpr bool
+operator>(const Pair<A, B>& l, const Pair<A, B>& r)
+{
+    return l.x > r.x && l.y > r.y;
+}
+
+template<typename A, typename B>
+constexpr bool
+operator<=(const Pair<A, B>& l, const Pair<A, B>& r)
+{
+    return l.x <= r.x && l.y <= r.y;
+}
+
+template<typename A, typename B>
+constexpr bool
+operator>=(const Pair<A, B>& l, const Pair<A, B>& r)
+{
+    return l.x >= r.x && l.y >= r.y;
+}
 
 } /* namespace adt */

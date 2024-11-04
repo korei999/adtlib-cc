@@ -1,13 +1,12 @@
 #include "adt/AVLTree.hh"
 #include "adt/Arena.hh"
 #include "adt/ChunkAllocator.hh"
-#include "adt/Heap.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
-#include "adt/format.hh"
-#include "adt/logs.hh"
+#include "logs.hh"
 #include "json/Parser.hh"
-#include "adt/Result.hh"
+#include "adt/defer.hh"
+#include "adt/Buddy.hh"
 
 using namespace adt;
 
@@ -51,11 +50,11 @@ testRB()
         /*COUT("inserting '%d'\n", r);*/
     }
 
-    RBTraverse({}, kek.pRoot, pfnCollect, &a, RB_ORDER::PRE);
-    auto depth = RBDepth(kek.pRoot);
+    RBTraverse({}, kek.base.pRoot, pfnCollect, &a, RB_ORDER::PRE);
+    auto depth = RBDepth(kek.base.pRoot);
 
     int i = 0;
-    for (; i < (int)a.size; i += 1)
+    for (; i < (int)a.base.size; i += 1)
     {
         RBRemoveAndFree(&kek, a[i]);
 
@@ -81,9 +80,9 @@ testRB()
     /*    RBPrintNodes(&alloc2.base, &kek, kek.pRoot, pfnPrintInt, {}, stdout, {}, false);*/
     /*else COUT("tree is empty\n");*/
 
-    COUT("RB: depth: %d\n", depth);
-    COUT("total: %d, size: %d\n", total, a.size);
-    COUT("time: %lf ms\n\n", t1 - t0);
+    COUT("RB: depth: {}\n", depth);
+    COUT("total: {}, size: {}\n", total, a.base.size);
+    COUT("time: {:.3} ms\n\n", t1 - t0);
 
     RBDestroy(&kek);
 
@@ -95,7 +94,6 @@ void
 testAVL()
 {
     Arena alloc {SIZE_8M};
-    /*FreeList alloc(SIZE_1G);*/
 
     AVLTree<int> kek {&alloc.base};
     Vec<AVLNode<int>*> a {&alloc.base};
@@ -122,7 +120,7 @@ testAVL()
     short depth = AVLDepth(kek.pRoot);
 
     int i = 0;
-    for (; i < (int)a.size; i += 1)
+    for (; i < (int)a.base.size; i += 1)
     {
         AVLRemove(&kek, a[i]);
 
@@ -139,9 +137,9 @@ testAVL()
     /*else COUT("tree is empty");*/
     /*COUT("\n");*/
 
-    COUT("AVL: depth: %d\n", depth);
-    COUT("total: %d, size: %d\n", total, a.size);
-    COUT("time: %lf ms\n\n", t1 - t0);
+    COUT("AVL: depth: {}\n", depth);
+    COUT("total: {}, size: {}\n", total, a.base.size);
+    COUT("time: {:.3} ms\n\n", t1 - t0);
 
     ArenaFreeAll(&alloc);
 }
@@ -149,82 +147,23 @@ testAVL()
 int
 main(int argCount, char* paArgs[])
 {
-    Result<int> kekw;
-    COUT("has val?: %d\n", bool(kekw));
-    kekw = 1;
-    COUT("has val?: %d\n", bool(kekw));
+    Buddy buddy {};
+
+    u32 ff = -(-1);
+    /*return 0;*/
+
+    if (argCount <= 1)
+    {
+        COUT("jsonast version: {:.1}\n\n", ADTLIB_CC_VERSION);
+        COUT("usage: {} <path to json> [-p(print)|-e(json creation example)]\n", paArgs[0]);
+        return 0;
+    }
 
     /*FixedAllocator alloc (BIG, size(BIG));*/
     Arena alloc (SIZE_1M * 100);
     ThreadPool tp (&alloc.base, 2);
     ThreadPoolStart(&tp);
-
-    Vec<int> toSort (&alloc.base);
-    for (int i = 0; i < 10; i++)
-        VecPush(&toSort, rand() % 100);
-
-    /*for (auto n : toSort)*/
-    /*    COUT("%d, ", n);*/
-    /*COUT("\n");*/
-
-    /*auto fnCmp = [](const void* l, const void* r) -> int {*/
-    /*    return *(int*)l - *(int*)r;*/
-    /*};*/
-
-    for (auto n : toSort)
-        COUT("%d, ", n);
-    COUT("\n");
-
-    auto st0 = utils::timeNowMS();
-    /*qsort(toSort.pData, toSort.size, sizeof(int), fnCmp);*/
-    utils::qSort(&toSort);
-    /*utils::partition(toSort.pData, 3, toSort.size - 1);*/
-    auto st1 = utils::timeNowMS();
-    COUT("qSort in %.3lf ms\n", st1 - st0);
-
-    for (auto n : toSort)
-        COUT("%d, ", n);
-    COUT("\n");
-
-    auto heap = HeapMaxFromVec(&alloc.base, toSort);
-
-    for (auto& e : heap.a)
-        COUT("%d, ", e);
-    COUT("\n");
-
-    [[maybe_unused]] int min = HeapMaxExtract(&heap);
-    min = HeapMaxExtract(&heap);
-    min = HeapMaxExtract(&heap);
-    min = HeapMaxExtract(&heap);
-    min = HeapMaxExtract(&heap);
-
-    for (auto& e : heap.a)
-        COUT("%d, ", e);
-    COUT("\n");
-
-    HeapMaxSort(&alloc.base, &toSort);
-
-    COUT("heapSorted:\n");
-    for (auto& e : toSort)
-        COUT("%d, ", e);
-    COUT("\n");
-
-    char buf[100] {};
-    char buf2[40] {};
-
-    auto ten = format::toString(buf, utils::size(buf), -12341230);
-    COUT("ten: '%.*s'\n", ten.size, ten.pData);
-    auto onePointFive = format::toString(buf2, utils::size(buf2), -1.445990);
-    COUT("onePointFive: '%.*s', size: %d\n\n", onePointFive.size, onePointFive.pData, onePointFive.size);
-
-    if (argCount <= 1)
-    {
-        COUT("jsonast version: %f\n\n", ADTLIB_CC_VERSION);
-        COUT("usage: %s <path to json> [-p(print)|-e(json creation example)]\n", paArgs[0]);
-        goto cleanup;
-    }
-
-    /*srand(round(utils::timeNowMS()));*/
+    defer( ArenaFreeAll(&alloc) );
 
     if (argCount >= 2 && (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--tree"))
     {
@@ -246,7 +185,7 @@ main(int argCount, char* paArgs[])
     ThreadPoolDestroy(&tp);
 
     if (String(paArgs[1]) == "--avl" || String(paArgs[1]) == "--rb" || String(paArgs[1]) == "--tree")
-        goto cleanup;
+        return 0;
 
     if (argCount >= 2)
     {
@@ -255,9 +194,6 @@ main(int argCount, char* paArgs[])
         json::ParserParse(&p);
 
         if (argCount >= 3 && "-p" == String(paArgs[2]))
-            json::ParserPrint(&p);
+            json::ParserPrint(&p, stdout);
     }
-
-cleanup:
-    ArenaFreeAll(&alloc);
 }
