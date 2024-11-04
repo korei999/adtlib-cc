@@ -147,11 +147,6 @@ testAVL()
 int
 main(int argCount, char* paArgs[])
 {
-    Buddy buddy {};
-
-    u32 ff = -(-1);
-    /*return 0;*/
-
     if (argCount <= 1)
     {
         COUT("jsonast version: {:.1}\n\n", ADTLIB_CC_VERSION);
