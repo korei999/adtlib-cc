@@ -41,8 +41,15 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
 endif()
 
-
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "OS_NAME: '${OS_NAME}'")
 
 message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
+
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(LINUX_PKGS REQUIRED mimalloc)
+# include_directories(BEFORE ${LINUX_PKGS_INCLUDE_DIRS})
+# target_link_libraries(
+#     ${CMAKE_PROJECT_NAME} PRIVATE
+#     ${LINUX_PKGS_LIBRARIES}
+# )
