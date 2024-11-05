@@ -7,33 +7,38 @@
 #include "json/Parser.hh"
 #include "adt/defer.hh"
 #include "adt/Buddy.hh"
+#include "adt/FreeList.hh"
+#include "adt/OsAllocator.hh"
 
 using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
 
-constexpr int total = 10000;
+constexpr int total = 1000000;
 
 static void
 testRB()
 {
-    /*ChunkAllocator alChunk(sizeof(RBNode<int>), SIZE_1M * 100);*/
-    Buddy alChunk(SIZE_8M);
+    /*ChunkAllocator alloc(sizeof(RBNode<int>), SIZE_1M * 100);*/
+    FreeList alloc(SIZE_8M);
+    /*OsAllocator alloc;*/
+
+    /*Buddy alloc(SIZE_8M);*/
 
     Arena alloc2(SIZE_8M);
     defer( ArenaFreeAll(&alloc2) );
-    defer( freeAll(&alChunk) );
+    defer( freeAll(&alloc) );
 
-    RBTree<int> kek (&alChunk.base);
+    RBTree<int> kek (&alloc.base);
     Vec<RBNode<int>*> a (&alloc2.base);
 
-    bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = []([[maybe_unused]] RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
+    bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = +[]([[maybe_unused]] RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<int>*>*)pArgs;
         VecPush(a, pNode);
         return false;
     };
 
-    [[maybe_unused]] void (*pfnPrintInt)(const RBNode<int>*, void* pArgs) = [](const RBNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
+    [[maybe_unused]] void (*pfnPrintInt)(const RBNode<int>*, void* pArgs) = +[](const RBNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT("%s" COL_NORM " %d\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data);
     };
 
@@ -177,6 +182,46 @@ testBuddy()
     BuddyFree(&buddy, pLong);
 }
 
+static void
+testFreeList()
+{
+    LOG_GOOD("testFreeList()\n");
+
+    FreeList alloc(SIZE_8K);
+    defer( FreeListFreeAll(&alloc) );
+
+    void* p0 = FreeListAlloc(&alloc, 1, 16);
+    void* p1 = FreeListAlloc(&alloc, 1, 16);
+    void* p2 = FreeListAlloc(&alloc, 1, 100);
+    void* p3 = FreeListAlloc(&alloc, 1, 100);
+    void* p4 = FreeListAlloc(&alloc, 1, 100);
+
+    FreeListFree(&alloc, p0);
+    FreeListFree(&alloc, p1);
+    FreeListFree(&alloc, p2);
+
+    void* p5 = FreeListAlloc(&alloc, 1, 32);
+    void* p6 = FreeListAlloc(&alloc, 1, 200);
+    void* p7 = FreeListAlloc(&alloc, 1, 200);
+    void* p8 = FreeListAlloc(&alloc, 1, 200);
+    void* p9 = FreeListAlloc(&alloc, 1, 800);
+
+    FreeListFree(&alloc, p3);
+    FreeListFree(&alloc, p4);
+
+    FreeListFree(&alloc, p5);
+    FreeListFree(&alloc, p6);
+
+    void* p10 = FreeListAlloc(&alloc, 1, 64);
+    void* p11 = FreeListAlloc(&alloc, 1, 128);
+
+    FreeListFree(&alloc, p7);
+    FreeListFree(&alloc, p8);
+    FreeListFree(&alloc, p9);
+    FreeListFree(&alloc, p10);
+    FreeListFree(&alloc, p11);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -190,6 +235,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--buddy"))
     {
         testBuddy();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--free"))
+    {
+        testFreeList();
         return 0;
     }
 
