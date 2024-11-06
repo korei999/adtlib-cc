@@ -1,6 +1,5 @@
 #pragma once
 
-#include "String.hh"
 #include "print.hh"
 
 #include <cassert>
@@ -19,8 +18,8 @@
 #define ADT_CERR(...) adt::print::cerr(__VA_ARGS__)
 
 #ifndef NDEBUG
-    #define ADT_DCOUT(...) COUT(__VA_ARGS__)
-    #define ADT_DCERR(...) CERR(__VA_ARGS__)
+    #define ADT_DCOUT(...) ADT_COUT(__VA_ARGS__)
+    #define ADT_DCERR(...) ADT_CERR(__VA_ARGS__)
 #else
     #define ADT_DCOUT(...) (void)0
     #define ADT_DCERR(...) (void)0
