@@ -3,8 +3,8 @@
 #include "RBTree.hh"
 
 #ifndef NDEBUG
-    #include "adt/Arena.hh"
-    #include "adt/defer.hh"
+    #include "Arena.hh"
+    #include "defer.hh"
     #include "logs.hh"
 #endif
 
@@ -47,7 +47,10 @@ inline void
 _FreeListPrintTree(FreeList* s)
 {
     auto pfn = +[](const FreeList::Node* pNode, [[maybe_unused]] void* pArgs) -> void {
-        fprintf(stderr, "%s" COL_NORM " %lu\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data.size);
+        CERR(
+            "{}" ADT_LOGS_COL_NORM " {}\n",
+            pNode->color == RB_COL::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.size
+        );
     };
 
     Arena arena(SIZE_1K);

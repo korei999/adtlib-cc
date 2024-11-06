@@ -3,7 +3,7 @@
 #include "adt/ChunkAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
-#include "logs.hh"
+#include "adt/logs.hh"
 #include "json/Parser.hh"
 #include "adt/defer.hh"
 #include "adt/Buddy.hh"
@@ -25,12 +25,12 @@ testRB()
 
     /*Buddy alloc(SIZE_8M);*/
 
-    Arena alloc2(SIZE_8M);
-    defer( ArenaFreeAll(&alloc2) );
+    /*Arena alloc2(SIZE_8M);*/
+    /*defer( ArenaFreeAll(&alloc2) );*/
     defer( freeAll(&alloc) );
 
     RBTree<long> kek(&alloc.base);
-    Vec<RBNode<long>*> a(&alloc2.base, 32);
+    Vec<RBNode<long>*> a(&alloc.base, 32);
 
     bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<long>*>*)pArgs;
@@ -39,7 +39,7 @@ testRB()
     };
 
     [[maybe_unused]] void (*pfnPrintInt)(const RBNode<long>*, void* pArgs) = +[](const RBNode<long>* pNode, [[maybe_unused]] void* pArgs) -> void {
-        COUT("%s" COL_NORM " %d\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data);
+        COUT("%s" ADT_LOGS_COL_NORM " %d\n", pNode->color == RB_COL::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data);
     };
 
     /*void (*pfnPrintNodes)(const RBNode<FreeListNode>*, void* pArgs) = [](const RBNode<FreeListNode>* pNode, void* pArgs) -> void {*/
@@ -105,7 +105,7 @@ testAVL()
     Vec<AVLNode<int>*> a {&alloc.base};
 
     [[maybe_unused]] void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
-        COUT(COL_YELLOW "%d" COL_NORM " %d\n", pNode->height, pNode->data);
+        COUT(ADT_LOGS_COL_YELLOW "%d" ADT_LOGS_COL_NORM " %d\n", pNode->height, pNode->data);
     };
 
     bool (*pfnCollect)(AVLNode<int>*, void* pArgs) = [](AVLNode<int>* pNode, void* pArgs) -> bool {

@@ -4,6 +4,8 @@
 #include "utils.hh"
 #include "print.hh"
 
+#include "logs.hh"
+
 #include <cassert>
 
 namespace adt
@@ -22,12 +24,12 @@ struct VecBase
 
     VecBase() = default;
     VecBase(Allocator* p, u32 prealloc = 1)
-        : pData((T*)alloc(p, prealloc, sizeof(T))),
-          size(0),
-          capacity(prealloc) {}
+        : pData {(T*)alloc(p, prealloc, sizeof(T))},
+          size {0},
+          capacity {prealloc} {}
 
-    T& operator[](u32 i)             { assert(i < size && "[Vec]: out of size"); return pData[i]; }
-    const T& operator[](u32 i) const { assert(i < size && "[Vec]: out of size"); return pData[i]; }
+    T& operator[](u32 i)             { assert(i < capacity && "out of range vec access"); return pData[i]; }
+    const T& operator[](u32 i) const { assert(i < capacity && "out of range vec access"); return pData[i]; }
 
     struct It
     {
@@ -63,9 +65,21 @@ template<typename T>
 inline void
 VecGrow(VecBase<T>* s, Allocator* p, u32 size)
 {
+    /*T* pNew = (T*)alloc(p, size, sizeof(T));*/
+    /*memcpy(pNew, s->pData, s->size * sizeof(T));*/
+    /*free(p, s->pData);*/
+    /*s->cap = size;*/
+    /*s->pData = pNew;*/
+
     assert(s->size * sizeof(T) > 0);
+
+    /*LOG_NOTIFY(*/
+    /*    "VecGrow:                                  to copy: {}, newSize: {}, [{}, {}]\n",*/
+    /*    s->size * sizeof(T), size*sizeof(T), (u8*)s->pData, (u8*)s->pData + s->size*sizeof(T)*/
+    /*);*/
+
     s->capacity = size;
-    s->pData = (T*)realloc(p, s->pData, sizeof(T), size);
+    s->pData = (T*)realloc(p, s->pData, size, sizeof(T));
 }
 
 template<typename T>

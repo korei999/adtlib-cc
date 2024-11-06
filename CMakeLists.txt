@@ -23,6 +23,9 @@ add_executable(
     src/json/Parser.cc
 )
 
+add_definitions("-DADT_DEFER_LESS_TYPING")
+add_definitions("-DADT_LOGS_LESS_TYPING")
+
 add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough)
 add_compile_definitions("-D_DEFAULT_SOURCE") # needed for reallocarray
 add_compile_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
