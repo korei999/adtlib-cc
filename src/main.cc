@@ -29,16 +29,16 @@ testRB()
     defer( ArenaFreeAll(&alloc2) );
     defer( freeAll(&alloc) );
 
-    RBTree<int> kek (&alloc.base);
-    Vec<RBNode<int>*> a (&alloc2.base);
+    RBTree<long> kek(&alloc.base);
+    Vec<RBNode<long>*> a(&alloc2.base, 32);
 
-    bool (*pfnCollect)(RBNode<int>*, RBNode<int>*, void* pArgs) = +[]([[maybe_unused]] RBNode<int>* pPar, RBNode<int>* pNode, void* pArgs) -> bool {
-        auto* a = (Vec<RBNode<int>*>*)pArgs;
+    bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
+        auto* a = (Vec<RBNode<long>*>*)pArgs;
         VecPush(a, pNode);
         return false;
     };
 
-    [[maybe_unused]] void (*pfnPrintInt)(const RBNode<int>*, void* pArgs) = +[](const RBNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
+    [[maybe_unused]] void (*pfnPrintInt)(const RBNode<long>*, void* pArgs) = +[](const RBNode<long>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT("%s" COL_NORM " %d\n", pNode->color == RB_COL::RED ? COL_RED "(R)" : COL_BLUE "(B)", pNode->data);
     };
 
@@ -53,7 +53,7 @@ testRB()
 
     for (int i = 0; i < total; i++)
     {
-        auto r = rand();
+        long r = rand();
         RBInsert(&kek, r, true);
 
         /*COUT("inserting '%d'\n", r);*/
@@ -74,7 +74,7 @@ testRB()
 
         if (i % 2 == 0)
         {
-            auto r = rand();
+            long r = rand();
             RBInsert(&kek, r, true);
         }
     }
@@ -187,39 +187,35 @@ testFreeList()
 {
     LOG_GOOD("testFreeList()\n");
 
-    FreeList alloc(SIZE_8K);
-    defer( FreeListFreeAll(&alloc) );
+    FreeList list(SIZE_8K);
+    defer( FreeListFreeAll(&list) );
 
-    void* p0 = FreeListAlloc(&alloc, 1, 16);
-    void* p1 = FreeListAlloc(&alloc, 1, 16);
-    void* p2 = FreeListAlloc(&alloc, 1, 100);
-    void* p3 = FreeListAlloc(&alloc, 1, 100);
-    void* p4 = FreeListAlloc(&alloc, 1, 100);
+    Vec<int> vec(&list.base);
+    int what = 2;
 
-    FreeListFree(&alloc, p0);
-    FreeListFree(&alloc, p1);
-    FreeListFree(&alloc, p2);
+    void* p = alloc(&list, what, sizeof(int));
+    memset(p, 1, what * sizeof(int));
+    for (u32 i = 0; i < 20; ++i)
+    {
+        VecPush(&vec, int(i));
+        /*COUT("vec: {}\n", vec.base);*/
 
-    void* p5 = FreeListAlloc(&alloc, 1, 32);
-    void* p6 = FreeListAlloc(&alloc, 1, 200);
-    void* p7 = FreeListAlloc(&alloc, 1, 200);
-    void* p8 = FreeListAlloc(&alloc, 1, 200);
-    void* p9 = FreeListAlloc(&alloc, 1, 800);
+        /*free(&list, p);*/
+        /*p = alloc(&list, what + i, sizeof(int));*/
 
-    FreeListFree(&alloc, p3);
-    FreeListFree(&alloc, p4);
+        p = realloc(&list, p, what + i, sizeof(int));
+    }
 
-    FreeListFree(&alloc, p5);
-    FreeListFree(&alloc, p6);
 
-    void* p10 = FreeListAlloc(&alloc, 1, 64);
-    void* p11 = FreeListAlloc(&alloc, 1, 128);
-
-    FreeListFree(&alloc, p7);
-    FreeListFree(&alloc, p8);
-    FreeListFree(&alloc, p9);
-    FreeListFree(&alloc, p10);
-    FreeListFree(&alloc, p11);
+    /*_FreeListPrintTree(&list);*/
+    /*int* p0 = (int*)alloc(&list, 2, sizeof(int));*/
+    /*free(&list, p0);*/
+    /**/
+    /*p0 = (int*)alloc(&list, 2, sizeof(int));*/
+    /**/
+    /*_FreeListPrintTree(&list);*/
+    /**/
+    /*p0 = (int*)realloc(&list, p0, 4, sizeof(int));*/
 }
 
 int

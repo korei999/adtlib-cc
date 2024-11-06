@@ -3,6 +3,8 @@
 #include "RBTree.hh"
 
 #ifndef NDEBUG
+    #include "adt/Arena.hh"
+    #include "adt/defer.hh"
     #include "logs.hh"
 #endif
 
@@ -24,8 +26,6 @@ struct FreeListNodeData
     u64 size {}; /* TODO: hide bFree to the size, (save 8 bytes) */
     u64 bFree {};
     u8 pMem[];
-
-    bool isFree() const { return bFree; }
 };
 
 /* best-fit logarithmic time thing */
@@ -54,6 +54,8 @@ _FreeListPrintTree(FreeList* s)
     defer( freeAll(&arena) );
     RBPrintNodes(&arena.base, &s->tree, s->tree.pRoot, pfn, {}, stderr, {}, false);
 }
+#else
+#define _FreeListPrintTree //
 #endif
 
 template<>
@@ -123,15 +125,15 @@ FreeListTreeNodeFromPtr(void* p)
 }
 
 inline FreeList::Node*
-FreeListFindFittingNode(FreeList* s, u64 size)
+FreeListFindFittingNode(FreeList* s, const u64 size)
 {
     auto* it = s->tree.pRoot;
-    const u64 realSize = size + sizeof(FreeList::Node);
+    const long realSize = size + sizeof(FreeList::Node);
 
     FreeList::Node* pLastFitting {};
     while (it)
     {
-        assert(it->data.isFree() && "non free node in the free list");
+        assert(it->data.bFree && "non free node in the free list");
 
         long nodeSize = it->data.size;
 
@@ -186,6 +188,8 @@ _FreeListVerify(FreeList* s)
         pBlock = pBlock->pNext;
     }
 }
+#else
+#define _FreeListVerify //
 #endif
 
 inline void*
@@ -209,13 +213,14 @@ FreeListAlloc(FreeList* s, u64 nMembers, u64 mSize)
     if (!pBlock)
     {
 again:
-        pBlock = FreeListBlockPush(s, utils::max(s->blockSize, requested*2));
+        pBlock = FreeListBlockPush(s, utils::max(s->blockSize, requested*2 + sizeof(FreeListBlock) + sizeof(FreeList::Node)));
     }
 
     auto* pFree = FreeListFindFittingNode(s, requested);
     if (!pFree) goto again;
 
-    assert(pFree->data.isFree());
+
+    assert(pFree->data.bFree);
 
     pBlock->nBytesOccupied += realSize;
     long splitSize = long(pFree->data.size) - long(realSize);
@@ -224,9 +229,8 @@ again:
 
     RBRemove(&s->tree, pFree);
 
-    if (splitSize == 0)
+    if (splitSize <= (long)sizeof(FreeList::Node))
     {
-        /*LOG_WARN("'splitSize == 0' case\n");*/
         pFree->data.bFree = false;
         return pFree->data.pMem;
     }
@@ -240,21 +244,23 @@ again:
 
     if (pFree->data.pNext) pFree->data.pNext->pPrev = &pSplit->data;
     pFree->data.pNext = &pSplit->data;
-    pFree->data.size -= realSize;
+    pFree->data.size = splitSize;
 
     RBInsert(&s->tree, pFree, true);
+
     return pSplit->data.pMem;
 }
 
 inline void
-FreeListFree(FreeList* s, void* p)
+FreeListFree(FreeList* s, void* ptr)
 {
-    auto* pThis = FreeListTreeNodeFromPtr(p);
-    /*LOG_WARN("freeing node of size: {}, addr: {}\n", pThis->data.size, p);*/
+    auto* pThis = FreeListTreeNodeFromPtr(ptr);
+
+    assert(!pThis->data.bFree);
 
     pThis->data.bFree = true;
 
-    if (pThis->data.pNext && pThis->data.pNext->isFree())
+    if (pThis->data.pNext && pThis->data.pNext->bFree)
     {
         RBRemove(&s->tree, FreeListTreeNodeFromPtr(pThis->data.pNext->pMem));
 
@@ -264,7 +270,7 @@ FreeListFree(FreeList* s, void* p)
         pThis->data.pNext = pThis->data.pNext->pNext;
     }
 
-    if (pThis->data.pPrev && pThis->data.pPrev->isFree())
+    if (pThis->data.pPrev && pThis->data.pPrev->bFree)
     {
         auto* pPrev = FreeListTreeNodeFromPtr(pThis->data.pPrev->pMem);
         RBRemove(&s->tree, pPrev);
@@ -281,16 +287,20 @@ FreeListFree(FreeList* s, void* p)
 }
 
 inline void*
-FreeListRealloc(FreeList* s, void* p, u64 nMembers, u64 mSize)
+FreeListRealloc(FreeList* s, void* ptr, u64 nMembers, u64 mSize)
 {
-    auto* pRet = FreeListAlloc(s, nMembers, mSize);
-    auto* pNode = FreeListTreeNodeFromPtr(pRet);
-
+    auto* pNode = FreeListTreeNodeFromPtr(ptr);
     long nodeSize = (long)pNode->data.size - (long)sizeof(FreeList::Node);
     assert(nodeSize > 0);
 
-    memcpy(pRet, p, nodeSize);
-    FreeListFree(s, pNode);
+    if ((long)nMembers*(long)mSize <= nodeSize) return ptr;
+
+    auto* pRet = FreeListAlloc(s, nMembers, mSize);
+
+    assert(!pNode->data.bFree);
+    memcpy(pRet, ptr, nodeSize);
+
+    FreeListFree(s, ptr);
 
     return pRet;
 }

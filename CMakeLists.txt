@@ -24,7 +24,6 @@ add_executable(
 )
 
 add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough)
-add_compile_definitions("-DLOGS") # used for LOG_* and COUT/CERR macros
 add_compile_definitions("-D_DEFAULT_SOURCE") # needed for reallocarray
 add_compile_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
@@ -38,6 +37,7 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions("-DDEBUG")
+    add_compile_definitions("-DLOGS")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
 endif()
 
