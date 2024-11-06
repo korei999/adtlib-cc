@@ -14,7 +14,7 @@ using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
 
-constexpr int total = 1000000;
+constexpr int total = 5000000;
 
 static void
 testRB()
