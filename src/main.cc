@@ -10,11 +10,13 @@
 #include "adt/FreeList.hh"
 #include "adt/OsAllocator.hh"
 
+#include <stdatomic.h>
+
 using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
 
-constexpr int total = 5000000;
+constexpr int total = 1000000;
 
 static void
 testRB()
@@ -25,12 +27,14 @@ testRB()
 
     /*Buddy alloc(SIZE_8M);*/
 
-    /*Arena alloc2(SIZE_8M);*/
-    /*defer( ArenaFreeAll(&alloc2) );*/
-    defer( freeAll(&alloc) );
+    Arena alloc2(SIZE_8M);
+    defer( ArenaFreeAll(&alloc2) );
+    /*defer( freeAll(&alloc) );*/
 
     RBTree<long> kek(&alloc.base);
-    Vec<RBNode<long>*> a(&alloc.base, 32);
+    defer( RBDestroy(&kek) );
+
+    Vec<RBNode<long>*> a(&alloc2.base, 32);
 
     bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<long>*>*)pArgs;
@@ -92,8 +96,6 @@ testRB()
     COUT("RB: depth: {}\n", depth);
     COUT("total: {}, size: {}\n", total, a.base.size);
     COUT("time: {:.3} ms\n\n", t1 - t0);
-
-    RBDestroy(&kek);
 }
 
 static void
@@ -218,6 +220,48 @@ testFreeList()
     /*p0 = (int*)realloc(&list, p0, 4, sizeof(int));*/
 }
 
+void
+testFuture()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+    atomic_int number = 1;
+    ThreadPool tp(&arena.base);
+    ThreadPoolStart(&tp);
+
+    Future future {};
+    FutureInit(&future);
+    defer( FutureDestroy(&future) );
+
+    auto task = +[](void* pArgs) -> int {
+        auto* pNumber = (atomic_int*)pArgs;
+        utils::sleepMS(1000.0);
+        atomic_fetch_add(pNumber, 1);
+        return 0;
+    };
+
+    auto task2 = +[](void* pArgs) -> int {
+        auto* pNumber = (atomic_int*)pArgs;
+        utils::sleepMS(1500.0);
+        atomic_fetch_add(pNumber, 1);
+
+        return 0;
+    };
+
+    ThreadPoolFuture(&tp, task, &number, &future);
+    ThreadPoolSubmit(&tp, task2, &number);
+    ThreadPoolSubmit(&tp, task2, &number);
+
+    COUT("before: number: {}\n", (int)number);
+    FutureWait(&future);
+    COUT("FutureWait: number: {}\n", (int)number);
+
+    ThreadPoolWait(&tp);
+    COUT("ThreadPoolWait: number: {}\n", (int)number);
+
+    ThreadPoolDestroy(&tp);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -237,6 +281,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--free"))
     {
         testFreeList();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--future"))
+    {
+        testFuture();
         return 0;
     }
 
