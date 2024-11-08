@@ -20,6 +20,7 @@ struct Parser
     Parser(adt::Allocator* p) : pAlloc(p), l(p) {}
 };
 
+void ParserDestroy(Parser* s);
 void ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
 void ParserLoad(Parser* s, adt::String path);
 void ParserParse(Parser* s);

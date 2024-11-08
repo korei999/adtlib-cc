@@ -291,8 +291,8 @@ main(int argc, char* argv[])
     }
 
     /*FixedAllocator alloc (BIG, size(BIG));*/
-    Arena alloc (SIZE_1M * 100);
-    ThreadPool tp (&alloc.base, 2);
+    Arena alloc(SIZE_1M * 100);
+    ThreadPool tp(&alloc.base, 2);
     ThreadPoolStart(&tp);
     defer( ArenaFreeAll(&alloc) );
 
@@ -320,9 +320,12 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        json::Parser p (&alloc.base);
-        json::ParserLoad(&p, argv[1]);
-        json::ParserParse(&p);
+        Arena arena(SIZE_1M);
+        defer( freeAll(&arena) );
+
+        json::Parser p(&arena.base);
+        json::ParserLoadAndParse(&p, argv[1]);
+        /*defer(  json::ParserDestroy(&p) );*/
 
         if (argc >= 3 && "-p" == String(argv[2]))
             json::ParserPrint(&p, stdout);

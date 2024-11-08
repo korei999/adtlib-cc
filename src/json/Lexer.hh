@@ -39,6 +39,7 @@ struct Lexer
     Lexer(adt::Allocator* p) : pAlloc(p) {}
 };
 
+void LexerDestroy(Lexer* s);
 void LexerLoadFile(Lexer* s, adt::String path);
 Token LexerNext(Lexer* s);
 

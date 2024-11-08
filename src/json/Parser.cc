@@ -218,6 +218,23 @@ parseBool(Parser* s, TagVal* pTV)
 }
 
 void
+ParserDestroy(Parser* s)
+{
+    auto fn = +[](Object* p, void* a) -> bool {
+        auto* pAlloc = (Allocator*)a;
+
+        if (p->tagVal.tag == TAG::ARRAY || p->tagVal.tag == TAG::OBJECT)
+            free(pAlloc, p->tagVal.val.a.pData);
+
+        return false;
+    };
+
+    ParserTraverse(s, fn, s->pAlloc);
+    free(s->pAlloc, s->pHead);
+    LexerDestroy(&s->l);
+}
+
+void
 ParserPrint(Parser* s, FILE* fp)
 {
     ParserPrintNode(fp, s->pHead, "", 0);
@@ -387,22 +404,20 @@ ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
 void
 ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* args), void* args)
 {
-    if (pfn(pNode, args)) return;
-
     switch (pNode->tagVal.tag)
     {
         default: break;
 
         case TAG::ARRAY:
-        case TAG::OBJECT:
-            {
-                auto& obj = getObject(pNode);
+        case TAG::OBJECT: {
+            auto& obj = getObject(pNode);
 
-                for (u32 i = 0; i < VecSize(&obj); i++)
-                    ParserTraverse(s, &obj[i], pfn, args);
-            }
-            break;
+            for (u32 i = 0; i < VecSize(&obj); i++)
+                ParserTraverse(s, &obj[i], pfn, args);
+        } break;
     }
+
+    if (pfn(pNode, args)) return;
 }
 
 } /* namespace json */
