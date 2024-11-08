@@ -99,7 +99,7 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 #endif
 
         pFreeBlock = pFreeBlock->pNext;
-        if (!pFreeBlock) pFreeBlock =  _ArenaAllocatorNewBlock(s, aligned * 2); /* NOTE: trying to double too big of an array situation */
+        if (!pFreeBlock) pFreeBlock = _ArenaAllocatorNewBlock(s, aligned * 2); /* NOTE: trying to double too big of an array situation */
     }
 
 repeat:
@@ -156,7 +156,6 @@ ArenaRealloc(Arena* s, void* p, u64 mCount, u64 mSize)
     else
     {
         void* pR = ArenaAlloc(s, mCount, mSize);
-        /* BUG?: sanitizer sees heap-overflow without - sizeof(ArenaNode) */
         memcpy(pR, p, ((u8*)pNode->pNext - (u8*)pNode) - sizeof(ArenaNode));
 
         return pR;

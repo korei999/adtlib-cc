@@ -1,6 +1,5 @@
 #include "adt/AVLTree.hh"
 #include "adt/Arena.hh"
-#include "adt/ChunkAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/logs.hh"
@@ -8,9 +7,7 @@
 #include "adt/defer.hh"
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
-#include "adt/OsAllocator.hh"
-
-#include <stdatomic.h>
+#include "adt/sort.hh"
 
 using namespace adt;
 
@@ -23,6 +20,7 @@ testRB()
 {
     /*ChunkAllocator alloc(sizeof(RBNode<int>), SIZE_1M * 100);*/
     FreeList alloc(SIZE_8M);
+    /*Arena alloc(SIZE_8M);*/
     /*OsAllocator alloc;*/
 
     /*Buddy alloc(SIZE_8M);*/
@@ -200,24 +198,9 @@ testFreeList()
     for (u32 i = 0; i < 20; ++i)
     {
         VecPush(&vec, int(i));
-        /*COUT("vec: {}\n", vec.base);*/
-
-        /*free(&list, p);*/
-        /*p = alloc(&list, what + i, sizeof(int));*/
 
         p = realloc(&list, p, what + i, sizeof(int));
     }
-
-
-    /*_FreeListPrintTree(&list);*/
-    /*int* p0 = (int*)alloc(&list, 2, sizeof(int));*/
-    /*free(&list, p0);*/
-    /**/
-    /*p0 = (int*)alloc(&list, 2, sizeof(int));*/
-    /**/
-    /*_FreeListPrintTree(&list);*/
-    /**/
-    /*p0 = (int*)realloc(&list, p0, 4, sizeof(int));*/
 }
 
 void
@@ -262,6 +245,39 @@ testLock()
     ThreadPoolDestroy(&tp);
 }
 
+void
+testSort()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+
+    srand(1290837027);
+
+    Vec<int> vec(&arena.base);
+    for (u32 i = 0; i < 10; ++i)
+        VecPush(&vec, rand() % 100);
+
+    /*sort::quick(&vec.base, [](const int& l, const int& r) {*/
+    /*    return l - r;*/
+    /*});*/
+
+    sort::quick(&vec.base);
+    COUT("inc: {}\n", vec);
+    assert(sort::sorted(vec.base, sort::INC));
+
+    for (u32 i = 0; i < 10; ++i)
+        vec[i] = rand() % 100;
+
+    sort::quick<
+        VecBase,
+        int,
+        [](const int& l, const int& r) -> s64 { return r - l; }
+    >(&vec.base);
+
+    COUT("dec: {}\n", vec);
+    assert(sort::sorted(vec.base, sort::DEC));
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -287,6 +303,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--lock"))
     {
         testLock();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--sort"))
+    {
+        testSort();
         return 0;
     }
 

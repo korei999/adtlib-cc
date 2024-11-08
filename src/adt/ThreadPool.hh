@@ -145,7 +145,7 @@ _ThreadPoolLoop(void* p)
         {
             guard::Mtx lock(&s->mtxQ);
 
-            while (QueueEmpty(&s->qTasks) && !s->bDone)
+            while (utils::empty(&s->qTasks) && !s->bDone)
                 cnd_wait(&s->cndQ, &s->mtxQ);
 
             if (s->bDone) return thrd_success;
@@ -190,7 +190,7 @@ ThreadPoolBusy(ThreadPool* s)
     bool ret;
     {
         guard::Mtx lock(&s->mtxQ);
-        ret = !QueueEmpty(&s->qTasks) || s->nActiveTasks > 0;
+        ret = !utils::empty(&s->qTasks) || s->nActiveTasks > 0;
     }
 
     return ret;

@@ -3,6 +3,7 @@
 #include "utils.hh"
 
 #include <cmath>
+#include <cstdio>
 
 namespace adt
 {
@@ -79,24 +80,30 @@ sorted(const auto& a, const ORDER eOrder = INC)
     return sorted(a.pData, a.size, eOrder);
 }
 
+template<typename T, s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>>
 constexpr void
-insertion(auto* a, int l, int h)
+insertion(T* a, int l, int h)
 {
     for (int i = l + 1; i < h + 1; i++)
     {
-        auto key = a[i];
+        T key = a[i];
         int j = i;
-        for (; j > l && a[j - 1] > key; --j)
+        for (; j > l && FN_CMP(a[j - 1], key) > 0; --j)
             a[j] = a[j - 1];
 
         a[j] = key;
     }
 }
 
+template<
+    template<typename> typename CON_T,
+    typename T,
+    s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>
+>
 constexpr void
-insertion(auto* a)
+insertion(CON_T<T>* a)
 {
-    insertion(a->pData, 0, a->size - 1);
+    insertion<T, FN_CMP>(a->pData, 0, a->size - 1);
 }
 
 constexpr void
@@ -123,11 +130,13 @@ partition(T a[], int l, int h)
     int p = h, firstHigh = l;
 
     for (int i = l; i < h; ++i)
+    {
         if (a[i] < a[p])
         {
             utils::swap(&a[i], &a[firstHigh]);
             firstHigh++;
         }
+    }
 
     utils::swap(&a[p], &a[firstHigh]);
 
@@ -142,25 +151,26 @@ median3(const auto& x, const auto& y, const auto& z)
     else return z;
 }
 
+template<typename T, s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>>
 constexpr void
-quick(auto* a, int l, int h)
+quick(T* a, int l, int h)
 {
     if (l < h)
     {
         if ((h - l + 1) < 64)
         {
-            insertion(a, l, h);
+            insertion<T, FN_CMP>(a, l, h);
             return;
         }
 
         int pivotIdx = median3(l, (l + h) / 2, h);
-        int pivot = a[pivotIdx];
+        T pivot = a[pivotIdx];
         int i = l, j = h;
 
         while (i <= j)
         {
-            while (a[i] < pivot) ++i;
-            while (a[j] > pivot) --j;
+            while (FN_CMP(a[i], pivot) < 0) ++i;
+            while (FN_CMP(a[j], pivot) > 0) --j;
 
             if (i <= j)
             {
@@ -174,10 +184,15 @@ quick(auto* a, int l, int h)
     }
 }
 
+template<
+    template<typename> typename CON_T,
+    typename T,
+    s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>
+>
 constexpr void
-quick(auto* pArr)
+quick(CON_T<T>* pArr)
 {
-    quick(pArr->pData, 0, pArr->size - 1);
+    quick<T, FN_CMP>(pArr->pData, 0, pArr->size - 1);
 }
 
 } /* namespace sort */

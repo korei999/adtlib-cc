@@ -394,4 +394,15 @@ hash::func<const String>(const String& str)
     return fnv(str.pData, str.size);
 }
 
+namespace utils
+{
+
+[[nodiscard]] constexpr bool
+empty(String* s)
+{
+    return s->size == 0;
+}
+
+} /* namespace utils */
+
 } /* namespace adt */
