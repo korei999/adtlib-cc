@@ -221,7 +221,7 @@ testFreeList()
 }
 
 void
-testFuture()
+testLock()
 {
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
@@ -229,9 +229,9 @@ testFuture()
     ThreadPool tp(&arena.base);
     ThreadPoolStart(&tp);
 
-    Future future {};
-    FutureInit(&future);
-    defer( FutureDestroy(&future) );
+    ThreadPoolLock tpLock {};
+    ThreadPoolLockInit(&tpLock);
+    defer( ThreadPoolLockDestroy(&tpLock) );
 
     auto task = +[](void* pArgs) -> int {
         auto* pNumber = (atomic_int*)pArgs;
@@ -248,13 +248,13 @@ testFuture()
         return 0;
     };
 
-    ThreadPoolFuture(&tp, task, &number, &future);
+    ThreadPoolSubmitLocked(&tp, task, &number, &tpLock);
     ThreadPoolSubmit(&tp, task2, &number);
     ThreadPoolSubmit(&tp, task2, &number);
 
     COUT("before: number: {}\n", (int)number);
-    FutureWait(&future);
-    COUT("FutureWait: number: {}\n", (int)number);
+    ThreadPoolLockWait(&tpLock);
+    COUT("ThreadPoolLockWait: number: {}\n", (int)number);
 
     ThreadPoolWait(&tp);
     COUT("ThreadPoolWait: number: {}\n", (int)number);
@@ -284,9 +284,9 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    if (argc >= 2 && (String(argv[1]) == "--future"))
+    if (argc >= 2 && (String(argv[1]) == "--lock"))
     {
-        testFuture();
+        testLock();
         return 0;
     }
 
