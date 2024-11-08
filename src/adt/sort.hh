@@ -80,7 +80,7 @@ sorted(const auto& a, const ORDER eOrder = INC)
     return sorted(a.pData, a.size, eOrder);
 }
 
-template<typename T, s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>>
+template<typename T, auto FN_CMP = utils::compare<T>>
 constexpr void
 insertion(T* a, int l, int h)
 {
@@ -95,11 +95,7 @@ insertion(T* a, int l, int h)
     }
 }
 
-template<
-    template<typename> typename CON_T,
-    typename T,
-    s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>
->
+template<template<typename> typename CON_T, typename T, auto FN_CMP = utils::compare<T>>
 constexpr void
 insertion(CON_T<T>* a)
 {
@@ -151,7 +147,7 @@ median3(const auto& x, const auto& y, const auto& z)
     else return z;
 }
 
-template<typename T, s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>>
+template<typename T, auto FN_CMP = utils::compare<T>>
 constexpr void
 quick(T* a, int l, int h)
 {
@@ -184,11 +180,7 @@ quick(T* a, int l, int h)
     }
 }
 
-template<
-    template<typename> typename CON_T,
-    typename T,
-    s64(*FN_CMP)(const T& r, const T& l) = utils::compare<T>
->
+template<template<typename> typename CON_T, typename T, auto FN_CMP = utils::compare<T>>
 constexpr void
 quick(CON_T<T>* pArr)
 {

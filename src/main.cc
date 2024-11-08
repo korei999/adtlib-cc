@@ -267,13 +267,7 @@ testSort()
 
     for (u32 i = 0; i < 10; ++i)
         vec[i] = rand() % 100;
-
-    sort::quick<
-        VecBase,
-        int,
-        [](const int& l, const int& r) -> s64 { return r - l; }
-    >(&vec.base);
-
+    sort::quick<VecBase, int, [](const int& l, const int& r) -> s64 { return r - l; }>(&vec.base);
     COUT("dec: {}\n", vec);
     assert(sort::sorted(vec.base, sort::DEC));
 }
