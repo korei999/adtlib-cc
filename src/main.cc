@@ -257,10 +257,6 @@ testSort()
     for (u32 i = 0; i < 10; ++i)
         VecPush(&vec, rand() % 100);
 
-    /*sort::quick(&vec.base, [](const int& l, const int& r) {*/
-    /*    return l - r;*/
-    /*});*/
-
     sort::quick(&vec.base);
     COUT("inc: {}\n", vec);
     assert(sort::sorted(vec.base, sort::INC));
