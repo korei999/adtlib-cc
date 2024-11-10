@@ -31,21 +31,16 @@ ParserLoad(Parser* s, adt::String path)
         CERR("wrong first token\n");
         exit(2);
     }
-
-    s->pHead = (Object*)adt::alloc(s->pAlloc, 1, sizeof(Object));
 }
 
 void
 ParserParse(Parser* s)
 {
-    parseNode(s, s->pHead);
-
-    while (s->tCurr.type == Token::LBRACE)
+    do
     {
-        auto lastIdx = pushToObject(s->pHead, s->pAlloc, {});
-        auto& obj = getObject(s->pHead);
-        parseNode(s, &VecLast(&obj));
-    }
+        VecPush(&s->aObjects, s->pAlloc, {});
+        parseNode(s, &VecLast(&s->aObjects));
+    } while (s->tCurr.type == Token::LBRACE);
 }
 
 void
@@ -236,16 +231,19 @@ ParserDestroy(Parser* s)
         return false;
     };
 
-    ParserTraverse(s, fn, s->pAlloc);
-    free(s->pAlloc, s->pHead);
+    ParserTraverseAll(s, fn, s->pAlloc);
     LexerDestroy(&s->l);
+    VecDestroy(&s->aObjects, s->pAlloc);
 }
 
 void
 ParserPrint(Parser* s, FILE* fp)
 {
-    ParserPrintNode(fp, s->pHead, "", 0);
-    fputc('\n', fp);
+    for (auto& obj : s->aObjects)
+    {
+        ParserPrintNode(fp, &obj, "", 0);
+        fputc('\n', fp);
+    }
 }
 
 void

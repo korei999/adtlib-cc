@@ -8,6 +8,7 @@
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
 #include "adt/sort.hh"
+#include "adt/OsAllocator.hh"
 
 using namespace adt;
 
@@ -334,6 +335,8 @@ main(int argc, char* argv[])
     {
         Arena arena(SIZE_1M);
         defer( freeAll(&arena) );
+        /*OsAllocator arena;*/
+        /*FreeList arena(SIZE_1G);*/
 
         json::Parser p(&arena.base);
         json::ParserLoadAndParse(&p, argv[1]);

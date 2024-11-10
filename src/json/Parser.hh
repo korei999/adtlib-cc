@@ -12,7 +12,7 @@ struct Parser
     adt::Allocator* pAlloc;
     Lexer l;
     adt::String sName;
-    Object* pHead;
+    adt::VecBase<Object> aObjects {};
     Token tCurr;
     Token tNext;
 
@@ -27,8 +27,13 @@ void ParserParse(Parser* s);
 void ParserLoadAndParse(Parser* s, adt::String path);
 void ParserPrint(Parser* s, FILE* fp);
 void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
-inline void ParserTraverse(Parser* s, bool (*pfn)(Object* p, void* a), void* args) { ParserTraverse(s, s->pHead, pfn, args); }
-inline Object* ParserGetHeadObj(Parser* s) { return s->pHead; }
+inline adt::VecBase<Object> ParserGetHeadObj(Parser* s) { return s->aObjects; }
+
+inline void ParserTraverseAll(Parser* s, bool (*pfn)(Object* p, void* a), void* args)
+{
+    for (auto& obj : s->aObjects)
+        ParserTraverse(s, &obj, pfn, args);
+}
 
 /* Linear search inside JSON object. Returns nullptr if not found */
 inline Object*
