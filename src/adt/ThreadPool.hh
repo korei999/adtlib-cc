@@ -174,7 +174,10 @@ ThreadPoolStart(ThreadPool* s)
 {
     atomic_store(&s->bDone, false);
 
+#ifndef NDEBUG
     fprintf(stderr, "[ThreadPool]: staring %d threads\n", VecSize(&s->aThreads));
+#endif
+
     for (auto& thread : s->aThreads)
     {
         [[maybe_unused]] int t = thrd_create(&thread, _ThreadPoolLoop, s);

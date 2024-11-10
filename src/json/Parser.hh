@@ -140,16 +140,16 @@ putNull(adt::String key)
     };
 }
 
-inline void
+inline adt::u32
 pushToObject(Object* pObj, adt::Allocator* p, Object o)
 {
-    adt::VecPush(&pObj->tagVal.val.o, p, o);
+    return adt::VecPush(&pObj->tagVal.val.o, p, o);
 }
 
-inline void
+inline adt::u32
 pushToArray(Object* pObj, adt::Allocator* p, Object o)
 {
-    adt::VecPush(&pObj->tagVal.val.a, p, o);
+    return adt::VecPush(&pObj->tagVal.val.a, p, o);
 }
 
 } /* namespace json */

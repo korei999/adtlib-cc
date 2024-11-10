@@ -39,6 +39,13 @@ void
 ParserParse(Parser* s)
 {
     parseNode(s, s->pHead);
+
+    while (s->tCurr.type == Token::LBRACE)
+    {
+        auto lastIdx = pushToObject(s->pHead, s->pAlloc, {});
+        auto& obj = getObject(s->pHead);
+        parseNode(s, &VecLast(&obj));
+    }
 }
 
 void

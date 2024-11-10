@@ -64,8 +64,8 @@ constexpr adt::String _ADT_LOG_SEV_STR[] = {
             {                                                                                                          \
                 default:                                                                                               \
                     break;                                                                                             \
-                case _ADT_LOG_SEV_EXIT:
-                    exit(EXIT_FAILURE); \
+                case _ADT_LOG_SEV_EXIT:                                                                                \
+                    exit(EXIT_FAILURE);                                                                                \
                 case _ADT_LOG_SEV_FATAL:                                                                               \
                     abort();                                                                                           \
             }                                                                                                          \
