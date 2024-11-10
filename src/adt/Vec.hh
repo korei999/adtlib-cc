@@ -79,7 +79,7 @@ template<typename T>
 inline u32
 VecPush(VecBase<T>* s, Allocator* p, const T& data)
 {
-    if (s->capacity == 0) *s = {p, SIZE_MIN};
+    if (s->capacity == 0) *s = VecBase<T>(p, SIZE_MIN);
 
     assert(s->capacity > 0 && "[Vec]: uninitialized push");
 

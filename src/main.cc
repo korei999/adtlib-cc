@@ -8,7 +8,6 @@
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
 #include "adt/sort.hh"
-#include "adt/OsAllocator.hh"
 
 using namespace adt;
 
@@ -336,13 +335,15 @@ main(int argc, char* argv[])
         Arena arena(SIZE_1M);
         defer( freeAll(&arena) );
         /*OsAllocator arena;*/
-        /*FreeList arena(SIZE_1G);*/
+        /*FreeList al(SIZE_1G * 2);*/
 
         json::Parser p(&arena.base);
         json::ParserLoadAndParse(&p, argv[1]);
-        /*defer(  json::ParserDestroy(&p) );*/
 
         if (argc >= 3 && "-p" == String(argv[2]))
             json::ParserPrint(&p, stdout);
+
+        /*json::ParserDestroy(&p);*/
+        /*_FreeListPrintTree(&al, &arena.base);*/
     }
 }

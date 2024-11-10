@@ -407,7 +407,7 @@ ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
 }
 
 void
-ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* args), void* args)
+ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 {
     switch (pNode->tagVal.tag)
     {
@@ -418,11 +418,11 @@ ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* args), void
             auto& obj = getObject(pNode);
 
             for (u32 i = 0; i < VecSize(&obj); i++)
-                ParserTraverse(s, &obj[i], pfn, args);
+                ParserTraverse(s, &obj[i], pfn, pArgs);
         } break;
     }
 
-    if (pfn(pNode, args)) return;
+    if (pfn(pNode, pArgs)) return;
 }
 
 } /* namespace json */

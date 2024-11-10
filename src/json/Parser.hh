@@ -27,12 +27,18 @@ void ParserParse(Parser* s);
 void ParserLoadAndParse(Parser* s, adt::String path);
 void ParserPrint(Parser* s, FILE* fp);
 void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
-inline adt::VecBase<Object> ParserGetHeadObj(Parser* s) { return s->aObjects; }
 
-inline void ParserTraverseAll(Parser* s, bool (*pfn)(Object* p, void* a), void* args)
+inline adt::VecBase<Object>
+ParserGetHeadObj(Parser* s)
+{
+    return s->aObjects;
+}
+
+inline void
+ParserTraverseAll(Parser* s, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 {
     for (auto& obj : s->aObjects)
-        ParserTraverse(s, &obj, pfn, args);
+        ParserTraverse(s, &obj, pfn, pArgs);
 }
 
 /* Linear search inside JSON object. Returns nullptr if not found */
@@ -83,7 +89,7 @@ getBool(Object* obj)
 }
 
 inline Object
-putObject(adt::String key, adt::Allocator* pAlloc)
+makeObject(adt::String key, adt::Allocator* pAlloc)
 {
     return {
         .svKey = key,
@@ -92,7 +98,7 @@ putObject(adt::String key, adt::Allocator* pAlloc)
 }
 
 inline Object
-putArray(adt::String key, adt::Allocator* pAlloc)
+makeArray(adt::String key, adt::Allocator* pAlloc)
 {
     return {
         .svKey = key,
@@ -101,7 +107,7 @@ putArray(adt::String key, adt::Allocator* pAlloc)
 }
 
 inline Object
-putLong(adt::String key, long l)
+makeLong(adt::String key, long l)
 {
     return {
         .svKey = key,
@@ -110,7 +116,7 @@ putLong(adt::String key, long l)
 }
 
 inline Object
-putDouble(adt::String key, double d)
+makeDouble(adt::String key, double d)
 {
     return {
         .svKey = key,
@@ -119,7 +125,7 @@ putDouble(adt::String key, double d)
 }
 
 inline Object
-putString(adt::String key, adt::String s)
+makeString(adt::String key, adt::String s)
 {
     return {
         .svKey = key,
@@ -128,7 +134,7 @@ putString(adt::String key, adt::String s)
 }
 
 inline Object
-putBool(adt::String key, bool b)
+makeBool(adt::String key, bool b)
 {
     return {
         .svKey = key,
@@ -137,7 +143,7 @@ putBool(adt::String key, bool b)
 }
 
 inline Object
-putNull(adt::String key)
+makeNull(adt::String key)
 {
     return {
         .svKey = key,
