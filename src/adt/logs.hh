@@ -70,26 +70,18 @@ constexpr adt::String _ADT_LOG_SEV_STR[] = {
                     abort();                                                                                           \
             }                                                                                                          \
         } while (0)
-
-    #define ADT_LOG(...) _ADT_LOG(_ADT_LOG_SEV_OK, __VA_ARGS__)
-    #define ADT_LOG_OK(...) _ADT_LOG(_ADT_LOG_SEV_OK, __VA_ARGS__)
-    #define ADT_LOG_GOOD(...) _ADT_LOG(_ADT_LOG_SEV_GOOD, __VA_ARGS__)
-    #define ADT_LOG_NOTIFY(...) _ADT_LOG(_ADT_LOG_SEV_NOTIFY, __VA_ARGS__)
-    #define ADT_LOG_WARN(...) _ADT_LOG(_ADT_LOG_SEV_WARN, __VA_ARGS__)
-    #define ADT_LOG_BAD(...) _ADT_LOG(_ADT_LOG_SEV_BAD, __VA_ARGS__)
-    #define ADT_LOG_EXIT(...) _ADT_LOG(_ADT_LOG_SEV_EXIT, __VA_ARGS__)
-    #define ADT_LOG_FATAL(...) _ADT_LOG(_ADT_LOG_SEV_FATAL, __VA_ARGS__)
 #else
-    #define _ADT_LOG (void)0
-    #define ADT_LOG(...) (void)0
-    #define ADT_LOG_OK(...) (void)0
-    #define ADT_LOG_GOOD(...) (void)0
-    #define ADT_LOG_NOTIFY(...) (void)0
-    #define ADT_LOG_WARN(...) (void)0
-    #define ADT_LOG_BAD(...) (void)0
-    #define ADT_LOG_EXIT(...) (void)0
-    #define ADT_LOG_FATAL(...) (void)0
+    #define _ADT_LOG(SEV, ...) (void)0
 #endif
+
+#define ADT_LOG(...) _ADT_LOG(_ADT_LOG_SEV_OK, __VA_ARGS__)
+#define ADT_LOG_OK(...) _ADT_LOG(_ADT_LOG_SEV_OK, __VA_ARGS__)
+#define ADT_LOG_GOOD(...) _ADT_LOG(_ADT_LOG_SEV_GOOD, __VA_ARGS__)
+#define ADT_LOG_NOTIFY(...) _ADT_LOG(_ADT_LOG_SEV_NOTIFY, __VA_ARGS__)
+#define ADT_LOG_WARN(...) _ADT_LOG(_ADT_LOG_SEV_WARN, __VA_ARGS__)
+#define ADT_LOG_BAD(...) _ADT_LOG(_ADT_LOG_SEV_BAD, __VA_ARGS__)
+#define ADT_LOG_EXIT(...) _ADT_LOG(_ADT_LOG_SEV_EXIT, __VA_ARGS__)
+#define ADT_LOG_FATAL(...) _ADT_LOG(_ADT_LOG_SEV_FATAL, __VA_ARGS__)
 
 #ifdef ADT_LOGS_LESS_TYPING
     #define _LOG(...) _ADT_LOG(__VA_ARGS__)
