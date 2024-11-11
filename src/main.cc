@@ -268,6 +268,24 @@ testSort()
     assert(sort::sorted(vec.base, sort::DEC));
 }
 
+template<typename ...T>
+static void
+printThings(const T&... tArgs)
+{
+    ([&] {
+        print::out("{}\n", tArgs);
+    } (), ...);
+}
+
+void
+testPrint()
+{
+    int len = 2;
+    print::out("{:.{}}\n", len, 123.12345f);
+
+    printThings(1, 2, 3, "four", 5.0f);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -299,6 +317,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--sort"))
     {
         testSort();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--print"))
+    {
+        testPrint();
         return 0;
     }
 

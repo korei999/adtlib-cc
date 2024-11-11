@@ -14,8 +14,8 @@
 #define ADT_LOGS_COL_CYAN  "\x1B[36m"
 #define ADT_LOGS_COL_WHITE  "\x1B[37m"
 
-#define ADT_COUT(...) adt::print::cout(__VA_ARGS__)
-#define ADT_CERR(...) adt::print::cerr(__VA_ARGS__)
+#define ADT_COUT(...) adt::print::out(__VA_ARGS__)
+#define ADT_CERR(...) adt::print::err(__VA_ARGS__)
 
 #ifndef NDEBUG
     #define ADT_DCOUT(...) ADT_COUT(__VA_ARGS__)

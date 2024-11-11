@@ -27,7 +27,7 @@ struct FormatArgs
     BASE eBase = BASE::TEN;
     bool bHash = false;
     bool bAlwaysShowSign = false;
-    bool bArgIsLen = false;
+    bool bArgIsFmt = false;
 };
 
 struct Context
@@ -37,11 +37,12 @@ struct Context
     const u32 buffSize {};
     u32 buffIdx {};
     u32 fmtIdx {};
-    u16 prevArgLen {};
+    FormatArgs prevFmtArgs {};
+    bool bUpdateFmtArgs {};
 };
 
-template<typename... ARGS_T> constexpr u32 cout(const String fmt, const ARGS_T&... tArgs);
-template<typename... ARGS_T> constexpr u32 cerr(const String fmt, const ARGS_T&... tArgs);
+template<typename... ARGS_T> constexpr u32 out(const String fmt, const ARGS_T&... tArgs);
+template<typename... ARGS_T> constexpr u32 err(const String fmt, const ARGS_T&... tArgs);
 
 constexpr u32
 printArgs(Context ctx)
@@ -90,6 +91,11 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
         }
     };
 
+    auto peek = [&] {
+        if (i + 1 < fmt.size) return fmt[i + 1];
+        else return '\0';
+    };
+
     for (; i < fmt.size; ++i, ++nRead)
     {
         if (bDone) break;
@@ -125,11 +131,17 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
             if (fmt[i] == '{')
             {
                 skipUntil("}");
-                ++nRead, ++i;
-                pArgs->bArgIsLen = true;
+                pArgs->bArgIsFmt = true;
+                continue;
             }
             else if (fmt[i] == '.')
             {
+                if (peek() == '{')
+                {
+                    skipUntil("}");
+                    pArgs->bArgIsFmt = true;
+                }
+
                 bFloatPresicion = true;
                 continue;
             }
@@ -367,15 +379,16 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
 
         FormatArgs fmtArgs {};
 
-        if (ctx.prevArgLen > 0)
+        if (ctx.bUpdateFmtArgs)
         {
-            fmtArgs.maxLen = ctx.prevArgLen;
+            ctx.bUpdateFmtArgs = false;
+
+            fmtArgs = ctx.prevFmtArgs;
             u32 addBuff = formatToContext(ctx, fmtArgs, tFirst);
 
             ctx.buffIdx += addBuff;
             nRead += addBuff;
 
-            ctx.prevArgLen = 0;
             break;
         }
         else if (ctx.fmt[i] == '{')
@@ -393,10 +406,16 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
             u32 addBuff = 0;
             u32 add = parseFormatArg(&fmtArgs, ctx.fmt, i);
 
-            if (fmtArgs.bArgIsLen)
+            if (fmtArgs.bArgIsFmt)
             {
                 if constexpr (std::is_integral_v<std::remove_reference_t<decltype(tFirst)>>)
-                    ctx.prevArgLen = tFirst;
+                {
+                    fmtArgs.maxLen = tFirst;
+                    fmtArgs.maxFloatLen = tFirst;
+
+                    ctx.prevFmtArgs = fmtArgs;
+                    ctx.bUpdateFmtArgs = true;
+                }
             }
             else addBuff = formatToContext(ctx, fmtArgs, tFirst);
 
@@ -444,14 +463,14 @@ toString(String* pDest, const String fmt, const ARGS_T&... tArgs)
 
 template<typename... ARGS_T>
 constexpr u32
-cout(const String fmt, const ARGS_T&... tArgs)
+out(const String fmt, const ARGS_T&... tArgs)
 {
     return toFILE(stdout, fmt, tArgs...);
 }
 
 template<typename... ARGS_T>
 constexpr u32
-cerr(const String fmt, const ARGS_T&... tArgs)
+err(const String fmt, const ARGS_T&... tArgs)
 {
     return toFILE(stderr, fmt, tArgs...);
 }
