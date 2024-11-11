@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cuchar>
+
 #include <type_traits>
 
 namespace adt
@@ -26,6 +27,7 @@ struct FormatArgs
     BASE eBase = BASE::TEN;
     bool bHash = false;
     bool bAlwaysShowSign = false;
+    bool bArgIsLen = false;
 };
 
 struct Context
@@ -35,6 +37,7 @@ struct Context
     const u32 buffSize {};
     u32 buffIdx {};
     u32 fmtIdx {};
+    u16 prevArgLen {};
 };
 
 template<typename... ARGS_T> constexpr u32 cout(const String fmt, const ARGS_T&... tArgs);
@@ -74,7 +77,20 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
     bool bBinary = false;
     bool bAlwaysShowSign = false;
 
-    for (u32 i = fmtIdx + 1; i < fmt.size; ++i, ++nRead)
+    char aBuff[64] {};
+    u32 i = fmtIdx + 1;
+
+    auto skipUntil = [&](const String chars) -> void {
+        utils::fill(aBuff, '\0', utils::size(aBuff));
+        u32 bIdx = 0;
+        while (bIdx < utils::size(aBuff) - 1 && i < fmt.size && !oneOfChars(fmt[i], chars))
+        {
+            aBuff[bIdx++] = fmt[i++];
+            ++nRead;
+        }
+    };
+
+    for (; i < fmt.size; ++i, ++nRead)
     {
         if (bDone) break;
 
@@ -100,36 +116,26 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
         }
         else if (bFloatPresicion)
         {
-            char aBuff[64] {};
-
-            u32 bIdx = 0;
-            while (bIdx < utils::size(aBuff) - 1 && i < fmt.size && fmt[i] != '}')
-            {
-                aBuff[bIdx++] = fmt[i++];
-                ++nRead;
-            }
-
+            skipUntil("}");
             pArgs->maxFloatLen = atoi(aBuff);
         }
 
         if (bColon)
         {
-            if (fmt[i] == '.')
+            if (fmt[i] == '{')
+            {
+                skipUntil("}");
+                ++nRead, ++i;
+                pArgs->bArgIsLen = true;
+            }
+            else if (fmt[i] == '.')
             {
                 bFloatPresicion = true;
                 continue;
             }
             else if (isdigit(fmt[i]))
             {
-                char aBuff[64] {};
-
-                u32 bIdx = 0;
-                while (bIdx < utils::size(aBuff) - 1 && i < fmt.size && !oneOfChars(fmt[i], "}.#xb"))
-                {
-                    aBuff[bIdx++] = fmt[i++];
-                    ++nRead;
-                }
-
+                skipUntil("}.#xb");
                 pArgs->maxLen = atoi(aBuff);
             }
             else if (fmt[i] == '#')
@@ -349,27 +355,32 @@ template<typename T, typename... ARGS_T>
 constexpr u32
 printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
 {
-    auto& pBuff = ctx.pBuff;
-    auto& buffSize = ctx.buffSize;
-    auto& buffIdx = ctx.buffIdx;
-    auto& fmt = ctx.fmt;
-    auto& fmtIdx = ctx.fmtIdx;
-
-    if (fmtIdx >= fmt.size) return 0;
-
     u32 nRead = 0;
     bool bArg = false;
+    u32 i = ctx.fmtIdx;
 
-    u32 i = fmtIdx;
-    for (; i < fmt.size; ++i, ++nRead)
+    if (ctx.fmtIdx >= ctx.fmt.size) return 0;
+
+    for (; i < ctx.fmt.size; ++i, ++nRead)
     {
-        if (buffIdx >= buffSize) return nRead;
+        if (ctx.buffIdx >= ctx.buffSize) return nRead;
 
         FormatArgs fmtArgs {};
 
-        if (fmt[i] == '{')
+        if (ctx.prevArgLen > 0)
         {
-            if (i + 1 < fmt.size && fmt[i + 1] == '{')
+            fmtArgs.maxLen = ctx.prevArgLen;
+            u32 addBuff = formatToContext(ctx, fmtArgs, tFirst);
+
+            ctx.buffIdx += addBuff;
+            nRead += addBuff;
+
+            ctx.prevArgLen = 0;
+            break;
+        }
+        else if (ctx.fmt[i] == '{')
+        {
+            if (i + 1 < ctx.fmt.size && ctx.fmt[i + 1] == '{')
             {
                 i += 1, nRead += 1;
                 bArg = false;
@@ -379,17 +390,26 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
 
         if (bArg)
         {
-            u32 add = parseFormatArg(&fmtArgs, fmt, i);
-            u32 addBuff = formatToContext(ctx, fmtArgs, tFirst);
-            buffIdx += addBuff;
+            u32 addBuff = 0;
+            u32 add = parseFormatArg(&fmtArgs, ctx.fmt, i);
+
+            if (fmtArgs.bArgIsLen)
+            {
+                if constexpr (std::is_integral_v<std::remove_reference_t<decltype(tFirst)>>)
+                    ctx.prevArgLen = tFirst;
+            }
+            else addBuff = formatToContext(ctx, fmtArgs, tFirst);
+
+            ctx.buffIdx += addBuff;
             i += add;
             nRead += addBuff;
+
             break;
         }
-        else pBuff[buffIdx++] = fmt[i];
+        else ctx.pBuff[ctx.buffIdx++] = ctx.fmt[i];
     }
 
-    fmtIdx = i;
+    ctx.fmtIdx = i;
     nRead += printArgs(ctx, tArgs...);
 
     return nRead;
