@@ -53,7 +53,7 @@ constexpr adt::String _ADT_LOG_SEV_STR[] = {
     #define ADT_LOGS_FILE __FILE__
 #endif
 
-#ifdef LOGS
+#ifdef ADT_LOGS
     #define _ADT_LOG(SEV, ...)                                                                                         \
         do                                                                                                             \
         {                                                                                                              \

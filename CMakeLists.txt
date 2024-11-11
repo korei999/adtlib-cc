@@ -23,6 +23,7 @@ add_executable(
     src/json/Parser.cc
 )
 
+add_definitions("-DADT_LOGS")
 add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 
@@ -40,7 +41,6 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions("-DDEBUG")
-    add_compile_definitions("-DLOGS")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
 endif()
 
