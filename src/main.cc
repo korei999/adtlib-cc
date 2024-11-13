@@ -218,26 +218,31 @@ testLock()
 
     auto task = +[](void* pArgs) -> int {
         auto* pNumber = (atomic_int*)pArgs;
-        utils::sleepMS(1000.0);
         atomic_fetch_add(pNumber, 1);
         return 0;
     };
 
     auto task2 = +[](void* pArgs) -> int {
         auto* pNumber = (atomic_int*)pArgs;
-        utils::sleepMS(1500.0);
         atomic_fetch_add(pNumber, 1);
 
         return 0;
     };
 
-    ThreadPoolSubmitLocked(&tp, task, &number, &tpLock);
-    ThreadPoolSubmit(&tp, task2, &number);
-    ThreadPoolSubmit(&tp, task2, &number);
-
     COUT("before: number: {}\n", (int)number);
-    ThreadPoolLockWait(&tpLock);
-    COUT("ThreadPoolLockWait: number: {}\n", (int)number);
+
+    for (u32 i = 0; i < 100000; ++i)
+    {
+        auto* pTp = (ThreadPoolLock*)alloc(&arena, 1, sizeof(ThreadPoolLock));
+        ThreadPoolLockInit(pTp);
+
+        ThreadPoolSubmitSignal(&tp, task, &number, pTp);
+
+        ThreadPoolLockWait(pTp);
+        ThreadPoolLockDestroy(pTp);
+    }
+
+    COUT("after: number: {}\n", (int)number);
 
     ThreadPoolWait(&tp);
     COUT("ThreadPoolWait: number: {}\n", (int)number);
