@@ -82,12 +82,12 @@ sorted(const auto& a, const ORDER eOrder = INC)
 
 template<typename T, auto FN_CMP = utils::compare<T>>
 constexpr void
-insertion(T* a, int l, int h)
+insertion(T* a, long l, long h)
 {
-    for (int i = l + 1; i < h + 1; i++)
+    for (long i = l + 1; i < h + 1; i++)
     {
         T key = a[i];
-        int j = i;
+        long j = i;
         for (; j > l && FN_CMP(a[j - 1], key) > 0; --j)
             a[j] = a[j - 1];
 
@@ -106,7 +106,7 @@ constexpr void
 heapMax(auto* a, const u32 size)
 {
     u32 heapSize = size;
-    for (int p = HeapParentI(heapSize); p >= 0; --p)
+    for (long p = HeapParentI(heapSize); p >= 0; --p)
         maxHeapify(a, heapSize, p);
 
     for (long i = size - 1; i > 0; --i)
@@ -120,12 +120,12 @@ heapMax(auto* a, const u32 size)
 
 template<typename T>
 [[nodiscard]]
-constexpr int
-partition(T a[], int l, int h)
+constexpr long
+partition(T a[], long l, long h)
 {
-    int p = h, firstHigh = l;
+    long p = h, firstHigh = l;
 
-    for (int i = l; i < h; ++i)
+    for (long i = l; i < h; ++i)
     {
         if (a[i] < a[p])
         {
@@ -149,7 +149,7 @@ median3(const auto& x, const auto& y, const auto& z)
 
 template<typename T, auto FN_CMP = utils::compare<T>>
 constexpr void
-quick(T* a, int l, int h)
+quick(T* a, long l, long h)
 {
     if (l < h)
     {
@@ -159,9 +159,9 @@ quick(T* a, int l, int h)
             return;
         }
 
-        int pivotIdx = median3(l, (l + h) / 2, h);
+        long pivotIdx = median3(l, (l + h) / 2, h);
         T pivot = a[pivotIdx];
-        int i = l, j = h;
+        long i = l, j = h;
 
         while (i <= j)
         {

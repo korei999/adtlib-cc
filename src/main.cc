@@ -1,5 +1,6 @@
 #include "adt/AVLTree.hh"
 #include "adt/Arena.hh"
+#include "adt/Arr.hh"
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
 #include "adt/List.hh"
@@ -356,6 +357,15 @@ testList()
     LOG("list0: [{}]\n", list0);
     ListSort(&list1);
     LOG("list1: [{}]\n", list1);
+
+    Arr<int, 36> arr;
+    ArrPush(&arr, 1);
+    ArrPush(&arr, 5);
+    ArrPush(&arr, 4);
+    ArrPush(&arr, 3);
+    ArrPush(&arr, -1);
+    sort::quick(&arr);
+    LOG("arr: [{}]\n", arr);
 }
 
 int
