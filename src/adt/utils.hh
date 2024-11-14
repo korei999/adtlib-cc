@@ -79,7 +79,7 @@ even(const auto& a)
     return !odd(a);
 }
 
-/* negative is l < r, positive if l > r, 0 if l == r */
+/* negative if l < r, positive if l > r, 0 if l == r */
 template<typename T>
 [[nodiscard]] constexpr s64
 compare(const T& l, const T& r)

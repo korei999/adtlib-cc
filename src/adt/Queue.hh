@@ -221,7 +221,7 @@ template<typename T>
 inline u32
 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const QueueBase<T>& x)
 {
-    if (x.size == 0)
+    if (utils::empty(&x))
     {
         ctx.fmt = "{}";
         ctx.fmtIdx = 0;
@@ -241,7 +241,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const QueueBas
 
 template<typename T>
 inline u32
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const Queue<T>& x)
+formatToContext(Context ctx, FormatArgs fmtArgs, const Queue<T>& x)
 {
     return formatToContext(ctx, fmtArgs, x.base);
 }

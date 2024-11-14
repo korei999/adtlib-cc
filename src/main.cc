@@ -320,16 +320,35 @@ testList()
     List<int> list(&arena.base);
     auto* pM1 = ListPushFront(&list, -1);
     ListPushBack(&list, 1);
-    ListPushBack(&list, 2);
+    auto* p2 = ListPushBack(&list, 2);
     auto* p3 = ListPushBack(&list, 3);
     auto* p4 = ListPushBack(&list, 4);
     ListPushFront(&list, 5);
+
+    {
+        auto* pNew = ListNodeAlloc(&arena.base, 999);
+        ListInsertBefore(&list.base, p2, pNew);
+    }
+    {
+        auto* pNew = ListNodeAlloc(&arena.base, 666);
+        ListInsertAfter(&list.base, p2, pNew);
+    }
+    {
+        auto* pNew = ListNodeAlloc(&arena.base, 333);
+        ListInsertAfter(&list.base, p3, pNew);
+    }
+    {
+        auto* pNew = ListNodeAlloc(&arena.base, 444);
+        ListInsertBefore(&list.base, p3, pNew);
+    }
 
     ListRemove(&list, p3);
     ListRemove(&list, pM1);
     ListRemove(&list, p4);
 
-    LOG("list: {}\n", list);
+    /*ListDestroy(&list);*/
+    ListSort<int, utils::compareRev<int>>(&list.base);
+    LOG("list: [{}]\n", list);
 }
 
 int

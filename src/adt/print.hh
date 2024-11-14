@@ -30,6 +30,7 @@ struct FormatArgs
     bool bArgIsFmt = false;
 };
 
+/* TODO: implement reallocatable backing buffer */
 struct Context
 {
     String fmt {};
