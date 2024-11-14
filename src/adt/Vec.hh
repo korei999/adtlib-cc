@@ -281,7 +281,10 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const VecBase<
     u32 nRead = 0;
     for (u32 i = 0; i < x.size; ++i)
     {
-        const char* fmt = i == x.size - 1 ? "{}" : "{}, ";
+        const char* fmt;
+        if constexpr (std::is_floating_point_v<T>) fmt = i == x.size - 1 ? "{:.3}" : "{:.3}, ";
+        else fmt = i == x.size - 1 ? "{}" : "{}, ";
+
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, x[i]);
     }
 

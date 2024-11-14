@@ -298,15 +298,15 @@ testQueue()
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
-    Queue<int> q(&arena.base);
-    QueuePushBack(&q, 1);
-    QueuePushFront(&q, 2);
-    QueuePushBack(&q, 99);
-    QueuePushFront(&q, 3);
-    QueuePushBack(&q, 10);
-    QueuePushFront(&q, -1);
-    QueuePushFront(&q, -20);
-    QueuePushBack(&q, -30);
+    Queue<f64> q(&arena.base);
+    QueuePushBack(&q, 1.0);
+    QueuePushFront(&q, 2.0);
+    QueuePushBack(&q, 99.0);
+    QueuePushFront(&q, 3.0);
+    QueuePushBack(&q, 10.0);
+    QueuePushFront(&q, -1.0);
+    QueuePushFront(&q, -20.0);
+    QueuePushBack(&q, -30.0);
 
     print::out("q: {}\n", q);
 }
@@ -317,28 +317,28 @@ testList()
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
-    List<int> list(&arena.base);
-    auto* pM1 = ListPushFront(&list, -1);
-    ListPushBack(&list, 1);
-    auto* p2 = ListPushBack(&list, 2);
-    auto* p3 = ListPushBack(&list, 3);
-    auto* p4 = ListPushBack(&list, 4);
-    ListPushFront(&list, 5);
+    List<f64> list(&arena.base);
+    auto* pM1 = ListPushFront(&list, -1.0);
+    ListPushBack(&list, 1.0);
+    auto* p2 = ListPushBack(&list, 2.0);
+    auto* p3 = ListPushBack(&list, 3.0);
+    auto* p4 = ListPushBack(&list, 4.0);
+    ListPushFront(&list, 5.0);
 
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 999);
+        auto* pNew = ListNodeAlloc(&arena.base, 999.0);
         ListInsertBefore(&list.base, p2, pNew);
     }
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 666);
+        auto* pNew = ListNodeAlloc(&arena.base, 666.0);
         ListInsertAfter(&list.base, p2, pNew);
     }
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 333);
+        auto* pNew = ListNodeAlloc(&arena.base, 333.0);
         ListInsertAfter(&list.base, p3, pNew);
     }
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 444);
+        auto* pNew = ListNodeAlloc(&arena.base, 444.0);
         ListInsertBefore(&list.base, p3, pNew);
     }
 
@@ -347,7 +347,7 @@ testList()
     ListRemove(&list, p4);
 
     /*ListDestroy(&list);*/
-    ListSort<int, utils::compareRev<int>>(&list.base);
+    ListSort<f64, utils::compareRev<f64>>(&list);
     LOG("list: [{}]\n", list);
 }
 

@@ -303,48 +303,13 @@ struct List
     const ListBase<T>::It rend() const { return base.rend(); }
 };
 
-template<typename T>
-constexpr ListNode<T>*
-ListPushFront(List<T>* s, const T& x)
-{
-    return ListPushFront(&s->base, s->pAlloc, x);
-}
-
-template<typename T>
-constexpr ListNode<T>*
-ListPushBack(List<T>* s, const T& x)
-{
-    return ListPushBack(&s->base, s->pAlloc, x);
-}
-
-template<typename T>
-constexpr void
-ListRemove(List<T>* s, ListNode<T>* p)
-{
-    ListRemove(&s->base, p);
-    free(s->pAlloc, p);
-}
-
-template<typename T>
-constexpr void
-ListDestroy(List<T>* s)
-{
-    ListDestroy(&s->base, s->pAlloc);
-}
-
-template<typename T>
-constexpr void
-ListInsertAfter(List<T>* s, ListNode<T>* pAfter, ListNode<T>* p)
-{
-    ListInsertAfter(&s->base, pAfter, p);
-}
-
-template<typename T>
-constexpr void
-ListInsertBefore(List<T>* s, ListNode<T>* pBefore, ListNode<T>* p)
-{
-    ListInsertBefore(&s->base, pBefore, p);
-}
+template<typename T> constexpr ListNode<T>* ListPushFront(List<T>* s, const T& x) { return ListPushFront(&s->base, s->pAlloc, x); }
+template<typename T> constexpr ListNode<T>* ListPushBack(List<T>* s, const T& x) { return ListPushBack(&s->base, s->pAlloc, x); }
+template<typename T> constexpr void ListRemove(List<T>* s, ListNode<T>* p) { ListRemove(&s->base, p); free(s->pAlloc, p); }
+template<typename T> constexpr void ListDestroy(List<T>* s) { ListDestroy(&s->base, s->pAlloc); }
+template<typename T> constexpr void ListInsertAfter(List<T>* s, ListNode<T>* pAfter, ListNode<T>* p) { ListInsertAfter(&s->base, pAfter, p); }
+template<typename T> constexpr void ListInsertBefore(List<T>* s, ListNode<T>* pBefore, ListNode<T>* p) { ListInsertBefore(&s->base, pBefore, p); }
+template<typename T, auto FN_CMP = utils::compare<T>> constexpr void ListSort(List<T>* s) { ListSort(&s->base); }
 
 namespace utils
 {
@@ -372,7 +337,10 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const ListBase
     u32 nRead = 0;
     ADT_LIST_FOREACH(&x, it)
     {
-        const char* fmt = it == x.pLast ? "{}" : "{}, ";
+        const char* fmt;
+        if constexpr (std::is_floating_point_v<T>) fmt = it == x.pLast ? "{:.3}" : "{:.3}, ";
+        else fmt = it == x.pLast ? "{}" : "{}, ";
+
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it->data);
     }
 

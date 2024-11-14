@@ -232,7 +232,10 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const QueueBas
     u32 nRead = 0;
     for (const auto& it : x)
     {
-        const char* fmt = (QueueIdx(&x, &it) == x.last - 1 ? "{}" : "{}, ");
+        const char* fmt;
+        if constexpr (std::is_floating_point_v<T>) fmt = (QueueIdx(&x, &it) == x.last - 1 ? "{:.3}" : "{:.3}, ");
+        else fmt = (QueueIdx(&x, &it) == x.last - 1 ? "{}" : "{}, ");
+
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it);
     }
 
