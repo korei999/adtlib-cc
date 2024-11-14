@@ -398,7 +398,7 @@ namespace utils
 {
 
 [[nodiscard]] constexpr bool
-empty(String* s)
+empty(const String* s)
 {
     return s->size == 0;
 }

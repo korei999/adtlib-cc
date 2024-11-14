@@ -201,7 +201,7 @@ ListSort(ListBase<T>* s)
 {
     ListNode<T>* p, * q, * e, * tail, * oldhead;
     long inSize, nMerges, pSize, qSize, i;
-    auto* list = s->pFirst;
+    ListNode<T>* list = s->pFirst;
 
     if (!s->pFirst) return;
 

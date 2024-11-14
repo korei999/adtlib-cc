@@ -1,14 +1,14 @@
 #include "adt/AVLTree.hh"
 #include "adt/Arena.hh"
-#include "adt/RBTree.hh"
-#include "adt/ThreadPool.hh"
-#include "adt/logs.hh"
-#include "json/Parser.hh"
-#include "adt/defer.hh"
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
-#include "adt/sort.hh"
 #include "adt/List.hh"
+#include "adt/RBTree.hh"
+#include "adt/ThreadPool.hh"
+#include "adt/defer.hh"
+#include "adt/logs.hh"
+#include "adt/sort.hh"
+#include "json/Parser.hh"
 
 using namespace adt;
 
@@ -347,8 +347,15 @@ testList()
     ListRemove(&list, p4);
 
     /*ListDestroy(&list);*/
-    ListSort<f64, utils::compareRev<f64>>(&list);
-    LOG("list: [{}]\n", list);
+    List<f64> list0(&arena.base);
+    for (auto& el : list) ListPushBack(&list0, el);
+    List<f64> list1(&arena.base);
+    for (auto& el : list) ListPushBack(&list1, el);
+
+    ListSort<f64, utils::compareRev<f64>>(&list0);
+    LOG("list0: [{}]\n", list0);
+    ListSort(&list1);
+    LOG("list1: [{}]\n", list1);
 }
 
 int
