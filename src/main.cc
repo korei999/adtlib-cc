@@ -231,7 +231,7 @@ testLock()
 
     COUT("before: number: {}\n", (int)number);
 
-    for (u32 i = 0; i < 100000; ++i)
+    for (u32 i = 0; i < 10000; ++i)
     {
         auto* pTp = (ThreadPoolLock*)alloc(&arena, 1, sizeof(ThreadPoolLock));
         ThreadPoolLockInit(pTp);

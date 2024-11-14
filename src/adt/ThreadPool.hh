@@ -119,7 +119,10 @@ inline void ThreadPoolStart(ThreadPool* s);
 inline bool ThreadPoolBusy(ThreadPool* s);
 inline void ThreadPoolSubmit(ThreadPool* s, ThreadTask task);
 inline void ThreadPoolSubmit(ThreadPool* s, thrd_start_t pfnTask, void* pArgs);
-inline void ThreadPoolSubmitSignal(ThreadPool* s, thrd_start_t pfnTask, void* pArgs, ThreadPoolLock* pTpLock); /* signal ThreadPoolLock after completion */
+/* Signal ThreadPoolLock after completion.
+ * If ThreadPoolLockWait was never called for this pTpLock, the task will spinlock forever,
+ * unless pTpLock->bSignaled is manually set to true; */
+inline void ThreadPoolSubmitSignal(ThreadPool* s, thrd_start_t pfnTask, void* pArgs, ThreadPoolLock* pTpLock);
 inline void ThreadPoolWait(ThreadPool* s); /* wait for all active tasks to finish, without joining */
 
 inline
