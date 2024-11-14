@@ -60,13 +60,6 @@ struct VecBase
 };
 
 template<typename T>
-inline bool
-VecEmpty(VecBase<T>* s)
-{
-    return s->size > 0;
-}
-
-template<typename T>
 inline void
 VecGrow(VecBase<T>* s, Allocator* p, u32 size)
 {
@@ -242,7 +235,6 @@ struct Vec
     const VecBase<T>::It rend() const { return rend(); }
 };
 
-template<typename T> inline bool VecEmpty(Vec<T>* s) { return VecEmpty(&s->base); }
 template<typename T> inline void VecGrow(Vec<T>* s, u32 size) { VecGrow(&s->base, s->pAlloc, size); }
 template<typename T> inline u32 VecPush(Vec<T>* s, const T& data) { return VecPush(&s->base, s->pAlloc, data); }
 template<typename T> inline T& VecLast(Vec<T>* s) { return VecLast(&s->base); }
