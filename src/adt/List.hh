@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Allocator.hh"
+#include "print.hh"
 
 namespace adt
 {
@@ -215,16 +216,14 @@ template<typename T>
 constexpr ListNode<T>*
 ListPushFront(List<T>* s, const T& x)
 {
-    auto* pNew = ListNodeAlloc(s->pAlloc, x);
-    return ListPushFront(&s->base, pNew);
+    return ListPushFront(&s->base, s->pAlloc, x);
 }
 
 template<typename T>
 constexpr ListNode<T>*
 ListPushBack(List<T>* s, const T& x)
 {
-    auto* pNew = ListNodeAlloc(s->pAlloc, x);
-    return ListPushBack(&s->base, pNew);
+    return ListPushBack(&s->base, s->pAlloc, x);
 }
 
 template<typename T>
@@ -241,5 +240,39 @@ ListDestroy(List<T>* s)
 {
     ListDestroy(&s->base, s->pAlloc);
 }
+
+namespace print
+{
+
+template<typename T>
+inline u32
+formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const ListBase<T>& x)
+{
+    if (x.size == 0)
+    {
+        ctx.fmt = "{}";
+        ctx.fmtIdx = 0;
+        return printArgs(ctx, "(empty)");
+    }
+
+    char aBuff[1024] {};
+    u32 nRead = 0;
+    ADT_LIST_FOREACH_SAFE(&x, it, tmp)
+    {
+        const char* fmt = it == x.pLast ? "{}" : "{}, ";
+        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it->data);
+    }
+
+    return print::copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
+}
+
+template<typename T>
+inline u32
+formatToContext(Context ctx, FormatArgs fmtArgs, const List<T>& x)
+{
+    return formatToContext(ctx, fmtArgs, x.base);
+}
+
+} /* namespace print */
 
 } /* namespace adt */

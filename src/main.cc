@@ -329,9 +329,7 @@ testList()
     ListRemove(&list, pM1);
     ListRemove(&list, p4);
 
-    for (auto& it : list)
-        COUT("{}, ", it);
-    COUT("\n");
+    LOG("list: {}\n", list);
 }
 
 int
