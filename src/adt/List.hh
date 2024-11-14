@@ -309,7 +309,7 @@ template<typename T> constexpr void ListRemove(List<T>* s, ListNode<T>* p) { Lis
 template<typename T> constexpr void ListDestroy(List<T>* s) { ListDestroy(&s->base, s->pAlloc); }
 template<typename T> constexpr void ListInsertAfter(List<T>* s, ListNode<T>* pAfter, ListNode<T>* p) { ListInsertAfter(&s->base, pAfter, p); }
 template<typename T> constexpr void ListInsertBefore(List<T>* s, ListNode<T>* pBefore, ListNode<T>* p) { ListInsertBefore(&s->base, pBefore, p); }
-template<typename T, auto FN_CMP = utils::compare<T>> constexpr void ListSort(List<T>* s) { ListSort(&s->base); }
+template<typename T, auto FN_CMP = utils::compare<T>> constexpr void ListSort(List<T>* s) { ListSort<T, FN_CMP>(&s->base); }
 
 namespace utils
 {
