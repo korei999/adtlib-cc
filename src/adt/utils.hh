@@ -185,7 +185,7 @@ clamp(const T& x, const T& _min, const T& _max)
 
 template<template<typename> typename CON_T, typename T>
 [[nodiscard]] constexpr bool
-empty(CON_T<T>* s)
+empty(const CON_T<T>* s)
 {
     return s->size == 0;
 }
