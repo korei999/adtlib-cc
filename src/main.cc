@@ -8,6 +8,7 @@
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
 #include "adt/sort.hh"
+#include "adt/List.hh"
 
 using namespace adt;
 
@@ -310,6 +311,29 @@ testQueue()
     print::out("q: {}\n", q);
 }
 
+static void
+testList()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+
+    List<int> list(&arena.base);
+    auto* pM1 = ListPushFront(&list, -1);
+    ListPushBack(&list, 1);
+    ListPushBack(&list, 2);
+    auto* p3 = ListPushBack(&list, 3);
+    auto* p4 = ListPushBack(&list, 4);
+    ListPushFront(&list, 5);
+
+    ListRemove(&list, p3);
+    ListRemove(&list, pM1);
+    ListRemove(&list, p4);
+
+    for (auto& it : list)
+        COUT("{}, ", it);
+    COUT("\n");
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -353,6 +377,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--queue"))
     {
         testQueue();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--list"))
+    {
+        testList();
         return 0;
     }
 

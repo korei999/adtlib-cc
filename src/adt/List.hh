@@ -66,7 +66,7 @@ template<typename T>
 constexpr ListNode<T>*
 ListNodeAlloc(Allocator* pA, const T& x)
 {
-    auto* pNew = (ListNode<T>*)alloc(pA, 0, sizeof(T));
+    auto* pNew = (ListNode<T>*)alloc(pA, 1, sizeof(ListNode<T>));
     pNew->data = x;
 
     return pNew;
@@ -74,10 +74,23 @@ ListNodeAlloc(Allocator* pA, const T& x)
 
 template<typename T>
 constexpr ListNode<T>*
-ListPushBack(ListBase<T>* s, Allocator* pA, const T& x)
+ListPushFront(ListBase<T>* s, ListNode<T>* pNew)
 {
-    auto* pNew = ListNodeAlloc(pA, x);
-    return ListPushBack(s, pNew);
+    if (!s->pFirst)
+    {
+        pNew->pNext = pNew->pPrev = nullptr;
+        s->pLast = s->pFirst = pNew;
+    }
+    else
+    {
+        pNew->pPrev = nullptr;
+        pNew->pNext = s->pFirst;
+        s->pFirst->pPrev = pNew;
+        s->pFirst = pNew;
+    }
+
+    ++s->size;
+    return pNew;
 }
 
 template<typename T>
@@ -86,20 +99,35 @@ ListPushBack(ListBase<T>* s, ListNode<T>* pNew)
 {
     if (!s->pFirst)
     {
+        pNew->pNext = pNew->pPrev = nullptr;
         s->pLast = s->pFirst = pNew;
-        s->pFirst->pPrev = s->pFirst->pNext = nullptr;
-        goto done;
+    }
+    else
+    {
+        pNew->pNext = nullptr;
+        pNew->pPrev = s->pLast;
+        s->pLast->pNext = pNew;
+        s->pLast = pNew;
     }
 
-    s->pLast->pNext = pNew;
-    pNew->pPrev = s->pLast;
-    pNew->pNext = nullptr;
-
-    s->pLast = pNew;
-
-done:
     ++s->size;
     return pNew;
+}
+
+template<typename T>
+constexpr ListNode<T>*
+ListPushFront(ListBase<T>* s, Allocator* pA, const T& x)
+{
+    auto* pNew = ListNodeAlloc(pA, x);
+    return ListPushFront(s, pNew);
+}
+
+template<typename T>
+constexpr ListNode<T>*
+ListPushBack(ListBase<T>* s, Allocator* pA, const T& x)
+{
+    auto* pNew = ListNodeAlloc(pA, x);
+    return ListPushBack(s, pNew);
 }
 
 template<typename T>
@@ -182,6 +210,14 @@ struct List
     const ListBase<T>::It rbegin() const { return base.rbegin(); }
     const ListBase<T>::It rend() const { return base.rend(); }
 };
+
+template<typename T>
+constexpr ListNode<T>*
+ListPushFront(List<T>* s, const T& x)
+{
+    auto* pNew = ListNodeAlloc(s->pAlloc, x);
+    return ListPushFront(&s->base, pNew);
+}
 
 template<typename T>
 constexpr ListNode<T>*
