@@ -33,8 +33,8 @@ struct QueueBase
         : pData {(T*)alloc(p, prealloc, sizeof(T))},
           cap (prealloc) {}
 
-    T& operator[](int i)             { assert(i < cap && "[Queue]: out of size"); return pData[i]; }
-    const T& operator[](int i) const { assert(i < cap && "[Queue]: out of size"); return pData[i]; }
+    T& operator[](int i)             { assert(i < cap && "[Queue]: out of capacity"); return pData[i]; }
+    const T& operator[](int i) const { assert(i < cap && "[Queue]: out of capacity"); return pData[i]; }
 
     struct It
     {
