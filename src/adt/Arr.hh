@@ -109,7 +109,18 @@ template<typename T, u32 CAP, auto FN_CMP = utils::compare<T>>
 constexpr void
 quick(Arr<T, CAP>* pArr)
 {
+    if (pArr->size <= 1) return;
+
     quick<T, FN_CMP>(pArr->pData, 0, pArr->size - 1);
+}
+
+template<typename T, u32 CAP, auto FN_CMP = utils::compare<T>>
+constexpr void
+insertion(Arr<T, CAP>* pArr)
+{
+    if (pArr->size <= 1) return;
+
+    insertion<T, FN_CMP>(pArr->pData, 0, pArr->size - 1);
 }
 
 } /* namespace sort */

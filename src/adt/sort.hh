@@ -99,6 +99,8 @@ template<template<typename> typename CON_T, typename T, auto FN_CMP = utils::com
 constexpr void
 insertion(CON_T<T>* a)
 {
+    if (a->size <= 1) return;
+
     insertion<T, FN_CMP>(a->pData, 0, a->size - 1);
 }
 
@@ -184,6 +186,8 @@ template<template<typename> typename CON_T, typename T, auto FN_CMP = utils::com
 constexpr void
 quick(CON_T<T>* pArr)
 {
+    if (pArr->size <= 1) return;
+
     quick<T, FN_CMP>(pArr->pData, 0, pArr->size - 1);
 }
 

@@ -93,7 +93,7 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 #ifndef NDEBUG
         fprintf(stderr,
             "[ARENA]: requested size > than one block\n"
-            "\taligned: %zu, blockSize: %zu, requested: %zu\n",
+            "\taligned: %llu, blockSize: %llu, requested: %llu\n",
             aligned, pFreeBlock->size, requested
         );
 #endif
