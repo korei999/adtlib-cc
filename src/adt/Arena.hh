@@ -21,6 +21,7 @@ struct ArenaBlock
     u64 nBytesOccupied {};
     u8* pLastAlloc {};
     u64 lastAllocSize {};
+    u64 nBytesProtected {};
     u8 pMem[];
 };
 
@@ -86,22 +87,8 @@ _ArenaAllocBlock(Arena* s, u64 size)
 }
 
 [[nodiscard]] inline ArenaBlock*
-_ArenaAppendBlock(Arena* s, u64 size)
-{
-    assert(s->pBlocks && "[Arena]: wasn't initialized");
-
-    auto* it = s->pBlocks;
-    while (it->pNext) it = it->pNext;
-    it->pNext = _ArenaAllocBlock(s, size);
-
-    return it->pNext;
-}
-
-[[nodiscard]] inline ArenaBlock*
 _ArenaPrependBlock(Arena* s, u64 size)
 {
-    assert(s->pBlocks && "[Arena]: wasn't initialized");
-
     auto* pNew = _ArenaAllocBlock(s, size);
     pNew->pNext = s->pBlocks;
     s->pBlocks = pNew;
@@ -145,6 +132,8 @@ ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
     if (ptr == pBlock->pLastAlloc &&
         pBlock->pLastAlloc + realSize < pBlock->pMem + pBlock->size) /* bump case */
     {
+        if (pBlock->lastAllocSize >= requested) return ptr;
+
         pBlock->nBytesOccupied -= pBlock->lastAllocSize;
         pBlock->nBytesOccupied += realSize;
         pBlock->lastAllocSize = realSize;
