@@ -10,10 +10,12 @@
 #include "adt/logs.hh"
 #include "adt/sort.hh"
 #include "json/Parser.hh"
+#include "adt/Arena2.hh"
+#include "adt/FixedAllocator.hh"
 
 using namespace adt;
 
-/*u8 BIG[SIZE_1G * 4] {};*/
+u8 BIG[SIZE_1G * 4] {};
 
 constexpr int total = 1000000;
 
@@ -21,20 +23,22 @@ static void
 testRB()
 {
     /*ChunkAllocator alloc(sizeof(RBNode<int>), SIZE_1M * 100);*/
-    FreeList alloc(SIZE_8M);
-    /*Arena alloc(SIZE_8M);*/
+
+    /*FreeList alloc(SIZE_8M);*/
+    /*FixedAllocator alloc(BIG, sizeof(BIG));*/
+    Arena2 alloc(SIZE_8M);
     /*OsAllocator alloc;*/
 
     /*Buddy alloc(SIZE_8M);*/
 
-    Arena alloc2(SIZE_8M);
-    defer( ArenaFreeAll(&alloc2) );
+    /*Arena alloc2(SIZE_8M);*/
+    /*defer( ArenaFreeAll(&alloc2) );*/
     /*defer( freeAll(&alloc) );*/
 
     RBTree<long> kek(&alloc.base);
     defer( RBDestroy(&kek) );
 
-    Vec<RBNode<long>*> a(&alloc2.base, 32);
+    Vec<RBNode<long>*> a(&alloc.base, 32);
 
     bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<long>*>*)pArgs;
@@ -55,7 +59,8 @@ testRB()
     /*RBPrintNodes(&alloc2.base, &alloc.tree, alloc.tree.pRoot, pfnPrintNodes, {}, stdout, {}, false);*/
     /*COUT("\n");*/
 
-    for (int i = 0; i < total; i++)
+    int i = 0;
+    for (; i < total; i++)
     {
         long r = rand();
         RBInsert(&kek, r, true);
@@ -66,7 +71,7 @@ testRB()
     RBTraverse({}, kek.base.pRoot, pfnCollect, &a, RB_ORDER::PRE);
     auto depth = RBDepth(kek.base.pRoot);
 
-    int i = 0;
+    i = 0;
     for (; i < (int)a.base.size; i += 1)
     {
         RBRemoveAndFree(&kek, a[i]);
@@ -189,8 +194,8 @@ testFreeList()
 {
     LOG_GOOD("testFreeList()\n");
 
-    FreeList list(SIZE_8K);
-    defer( FreeListFreeAll(&list) );
+    Arena2 list(SIZE_8K);
+    defer( freeAll(&list) );
 
     Vec<int> vec(&list.base);
     int what = 2;
@@ -255,23 +260,25 @@ testLock()
 void
 testSort()
 {
-    Arena arena(SIZE_1K);
+    Arena2 arena(SIZE_1K);
     defer( freeAll(&arena) );
 
     srand(1290837027);
 
+    u32 size = 70;
+
     Vec<int> vec(&arena.base);
-    for (u32 i = 0; i < 10; ++i)
+    for (u32 i = 0; i < size; ++i)
         VecPush(&vec, rand() % 100);
 
     sort::quick(&vec.base);
-    COUT("inc: {}\n", vec);
+    /*COUT("inc: {}\n", vec);*/
     assert(sort::sorted(vec.base, sort::INC));
 
-    for (u32 i = 0; i < 10; ++i)
+    for (u32 i = 0; i < size; ++i)
         vec[i] = rand() % 100;
     sort::quick<VecBase, int, [](const int& l, const int& r) -> s64 { return r - l; }>(&vec.base);
-    COUT("dec: {}\n", vec);
+    /*COUT("dec: {}\n", vec);*/
     assert(sort::sorted(vec.base, sort::DEC));
 }
 
@@ -296,7 +303,7 @@ testPrint()
 static void
 testQueue()
 {
-    Arena arena(SIZE_1K);
+    Arena2 arena(SIZE_1K);
     defer( freeAll(&arena) );
 
     Queue<f64> q(&arena.base);
