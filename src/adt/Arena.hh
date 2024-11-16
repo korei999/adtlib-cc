@@ -187,9 +187,10 @@ ArenaFreeAll(Arena* s)
 {
     ADT_ARENA_FOREACH_SAFE(s, pB, tmp)
         ::free(pB);
+    s->pBlocksHead = nullptr;
 }
 
-inline const AllocatorInterface inl_ArenaAllocatorVTable {
+inline const AllocatorInterface inl_ArenaVTable {
     .alloc = decltype(AllocatorInterface::alloc)(ArenaAlloc),
     .realloc = decltype(AllocatorInterface::realloc)(ArenaRealloc),
     .free = decltype(AllocatorInterface::free)(_ArenaFree),
@@ -198,7 +199,7 @@ inline const AllocatorInterface inl_ArenaAllocatorVTable {
 
 inline 
 Arena::Arena(u32 blockCap)
-    : base {&inl_ArenaAllocatorVTable}
+    : base {&inl_ArenaVTable}
 {
     _ArenaAllocatorNewBlock(this, align8(blockCap + sizeof(ArenaNode)));
 }

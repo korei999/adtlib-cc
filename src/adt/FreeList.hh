@@ -124,6 +124,7 @@ FreeListFreeAll(FreeList* s)
         ::free(it);
         it = next;
     }
+    s->pBlocks = nullptr;
 }
 
 inline FreeListData*

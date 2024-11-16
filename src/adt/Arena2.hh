@@ -171,7 +171,7 @@ Arena2Reset(Arena2* s)
     }
 }
 
-inline const AllocatorInterface inl_arena2VTable {
+inline const AllocatorInterface inl_Arena2VTable {
     .alloc = decltype(AllocatorInterface::alloc)(Arena2Alloc),
     .realloc = decltype(AllocatorInterface::realloc)(Arena2Realloc),
     .free = decltype(AllocatorInterface::free)(Arena2Free),
@@ -179,7 +179,7 @@ inline const AllocatorInterface inl_arena2VTable {
 };
 
 inline Arena2::Arena2(u64 capacity)
-    : base(&inl_arena2VTable),
+    : base(&inl_Arena2VTable),
       defaultCapacity(align8(capacity)),
       pBlocks(_Arena2AllocBlock(this, this->defaultCapacity)) {}
 

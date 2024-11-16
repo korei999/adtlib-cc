@@ -89,7 +89,7 @@ FixedReset(FixedAllocator* s)
     s->size = 0;
 }
 
-inline const AllocatorInterface __FixedAllocatorVTable {
+inline const AllocatorInterface inl_FixedAllocatorVTable {
     .alloc = decltype(AllocatorInterface::alloc)(FixedAlloc),
     .realloc = decltype(AllocatorInterface::realloc)(FixedRealloc),
     .free = decltype(AllocatorInterface::free)(FixedFree),
@@ -97,6 +97,6 @@ inline const AllocatorInterface __FixedAllocatorVTable {
 };
 
 constexpr FixedAllocator::FixedAllocator(void* pMemory, u64 capacity)
-    : base{.pVTable = &__FixedAllocatorVTable}, pMemBuffer((u8*)pMemory), cap(capacity) {}
+    : base{.pVTable = &inl_FixedAllocatorVTable}, pMemBuffer((u8*)pMemory), cap(capacity) {}
 
 } /* namespace adt */
