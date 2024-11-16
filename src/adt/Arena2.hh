@@ -85,7 +85,6 @@ _Arena2AllocBlock(Arena2* s, u64 size)
 _Arena2AppendBlock(Arena2* s, u64 size)
 {
     assert(s->pBlocks && "[Arena2]: wasn't initialized");
-    /*LOG("new block: {}\n", size);*/
 
     auto* it = s->pBlocks;
     while (it->pNext) it = it->pNext;
@@ -122,7 +121,7 @@ Arena2Realloc(Arena2* s, void* ptr, u64 mCount, u64 mSize)
     assert(pBlock && "[Arena2]: pointer doesn't belong to this arena");
 
     if (ptr == pBlock->pLastAlloc &&
-        pBlock->pLastAlloc + realSize < pBlock->pMem + pBlock->size)
+        pBlock->pLastAlloc + realSize < pBlock->pMem + pBlock->size) /* bump case */
     {
         pBlock->nBytesOccupied -= pBlock->lastAllocSize;
         pBlock->nBytesOccupied += realSize;
