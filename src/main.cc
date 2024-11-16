@@ -4,18 +4,18 @@
 #include "adt/Buddy.hh"
 #include "adt/FreeList.hh"
 #include "adt/List.hh"
+#include "adt/OsAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/sort.hh"
 #include "json/Parser.hh"
-#include "adt/Arena2.hh"
 #include "adt/FixedAllocator.hh"
 
 using namespace adt;
 
-u8 BIG[SIZE_1G * 4] {};
+/*u8 BIG[SIZE_1G * 4] {};*/
 
 constexpr int total = 1000000;
 
@@ -26,7 +26,7 @@ testRB()
 
     /*FreeList alloc(SIZE_8M);*/
     /*FixedAllocator alloc(BIG, sizeof(BIG));*/
-    Arena2 alloc(SIZE_8M);
+    Arena alloc(SIZE_8M);
     /*OsAllocator alloc;*/
 
     /*Buddy alloc(SIZE_8M);*/
@@ -194,7 +194,7 @@ testFreeList()
 {
     LOG_GOOD("testFreeList()\n");
 
-    Arena2 list(SIZE_8K);
+    Arena list(SIZE_8K);
     defer( freeAll(&list) );
 
     Vec<int> vec(&list.base);
@@ -260,7 +260,7 @@ testLock()
 void
 testSort()
 {
-    Arena2 arena(SIZE_1K);
+    Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
     srand(1290837027);
@@ -303,7 +303,7 @@ testPrint()
 static void
 testQueue()
 {
-    Arena2 arena(SIZE_1K);
+    Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
     Queue<f64> q(&arena.base);
@@ -457,10 +457,10 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        Arena arena(SIZE_1M);
+        Arena arena(SIZE_1G * 2);
         defer( freeAll(&arena) );
         /*OsAllocator arena;*/
-        /*FreeList al(SIZE_1G * 2);*/
+        /*FreeList arena(SIZE_1G * 2);*/
 
         json::Parser p(&arena.base);
         json::ParserLoadAndParse(&p, argv[1]);
