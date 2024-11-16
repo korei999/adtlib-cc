@@ -7,13 +7,17 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifndef NDEBUG
+    #include <cstdio>
+#endif
+
 namespace adt
 {
 
 struct ArenaBlock
 {
     ArenaBlock* pNext {};
-    u64 size {}; /* excluding sizeof(Arena2Block) */
+    u64 size {}; /* excluding sizeof(ArenaBlock) */
     u64 nBytesOccupied {};
     u8* pLastAlloc {};
     u64 lastAllocSize {};
@@ -84,7 +88,7 @@ _ArenaAllocBlock(Arena* s, u64 size)
 [[nodiscard]] inline ArenaBlock*
 _ArenaAppendBlock(Arena* s, u64 size)
 {
-    assert(s->pBlocks && "[Arena2]: wasn't initialized");
+    assert(s->pBlocks && "[Arena]: wasn't initialized");
 
     auto* it = s->pBlocks;
     while (it->pNext) it = it->pNext;
@@ -93,12 +97,30 @@ _ArenaAppendBlock(Arena* s, u64 size)
     return it->pNext;
 }
 
+[[nodiscard]] inline ArenaBlock*
+_ArenaPrependBlock(Arena* s, u64 size)
+{
+    assert(s->pBlocks && "[Arena]: wasn't initialized");
+
+    auto* pNew = _ArenaAllocBlock(s, size);
+    pNew->pNext = s->pBlocks;
+    s->pBlocks = pNew;
+
+    return pNew;
+}
+
 inline void*
 ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 {
     u64 realSize = align8(mCount * mSize);
     auto* pBlock = _ArenaFindFittingBlock(s, realSize);
-    if (!pBlock) pBlock = _ArenaAppendBlock(s, utils::max(s->defaultCapacity, realSize*2));
+
+#ifndef NDEBUG
+    if (s->defaultCapacity <= realSize)
+        fprintf(stderr, "[Arena]: allocating more than defaultCapacity (%llu, %llu)\n", s->defaultCapacity, realSize);
+#endif
+
+    if (!pBlock) pBlock = _ArenaPrependBlock(s, utils::max(s->defaultCapacity, realSize*2));
 
     pBlock->nBytesOccupied += realSize;
     auto* pRet = pBlock->pLastAlloc + pBlock->lastAllocSize;
@@ -112,13 +134,13 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 inline void*
 ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
 {
-    assert(ptr != nullptr && "[Arena2]: passing nullptr to realloc");
+    assert(ptr != nullptr && "[Arena]: passing nullptr to realloc");
 
     u64 requested = mSize * mCount;
     u64 realSize = align8(requested);
     auto* pBlock = _ArenaFindBlockFromPtr(s, (u8*)ptr);
 
-    assert(pBlock && "[Arena2]: pointer doesn't belong to this arena");
+    assert(pBlock && "[Arena]: pointer doesn't belong to this arena");
 
     if (ptr == pBlock->pLastAlloc &&
         pBlock->pLastAlloc + realSize < pBlock->pMem + pBlock->size) /* bump case */
@@ -171,7 +193,7 @@ ArenaReset(Arena* s)
     }
 }
 
-inline const AllocatorInterface inl_Arena2VTable {
+inline const AllocatorInterface inl_ArenaVTable {
     .alloc = decltype(AllocatorInterface::alloc)(ArenaAlloc),
     .realloc = decltype(AllocatorInterface::realloc)(ArenaRealloc),
     .free = decltype(AllocatorInterface::free)(ArenaFree),
@@ -179,7 +201,7 @@ inline const AllocatorInterface inl_Arena2VTable {
 };
 
 inline Arena::Arena(u64 capacity)
-    : base(&inl_Arena2VTable),
+    : base(&inl_ArenaVTable),
       defaultCapacity(align8(capacity)),
       pBlocks(_ArenaAllocBlock(this, this->defaultCapacity)) {}
 

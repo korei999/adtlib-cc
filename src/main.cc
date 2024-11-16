@@ -457,7 +457,7 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        Arena arena(SIZE_1G * 2);
+        Arena arena(SIZE_1M);
         defer( freeAll(&arena) );
         /*OsAllocator arena;*/
         /*FreeList arena(SIZE_1G * 2);*/
