@@ -186,6 +186,7 @@ ArenaReset(Arena* s)
     auto* it = s->pBlocks;
     while (it)
     {
+        memset(it->pMem, 0, it->size);
         it->nBytesOccupied = 0;
         it->pLastAlloc = it->pMem;
 
