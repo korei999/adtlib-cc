@@ -83,9 +83,9 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
     u32 i = fmtIdx + 1;
 
     auto skipUntil = [&](const String chars) -> void {
-        utils::fill(aBuff, '\0', utils::size(aBuff));
+        memset(aBuff, 0, sizeof(aBuff));
         u32 bIdx = 0;
-        while (bIdx < utils::size(aBuff) - 1 && i < fmt.size && !oneOfChars(fmt[i], chars))
+        while (bIdx < sizeof(aBuff) - 1 && i < fmt.size && !oneOfChars(fmt[i], chars))
         {
             aBuff[bIdx++] = fmt[i++];
             ++nRead;
