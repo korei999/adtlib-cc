@@ -316,6 +316,16 @@ testQueue()
     QueuePushFront(&q, -20.0);
     QueuePushBack(&q, -30.0);
 
+    Vec<int> what(&arena.base);
+    VecPush(&what, 1);
+    VecPush(&what, 3);
+    VecPush(&what, 10);
+    VecPush(&what, 11);
+    VecPush(&what, -1);
+
+    auto newWhat = VecClone(&what, &arena.base);
+    print::out("newWhat: [{}]\n", newWhat);
+
     print::out("q: {}\n", q);
 }
 
