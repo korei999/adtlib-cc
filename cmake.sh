@@ -12,7 +12,18 @@ _clean()
 release()
 {
     _clean
-    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release
+
+    if CC=clang CXX=clang++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
+releaseGCC()
+{
+    _clean
+
+    if CC=gcc CXX=g++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
     then
         cmake --build build/ -j -v
     fi
@@ -21,7 +32,8 @@ release()
 default()
 {
     _clean
-    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+    if CC=clang CXX=clang++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
     then
         cmake --build build/ -j -v
     fi
@@ -30,7 +42,8 @@ default()
 debug()
 {
     _clean
-    if CC_LD=mold CXX_LD=mold cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug
+
+    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" "$@" 
     then
         cmake --build build/ -j -v
     fi
@@ -39,7 +52,8 @@ debug()
 asan()
 {
     _clean
-    if CC_LD=mold CXX_LD=mold cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan
+
+    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" "$@" 
     then
         cmake --build build/ -j -v
     fi
@@ -47,7 +61,7 @@ asan()
 
 build()
 {
-    cmake --build build/ -j -v
+    cmake --build build/ -j
 }
 
 run()
@@ -57,7 +71,9 @@ run()
         echo ""
         # ASAN_OPTIONS=detect_leaks=1 LSAN_OPTIONS=suppressions=leaks.txt ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
         # ASAN_OPTIONS=halt_on_error=0 ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
-        ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
+        # gamemoderun ./build/$BIN "$@" 2> /tmp/$BIN-dbg.txt
+        # PIPEWIRE_DEBUG=3 ./build/$BIN "$@" 2> /tmp/$BIN-dbg.txt
+        PIPEWIRE_DEBUG=2 ./build/$BIN "$@" 2> /tmp/$BIN-dbg.txt
     fi
 }
 
@@ -79,11 +95,12 @@ _test()
 cd $(dirname $0)
 
 case "$1" in
-    default) default ;;
+    default) default "${@:2}" ;;
     run) run "${@:2}" ;;
-    debug) debug ;;
-    asan) asan ;;
-    release) release ;;
+    debug) debug "${@:2}" ;;
+    asan) asan "${@:2}" ;;
+    release) release "${@:2}";;
+    releaseGCC) releaseGCC "${@:2}";;
     install) _install ;;
     uninstall) _uninstall ;;
     clean) _clean ;;

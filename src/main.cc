@@ -115,7 +115,7 @@ testAVL()
         COUT(ADT_LOGS_COL_YELLOW "%d" ADT_LOGS_COL_NORM " %d\n", pNode->height, pNode->data);
     };
 
-    bool (*pfnCollect)(AVLNode<int>*, void* pArgs) = [](AVLNode<int>* pNode, void* pArgs) -> bool {
+    [[maybe_unused]] bool (*pfnCollect)(AVLNode<int>*, void* pArgs) = [](AVLNode<int>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<AVLNode<int>*>*)pArgs;
         VecPush(a, pNode);
         return false;
@@ -229,7 +229,7 @@ testLock()
         return 0;
     };
 
-    auto task2 = +[](void* pArgs) -> int {
+    [[maybe_unused]] auto task2 = +[](void* pArgs) -> int {
         auto* pNumber = (atomic_int*)pArgs;
         atomic_fetch_add(pNumber, 1);
 
