@@ -130,7 +130,7 @@ ArenaZalloc(Arena* s, u64 mCount, u64 mSize)
 inline void*
 ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
 {
-    assert(ptr != nullptr && "[Arena]: passing nullptr to realloc");
+    assert(ptr != nullptr && "[Arena]: passing nullptr to realloc()");
 
     u64 requested = mSize * mCount;
     u64 realSize = align8(requested);
