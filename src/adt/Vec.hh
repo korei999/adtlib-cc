@@ -22,9 +22,9 @@ struct VecBase
 
     VecBase() = default;
     VecBase(Allocator* p, u32 prealloc = 1)
-        : pData {(T*)alloc(p, prealloc, sizeof(T))},
-          size {0},
-          capacity {prealloc} {}
+        : pData((T*)alloc(p, prealloc, sizeof(T))),
+          size(0),
+          capacity(prealloc) {}
 
     T& operator[](u32 i)             { assert(i < size && "[Vec] out of size"); return pData[i]; }
     const T& operator[](u32 i) const { assert(i < size && "[Vec] out of size"); return pData[i]; }
