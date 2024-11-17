@@ -211,6 +211,13 @@ VecData(VecBase<T>* s)
     return s->pData;
 }
 
+template<typename T>
+inline void
+VecZeroOut(VecBase<T>* s)
+{
+    memset(s->pData, 0, s->size * sizeof(T));
+}
+
 /* Dynamic array (aka Vector), with Allocator* stored */
 template<typename T>
 struct Vec
@@ -254,6 +261,7 @@ template<typename T> inline void VecDestroy(Vec<T>* s) { VecDestroy(&s->base, s-
 template<typename T> inline u32 VecSize(const Vec<T>* s) { return VecSize(&s->base); }
 template<typename T> inline u32 VecCap(const Vec<T>* s) { return VecCap(&s->base); }
 template<typename T> inline T* VecData(Vec<T>* s) { return VecData(&s->base); }
+template<typename T> inline void VecZeroOut(Vec<T>* s) { VecZeroOut(&s->base); }
 
 namespace utils
 {
