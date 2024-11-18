@@ -35,10 +35,10 @@ testRB()
     /*defer( ArenaFreeAll(&alloc2) );*/
     /*defer( freeAll(&alloc) );*/
 
-    RBTree<long> kek(&alloc.base);
+    RBTree<long> kek(&alloc.super);
     defer( RBDestroy(&kek) );
 
-    Vec<RBNode<long>*> a(&alloc.base, 32);
+    Vec<RBNode<long>*> a(&alloc.super, 32);
 
     bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<long>*>*)pArgs;
@@ -108,8 +108,8 @@ testAVL()
 {
     Arena alloc {SIZE_8M};
 
-    AVLTree<int> kek {&alloc.base};
-    Vec<AVLNode<int>*> a {&alloc.base};
+    AVLTree<int> kek {&alloc.super};
+    Vec<AVLNode<int>*> a {&alloc.super};
 
     [[maybe_unused]] void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT(ADT_LOGS_COL_YELLOW "%d" ADT_LOGS_COL_NORM " %d\n", pNode->height, pNode->data);
@@ -197,7 +197,7 @@ testFreeList()
     Arena list(SIZE_8K);
     defer( freeAll(&list) );
 
-    Vec<int> vec(&list.base);
+    Vec<int> vec(&list.super);
     int what = 2;
 
     void* p = alloc(&list, what, sizeof(int));
@@ -216,7 +216,7 @@ testLock()
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
     atomic_int number = 1;
-    ThreadPool tp(&arena.base);
+    ThreadPool tp(&arena.super);
     ThreadPoolStart(&tp);
 
     ThreadPoolLock tpLock {};
@@ -267,7 +267,7 @@ testSort()
 
     u32 size = 70;
 
-    Vec<int> vec(&arena.base);
+    Vec<int> vec(&arena.super);
     for (u32 i = 0; i < size; ++i)
         VecPush(&vec, rand() % 100);
 
@@ -306,7 +306,7 @@ testQueue()
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
-    Queue<f64> q(&arena.base);
+    Queue<f64> q(&arena.super);
     QueuePushBack(&q, 1.0);
     QueuePushFront(&q, 2.0);
     QueuePushBack(&q, 99.0);
@@ -316,14 +316,14 @@ testQueue()
     QueuePushFront(&q, -20.0);
     QueuePushBack(&q, -30.0);
 
-    Vec<int> what(&arena.base);
+    Vec<int> what(&arena.super);
     VecPush(&what, 1);
     VecPush(&what, 3);
     VecPush(&what, 10);
     VecPush(&what, 11);
     VecPush(&what, -1);
 
-    auto newWhat = VecClone(&what, &arena.base);
+    auto newWhat = VecClone(&what, &arena.super);
     print::out("newWhat: [{}]\n", newWhat);
 
     print::out("q: {}\n", q);
@@ -335,7 +335,7 @@ testList()
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
-    List<f64> list(&arena.base);
+    List<f64> list(&arena.super);
     auto* pM1 = ListPushFront(&list, -1.0);
     ListPushBack(&list, 1.0);
     auto* p2 = ListPushBack(&list, 2.0);
@@ -344,19 +344,19 @@ testList()
     ListPushFront(&list, 5.0);
 
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 999.0);
+        auto* pNew = ListNodeAlloc(&arena.super, 999.0);
         ListInsertBefore(&list.base, p2, pNew);
     }
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 666.0);
+        auto* pNew = ListNodeAlloc(&arena.super, 666.0);
         ListInsertAfter(&list.base, p2, pNew);
     }
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 333.0);
+        auto* pNew = ListNodeAlloc(&arena.super, 333.0);
         ListInsertAfter(&list.base, p3, pNew);
     }
     {
-        auto* pNew = ListNodeAlloc(&arena.base, 444.0);
+        auto* pNew = ListNodeAlloc(&arena.super, 444.0);
         ListInsertBefore(&list.base, p3, pNew);
     }
 
@@ -365,9 +365,9 @@ testList()
     ListRemove(&list, p4);
 
     /*ListDestroy(&list);*/
-    List<f64> list0(&arena.base);
+    List<f64> list0(&arena.super);
     for (auto& el : list) ListPushBack(&list0, el);
-    List<f64> list1(&arena.base);
+    List<f64> list1(&arena.super);
     for (auto& el : list) ListPushBack(&list1, el);
 
     ListSort<f64, utils::compareRev<f64>>(&list0);
@@ -439,7 +439,7 @@ main(int argc, char* argv[])
 
     /*FixedAllocator alloc (BIG, size(BIG));*/
     Arena alloc(SIZE_1M * 100);
-    ThreadPool tp(&alloc.base, 2);
+    ThreadPool tp(&alloc.super, 2);
     ThreadPoolStart(&tp);
     defer( ArenaFreeAll(&alloc) );
 
@@ -472,7 +472,7 @@ main(int argc, char* argv[])
         /*OsAllocator arena;*/
         /*FreeList arena(SIZE_1G * 2);*/
 
-        json::Parser p(&arena.base);
+        json::Parser p(&arena.super);
         json::ParserLoadAndParse(&p, argv[1]);
 
         if (argc >= 3 && "-p" == String(argv[2]))

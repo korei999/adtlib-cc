@@ -27,7 +27,7 @@ struct BuddyNode
 /* FIXME: terribly slow buddy allocator */
 struct Buddy
 {
-    Allocator base {};
+    Allocator super {};
     BuddyBlock* pBlocks {};
     u64 blockSize {};
 
@@ -249,7 +249,7 @@ inline const AllocatorInterface inl_BuddyAllocatorVTable {
 };
 
 inline Buddy::Buddy(u64 _blockSize)
-    : base(&inl_BuddyAllocatorVTable),
+    : super(&inl_BuddyAllocatorVTable),
       pBlocks(BuddyBlockNew(_blockSize)),
       blockSize(nextPowerOf2(_blockSize)) {}
 

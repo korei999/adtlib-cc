@@ -26,7 +26,7 @@ struct ArenaBlock
 
 struct Arena
 {
-    Allocator base {};
+    Allocator super {};
     u64 defaultCapacity {};
     ArenaBlock* pBlocks {};
 
@@ -203,7 +203,7 @@ inline const AllocatorInterface inl_ArenaVTable {
 };
 
 inline Arena::Arena(u64 capacity)
-    : base(&inl_ArenaVTable),
+    : super(&inl_ArenaVTable),
       defaultCapacity(align8(capacity)),
       pBlocks(_ArenaAllocBlock(this->defaultCapacity)) {}
 

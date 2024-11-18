@@ -38,7 +38,7 @@ struct FreeList
 {
     using Node = RBNode<FreeListData>;
 
-    Allocator base {};
+    Allocator super {};
     u64 blockSize {};
     RBTreeBase<FreeListData> tree {};
     FreeListBlock* pBlocks {};
@@ -335,7 +335,7 @@ inline const AllocatorInterface inl_FreeListAllocatorVTable {
 };
 
 inline FreeList::FreeList(u64 _blockSize)
-    : base(&inl_FreeListAllocatorVTable),
+    : super(&inl_FreeListAllocatorVTable),
       blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
       pBlocks(FreeListAllocBlock(this, this->blockSize)) {}
 

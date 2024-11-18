@@ -32,9 +32,9 @@ inline const AllocatorInterface inl_OsAllocatorVTable {
 
 struct OsAllocator
 {
-    Allocator base {};
+    Allocator super {};
 
-    constexpr OsAllocator([[maybe_unused]] u32 _ingnored = 0) : base(&inl_OsAllocatorVTable) {}
+    constexpr OsAllocator([[maybe_unused]] u32 _ingnored = 0) : super(&inl_OsAllocatorVTable) {}
 };
 
 inline void*

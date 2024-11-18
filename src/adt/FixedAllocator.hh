@@ -11,7 +11,7 @@ namespace adt
 
 struct FixedAllocator
 {
-    Allocator base {};
+    Allocator super {};
     u8* pMemBuffer = nullptr;
     u64 size = 0;
     u64 cap = 0;
@@ -108,6 +108,6 @@ inline const AllocatorInterface inl_FixedAllocatorVTable {
 };
 
 constexpr FixedAllocator::FixedAllocator(void* pMemory, u64 capacity)
-    : base{.pVTable = &inl_FixedAllocatorVTable}, pMemBuffer((u8*)pMemory), cap(capacity) {}
+    : super{.pVTable = &inl_FixedAllocatorVTable}, pMemBuffer((u8*)pMemory), cap(capacity) {}
 
 } /* namespace adt */
