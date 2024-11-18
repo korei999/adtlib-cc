@@ -72,7 +72,7 @@ template<typename T>
 inline u32
 VecPush(VecBase<T>* s, Allocator* p, const T& data)
 {
-    if (s->size >= s->capacity) VecGrow(s, p, utils::max(s->capacity * 2, SIZE_MIN));
+    if (s->size >= s->capacity) VecGrow(s, p, utils::max(s->capacity * 2U, u32(SIZE_MIN)));
 
     s->pData[s->size++] = data;
     return s->size - 1;

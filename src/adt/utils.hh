@@ -48,14 +48,26 @@ toggle(auto* x)
     *x = !*x;
 }
 
-[[nodiscard]] constexpr auto
+[[nodiscard]] constexpr const auto&
 max(const auto& l, const auto& r)
 {
     return l > r ? l : r;
 }
 
-[[nodiscard]] constexpr auto
+[[nodiscard]] constexpr auto&
+max(auto& l, auto& r)
+{
+    return l > r ? l : r;
+}
+
+[[nodiscard]] constexpr const auto&
 min(const auto& l, const auto& r)
+{
+    return l < r ? l : r;
+}
+
+[[nodiscard]] constexpr auto&
+min(auto& l, auto& r)
 {
     return l < r ? l : r;
 }
