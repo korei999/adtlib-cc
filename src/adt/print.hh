@@ -315,7 +315,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x)
 inline u32
 formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x)
 {
-    char aBuff[64] {};
+    char aBuff[300] {};
     snprintf(aBuff, utils::size(aBuff), "%.*lf", fmtArgs.maxFloatLen, x);
 
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
