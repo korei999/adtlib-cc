@@ -28,7 +28,7 @@ add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wswitch -Wimplicit-fallthrough")
-add_definitions("-D_DEFAULT_SOURCE") # needed for reallocarray
+add_definitions("-D_DEFAULT_SOURCE")
 add_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 include_directories(BEFORE "src")
