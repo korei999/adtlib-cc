@@ -61,7 +61,7 @@ _FreeListPrintTree(FreeList* s, Allocator* pAlloc)
 }
 
 template<>
-constexpr s64
+constexpr long
 utils::compare(const FreeListData& l, const FreeListData& r)
 {
     return l.getSize() - r.getSize();

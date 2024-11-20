@@ -33,7 +33,8 @@ testRB()
 
     /*Arena alloc2(SIZE_8M);*/
     /*defer( ArenaFreeAll(&alloc2) );*/
-    /*defer( freeAll(&alloc) );*/
+
+    defer( freeAll(&alloc) );
 
     RBTree<long> kek(&alloc.super);
     defer( RBDestroy(&kek) );
@@ -265,21 +266,35 @@ testSort()
 
     srand(1290837027);
 
-    u32 size = 70;
+    u32 size = 1000000;
 
     Vec<int> vec(&arena.super);
+    VecSetSize(&vec, size);
     for (u32 i = 0; i < size; ++i)
-        VecPush(&vec, rand() % 100);
+    {
+        auto n = rand();
+        if (i & 1) n = -n;
+        vec[i] = n;
+    }
 
+    auto t0 = utils::timeNowMS();
     sort::quick(&vec.base);
-    /*COUT("inc: {}\n", vec);*/
+    auto t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::INC));
+    COUT("sorted {} items in: {} ms\n", size, t1);
 
     for (u32 i = 0; i < size; ++i)
-        vec[i] = rand() % 100;
-    sort::quick<VecBase, int, [](const int& l, const int& r) -> s64 { return r - l; }>(&vec.base);
-    /*COUT("dec: {}\n", vec);*/
+    {
+        auto n = rand();
+        if (i & 1) n = -n;
+        vec[i] = n;
+    }
+
+    t0 = utils::timeNowMS();
+    sort::quick<VecBase, int, utils::compareRev<int>>(&vec.base);
+    t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::DEC));
+    COUT("sorted(Rev) {} items in: {} ms\n", size, t1);
 }
 
 template<typename ...T>

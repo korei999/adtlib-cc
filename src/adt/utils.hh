@@ -91,16 +91,15 @@ even(const auto& a)
     return !odd(a);
 }
 
-/* negative if l < r, positive if l > r, 0 if l == r */
 template<typename T>
-[[nodiscard]] constexpr s64
+[[nodiscard]] constexpr long
 compare(const T& l, const T& r)
 {
     return l - r;
 }
 
 template<typename T>
-[[nodiscard]] constexpr s64
+[[nodiscard]] constexpr long
 compareRev(const T& l, const T& r)
 {
     return r - l;
