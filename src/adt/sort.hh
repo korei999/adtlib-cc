@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Allocator.hh"
+#include "Pair.hh"
+#include "Vec.hh"
 #include "utils.hh"
 
 #include <cmath>
@@ -130,18 +133,17 @@ median3(const auto& x, const auto& y, const auto& z)
 
 template<typename T, auto FN_CMP = utils::compare<T>>
 constexpr long
-partition(T a[], const long l, const long r, const T pivot)
+partition(T a[], long l, long r, const T pivot)
 {
-    long i = l, j = r;
-    while (i <= j)
+    while (l <= r)
     {
-        while (FN_CMP(a[i], pivot) < 0) ++i;
-        while (FN_CMP(a[j], pivot) > 0) --j;
+        while (FN_CMP(a[l], pivot) < 0) ++l;
+        while (FN_CMP(a[r], pivot) > 0) --r;
 
-        if (i <= j) utils::swap(&a[i++], &a[j--]);
+        if (l <= r) utils::swap(&a[l++], &a[r--]);
     }
 
-    return j;
+    return r;
 }
 
 template<typename T, auto FN_CMP = utils::compare<T>>

@@ -286,7 +286,7 @@ testSort()
     sort::quick(&vec.base);
     auto t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::INC));
-    COUT("sorted {} items in: {} ms\n", size, t1);
+    COUT("sorted      {} items in: {} ms\n", size, t1);
 
     fill();
 
@@ -296,11 +296,10 @@ testSort()
     assert(sort::sorted(vec.base, sort::DEC));
     COUT("sorted(Rev) {} items in: {} ms\n", size, t1);
 
-
     fill();
 
     t0 = utils::timeNowMS();
-    sort::partition(VecData(&vec), 0, VecSize(&vec) - 1, vec[123]);
+    sort::partition(VecData(&vec), 0, VecSize(&vec) - 1, vec[VecSize(&vec) / 2]);
     t1 = utils::timeNowMS() - t0;
     COUT("partition in: {} ms\n", t1);
 
