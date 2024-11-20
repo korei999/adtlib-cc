@@ -63,7 +63,7 @@ template<typename T>
 inline void
 VecGrow(VecBase<T>* s, Allocator* p, u32 newCapacity)
 {
-    assert(s->size * sizeof(T) > 0);
+    assert(newCapacity * sizeof(T) > 0);
     s->capacity = newCapacity;
     s->pData = (T*)realloc(p, s->pData, newCapacity, sizeof(T));
 }
