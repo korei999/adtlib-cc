@@ -129,24 +129,19 @@ median3(const auto& x, const auto& y, const auto& z)
 }
 
 template<typename T, auto FN_CMP = utils::compare<T>>
-[[nodiscard]]
 constexpr long
-partition(T a[], long l, long h, long pivot)
+partition(T a[], const long l, const long r, const T pivot)
 {
-    long firstHigh = l;
-
-    for (long i = l; i < h; ++i)
+    long i = l, j = r;
+    while (i <= j)
     {
-        if (FN_CMP(a[i], a[pivot]) < 0)
-        {
-            utils::swap(&a[i], &a[firstHigh]);
-            firstHigh++;
-        }
+        while (FN_CMP(a[i], pivot) < 0) ++i;
+        while (FN_CMP(a[j], pivot) > 0) --j;
+
+        if (i <= j) utils::swap(&a[i++], &a[j--]);
     }
 
-    utils::swap(&a[pivot], &a[firstHigh]);
-
-    return firstHigh;
+    return j;
 }
 
 template<typename T, auto FN_CMP = utils::compare<T>>
@@ -161,7 +156,7 @@ quick(T a[], long l, long r)
             return;
         }
 
-        T pivot = a[median3(l, (l + r) / 2, r)];
+        T pivot = a[ median3(l, (l + r) / 2, r) ];
         long i = l, j = r;
 
         while (i <= j)
@@ -169,11 +164,7 @@ quick(T a[], long l, long r)
             while (FN_CMP(a[i], pivot) < 0) ++i;
             while (FN_CMP(a[j], pivot) > 0) --j;
 
-            if (i <= j)
-            {
-                utils::swap(&a[i], &a[j]);
-                ++i, --j;
-            }
+            if (i <= j) utils::swap(&a[i++], &a[j--]);
         }
 
         if (l < j) quick<T, FN_CMP>(a, l, j);
@@ -186,7 +177,6 @@ constexpr void
 quick(CON_T<T>* pArrayContainer)
 {
     if (pArrayContainer->size <= 1) return;
-
     quick<T, FN_CMP>(pArrayContainer->pData, 0, pArrayContainer->size - 1);
 }
 

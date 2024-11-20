@@ -230,6 +230,8 @@ searchMin(CON_T<T>* s)
 constexpr void
 reverse(auto* a, const u32 size)
 {
+    assert(size > 0);
+
     for (u32 i = 0; i < size / 2; ++i)
         swap(&a[i], &a[size - 1 - i]);
 }

@@ -49,6 +49,16 @@ debug()
     fi
 }
 
+debugGCC()
+{
+    _clean
+
+    if CC=gcc CXX=g++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" "$@" 
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
 asan()
 {
     _clean
@@ -97,6 +107,7 @@ case "$1" in
     default) default "${@:2}" ;;
     run) run "${@:2}" ;;
     debug) debug "${@:2}" ;;
+    debugGCC) debugGCC "${@:2}" ;;
     asan) asan "${@:2}" ;;
     release) release "${@:2}";;
     releaseGCC) releaseGCC "${@:2}";;

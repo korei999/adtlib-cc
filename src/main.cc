@@ -261,7 +261,7 @@ testLock()
 void
 testSort()
 {
-    Arena arena(SIZE_1K);
+    Arena arena(SIZE_1M);
     defer( freeAll(&arena) );
 
     srand(1290837027);
@@ -270,12 +270,17 @@ testSort()
 
     Vec<int> vec(&arena.super);
     VecSetSize(&vec, size);
-    for (u32 i = 0; i < size; ++i)
-    {
-        auto n = rand() % (size*10);
-        if (i & 1) n = -n;
-        vec[i] = n;
-    }
+
+    auto fill = [&] {
+        for (u32 i = 0; i < size; ++i)
+        {
+            auto n = rand() % (size*10);
+            if (i & 1) n = -n;
+            vec[i] = n;
+        }
+    };
+
+    fill();
 
     auto t0 = utils::timeNowMS();
     sort::quick(&vec.base);
@@ -283,18 +288,29 @@ testSort()
     assert(sort::sorted(vec.base, sort::INC));
     COUT("sorted {} items in: {} ms\n", size, t1);
 
-    for (u32 i = 0; i < size; ++i)
-    {
-        auto n = rand() % (size*10);
-        if (i & 1) n = -n;
-        vec[i] = n;
-    }
+    fill();
 
     t0 = utils::timeNowMS();
     sort::quick<VecBase, int, utils::compareRev<int>>(&vec.base);
     t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::DEC));
     COUT("sorted(Rev) {} items in: {} ms\n", size, t1);
+
+
+    fill();
+
+    t0 = utils::timeNowMS();
+    sort::partition(VecData(&vec), 0, VecSize(&vec) - 1, vec[123]);
+    t1 = utils::timeNowMS() - t0;
+    COUT("partition in: {} ms\n", t1);
+
+    std::initializer_list<int> initList {5, 3, 8, 4, 2, 9, 7, 1, 0, 6};
+    Arr<int, 12> arr = initList;
+    int pivot = arr[2];
+    COUT("pivot: {}\n", pivot);
+    COUT("arr: [{}]\n", arr);
+    auto p = sort::partition(arr.pData, 0, arr.size - 1, pivot);
+    COUT("arr: [{}], split: {}({})\n", arr, p, arr[p]);
 }
 
 template<typename ...T>
