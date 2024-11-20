@@ -295,6 +295,8 @@ testSort()
     t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::DEC));
     COUT("sorted(Rev) {} items in: {} ms\n", size, t1);
+
+    Arr<int, 1> arr {};
 }
 
 template<typename ...T>

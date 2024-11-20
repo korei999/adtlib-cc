@@ -10,7 +10,7 @@ namespace adt
 {
 
 /* statically sized array */
-template<typename T, u32 CAP>
+template<typename T, u32 CAP> requires(CAP > 0)
 struct Arr
 {
     T pData[CAP] {};
@@ -56,7 +56,6 @@ template<typename T, u32 CAP>
 constexpr u32
 ArrPush(Arr<T, CAP>* s, const T& x)
 {
-    assert(CAP > 0 && "[Arr]: ininitialized push");
     assert(s->size < CAP && "[Arr]: pushing over capacity");
 
     s->pData[s->size++] = x;
@@ -94,7 +93,7 @@ ArrIdx(Arr<T, CAP>* s, const T* p)
     return r;
 }
 
-template<typename T, u32 CAP>
+template<typename T, u32 CAP> requires(CAP > 0)
 constexpr Arr<T, CAP>::Arr(std::initializer_list<T> list)
 {
     for (auto& e : list) ArrPush(this, e);
