@@ -312,6 +312,20 @@ testSort()
     COUT("arr: [{}], split: {}({})\n", arr, p, arr[p]);
 }
 
+static void
+testVec()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+
+    VecBase<int> vec;
+    VecPush(&vec, &arena.super, 1);
+    VecPush(&vec, &arena.super, 2);
+    VecPush(&vec, &arena.super, 3);
+
+    COUT("vec: [{}]\n", vec);
+}
+
 template<typename ...T>
 static void
 printThings(const T&... tArgs)
@@ -404,15 +418,6 @@ testList()
     LOG("list0: [{}]\n", list0);
     ListSort(&list1);
     LOG("list1: [{}]\n", list1);
-
-    Arr<int, 36> arr;
-    ArrPush(&arr, 1);
-    ArrPush(&arr, 5);
-    ArrPush(&arr, 4);
-    ArrPush(&arr, 3);
-    ArrPush(&arr, -1);
-    sort::quick(&arr);
-    LOG("arr: [{}]\n", arr);
 }
 
 int
@@ -464,6 +469,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--list"))
     {
         testList();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--vec"))
+    {
+        testVec();
         return 0;
     }
 

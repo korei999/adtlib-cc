@@ -311,6 +311,8 @@ FreeListFree(FreeList* s, void* ptr)
 inline void*
 FreeListRealloc(FreeList* s, void* ptr, u64 nMembers, u64 mSize)
 {
+    if (!ptr) return FreeListAlloc(s, nMembers, mSize);
+
     auto* pNode = FreeListTreeNodeFromPtr(ptr);
     long nodeSize = (long)pNode->data.getSize() - (long)sizeof(FreeList::Node);
     assert(nodeSize > 0);

@@ -220,6 +220,8 @@ BuddyFree(Buddy* s, void* p)
 inline void*
 BuddyRealloc(Buddy* s, void* p, u64 nMembers, u64 mSize)
 {
+    if (!p) return BuddyAlloc(s, nMembers, mSize);
+
     auto* pNode = BuddyNodeFromPtr(p);
     void* ret = BuddyAlloc(s, nMembers, mSize);
     memcpy(ret, p, BuddyNodeSize(pNode) - sizeof(BuddyNode));

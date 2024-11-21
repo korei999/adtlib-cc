@@ -74,5 +74,6 @@ _OsFreeAll([[maybe_unused]] OsAllocator* s)
 }
 
 inline OsAllocator inl_OsAllocator {};
+inline Allocator* inl_pOsAlloc = &inl_OsAllocator.super;
 
 } /* namespace adt */

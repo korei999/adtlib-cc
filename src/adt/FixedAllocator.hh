@@ -58,6 +58,8 @@ FixedZalloc(FixedAllocator* s, u64 mCount, u64 mSize)
 constexpr void*
 FixedRealloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize)
 {
+    if (!p) return FixedAlloc(s, mCount, mSize);
+
     void* ret = nullptr;
     u64 aligned = align8(mCount * mSize);
 
