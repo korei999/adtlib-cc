@@ -53,7 +53,7 @@ struct MapBase
         MapBase* s {};
         u32 i = 0;
 
-        It(MapBase* _s, u32 _i) : s {_s}, i {_i} {}
+        It(MapBase* _s, u32 _i) : s(_s), i(_i) {}
 
         T& operator*() { return s->aBuckets[i].data; }
         T* operator->() { return &s->aBuckets[i].data; }
