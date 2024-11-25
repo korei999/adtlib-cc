@@ -185,7 +185,6 @@ testBuddy()
     *pLong = 10;
 
     pBig = (decltype(pBig))BuddyAlloc(&buddy, 1, sizeof(*pBig));
-    /*pBig->what = "kekw";*/
 
     BuddyFree(&buddy, pInt);
     BuddyFree(&buddy, pLong);
@@ -483,6 +482,57 @@ testMemPool()
     }
 }
 
+struct Test
+{
+};
+
+static void
+whatRef(const Test& t)
+{
+    COUT("const Test&\n");
+}
+
+static void
+whatRef(Test&& t)
+{
+    COUT("Test&&\n");
+}
+
+template<typename Arg>
+static void
+pass(Arg&& arg)
+{
+    whatRef(std::forward<Arg>(arg));
+}
+
+template<typename Arg, typename ...Args>
+static void
+pass(Arg&& arg, Args&&... args)
+{
+    pass(std::forward<Arg>(arg));
+    pass(std::forward<Args>(args)...);
+}
+
+template<typename Arg, typename ...Args>
+static void
+pass2(Arg arg, Args... args)
+{
+    pass(arg);
+    pass(args...);
+}
+
+static void
+testForward()
+{
+    Test t;
+
+    pass(t, t, Test{});
+    COUT("\n");
+    pass2(t, t, Test{});
+    COUT("\n");
+    pass(t, std::move(t), Test{});
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -544,6 +594,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--mempool"))
     {
         testMemPool();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--forward"))
+    {
+        testForward();
         return 0;
     }
 
