@@ -16,14 +16,16 @@ LexerDestroy(Lexer* s)
     free(s->pAlloc, s->sFile.pData);
 }
 
-void
+RESULT
 LexerLoadFile(Lexer* s, adt::String path)
 {
     Option<String> rs = file::load(s->pAlloc, path);
-    if (!rs) LOG_FATAL("error opening file: '{}'\n", path);
+    if (!rs) return FAIL;
 
     s->sFile = rs.data;
     s->pos = 0;
+
+    return OK;
 }
 
 void

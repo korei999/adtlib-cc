@@ -570,11 +570,13 @@ main(int argc, char* argv[])
         }, nullptr);
     }
 
-    ThreadPoolWait(&tp);
-    ThreadPoolDestroy(&tp);
-
     if (String(argv[1]) == "--avl" || String(argv[1]) == "--rb" || String(argv[1]) == "--tree")
         return 0;
+
+    LOG("wait\n");
+    ThreadPoolWait(&tp);
+    LOG("destroy\n");
+    ThreadPoolDestroy(&tp);
 
     if (argc >= 2)
     {
@@ -584,12 +586,16 @@ main(int argc, char* argv[])
         /*FreeList arena(SIZE_1G * 2);*/
 
         json::Parser p(&arena.super);
-        json::ParserLoadAndParse(&p, argv[1]);
+        json::RESULT res = json::ParserLoadParse(&p, argv[1]);
+        LOG("parsed\n");
+        if (res == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
 
-        if (argc >= 3 && "-p" == String(argv[2]))
-            json::ParserPrint(&p, stdout);
+        /*if (argc >= 3 && "-p" == String(argv[2]))*/
+        /*    json::ParserPrint(&p, stdout);*/
 
         /*json::ParserDestroy(&p);*/
         /*_FreeListPrintTree(&al, &arena.base);*/
+
     }
+    LOG("done\n");
 }

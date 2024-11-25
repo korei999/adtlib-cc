@@ -6,7 +6,6 @@
 namespace json
 {
 
-
 struct Parser
 {
     adt::Allocator* pAlloc;
@@ -22,9 +21,9 @@ struct Parser
 
 void ParserDestroy(Parser* s);
 void ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
-void ParserLoad(Parser* s, adt::String path);
-void ParserParse(Parser* s);
-void ParserLoadAndParse(Parser* s, adt::String path);
+RESULT ParserLoad(Parser* s, adt::String path);
+RESULT ParserParse(Parser* s);
+RESULT ParserLoadParse(Parser* s, adt::String path);
 void ParserPrint(Parser* s, FILE* fp);
 void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
 

@@ -89,7 +89,7 @@ ArrFakePop(Arr<T, CAP>* s)
 
 template<typename T, u32 CAP>
 constexpr u32
-ArrCap(Arr<T, CAP>* s)
+ArrCap([[maybe_unused]] Arr<T, CAP>* s)
 {
     return CAP;
 }

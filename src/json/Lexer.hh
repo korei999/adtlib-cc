@@ -6,6 +6,8 @@
 namespace json
 {
 
+enum RESULT : adt::u8 { OK, FAIL };
+
 struct Token
 {
     enum TYPE : adt::u8
@@ -40,7 +42,7 @@ struct Lexer
 };
 
 void LexerDestroy(Lexer* s);
-void LexerLoadFile(Lexer* s, adt::String path);
+RESULT LexerLoadFile(Lexer* s, adt::String path);
 Token LexerNext(Lexer* s);
 
 void LexerSkipWhiteSpace(Lexer* s);
