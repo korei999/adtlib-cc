@@ -2,8 +2,10 @@
 #include "adt/Arena.hh"
 #include "adt/Arr.hh"
 #include "adt/Buddy.hh"
+#include "adt/FixedAllocator.hh"
 #include "adt/FreeList.hh"
 #include "adt/List.hh"
+#include "adt/MemPool.hh"
 #include "adt/OsAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
@@ -11,7 +13,6 @@
 #include "adt/logs.hh"
 #include "adt/sort.hh"
 #include "json/Parser.hh"
-#include "adt/FixedAllocator.hh"
 
 using namespace adt;
 
@@ -308,7 +309,7 @@ testSort()
     int pivot = arr[2];
     COUT("pivot: {}\n", pivot);
     COUT("arr: [{}]\n", arr);
-    auto p = sort::partition(arr.pData, 0, arr.size - 1, pivot);
+    auto p = sort::partition(arr.aData, 0, arr.size - 1, pivot);
     COUT("arr: [{}], split: {}({})\n", arr, p, arr[p]);
 }
 
@@ -420,6 +421,47 @@ testList()
     LOG("list1: [{}]\n", list1);
 }
 
+void
+testMemPool()
+{
+    MemPool<long, 4> pool(INIT);
+    defer( MemPoolDestroy(&pool) );
+
+    u32 r0 = MemPoolRent(&pool);
+    u32 r1 = MemPoolRent(&pool);
+    u32 r2 = MemPoolRent(&pool);
+    u32 r3 = MemPoolRent(&pool);
+
+    auto& lr1 = pool[r1];
+    auto& lr2 = pool[r2];
+    lr1 = 5;
+    lr2 = 10;
+
+    MemPoolReturn(&pool, r0);
+    MemPoolReturn(&pool, r3);
+
+    u32 r4 = MemPoolRent(&pool);
+    u32 r5 = MemPoolRent(&pool);
+
+    MemPoolReturn(&pool, r4);
+
+    auto& lr5 = pool[r5];
+    lr5 = 15;
+
+    u32 r6 = MemPoolRent(&pool);
+    auto& lr6 = pool[r6];
+    lr6 = 20;
+
+    LOG("lr1: {}, lr2: {}, lr5: {}, lr6: {}\n", lr1, lr2, lr5, lr6);
+
+    LOG("size: {}\n", pool.nOccupied);
+
+    MemPoolReturn(&pool, r6);
+    MemPoolReturn(&pool, r5);
+    MemPoolReturn(&pool, r2);
+    MemPoolReturn(&pool, r1);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -475,6 +517,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--vec"))
     {
         testVec();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--mempool"))
+    {
+        testMemPool();
         return 0;
     }
 

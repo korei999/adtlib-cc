@@ -13,11 +13,11 @@ namespace adt
 template<typename T, u32 CAP> requires(CAP > 0)
 struct Arr
 {
-    T pData[CAP] {};
+    T aData[CAP] {};
     u32 size {};
 
-    constexpr T& operator[](u32 i) { assert(i < size && "[Arr]: out of size access"); return pData[i]; }
-    constexpr const T& operator[](u32 i) const { assert(i < CAP && "[Arr]: out of capacity access"); return pData[i]; }
+    constexpr T& operator[](u32 i) { assert(i < size && "[Arr]: out of size access"); return aData[i]; }
+    constexpr const T& operator[](u32 i) const { assert(i < CAP && "[Arr]: out of capacity access"); return aData[i]; }
 
     constexpr Arr() = default;
     constexpr Arr(std::initializer_list<T> list);
@@ -41,15 +41,15 @@ struct Arr
         friend constexpr bool operator!=(const It& l, const It& r) { return l.s != r.s; }
     };
 
-    constexpr It begin() { return {&this->pData[0]}; }
-    constexpr It end() { return {&this->pData[this->size]}; }
-    constexpr It rbegin() { return {&this->pData[this->size - 1]}; }
-    constexpr It rend() { return {this->pData - 1}; }
+    constexpr It begin() { return {&this->aData[0]}; }
+    constexpr It end() { return {&this->aData[this->size]}; }
+    constexpr It rbegin() { return {&this->aData[this->size - 1]}; }
+    constexpr It rend() { return {this->aData - 1}; }
 
-    constexpr const It begin() const { return {&this->pData[0]}; }
-    constexpr const It end() const { return {&this->pData[this->size]}; }
-    constexpr const It rbegin() const { return {&this->pData[this->size - 1]}; }
-    constexpr const It rend() const { return {this->pData - 1}; }
+    constexpr const It begin() const { return {&this->aData[0]}; }
+    constexpr const It end() const { return {&this->aData[this->size]}; }
+    constexpr const It rbegin() const { return {&this->aData[this->size - 1]}; }
+    constexpr const It rend() const { return {this->aData - 1}; }
 };
 
 template<typename T, u32 CAP>
@@ -58,7 +58,7 @@ ArrPush(Arr<T, CAP>* s, const T& x)
 {
     assert(s->size < CAP && "[Arr]: pushing over capacity");
 
-    s->pData[s->size++] = x;
+    s->aData[s->size++] = x;
     return s->size - 1;
 }
 
@@ -66,7 +66,7 @@ template<typename T, u32 CAP>
 constexpr u32
 ArrCap(Arr<T, CAP>* s)
 {
-    return utils::size(s->pData);
+    return utils::size(s->aData);
 }
 
 template<typename T, u32 CAP>
@@ -88,7 +88,7 @@ template<typename T, u32 CAP>
 constexpr u32
 ArrIdx(Arr<T, CAP>* s, const T* p)
 {
-    u32 r = u32(p - s->pData);
+    u32 r = u32(p - s->aData);
     assert(r < s->cap);
     return r;
 }
@@ -120,7 +120,7 @@ quick(Arr<T, CAP>* pArr)
 {
     if (pArr->size <= 1) return;
 
-    quick<T, FN_CMP>(pArr->pData, 0, pArr->size - 1);
+    quick<T, FN_CMP>(pArr->aData, 0, pArr->size - 1);
 }
 
 template<typename T, u32 CAP, auto FN_CMP = utils::compare<T>>
@@ -129,7 +129,7 @@ insertion(Arr<T, CAP>* pArr)
 {
     if (pArr->size <= 1) return;
 
-    insertion<T, FN_CMP>(pArr->pData, 0, pArr->size - 1);
+    insertion<T, FN_CMP>(pArr->aData, 0, pArr->size - 1);
 }
 
 } /* namespace sort */
