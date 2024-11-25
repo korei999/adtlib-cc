@@ -64,9 +64,34 @@ ArrPush(Arr<T, CAP>* s, const T& x)
 
 template<typename T, u32 CAP>
 constexpr u32
+ArrFakePush(Arr<T, CAP>* s)
+{
+    assert(s->size < CAP && "[Arr]: fake push over capacity");
+    ++s->size;
+    return s->size - 1;
+}
+
+template<typename T, u32 CAP>
+constexpr T*
+ArrPop(Arr<T, CAP>* s)
+{
+    assert(s->size > 0 && "[Arr]: pop from empty");
+    return &s->aData[--s->size];
+}
+
+template<typename T, u32 CAP>
+constexpr void
+ArrFakePop(Arr<T, CAP>* s)
+{
+    assert(s->size > 0 && "[Arr]: pop from empty");
+    --s->size;
+}
+
+template<typename T, u32 CAP>
+constexpr u32
 ArrCap(Arr<T, CAP>* s)
 {
-    return utils::size(s->aData);
+    return CAP;
 }
 
 template<typename T, u32 CAP>
@@ -91,6 +116,34 @@ ArrIdx(Arr<T, CAP>* s, const T* p)
     u32 r = u32(p - s->aData);
     assert(r < s->cap);
     return r;
+}
+
+template<typename T, u32 CAP>
+constexpr T&
+ArrFirst(Arr<T, CAP>* s)
+{
+    return s->operator[](0);
+}
+
+template<typename T, u32 CAP>
+constexpr const T&
+ArrFirst(const Arr<T, CAP>* s)
+{
+    return s->operator[](0);
+}
+
+template<typename T, u32 CAP>
+constexpr T&
+ArrLast(Arr<T, CAP>* s)
+{
+    return s->operator[](s->size - 1);
+}
+
+template<typename T, u32 CAP>
+constexpr const T&
+ArrLast(const Arr<T, CAP>* s)
+{
+    return s->operator[](s->size - 1);
 }
 
 template<typename T, u32 CAP> requires(CAP > 0)

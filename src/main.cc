@@ -456,10 +456,31 @@ testMemPool()
 
     LOG("size: {}\n", pool.nOccupied);
 
-    MemPoolReturn(&pool, r6);
-    MemPoolReturn(&pool, r5);
-    MemPoolReturn(&pool, r2);
     MemPoolReturn(&pool, r1);
+    MemPoolReturn(&pool, r2);
+    MemPoolReturn(&pool, r5);
+    LOG("size: {}\n", pool.nOccupied);
+    MemPoolReturn(&pool, r6);
+
+    {
+        MemPoolHnd r0 = MemPoolRent(&pool);
+        auto& lr0 = pool[r0];
+        lr0 = 5;
+
+        MemPoolHnd r1 = MemPoolRent(&pool);
+        auto& lr1 = pool[r1];
+        lr1 = 10;
+
+        MemPoolHnd r2 = MemPoolRent(&pool);
+        auto& lr2 = pool[r2];
+        lr2 = 15;
+
+        MemPoolHnd r3 = MemPoolRent(&pool);
+        auto& lr3 = pool[r3];
+        lr3 = 20;
+
+        LOG("lr1: {}, lr2: {}, lr3: {}, lr4: {}\n", lr0, lr1, lr2, lr3);
+    }
 }
 
 int
