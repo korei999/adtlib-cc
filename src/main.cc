@@ -108,10 +108,10 @@ testRB()
 static void
 testAVL()
 {
-    Arena alloc {SIZE_8M};
+    Arena alloc(SIZE_8M);
 
-    AVLTree<int> kek {&alloc.super};
-    Vec<AVLNode<int>*> a {&alloc.super};
+    AVLTree<int> tree(&alloc.super);
+    Vec<AVLNode<int>*> a(&alloc.super);
 
     [[maybe_unused]] void (*pfnPrintInt)(const AVLNode<int>*, void* pArgs) = [](const AVLNode<int>* pNode, [[maybe_unused]] void* pArgs) -> void {
         COUT(ADT_LOGS_COL_YELLOW "%d" ADT_LOGS_COL_NORM " %d\n", pNode->height, pNode->data);
@@ -128,21 +128,21 @@ testAVL()
     for (int i = 0; i < total; i++)
     {
         auto r = rand();
-        AVLInsert(&kek, r, true);
+        AVLInsert(&tree, r, true);
     }
 
     // AVLTraverse(kek.pRoot, pfnCollect, &a, AVL_ORDER::PRE);
-    short depth = AVLDepth(kek.pRoot);
+    short depth = AVLDepth(tree.pRoot);
 
     int i = 0;
     for (; i < (int)a.base.size; i += 1)
     {
-        AVLRemove(&kek, a[i]);
+        AVLRemove(&tree, a[i]);
 
         if (i % 2 == 0)
         {
             auto r = rand();
-            AVLInsert(&kek, r, true);
+            AVLInsert(&tree, r, true);
         }
     }
 
@@ -570,13 +570,11 @@ main(int argc, char* argv[])
         }, nullptr);
     }
 
+    ThreadPoolWait(&tp);
+    ThreadPoolDestroy(&tp);
+
     if (String(argv[1]) == "--avl" || String(argv[1]) == "--rb" || String(argv[1]) == "--tree")
         return 0;
-
-    LOG("wait\n");
-    ThreadPoolWait(&tp);
-    LOG("destroy\n");
-    ThreadPoolDestroy(&tp);
 
     if (argc >= 2)
     {
