@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <cassert>
+#include <limits>
 
 #include <threads.h>
 
@@ -52,7 +53,7 @@ MemPoolRent(MemPool<T, CAP>* s)
 #ifndef NDEBUG
         fputs("[MemPool]: no free element, returning NPOS", stderr);
 #endif
-        return NPOS;
+        return std::numeric_limits<MemPoolHnd>::max();
     }
 
     ++s->nOccupied;

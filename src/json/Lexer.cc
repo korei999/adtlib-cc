@@ -20,7 +20,7 @@ void
 LexerLoadFile(Lexer* s, adt::String path)
 {
     Option<String> rs = file::load(s->pAlloc, path);
-    if (!rs) LOG_FATAL("error opening file: '%.*s'\n", path.size, path.pData);
+    if (!rs) LOG_FATAL("error opening file: '{}'\n", path);
 
     s->sFile = rs.data;
     s->pos = 0;
@@ -161,56 +161,45 @@ LexerNext(Lexer* s)
     switch (s->sFile[s->pos])
     {
         default:
-            /* solves bools and nulls */
-            r = LexerStringNoQuotes(s);
-            break;
+        /* solves bools and nulls */
+        r = LexerStringNoQuotes(s);
+        break;
 
-        case '-':
-        case '+':
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            r = LexerNumber(s);
-            break;
+        case '-': case '+': case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+        r = LexerNumber(s);
+        break;
 
         case Token::QUOTE:
-            r = LexerString(s);
-            break;
+        r = LexerString(s);
+        break;
 
         case Token::COMMA:
-            r = LexerChar(s, Token::COMMA);
-            break;
+        r = LexerChar(s, Token::COMMA);
+        break;
 
         case Token::ASSIGN:
-            r = LexerChar(s, Token::ASSIGN);
-            break;
+        r = LexerChar(s, Token::ASSIGN);
+        break;
 
         case Token::LBRACE:
-            r = LexerChar(s, Token::LBRACE);
-            break;
+        r = LexerChar(s, Token::LBRACE);
+        break;
 
         case Token::RBRACE:
-            r = LexerChar(s, Token::RBRACE);
-            break;
+        r = LexerChar(s, Token::RBRACE);
+        break;
 
         case Token::RBRACKET:
-            r = LexerChar(s, Token::RBRACKET);
-            break;
+        r = LexerChar(s, Token::RBRACKET);
+        break;
 
         case Token::LBRACKET:
-            r = LexerChar(s, Token::LBRACKET);
-            break;
+        r = LexerChar(s, Token::LBRACKET);
+        break;
 
         case Token::EOF_:
-            r.type = Token::EOF_;
-            break;
+        r.type = Token::EOF_;
+        break;
     }
 
     s->pos++;
