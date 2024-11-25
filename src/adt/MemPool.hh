@@ -23,8 +23,8 @@ struct MemPool
     u32 nOccupied {};
     mtx_t mtx;
 
-    T& operator[](u32 i) { assert(i < CAP && i < NPOS && "[MemPool]: out of range"); return aData[i]; }
-    const T& operator[](u32 i) const { assert(i < CAP && i < NPOS && "[MemPool]: out of range"); return aData[i]; }
+    T& operator[](u32 i)             { assert(i < CAP && i < NPOS && i < aData.size && "[MemPool]: out of range"); return aData[i]; }
+    const T& operator[](u32 i) const { assert(i < CAP && i < NPOS && i < aData.size && "[MemPool]: out of range"); return aData[i]; }
 
     MemPool() = default;
     MemPool(INIT_FLAG e)
