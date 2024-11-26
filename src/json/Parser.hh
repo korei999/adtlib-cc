@@ -27,12 +27,6 @@ RESULT ParserLoadParse(Parser* s, adt::String path);
 void ParserPrint(Parser* s, FILE* fp);
 void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
 
-inline adt::VecBase<Object>
-ParserGetHeadObj(Parser* s)
-{
-    return s->aObjects;
-}
-
 inline void
 ParserTraverseAll(Parser* s, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 {
@@ -160,6 +154,16 @@ inline adt::u32
 pushToArray(Object* pObj, adt::Allocator* p, Object o)
 {
     return adt::VecPush(&pObj->tagVal.val.a, p, o);
+}
+
+/* if root json object consists of only one object return that, otherwise get array of root objects */
+inline adt::VecBase<Object>&
+ParserGetHeadObj(Parser* s)
+{
+    assert(s->aObjects.size > 0 && "[Parser]: this json is empty");
+
+    if (s->aObjects.size == 1) return getObject(&adt::VecFirst(&s->aObjects));
+    else return s->aObjects;
 }
 
 } /* namespace json */
