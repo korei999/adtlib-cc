@@ -5,8 +5,8 @@
 #include "adt/FixedAllocator.hh"
 #include "adt/FreeList.hh"
 #include "adt/List.hh"
-#include "adt/MemPool.hh"
 #include "adt/OsAllocator.hh"
+#include "adt/Pool.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/defer.hh"
@@ -423,33 +423,33 @@ testList()
 void
 testMemPool()
 {
-    MemPool<long, 4> pool(INIT);
-    defer( MemPoolDestroy(&pool) );
+    Pool<long, 4> pool(INIT);
+    defer( PoolDestroy(&pool) );
 
     LOG("sizeof(pool): {}\n", sizeof(pool));
 
-    u32 r0 = MemPoolRent(&pool);
-    u32 r1 = MemPoolRent(&pool);
-    u32 r2 = MemPoolRent(&pool);
-    u32 r3 = MemPoolRent(&pool);
+    u32 r0 = PoolRent(&pool);
+    u32 r1 = PoolRent(&pool);
+    u32 r2 = PoolRent(&pool);
+    u32 r3 = PoolRent(&pool);
 
     auto& lr1 = pool[r1];
     auto& lr2 = pool[r2];
     lr1 = 5;
     lr2 = 10;
 
-    MemPoolReturn(&pool, r0);
-    MemPoolReturn(&pool, r3);
+    PoolReturn(&pool, r0);
+    PoolReturn(&pool, r3);
 
-    u32 r4 = MemPoolRent(&pool);
-    u32 r5 = MemPoolRent(&pool);
+    u32 r4 = PoolRent(&pool);
+    u32 r5 = PoolRent(&pool);
 
-    MemPoolReturn(&pool, r4);
+    PoolReturn(&pool, r4);
 
     auto& lr5 = pool[r5];
     lr5 = 15;
 
-    u32 r6 = MemPoolRent(&pool);
+    u32 r6 = PoolRent(&pool);
     auto& lr6 = pool[r6];
     lr6 = 20;
 
@@ -457,26 +457,26 @@ testMemPool()
 
     LOG("size: {}\n", pool.nOccupied);
 
-    MemPoolReturn(&pool, r1);
-    MemPoolReturn(&pool, r2);
-    MemPoolReturn(&pool, r5);
+    PoolReturn(&pool, r1);
+    PoolReturn(&pool, r2);
+    PoolReturn(&pool, r5);
     LOG("size: {}\n", pool.nOccupied);
-    MemPoolReturn(&pool, r6);
+    PoolReturn(&pool, r6);
 
     {
-        MemPoolHnd r0 = MemPoolRent(&pool);
+        PoolHnd r0 = PoolRent(&pool);
         auto& lr0 = pool[r0];
         lr0 = 5;
 
-        MemPoolHnd r1 = MemPoolRent(&pool);
+        PoolHnd r1 = PoolRent(&pool);
         auto& lr1 = pool[r1];
         lr1 = 10;
 
-        MemPoolHnd r2 = MemPoolRent(&pool);
+        PoolHnd r2 = PoolRent(&pool);
         auto& lr2 = pool[r2];
         lr2 = 15;
 
-        MemPoolHnd r3 = MemPoolRent(&pool);
+        PoolHnd r3 = PoolRent(&pool);
         auto& lr3 = pool[r3];
         lr3 = 20;
 
@@ -542,7 +542,7 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    if (argc >= 2 && (String(argv[1]) == "--mempool"))
+    if (argc >= 2 && (String(argv[1]) == "--pool"))
     {
         testMemPool();
         return 0;
