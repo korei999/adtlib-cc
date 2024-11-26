@@ -9,7 +9,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-project(adtlib-test VERSION 0.1 LANGUAGES CXX)
+project(adtlib-test VERSION 0.2 LANGUAGES CXX)
 
 # if (NOT CMAKE_BUILD_TYPE MATCHES "Asan")
 #     set(BUILD_SHARED_LIBS OFF)
