@@ -421,7 +421,7 @@ testList()
 }
 
 void
-testMemPool()
+testPool()
 {
     Pool<long, 4> pool(INIT);
     defer( PoolDestroy(&pool) );
@@ -484,6 +484,33 @@ testMemPool()
     }
 }
 
+static void
+testThreadPool()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+
+    ThreadPool tp(&arena.super);
+    ThreadPoolStart(&tp);
+
+    atomic_int num = 0;
+
+    auto inc = +[](void* pArg) -> int {
+        for (int i = 0; i < 1000; ++i)
+            atomic_fetch_add_explicit((atomic_int*)pArg, 1, memory_order_relaxed);
+
+        return 0;
+    };
+
+    ThreadPoolSubmit(&tp, inc, &num);
+    ThreadPoolSubmit(&tp, inc, &num);
+
+    ThreadPoolWait(&tp);
+    ThreadPoolDestroy(&tp);
+
+    LOG("num: {}\n", (int)num);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -544,7 +571,13 @@ main(int argc, char* argv[])
 
     if (argc >= 2 && (String(argv[1]) == "--pool"))
     {
-        testMemPool();
+        testPool();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--threadpool"))
+    {
+        testThreadPool();
         return 0;
     }
 
