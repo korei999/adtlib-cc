@@ -58,6 +58,7 @@ struct Pool
         if (e != INIT_FLAG::INIT) return;
 
         mtx_init(&mtx, mtx_plain);
+        for (auto& e : this->aNodes) e.bDeleted = true;
     }
 
     struct It
