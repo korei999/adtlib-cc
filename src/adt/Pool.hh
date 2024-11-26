@@ -9,6 +9,7 @@
 #include <limits>
 
 #include <threads.h>
+// #include <stdatomic.h>
 
 namespace adt
 {
@@ -19,8 +20,8 @@ template<typename T>
 struct PoolNode
 {
     T data {};
+    int nRefs {}; /* doesn't have to be atomic */
     bool bDeleted {};
-    /* TODO: ref counter? */
 };
 
 template<typename T, u32 CAP> struct Pool;
@@ -30,6 +31,7 @@ template<typename T, u32 CAP> inline s64 PoolPrevIdx(Pool<T, CAP>* s, s64 i);
 template<typename T, u32 CAP> inline s64 PoolFirstIdx(Pool<T, CAP>* s);
 template<typename T, u32 CAP> inline s64 PoolLastIdx(Pool<T, CAP>* s);
 
+/* statically allocated reusable resource collection */
 template<typename T, u32 CAP>
 struct Pool
 {
@@ -37,26 +39,17 @@ struct Pool
     Arr<PoolHnd, CAP> aFreeIdxs {};
     u32 nOccupied {};
     mtx_t mtx;
+    mtx_t mtxRef;
 
-    T&
-    operator[](s64 i)
-    {
-        assert(!aNodes[i].bDeleted && "[MemPool]: accessing deleted node");
-        return aNodes[i].data;
-    }
-
-    const T&
-    operator[](s64 i) const
-    {
-        assert(!aNodes[i].bDeleted && "[MemPool]: accessing deleted node");
-        return aNodes[i];
-    }
+    T& operator[](s64 i) { assert(!aNodes[i].bDeleted && "[MemPool]: accessing deleted node"); return aNodes[i].data; }
+    const T& operator[](s64 i) const { assert(!aNodes[i].bDeleted && "[MemPool]: accessing deleted node"); return aNodes[i].data; }
 
     Pool() = default;
     Pool(INIT_FLAG e)
     { 
         if (e != INIT_FLAG::INIT) return;
 
+        mtx_init(&mtx, mtx_recursive);
         mtx_init(&mtx, mtx_plain);
         for (auto& e : this->aNodes) e.bDeleted = true;
     }
@@ -161,8 +154,10 @@ inline void
 PoolDestroy(Pool<T, CAP>* s)
 {
     mtx_destroy(&s->mtx);
+    mtx_destroy(&s->mtxRef);
 }
 
+/* does not increment the reference counter */
 template<typename T, u32 CAP>
 [[nodiscard]] inline PoolHnd
 PoolRent(Pool<T, CAP>* s)
@@ -188,6 +183,7 @@ PoolRent(Pool<T, CAP>* s)
     return ret;
 }
 
+/* return handle ignoring the reference counter */
 template<typename T, u32 CAP>
 inline void
 PoolReturn(Pool<T, CAP>* s, PoolHnd hnd)
@@ -195,21 +191,44 @@ PoolReturn(Pool<T, CAP>* s, PoolHnd hnd)
     guard::Mtx lock(&s->mtx);
 
     --s->nOccupied;
-    assert(s->nOccupied < CAP && "[MemPool]: nothing to return");
+    assert(s->nOccupied < CAP && "[Pool]: nothing to return");
 
     if (hnd == ArrSize(&s->aNodes) - 1) ArrFakePop(&s->aNodes);
     else
     {
         ArrPush(&s->aFreeIdxs, hnd);
-        s->aNodes[hnd].bDeleted = true;
+        auto& node = s->aNodes[hnd];
+        assert(!node.bDeleted && "[Pool]: returning already deleted node");
+        node.nRefs = 0;
+        node.bDeleted = true;
     }
 }
 
 template<typename T, u32 CAP>
-[[nodiscard]] inline u32
-PoolByteSize(const Pool<T, CAP>* const s)
+inline void
+PoolRef(Pool<T, CAP>* s, PoolHnd hnd)
 {
-    return sizeof(*s);
+    guard::Mtx lock(&s->mtxRef);
+
+    assert(!s->aNodes[hnd].bDeleted && "[Pool]: can't ref deleted node");
+    ++s->aNodes[hnd].nRefs;
+}
+
+/* calls return when reference counter hits 0 */
+template<typename T, u32 CAP>
+inline void
+PoolUnref(Pool<T, CAP>* s, PoolHnd hnd)
+{
+    guard::Mtx lock(&s->mtxRef);
+
+    auto& node = s->aNodes[hnd];
+
+    assert(!node.bDeleted && "[Pool]: can't ref deleted node");
+    assert(node.nRefs > 0 && "[Pool]: unrefing node with 0 references");
+    --node.nRefs;
+
+    if (node.nRefs < 1)
+        PoolReturn(s, hnd);
 }
 
 } /* namespace adt */

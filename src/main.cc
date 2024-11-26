@@ -492,12 +492,13 @@ testPool()
     VecSetSize(&vec, BIG);
 
     for (int i = 0; i < BIG; ++i)
-        PoolRent(&s_poolOfInts);
+    {
+        auto hnd = PoolRent(&s_poolOfInts);
+        PoolRef(&s_poolOfInts, hnd);
+    }
 
     for (int i = 0; i < BIG / 2; ++i)
-    {
-        PoolReturn(&s_poolOfInts, i);
-    }
+        PoolUnref(&s_poolOfInts, i);
 
     int poolSize = 0;
     int vecSize = 0;
