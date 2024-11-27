@@ -61,7 +61,7 @@ struct VecBase
 
 template<typename T>
 inline void
-VecGrow(VecBase<T>* s, Allocator* p, u32 newCapacity)
+_VecGrow(VecBase<T>* s, Allocator* p, u32 newCapacity)
 {
     assert(newCapacity * sizeof(T) > 0);
     s->capacity = newCapacity;
@@ -72,7 +72,7 @@ template<typename T>
 inline u32
 VecPush(VecBase<T>* s, Allocator* p, const T& data)
 {
-    if (s->size >= s->capacity) VecGrow(s, p, utils::max(s->capacity * 2U, u32(SIZE_MIN)));
+    if (s->size >= s->capacity) _VecGrow(s, p, utils::max(s->capacity * 2U, u32(SIZE_MIN)));
 
     s->pData[s->size++] = data;
     return s->size - 1;
@@ -118,7 +118,7 @@ template<typename T>
 inline void
 VecSetSize(VecBase<T>* s, Allocator* p, u32 size)
 {
-    if (s->capacity < size) VecGrow(s, p, size);
+    if (s->capacity < size) _VecGrow(s, p, size);
 
     s->size = size;
 }
@@ -249,7 +249,7 @@ struct Vec
     const VecBase<T>::It rend() const { return rend(); }
 };
 
-template<typename T> inline void VecGrow(Vec<T>* s, u32 size) { VecGrow(&s->base, s->pAlloc, size); }
+template<typename T> inline void VecGrow(Vec<T>* s, u32 size) { _VecGrow(&s->base, s->pAlloc, size); }
 template<typename T> inline u32 VecPush(Vec<T>* s, const T& data) { return VecPush(&s->base, s->pAlloc, data); }
 template<typename T> [[nodiscard]] inline T& VecLast(Vec<T>* s) { return VecLast(&s->base); }
 template<typename T> [[nodiscard]] inline const T& VecLast(Vec<T>* s) { return VecLast(&s->base); }

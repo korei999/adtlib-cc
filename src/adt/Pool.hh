@@ -153,7 +153,9 @@ template<typename T, u32 CAP>
 inline u32
 PoolIdx(const Pool<T, CAP>* s, const PoolNode<T>* p)
 {
-    return p - &s->aNodes.aData[0];
+    u32 r = p - &s->aNodes.aData[0];
+    assert(r < CAP && "[Pool]: out of range");
+    return r;
 }
 
 template<typename T, u32 CAP>
