@@ -491,26 +491,29 @@ testPool()
     Vec<PoolNode<int>> vec(&arena.super, BIG);
     VecSetSize(&vec, BIG);
 
-    for (int i = 0; i < BIG / 2; ++i)
-        PoolReturn(&s_poolOfInts, i);
-
     int poolSize = 0;
     int vecSize = 0;
 
+    for (u32 i = 0; i < BIG / 2; i++)
+        auto _i = PoolRent(&s_poolOfInts);
+
     f64 t0 = utils::timeNowMS();
-    for (auto& e : s_poolOfInts)
-    {
+    /*for (auto& e : s_poolOfInts)*/
+    for (auto it = s_poolOfInts.rbegin(); it != s_poolOfInts.rend(); --it)
         ++poolSize;
-    }
+
     f64 t1 = utils::timeNowMS() - t0;
     LOG("iterated through pool in '{:.3}' ms\n", t1);
 
     t0 = utils::timeNowMS();
+
     for (auto& e : vec)
     {
         if (e.bDeleted) continue;
+
         ++vecSize;
     }
+
     t1 = utils::timeNowMS() - t0;
     LOG("iterated through vec in '{:.3}' ms\n", t1);
 
