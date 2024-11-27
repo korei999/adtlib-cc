@@ -491,14 +491,8 @@ testPool()
     Vec<PoolNode<int>> vec(&arena.super, BIG);
     VecSetSize(&vec, BIG);
 
-    for (int i = 0; i < BIG; ++i)
-    {
-        auto hnd = PoolRent(&s_poolOfInts);
-        PoolRef(&s_poolOfInts, hnd);
-    }
-
     for (int i = 0; i < BIG / 2; ++i)
-        PoolUnref(&s_poolOfInts, i);
+        PoolReturn(&s_poolOfInts, i);
 
     int poolSize = 0;
     int vecSize = 0;
