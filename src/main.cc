@@ -5,6 +5,7 @@
 #include "adt/FixedAllocator.hh"
 #include "adt/FreeList.hh"
 #include "adt/List.hh"
+#include "adt/Map.hh"
 #include "adt/OsAllocator.hh"
 #include "adt/Pool.hh"
 #include "adt/RBTree.hh"
@@ -35,7 +36,7 @@ testRB()
     /*Arena alloc2(SIZE_8M);*/
     /*defer( ArenaFreeAll(&alloc2) );*/
 
-    defer( freeAll(&alloc) );
+    defer( alloc.freeAll() );
 
     RBTree<long> kek(&alloc.super);
     defer( RBDestroy(&kek) );
@@ -44,7 +45,7 @@ testRB()
 
     bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<long>*>*)pArgs;
-        VecPush(a, pNode);
+        a->push(pNode);
         return false;
     };
 
@@ -109,6 +110,7 @@ static void
 testAVL()
 {
     Arena alloc(SIZE_8M);
+    defer( alloc.freeAll() );
 
     AVLTree<int> tree(&alloc.super);
     Vec<AVLNode<int>*> a(&alloc.super);
@@ -119,7 +121,7 @@ testAVL()
 
     [[maybe_unused]] bool (*pfnCollect)(AVLNode<int>*, void* pArgs) = [](AVLNode<int>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<AVLNode<int>*>*)pArgs;
-        VecPush(a, pNode);
+        a->push(pNode);
         return false;
     };
 
@@ -155,8 +157,6 @@ testAVL()
     COUT("AVL: depth: {}\n", depth);
     COUT("total: {}, size: {}\n", total, a.base.size);
     COUT("time: {:.3} ms\n\n", t1 - t0);
-
-    ArenaFreeAll(&alloc);
 }
 
 static void
@@ -196,37 +196,36 @@ testFreeList()
     LOG_GOOD("testFreeList()\n");
 
     Arena list(SIZE_8K);
-    defer( freeAll(&list) );
+    defer( list.freeAll() );
 
     Vec<int> vec(&list.super);
     int what = 2;
 
-    void* p = alloc(&list, what, sizeof(int));
+    void* p = list.alloc(what, sizeof(int));
     memset(p, 1, what * sizeof(int));
     for (u32 i = 0; i < 20; ++i)
     {
-        VecPush(&vec, int(i));
+        vec.push(int(i));
 
-        p = realloc(&list, p, what + i, sizeof(int));
+        p = list.realloc(p, what + i, sizeof(int));
     }
 }
 
-void
+static void
 testLock()
 {
     Arena arena(SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
     atomic_int number = 1;
     ThreadPool tp(&arena.super);
-    ThreadPoolStart(&tp);
+    tp.start();
 
-    ThreadPoolLock tpLock {};
-    ThreadPoolLockInit(&tpLock);
-    defer( ThreadPoolLockDestroy(&tpLock) );
+    ThreadPoolLock tpLock(INIT);
+    defer( tpLock.destroy() );
 
     auto task = +[](void* pArgs) -> int {
         auto* pNumber = (atomic_int*)pArgs;
-        atomic_fetch_add(pNumber, 1);
+        pNumber->fetch_add(1);
         return 0;
     };
 
@@ -241,35 +240,34 @@ testLock()
 
     for (u32 i = 0; i < 10000; ++i)
     {
-        auto* pTp = (ThreadPoolLock*)alloc(&arena, 1, sizeof(ThreadPoolLock));
-        ThreadPoolLockInit(pTp);
+        auto* pTp = (ThreadPoolLock*)arena.alloc(1, sizeof(ThreadPoolLock));
+        pTp->init();
 
-        ThreadPoolSubmitSignal(&tp, task, &number, pTp);
+        tp.submitSignal(task, &number, pTp);
 
-        ThreadPoolLockWait(pTp);
-        ThreadPoolLockDestroy(pTp);
+        pTp->wait();
+        pTp->destroy();
     }
 
     COUT("after: number: {}\n", (int)number);
 
-    ThreadPoolWait(&tp);
+    tp.wait();
     COUT("ThreadPoolWait: number: {}\n", (int)number);
-
-    ThreadPoolDestroy(&tp);
+    tp.destroy();
 }
 
 void
 testSort()
 {
     Arena arena(SIZE_1M);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
 
     srand(1290837027);
 
     u32 size = 10000000;
 
     Vec<int> vec(&arena.super);
-    VecSetSize(&vec, size);
+    vec.setSize(size);
 
     auto fill = [&] {
         for (u32 i = 0; i < size; ++i)
@@ -299,7 +297,7 @@ testSort()
     fill();
 
     t0 = utils::timeNowMS();
-    sort::partition(VecData(&vec), 0, VecSize(&vec) - 1, vec[VecSize(&vec) / 2]);
+    sort::partition(vec.data(), 0, vec.getSize() - 1, vec[vec.getSize() / 2]);
     t1 = utils::timeNowMS() - t0;
     COUT("partition in: {} ms\n", t1);
 
@@ -316,12 +314,12 @@ static void
 testVec()
 {
     Arena arena(SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
 
     VecBase<int> vec;
-    VecPush(&vec, &arena.super, 1);
-    VecPush(&vec, &arena.super, 2);
-    VecPush(&vec, &arena.super, 3);
+    vec.push(&arena.super, 1);
+    vec.push(&arena.super, 2);
+    vec.push(&arena.super, 3);
 
     COUT("vec: [{}]\n", vec);
 }
@@ -348,26 +346,26 @@ static void
 testQueue()
 {
     Arena arena(SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
 
     Queue<f64> q(&arena.super);
-    QueuePushBack(&q, 1.0);
-    QueuePushFront(&q, 2.0);
-    QueuePushBack(&q, 99.0);
-    QueuePushFront(&q, 3.0);
-    QueuePushBack(&q, 10.0);
-    QueuePushFront(&q, -1.0);
-    QueuePushFront(&q, -20.0);
-    QueuePushBack(&q, -30.0);
+    q.pushBack(1.0);
+    q.pushFront(2.0);
+    q.pushBack(99.0);
+    q.pushFront(3.0);
+    q.pushBack(10.0);
+    q.pushFront(-1.0);
+    q.pushFront(-20.0);
+    q.pushBack(-30.0);
 
     Vec<int> what(&arena.super);
-    VecPush(&what, 1);
-    VecPush(&what, 3);
-    VecPush(&what, 10);
-    VecPush(&what, 11);
-    VecPush(&what, -1);
+    what.push(1);
+    what.push(3);
+    what.push(10);
+    what.push(11);
+    what.push(-1);
 
-    auto newWhat = VecClone(&what, &arena.super);
+    auto newWhat = what.clone(&arena.super);
     print::out("newWhat: [{}]\n", newWhat);
 
     print::out("q: {}\n", q);
@@ -377,46 +375,47 @@ static void
 testList()
 {
     Arena arena(SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
 
     List<f64> list(&arena.super);
-    auto* pM1 = ListPushFront(&list, -1.0);
-    ListPushBack(&list, 1.0);
-    auto* p2 = ListPushBack(&list, 2.0);
-    auto* p3 = ListPushBack(&list, 3.0);
-    auto* p4 = ListPushBack(&list, 4.0);
-    ListPushFront(&list, 5.0);
+    auto* pM1 = list.pushFront(-1.0);
+    list.pushBack(1.0);
+    auto* p2 = list.pushBack(2.0);
+    auto* p3 = list.pushBack(3.0);
+    auto* p4 = list.pushBack(4.0);
+    list.pushFront(5.0);
 
     {
         auto* pNew = ListNodeAlloc(&arena.super, 999.0);
-        ListInsertBefore(&list.base, p2, pNew);
+        list.insertBefore(p2, pNew);
     }
     {
         auto* pNew = ListNodeAlloc(&arena.super, 666.0);
-        ListInsertAfter(&list.base, p2, pNew);
+        list.insertAfter(p2, pNew);
     }
     {
         auto* pNew = ListNodeAlloc(&arena.super, 333.0);
-        ListInsertAfter(&list.base, p3, pNew);
+        list.insertAfter(p3, pNew);
     }
     {
         auto* pNew = ListNodeAlloc(&arena.super, 444.0);
-        ListInsertBefore(&list.base, p3, pNew);
+        list.insertBefore(p3, pNew);
     }
 
-    ListRemove(&list, p3);
-    ListRemove(&list, pM1);
-    ListRemove(&list, p4);
+    list.remove(p3);
+    list.remove(pM1);
+    list.remove(p4);
 
     /*ListDestroy(&list);*/
     List<f64> list0(&arena.super);
-    for (auto& el : list) ListPushBack(&list0, el);
-    List<f64> list1(&arena.super);
-    for (auto& el : list) ListPushBack(&list1, el);
+    for (auto& el : list) list0.pushBack(el);
 
-    ListSort<f64, utils::compareRev<f64>>(&list0);
+    List<f64> list1(&arena.super);
+    for (auto& el : list) list1.pushBack(el);
+
+    list0.sort<utils::compareRev>();
     LOG("list0: [{}]\n", list0);
-    ListSort(&list1);
+    list1.sort();
     LOG("list1: [{}]\n", list1);
 }
 
@@ -427,32 +426,32 @@ void
 testPool()
 {
     Pool<long, 4> pool(INIT);
-    defer( PoolDestroy(&pool) );
+    defer( pool.destroy() );
 
     LOG("sizeof(pool): {}\n", sizeof(pool));
 
-    u32 r0 = PoolRent(&pool);
-    u32 r1 = PoolRent(&pool);
-    u32 r2 = PoolRent(&pool);
-    u32 r3 = PoolRent(&pool);
+    u32 r0 = pool.getHandle();
+    u32 r1 = pool.getHandle();
+    u32 r2 = pool.getHandle();
+    u32 r3 = pool.getHandle();
 
     auto& lr1 = pool[r1];
     auto& lr2 = pool[r2];
     lr1 = 5;
     lr2 = 10;
 
-    PoolReturn(&pool, r0);
-    PoolReturn(&pool, r3);
+    pool.giveBack(r0);
+    pool.giveBack(r3);
 
-    u32 r4 = PoolRent(&pool);
-    u32 r5 = PoolRent(&pool);
+    u32 r4 = pool.getHandle();
+    u32 r5 = pool.getHandle();
 
-    PoolReturn(&pool, r4);
+    pool.giveBack(r4);
 
     auto& lr5 = pool[r5];
     lr5 = 15;
 
-    u32 r6 = PoolRent(&pool);
+    u32 r6 = pool.getHandle();
     auto& lr6 = pool[r6];
     lr6 = 20;
 
@@ -460,26 +459,26 @@ testPool()
 
     LOG("size: {}\n", pool.nOccupied);
 
-    PoolReturn(&pool, r1);
-    PoolReturn(&pool, r2);
-    PoolReturn(&pool, r5);
+    pool.giveBack(r1);
+    pool.giveBack(r2);
+    pool.giveBack(r5);
     LOG("size: {}\n", pool.nOccupied);
-    PoolReturn(&pool, r6);
+    pool.giveBack(r6);
 
     {
-        PoolHnd r0 = PoolRent(&pool);
+        PoolHandle r0 = pool.getHandle();
         auto& lr0 = pool[r0];
         lr0 = 5;
 
-        PoolHnd r1 = PoolRent(&pool);
+        PoolHandle r1 = pool.getHandle();
         auto& lr1 = pool[r1];
         lr1 = 10;
 
-        PoolHnd r2 = PoolRent(&pool);
+        PoolHandle r2 = pool.getHandle();
         auto& lr2 = pool[r2];
         lr2 = 15;
 
-        PoolHnd r3 = PoolRent(&pool);
+        PoolHandle r3 = pool.getHandle();
         auto& lr3 = pool[r3];
         lr3 = 20;
 
@@ -487,15 +486,16 @@ testPool()
     }
 
     Arena arena(SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
+
     Vec<PoolNode<int>> vec(&arena.super, BIG);
-    VecSetSize(&vec, BIG);
+    vec.setSize(BIG);
 
     int poolSize = 0;
     int vecSize = 0;
 
     for (u32 i = 0; i < BIG / 2; i++)
-        auto _i = PoolRent(&s_poolOfInts);
+        auto _i = s_poolOfInts.getHandle();
 
     f64 t0 = utils::timeNowMS();
     /*for (auto& e : s_poolOfInts)*/
@@ -524,10 +524,10 @@ static void
 testThreadPool()
 {
     Arena arena(SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
 
     ThreadPool tp(&arena.super);
-    ThreadPoolStart(&tp);
+    tp.start();
 
     atomic_int num = 0;
 
@@ -538,13 +538,104 @@ testThreadPool()
         return 0;
     };
 
-    ThreadPoolSubmit(&tp, inc, &num);
-    ThreadPoolSubmit(&tp, inc, &num);
+    tp.submit(inc, &num);
+    tp.submit(inc, &num);
 
-    ThreadPoolWait(&tp);
-    ThreadPoolDestroy(&tp);
+    tp.wait();
+    tp.destroy();
 
     LOG("num: {}\n", (int)num);
+}
+
+struct MethodTester;
+
+struct MethodTesterInterface
+{
+    void (*what)(MethodTester*);
+};
+
+struct MethodTester
+{
+    MethodTesterInterface* vTable {};
+
+    void what() { vTable->what(this); }
+};
+
+struct MethodTesterSub1
+{
+    /*MethodTesterInterface* vptr {};*/
+    MethodTester super {};
+
+    MethodTesterSub1();
+
+    void what() { COUT("MethodTester1: WHAT\n"); }
+};
+
+struct MethodTesterSub2
+{
+    MethodTester super {};
+
+    MethodTesterSub2();
+
+    void what() { COUT("MethodTester2: HELLLO\n"); }
+};
+
+inline MethodTesterInterface inl_MethodTester1VTable {
+    .what = decltype(MethodTesterInterface::what)(+[](MethodTesterSub1* s) { s->what(); })
+};
+
+inline MethodTesterInterface inl_MethodTester2VTable {
+    .what = decltype(MethodTesterInterface::what)(+[](MethodTesterSub2* s) { s->what(); })
+};
+
+MethodTesterSub1::MethodTesterSub1()
+    : super(&inl_MethodTester1VTable) {}
+
+MethodTesterSub2::MethodTesterSub2()
+    : super(&inl_MethodTester2VTable) {}
+
+static void
+methodWhat(MethodTester* s)
+{
+    s->what();
+}
+
+static void
+testMethods()
+{
+    MethodTesterSub1 mt1;
+    MethodTesterSub2 mt2;
+
+    methodWhat((MethodTester*)&mt1);
+    methodWhat((MethodTester*)&mt2);
+}
+
+static void
+testMap()
+{
+    Arena arena(SIZE_1K);
+    defer( arena.freeAll() );
+
+    Map<String> map(&arena.super);
+    map.insert("Hello");
+    map.insert("Biden");
+    map.insert("it's");
+    map.insert("Zelensky");
+
+    auto fHello = map.search("Hello");
+    auto fBiden = map.search("Biden");
+    auto fIts = map.search("it's");
+    auto fZelya = map.search("Zelensky");
+
+    auto fWe = map.search("we");
+
+    assert(*fHello.pData == "Hello");
+    assert(*fBiden.pData == "Biden");
+    assert(*fIts.pData == "it's");
+    assert(*fZelya.pData == "Zelensky");
+    assert(fWe.pData == nullptr);
+
+    LOG_GOOD("passed\n");
 }
 
 int
@@ -617,15 +708,27 @@ main(int argc, char* argv[])
         return 0;
     }
 
+    if (argc >= 2 && (String(argv[1]) == "--method"))
+    {
+        testMethods();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--map"))
+    {
+        testMap();
+        return 0;
+    }
+
     /*FixedAllocator alloc (BIG, size(BIG));*/
     Arena alloc(SIZE_1M * 100);
     ThreadPool tp(&alloc.super, 2);
-    ThreadPoolStart(&tp);
-    defer( ArenaFreeAll(&alloc) );
+    tp.start();
+    defer( alloc.freeAll() );
 
     if (argc >= 2 && (String(argv[1]) == "--avl" || String(argv[1]) == "--tree"))
     {
-        ThreadPoolSubmit(&tp, [](void*) -> int {
+        tp.submit([](void*) -> int {
             testAVL();
             return 0;
         }, nullptr);
@@ -633,14 +736,14 @@ main(int argc, char* argv[])
 
     if (argc >= 2 && (String(argv[1]) == "--rb" || String(argv[1]) == "--tree"))
     {
-        ThreadPoolSubmit(&tp, [](void*) -> int {
+        tp.submit([](void*) -> int {
             testRB();
             return 0;
         }, nullptr);
     }
 
-    ThreadPoolWait(&tp);
-    ThreadPoolDestroy(&tp);
+    tp.wait();
+    tp.destroy();
 
     if (String(argv[1]) == "--avl" || String(argv[1]) == "--rb" || String(argv[1]) == "--tree")
         return 0;
@@ -648,7 +751,7 @@ main(int argc, char* argv[])
     if (argc >= 2)
     {
         Arena arena(SIZE_1M);
-        defer( freeAll(&arena) );
+        defer( arena.freeAll() );
         /*OsAllocator arena;*/
         /*FreeList arena(SIZE_1G * 2);*/
 
@@ -657,12 +760,12 @@ main(int argc, char* argv[])
         LOG("parsed\n");
         if (res == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
 
-        /*if (argc >= 3 && "-p" == String(argv[2]))*/
-        /*    json::ParserPrint(&p, stdout);*/
+        if (argc >= 3 && "-p" == String(argv[2]))
+            json::ParserPrint(&p, stdout);
 
         /*json::ParserDestroy(&p);*/
         /*_FreeListPrintTree(&al, &arena.base);*/
 
     }
-    LOG("done\n");
+    LOG_GOOD("done\n");
 }

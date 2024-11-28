@@ -9,7 +9,15 @@
 namespace adt
 {
 
-/* simple gen-purpose calloc/realloc/free/freeAll, while tracking allocations */
+struct TrackingAllocator;
+
+inline void* TrackingAlloc(TrackingAllocator* s, u64 mCount, u64 mSize);
+inline void* TrackingZalloc(TrackingAllocator* s, u64 mCount, u64 mSize);
+inline void* TrackingRealloc(TrackingAllocator* s, void* p, u64 mCount, u64 mSize);
+inline void TrackingFree(TrackingAllocator* s, void* p);
+inline void TrackingFreeAll(TrackingAllocator* s);
+
+/* OsAllocator while tracking allocations */
 struct TrackingAllocator
 {
     Allocator super;
@@ -17,6 +25,12 @@ struct TrackingAllocator
 
     TrackingAllocator() = default;
     TrackingAllocator(u64 pre);
+
+    [[nodiscard]] void* alloc(u64 mCount, u64 mSize) { return TrackingAlloc(this, mCount, mSize); }
+    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize) { return TrackingZalloc(this, mCount, mSize); }
+    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize) { return TrackingRealloc(this, ptr, mCount, mSize); }
+    void free(void* ptr) { TrackingFree(this, ptr); }
+    void freeAll() { TrackingFreeAll(this); }
 };
 
 inline void*
@@ -65,22 +79,16 @@ TrackingFreeAll(TrackingAllocator* s)
     MapDestroy(&s->mAllocations, &s->super);
 }
 
-inline const AllocatorInterface inl_TrackingAllocatorVTable {
-    .alloc = decltype(AllocatorInterface::alloc)(TrackingAlloc),
-    .zalloc = decltype(AllocatorInterface::zalloc)(TrackingZalloc),
-    .realloc = decltype(AllocatorInterface::realloc)(TrackingRealloc),
-    .free = decltype(AllocatorInterface::free)(TrackingFree),
-    .freeAll = decltype(AllocatorInterface::freeAll)(TrackingFreeAll),
+inline const AllocatorVTable inl_TrackingAllocatorVTable {
+    .alloc = decltype(AllocatorVTable::alloc)(+[](TrackingAllocator* s, u64 mCount, u64 mSize) { return s->alloc(mCount, mSize); }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](TrackingAllocator* s, u64 mCount, u64 mSize) { return s->zalloc(mCount, mSize); }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](TrackingAllocator* s, void* ptr, u64 mCount, u64 mSize) { return s->realloc(ptr, mCount, mSize); }),
+    .free = decltype(AllocatorVTable::free)(+[](TrackingAllocator* s, void* ptr) { s->free(ptr); }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](TrackingAllocator* s) { s->freeAll(); } ),
 };
 
 inline
 TrackingAllocator::TrackingAllocator(u64 pre)
     : super {&inl_TrackingAllocatorVTable}, mAllocations(&inl_OsAllocator.super, pre * 2) {}
-
-[[nodiscard]] inline void* alloc(TrackingAllocator* s, u64 mCount, u64 mSize) { return TrackingAlloc(s, mCount, mSize); }
-[[nodiscard]] inline void* zalloc(TrackingAllocator* s, u64 mCount, u64 mSize) { return TrackingZalloc(s, mCount, mSize); }
-[[nodiscard]] inline void* realloc(TrackingAllocator* s, void* p, u64 mCount, u64 mSize) { return TrackingRealloc(s, p, mCount, mSize); }
-inline void free(TrackingAllocator* s, void* p) { TrackingFree(s, p); }
-inline void freeAll(TrackingAllocator* s) { TrackingFreeAll(s); }
 
 } /* namespace adt */

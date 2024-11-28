@@ -140,7 +140,7 @@ template<typename T>
 inline RBNode<T>*
 RBNodeAlloc(Allocator* pA, const T& data)
 {
-    auto* r = (RBNode<T>*)alloc(pA, 1, sizeof(RBNode<T>));
+    auto* r = (RBNode<T>*)pA->alloc(1, sizeof(RBNode<T>));
     r->data = data;
     return r;
 }
@@ -407,7 +407,7 @@ template<typename T>
 inline void
 RBRemoveAndFree(RBTreeBase<T>* s, Allocator* p, RBNode<T>* elm)
 {
-    free(p, RBRemove(s, elm));
+    p->free(RBRemove(s, elm));
 }
 
 /* create RBNode outside then insert */
@@ -596,7 +596,7 @@ RBPrintNodes(
         RBPrintNodes(pA, s, pNode->left, pfnPrint, pFnData, pF, sCat, true);
         RBPrintNodes(pA, s, pNode->right, pfnPrint, pFnData, pF, sCat, false);
 
-        free(pA, sCat.pData);
+        pA->free(sCat.pData);
     }
 }
 
@@ -605,7 +605,7 @@ inline void
 RBDestroy(RBTreeBase<T>* s, Allocator* pAlloc)
 {
     auto pfnFree = +[]([[maybe_unused]] RBNode<T>* pPar, RBNode<T>* p, void* data) -> bool {
-        free((Allocator*)data, p);
+        ((Allocator*)data)->free(p);
 
         return false;
     };

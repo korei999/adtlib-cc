@@ -240,7 +240,7 @@ StringLastOf(String sv, char c)
 inline String
 StringAlloc(Allocator* p, const char* str, u32 size)
 {
-    char* pData = (char*)zalloc(p, size + 1, sizeof(char));
+    char* pData = (char*)p->zalloc(size + 1, sizeof(char));
     strncpy(pData, str, size);
     pData[size] = '\0';
 
@@ -250,7 +250,7 @@ StringAlloc(Allocator* p, const char* str, u32 size)
 inline String
 StringAlloc(Allocator* p, u32 size)
 {
-    char* pData = (char*)zalloc(p, size + 1, sizeof(char));
+    char* pData = (char*)p->zalloc(size + 1, sizeof(char));
     return {pData, size};
 }
 
@@ -269,7 +269,7 @@ StringAlloc(Allocator* p, const String s)
 inline void
 StringDestroy(Allocator* p, String* s)
 {
-    free(p, s->pData);
+    p->free(s->pData);
 }
 
 constexpr u64
@@ -282,7 +282,7 @@ inline String
 StringCat(Allocator* p, const String l, const String r)
 {
     u32 len = l.size + r.size;
-    char* ret = (char*)zalloc(p, len + 1, sizeof(char));
+    char* ret = (char*)p->zalloc(len + 1, sizeof(char));
 
     u32 pos = 0;
     for (u32 i = 0; i < l.size; ++i, ++pos)

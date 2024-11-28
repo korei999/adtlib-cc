@@ -13,7 +13,7 @@ namespace json
 void
 LexerDestroy(Lexer* s)
 {
-    free(s->pAlloc, s->sFile.pData);
+    s->pAlloc->free(s->sFile.pData);
 }
 
 RESULT

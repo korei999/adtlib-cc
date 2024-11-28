@@ -22,12 +22,32 @@ struct VecBase
 
     VecBase() = default;
     VecBase(Allocator* p, u32 prealloc = 1)
-        : pData((T*)alloc(p, prealloc, sizeof(T))),
+        : pData((T*)p->alloc(prealloc, sizeof(T))),
           size(0),
           capacity(prealloc) {}
 
     T& operator[](u32 i)             { assert(i < size && "[Vec] out of size"); return pData[i]; }
     const T& operator[](u32 i) const { assert(i < size && "[Vec] out of size"); return pData[i]; }
+
+    void _grow(Allocator* p, u32 newCapacity);
+    u32 push(Allocator* p, const T& data);
+    [[nodiscard]] T& last();
+    [[nodiscard]] const T& last() const;
+    [[nodiscard]] T& first();
+    [[nodiscard]] const T& first() const;
+    T* pop();
+    void setSize(Allocator* p, u32 size);
+    void setCap(Allocator* p, u32 cap);
+    void swapWithLast(u32 i);
+    void popAsLast(u32 i);
+    [[nodiscard]] u32 idx(const T* x);
+    [[nodiscard]] u32 lastI();
+    void destroy(Allocator* p);
+    [[nodiscard]] u32 getSize() const;
+    u32 getCap() const;
+    [[nodiscard]] T* data();
+    void zeroOut();
+    [[nodiscard]] VecBase<T> clone(Allocator* pAlloc);
 
     struct It
     {
@@ -61,166 +81,152 @@ struct VecBase
 
 template<typename T>
 inline void
-_VecGrow(VecBase<T>* s, Allocator* p, u32 newCapacity)
+VecBase<T>::_grow(Allocator* p, u32 newCapacity)
 {
     assert(newCapacity * sizeof(T) > 0);
-    s->capacity = newCapacity;
-    s->pData = (T*)realloc(p, s->pData, newCapacity, sizeof(T));
+    this->capacity = newCapacity;
+    this->pData = (T*)p->realloc(this->pData, newCapacity, sizeof(T));
 }
 
 template<typename T>
 inline u32
-VecPush(VecBase<T>* s, Allocator* p, const T& data)
+VecBase<T>::push(Allocator* p, const T& data)
 {
-    if (s->size >= s->capacity) _VecGrow(s, p, utils::max(s->capacity * 2U, u32(SIZE_MIN)));
+    if (this->size >= this->capacity) this->_grow(p, utils::max(this->capacity * 2U, u32(SIZE_MIN)));
 
-    s->pData[s->size++] = data;
-    return s->size - 1;
+    this->pData[this->size++] = data;
+    return this->size - 1;
 }
 
 template<typename T>
-[[nodiscard]] inline T&
-VecLast(VecBase<T>* s)
+inline T&
+VecBase<T>::last()
 {
-    return s->pData[s->size - 1];
+    assert(this->size > 0 && "[Vec]: empty");
+    return this->pData[this->size - 1];
 }
 
 template<typename T>
-[[nodiscard]] inline const T&
-VecLast(const VecBase<T>* s)
+inline const T&
+VecBase<T>::last() const
 {
-    return s->pData[s->size - 1];
+    assert(this->size > 0 && "[Vec]: empty");
+    return this->pData[this->size - 1];
 }
 
 template<typename T>
-[[nodiscard]] inline T&
-VecFirst(VecBase<T>* s)
+inline T&
+VecBase<T>::first()
 {
-    return s->pData[0];
+    return this->pData[0];
 }
 
 template<typename T>
-[[nodiscard]] inline const T&
-VecFirst(const VecBase<T>* s)
+inline const T&
+VecBase<T>::first() const
 {
-    return s->pData[0];
+    return this->pData[0];
 }
 
 template<typename T>
 inline T*
-VecPop(VecBase<T>* s)
+VecBase<T>::pop()
 {
-    assert(s->size > 0 && "[Vec]: pop from empty");
-    return &s->pData[--s->size];
+    assert(this->size > 0 && "[Vec]: pop from empty");
+    return &this->pData[--this->size];
 }
 
 template<typename T>
 inline void
-VecSetSize(VecBase<T>* s, Allocator* p, u32 size)
+VecBase<T>::setSize(Allocator* p, u32 size)
 {
-    if (s->capacity < size) _VecGrow(s, p, size);
+    if (this->capacity < size) this->_grow(p, size);
 
-    s->size = size;
+    this->size = size;
 }
 
 template<typename T>
 inline void
-VecSetCap(VecBase<T>* s, Allocator* p, u32 cap)
+VecBase<T>::setCap(Allocator* p, u32 cap)
 {
-    s->pData = (T*)realloc(p, s->pData, cap, sizeof(T));
-    s->capacity = cap;
+    this->pData = (T*)p->realloc(this->pData, cap, sizeof(T));
+    this->capacity = cap;
 
-    if (s->size > cap) s->size = cap;
+    if (this->size > cap) this->size = cap;
 }
 
 template<typename T>
 inline void
-VecSwapWithLast(VecBase<T>* s, u32 i)
+VecBase<T>::swapWithLast(u32 i)
 {
-    utils::swap(&s->pData[i], &s->pData[s->size - 1]);
+    utils::swap(&this->pData[i], &this->pData[this->size - 1]);
 }
 
 template<typename T>
 inline void
-VecPopAsLast(VecBase<T>* s, u32 i)
+VecBase<T>::popAsLast(u32 i)
 {
-    s->pData[i] = s->pData[--s->size];
-}
-
-template<typename T>
-[[nodiscard]] inline u32
-VecIdx(const VecBase<T>* s, const T* x)
-{
-    u32 r = u32(x - s->pData);
-    assert(r < s->capacity);
-    return r;
-}
-
-template<typename T>
-[[nodiscard]] inline u32
-VecLastI(const VecBase<T>* s)
-{
-    return VecIdx(s, &VecLast(s));
-}
-
-template<typename T>
-[[nodiscard]] inline T&
-VecAt(VecBase<T>* s, u32 at)
-{
-    assert(at < s->size && "[Vec]: out of size");
-    return s->pData[at];
-}
-
-template<typename T>
-[[nodiscard]] inline const T&
-VecAt(const VecBase<T>* s, u32 at)
-{
-    assert(at < s->size && "[Vec]: out of size");
-    return s->pData[at];
-}
-
-template<typename T>
-inline void
-VecDestroy(VecBase<T>* s, Allocator* p)
-{
-    free(p, s->pData);
-}
-
-template<typename T>
-[[nodiscard]] inline u32
-VecSize(const VecBase<T>* s)
-{
-    return s->size;
+    this->pData[i] = this->pData[--this->size];
 }
 
 template<typename T>
 inline u32
-VecCap(const VecBase<T>* s)
+VecBase<T>::idx(const T* x)
 {
-    return s->capacity;
+    u32 r = u32(x - this->pData);
+    assert(r < this->capacity);
+    return r;
 }
 
 template<typename T>
-[[nodiscard]] inline T*
-VecData(VecBase<T>* s)
+inline u32
+VecBase<T>::lastI()
 {
-    return s->pData;
+    return this->idx(&this->last());
 }
 
 template<typename T>
 inline void
-VecZeroOut(VecBase<T>* s)
+VecBase<T>::destroy(Allocator* p)
 {
-    memset(s->pData, 0, s->size * sizeof(T));
+    p->free(this->pData);
 }
 
 template<typename T>
-[[nodiscard]] inline VecBase<T>
-VecClone(const VecBase<T>* s, Allocator* pAlloc)
+inline u32
+VecBase<T>::getSize() const
 {
-    auto nVec = VecBase<T>(pAlloc, s->capacity);
-    memcpy(nVec.pData, s->pData, s->size * sizeof(T));
-    nVec.size = s->size;
+    return this->size;
+}
+
+template<typename T>
+inline u32
+VecBase<T>::getCap() const
+{
+    return this->capacity;
+}
+
+template<typename T>
+inline T*
+VecBase<T>::data()
+{
+    return this->pData;
+}
+
+template<typename T>
+inline void
+VecBase<T>::zeroOut()
+{
+    memset(this->pData, 0, this->size * sizeof(T));
+}
+
+template<typename T>
+inline VecBase<T>
+VecBase<T>::clone(Allocator* pAlloc)
+{
+    auto nVec = VecBase<T>(pAlloc, this->capacity);
+    memcpy(nVec.pData, this->pData, this->size * sizeof(T));
+    nVec.size = this->size;
 
     return nVec;
 }
@@ -238,6 +244,26 @@ struct Vec
     T& operator[](u32 i) { return base[i]; }
     const T& operator[](u32 i) const { return base[i]; }
 
+    void _grow(u32 newCapacity) { base._grow(pAlloc, newCapacity); }
+    u32 push(const T& data) { return base.push(pAlloc, data); }
+    [[nodiscard]] T& last() { return base.last(); }
+    [[nodiscard]] const T& last() const { return base.last(); }
+    [[nodiscard]] T& first() { return base.first(); }
+    [[nodiscard]] const T& first() const { return base.first(); }
+    T* pop() { return base.pop(); }
+    void setSize(u32 size) { base.setSize(pAlloc, size); }
+    void setCap(u32 cap) { base.setCap(pAlloc, cap); }
+    void swapWithLast(u32 i) { base.swapWithLast(i); }
+    void popAsLast(u32 i) { base.popAsLast(i); }
+    [[nodiscard]] u32 idx(const T* x) { return base.idx(x); }
+    [[nodiscard]] u32 lastI() { return base.lastI(); }
+    void destroy() { base.destroy(pAlloc); }
+    [[nodiscard]] u32 getSize() const { return base.getSize(); }
+    u32 getCap() const { return base.getCap(); }
+    [[nodiscard]] T* data() { return base.data(); }
+    void zeroOut() { base.zeroOut(); }
+    [[nodiscard]] VecBase<T> clone(Allocator* _pAlloc) { return base.clone(_pAlloc); }
+
     VecBase<T>::It begin() { return base.begin(); }
     VecBase<T>::It end() { return base.end(); }
     VecBase<T>::It rbegin() { return base.rbegin(); }
@@ -248,28 +274,6 @@ struct Vec
     const VecBase<T>::It rbegin() const { return base.rbegin(); }
     const VecBase<T>::It rend() const { return rend(); }
 };
-
-template<typename T> inline void VecGrow(Vec<T>* s, u32 size) { _VecGrow(&s->base, s->pAlloc, size); }
-template<typename T> inline u32 VecPush(Vec<T>* s, const T& data) { return VecPush(&s->base, s->pAlloc, data); }
-template<typename T> [[nodiscard]] inline T& VecLast(Vec<T>* s) { return VecLast(&s->base); }
-template<typename T> [[nodiscard]] inline const T& VecLast(Vec<T>* s) { return VecLast(&s->base); }
-template<typename T> [[nodiscard]] inline T& VecFirst(Vec<T>* s) { return VecFirst(&s->base); }
-template<typename T> [[nodiscard]] inline const T& VecFirst(const Vec<T>* s) { return VecFirst(&s->base); }
-template<typename T> inline T* VecPop(Vec<T>* s) { return VecPop(&s->base); }
-template<typename T> inline void VecSetSize(Vec<T>* s, u32 size) { VecSetSize(&s->base, s->pAlloc, size); }
-template<typename T> inline void VecSetCap(Vec<T>* s, u32 cap) { VecSetCap(&s->base, s->pAlloc, cap); }
-template<typename T> inline void VecSwapWithLast(Vec<T>* s, u32 i) { VecSwapWithLast(&s->base, i); }
-template<typename T> inline void VecPopAsLast(Vec<T>* s, u32 i) { VecPopAsLast(&s->base, i); }
-template<typename T> [[nodiscard]] inline u32 VecIdx(const Vec<T>* s, const T* x) { return VecIdx(&s->base, x); }
-template<typename T> [[nodiscard]] inline u32 VecLastI(const Vec<T>* s) { return VecLastI(&s->base); }
-template<typename T> [[nodiscard]] inline T& VecAt(Vec<T>* s, u32 at) { return VecAt(&s->base, at); }
-template<typename T> [[nodiscard]] inline const T& VecAt(const Vec<T>* s, u32 at) { return VecAt(&s->base, at); }
-template<typename T> inline void VecDestroy(Vec<T>* s) { VecDestroy(&s->base, s->pAlloc); }
-template<typename T> inline u32 VecSize(const Vec<T>* s) { return VecSize(&s->base); }
-template<typename T> inline u32 VecCap(const Vec<T>* s) { return VecCap(&s->base); }
-template<typename T> [[nodiscard]] inline T* VecData(Vec<T>* s) { return VecData(&s->base); }
-template<typename T> inline void VecZeroOut(Vec<T>* s) { VecZeroOut(&s->base); }
-template<typename T> [[nodiscard]] inline VecBase<T> VecClone(const Vec<T>* s, Allocator* pAlloc) { return VecClone(&s->base, pAlloc); }
 
 namespace utils
 {

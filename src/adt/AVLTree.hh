@@ -84,7 +84,7 @@ template<typename T>
 AVLNode<T>*
 AVLNodeAlloc(Allocator* pA, const T& data)
 {
-    auto* pNew = (AVLNode<T>*)alloc(pA, 1, sizeof(AVLNode<T>));
+    auto* pNew = (AVLNode<T>*)pA->alloc(1, sizeof(AVLNode<T>));
     pNew->data = data;
     return pNew;
 }
@@ -474,7 +474,7 @@ inline void
 AVLDestroy(AVLTree<T>* s)
 {
     auto pfnFree = +[]([[maybe_unused]] AVLNode<T>* pPar, AVLNode<T>* p, void* data) -> bool {
-        free(((AVLTree<T>*)data)->pAlloc, p);
+        ((AVLTree<T>*)data)->pAlloc->free(p);
 
         return false;
     };

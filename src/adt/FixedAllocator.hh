@@ -9,6 +9,15 @@
 namespace adt
 {
 
+struct FixedAllocator;
+
+constexpr void* FixedAlloc(FixedAllocator* s, u64 mCount, u64 mSize);
+constexpr void* FixedZalloc(FixedAllocator* s, u64 mCount, u64 mSize);
+constexpr void* FixedRealloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize);
+constexpr void FixedFree(FixedAllocator* s, void* p);
+constexpr void FixedFreeAll(FixedAllocator* s);
+constexpr void FixedReset(FixedAllocator* s);
+
 struct FixedAllocator
 {
     Allocator super {};
@@ -19,20 +28,14 @@ struct FixedAllocator
 
     constexpr FixedAllocator() = default;
     constexpr FixedAllocator(void* pMemory, u64 capacity);
+
+    [[nodiscard]] constexpr void* alloc(u64 mCount, u64 mSize) { return FixedAlloc(this, mCount, mSize); }
+    [[nodiscard]] constexpr void* zalloc(u64 mCount, u64 mSize) { return FixedZalloc(this, mCount, mSize); }
+    [[nodiscard]] constexpr void* realloc(void* ptr, u64 mCount, u64 mSize) { return FixedRealloc(this, ptr, mCount, mSize); }
+    constexpr void free(void* ptr) { FixedFree(this, ptr); }
+    constexpr void freeAll() { FixedFreeAll(this); }
+    constexpr void reset() { FixedReset(this); }
 };
-
-constexpr void* FixedAlloc(FixedAllocator* s, u64 mCount, u64 mSize);
-constexpr void* FixedZalloc(FixedAllocator* s, u64 mCount, u64 mSize);
-constexpr void* FixedRealloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize);
-constexpr void FixedFree(FixedAllocator* s, void* p);
-constexpr void FixedFreeAll(FixedAllocator* s);
-constexpr void FixedReset(FixedAllocator* s);
-
-inline void* alloc(FixedAllocator* s, u64 mCount, u64 mSize) { return FixedAlloc(s, mCount, mSize); }
-inline void* zalloc(FixedAllocator* s, u64 mCount, u64 mSize) { return FixedZalloc(s, mCount, mSize); }
-inline void* realloc(FixedAllocator* s, void* p, u64 mCount, u64 mSize) { return FixedRealloc(s, p, mCount, mSize); }
-inline void free(FixedAllocator* s, void* p) { return FixedFree(s, p); }
-inline void freeAll(FixedAllocator* s) { return FixedFreeAll(s); }
 
 constexpr void*
 FixedAlloc(FixedAllocator* s, u64 mCount, u64 mSize)
@@ -101,12 +104,12 @@ FixedReset(FixedAllocator* s)
     s->size = 0;
 }
 
-inline const AllocatorInterface inl_FixedAllocatorVTable {
-    .alloc = decltype(AllocatorInterface::alloc)(FixedAlloc),
-    .zalloc = decltype(AllocatorInterface::zalloc)(FixedZalloc),
-    .realloc = decltype(AllocatorInterface::realloc)(FixedRealloc),
-    .free = decltype(AllocatorInterface::free)(FixedFree),
-    .freeAll = decltype(AllocatorInterface::freeAll)(FixedFreeAll),
+inline const AllocatorVTable inl_FixedAllocatorVTable {
+    .alloc = decltype(AllocatorVTable::alloc)(+[](FixedAllocator* s, u64 mCount, u64 mSize) { return s->alloc(mCount, mSize); }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](FixedAllocator* s, u64 mCount, u64 mSize) { return s->zalloc(mCount, mSize); }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](FixedAllocator* s, void* ptr, u64 mCount, u64 mSize) { return s->realloc(ptr, mCount, mSize); }),
+    .free = decltype(AllocatorVTable::free)(+[](FixedAllocator* s, void* ptr) { s->free(ptr); }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](FixedAllocator* s) { s->freeAll(); } ),
 };
 
 constexpr FixedAllocator::FixedAllocator(void* pMemory, u64 capacity)

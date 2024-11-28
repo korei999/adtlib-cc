@@ -24,7 +24,15 @@ struct BuddyNode
     u8 pMem[];
 };
 
-/* FIXME: terribly slow buddy allocator */
+struct Buddy;
+
+inline void* BuddyAlloc(Buddy* s, u64 nMembers, u64 mSize);
+inline void* BuddyZalloc(Buddy* s, u64 nMembers, u64 mSize);
+inline void* BuddyRealloc(Buddy* s, void* p, u64 nMembers, u64 mSize);
+inline void BuddyFree(Buddy* s, void* p);
+inline void BuddyFreeAll(Buddy* s);
+
+/* FIXME: terribly slow buddy allocator (O(n)) */
 struct Buddy
 {
     Allocator super {};
@@ -33,6 +41,12 @@ struct Buddy
 
     Buddy() = default;
     Buddy(u64 blockSize);
+
+    [[nodiscard]] ADT_NO_UB constexpr void* alloc(u64 mCount, u64 mSize) { return BuddyAlloc(this, mCount, mSize); }
+    [[nodiscard]] ADT_NO_UB constexpr void* zalloc(u64 mCount, u64 mSize) { return BuddyZalloc(this, mCount, mSize); }
+    [[nodiscard]] ADT_NO_UB constexpr void* realloc(void* ptr, u64 mCount, u64 mSize) { return BuddyRealloc(this, ptr, mCount, mSize); }
+    ADT_NO_UB constexpr void free(void* ptr) { BuddyFree(this, ptr); }
+    ADT_NO_UB constexpr void freeAll() { BuddyFreeAll(this); }
 };
 
 constexpr u64
@@ -242,12 +256,12 @@ BuddyFreeAll(Buddy* s)
     }
 }
 
-inline const AllocatorInterface inl_BuddyAllocatorVTable {
-    .alloc = decltype(AllocatorInterface::alloc)(BuddyAlloc),
-    .zalloc = decltype(AllocatorInterface::zalloc)(BuddyZalloc),
-    .realloc = decltype(AllocatorInterface::realloc)(BuddyRealloc),
-    .free = decltype(AllocatorInterface::free)(BuddyFree),
-    .freeAll = decltype(AllocatorInterface::freeAll)(BuddyFreeAll),
+inline const AllocatorVTable inl_BuddyAllocatorVTable {
+    .alloc = decltype(AllocatorVTable::alloc)(+[](Buddy* s, u64 mCount, u64 mSize) { return s->alloc(mCount, mSize); }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](Buddy* s, u64 mCount, u64 mSize) { return s->zalloc(mCount, mSize); }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](Buddy* s, void* ptr, u64 mCount, u64 mSize) { return s->realloc(ptr, mCount, mSize); }),
+    .free = decltype(AllocatorVTable::free)(+[](Buddy* s, void* ptr) { s->free(ptr); }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](Buddy* s) { s->freeAll(); } ),
 };
 
 inline Buddy::Buddy(u64 _blockSize)

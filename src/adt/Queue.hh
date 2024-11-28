@@ -8,16 +8,7 @@
 namespace adt
 {
 
-#define ADT_QUEUE_FOREACH_I(Q, I) for (int I = (Q)->first, __t = 0; __t < (Q)->size; I = QueueNextI(Q, I), __t++)
-#define ADT_QUEUE_FOREACH_I_REV(Q, I) for (int I = QueueLastI(Q), __t = 0; __t < (Q)->size; I = QueuePrevI(Q, I), __t++)
-
 template<typename T> struct QueueBase;
-
-template<typename T> inline T* QueuePushFront(QueueBase<T>* s, Allocator* p, const T& val);
-template<typename T> inline T* QueuePushBack(QueueBase<T>* s, Allocator* p, const T& val);
-template<typename T> inline void QueueResize(QueueBase<T>* s, Allocator* p, u32 size);
-template<typename T> inline T* QueuePopFront(QueueBase<T>* s);
-template<typename T> inline T* QueuePopBack(QueueBase<T>* s);
 
 template<typename T>
 struct QueueBase
@@ -30,11 +21,23 @@ struct QueueBase
 
     QueueBase() = default;
     QueueBase(Allocator* p, u32 prealloc = SIZE_MIN)
-        : pData {(T*)alloc(p, prealloc, sizeof(T))},
+        : pData {(T*)p->alloc(prealloc, sizeof(T))},
           cap (prealloc) {}
 
     T& operator[](int i)             { assert(i < cap && "[Queue]: out of capacity"); return pData[i]; }
     const T& operator[](int i) const { assert(i < cap && "[Queue]: out of capacity"); return pData[i]; }
+
+    void destroy(Allocator* p);
+    T* pushFront(Allocator* p, const T& val);
+    T* pushBack(Allocator* p, const T& val);
+    void resize(Allocator* p, u32 size);
+    T* popFront();
+    T* popBack();
+    u32 idx(const T* pItem) const;
+    int nextI(int i) const { return (i + 1) >= this->cap ? 0 : (i + 1); }
+    int prevI(int i) const { return (i - 1) < 0 ? this->cap - 1 : (i - 1); }
+    int firstI() const { return utils::empty(this) ? -1 : this->first; }
+    int lastI() const { return utils::empty(this) ? 0 : this->last - 1; }
 
     struct It
     {
@@ -50,7 +53,7 @@ struct QueueBase
         It
         operator++()
         {
-            i = QueueNextI(s, i);
+            i = s->nextI(i);
             counter++;
             return {s, i, counter};
         }
@@ -60,7 +63,7 @@ struct QueueBase
         It
         operator--()
         {
-            i = QueuePrevI(s, i);
+            i = s->prevI(i);
             counter++;
             return {s, i, counter};
         }
@@ -71,97 +74,97 @@ struct QueueBase
         friend bool operator!=(const It& l, const It& r) { return l.counter != r.counter; }
     };
 
-    It begin() { return {this, QueueFirstI(this), 0}; }
+    It begin() { return {this, firstI(), 0}; }
     It end() { return {this, {}, this->size}; }
-    It rbegin() { return {this, QueueLastI(this), 0}; }
+    It rbegin() { return {this, lastI(), 0}; }
     It rend() { return {this, {}, this->size}; }
 
-    const It begin() const { return {this, QueueFirstI(this), 0}; }
+    const It begin() const { return {this, firstI(), 0}; }
     const It end() const { return {this, {}, this->size}; }
-    const It rbegin() const { return {this, QueueLastI(this), 0}; }
+    const It rbegin() const { return {this, lastI(), 0}; }
     const It rend() const { return {this, {}, this->size}; }
 };
 
 template<typename T>
 inline void
-QueueDestroy(QueueBase<T>*s, Allocator* p)
+QueueBase<T>::destroy(Allocator* p)
 {
-    free(p, s->pData);
+    p->free(this->pData);
 }
 
 template<typename T>
 inline T*
-QueuePushFront(QueueBase<T>* s, Allocator* p, const T& val)
+QueueBase<T>::pushFront(Allocator* p, const T& val)
 {
-    if (s->size >= s->cap) QueueResize(s, p, s->cap * 2);
+    if (this->size >= this->cap) this->resize(p, this->cap * 2);
 
-    int i = s->first;
-    int ni = QueuePrevI(s, i);
-    s->pData[ni] = val;
-    s->first = ni;
-    s->size++;
+    int i = this->first;
+    int ni = this->prevI(i);
+    this->pData[ni] = val;
+    this->first = ni;
+    this->size++;
 
-    return &s->pData[ni];
+    return &this->pData[ni];
 }
 
 template<typename T>
 inline T*
-QueuePushBack(QueueBase<T>* s, Allocator* p, const T& val)
+QueueBase<T>::pushBack(Allocator* p, const T& val)
 {
-    if (s->size >= s->cap) QueueResize(s, p, s->cap * 2);
+    if (this->size >= this->cap) this->resize(p, this->cap * 2);
 
-    int i = s->last;
-    int ni = QueueNextI(s, i);
-    s->pData[i] = val;
-    s->last = ni;
-    s->size++;
+    int i = this->last;
+    int ni = this->nextI(i);
+    this->pData[i] = val;
+    this->last = ni;
+    this->size++;
 
-    return &s->pData[i];
+    return &this->pData[i];
 }
 
 template<typename T>
 inline void
-QueueResize(QueueBase<T>* s, Allocator* p, u32 size)
+QueueBase<T>::resize(Allocator* p, u32 size)
 {
     auto nQ = QueueBase<T>(p, size);
 
-    for (auto& e : *s) QueuePushBack(&nQ, p, e);
+    for (auto& e : *this) nQ.pushBack(p, e);
 
-    free(p, s->pData);
-    *s = nQ;
+    this->destroy(p);
+    *this = nQ;
 }
 
 template<typename T>
 inline T*
-QueuePopFront(QueueBase<T>* s)
+QueueBase<T>::popFront()
 {
-    assert(s->size > 0);
+    assert(this->size > 0);
 
-    T* ret = &s->pData[s->first];
-    s->first = QueueNextI(s, s->first);
-    s->size--;
+    T* ret = &this->pData[this->first];
+    this->first = this->nextI(this->first);
+    this->size--;
 
     return ret;
 }
 
 template<typename T>
 inline T*
-QueuePopBack(QueueBase<T>* s)
+QueueBase<T>::popBack()
 {
-    assert(s->size > 0);
+    assert(this->size > 0);
 
-    T* ret = &s->pData[QueueLastI(s)];
-    s->last = QueuePrevI(s, QueueLastI(s));
-    s->size--;
+    T* ret = &this->pData[this->lastI()];
+    this->last = this->prevI(this->lastI());
+    this->size--;
 
     return ret;
 }
 
 template<typename T>
 inline u32
-QueueIdx(const QueueBase<T>* s, const T* pItem)
+QueueBase<T>::idx(const T* pItem) const
 {
-    return pItem - s->pData;
+    return pItem - this->pData;
 }
 
 template<typename T>
@@ -177,6 +180,18 @@ struct Queue
     T& operator[](u32 i) { return base[i]; }
     const T& operator[](u32 i) const { return base[i]; }
 
+    void destroy() { base.destroy(pAlloc); }
+    T* pushFront(const T& val) { return base.pushFront(pAlloc, val); }
+    T* pushBack(const T& val) { return base.pushBack(pAlloc, val); }
+    void resize(u32 size) { base.resize(pAlloc, size); }
+    T* popFront() { return base.popFront(); }
+    T* popBack() { return base.popBack(); }
+    u32 idx(const T* pItem) const { return base.idx(pItem); }
+    int nextI(int i) const { return base.nextI(i); }
+    int prevI(int i) const { return base.prevI(i); }
+    int firstI() const { return base.firstI(); }
+    int lastI() const { return base.lastI(); }
+
     QueueBase<T>::It begin() { return base.begin(); }
     QueueBase<T>::It end() { return base.end(); }
     QueueBase<T>::It rbegin() { return base.rbegin(); }
@@ -188,14 +203,6 @@ struct Queue
     const QueueBase<T>::It rend() const { return base.rend(); }
 };
 
-template<typename T> inline void QueueDestroy(Queue<T>*s) { QueueDestroy(&s->base, s->pAlloc); }
-template<typename T> inline T* QueuePushFront(Queue<T>* s, const T& val) { return QueuePushFront(&s->base, s->pAlloc, val); }
-template<typename T> inline T* QueuePushBack(Queue<T>* s, const T& val) { return QueuePushBack(&s->base, s->pAlloc, val); }
-template<typename T> inline void QueueResize(Queue<T>* s, u32 size) { QueueResize(&s->base, s->pAlloc, size); }
-template<typename T> inline T* QueuePopFront(Queue<T>* s) { return QueuePopFront(&s->base); }
-template<typename T> inline T* QueuePopBack(Queue<T>* s) { return QueuePopBack(&s->base); }
-template<typename T> inline u32 QueueIdx(const Queue<T>* s, const T* pItem) { return QueueIdx(&s->base, pItem); }
-
 namespace utils
 {
 
@@ -203,16 +210,6 @@ template<typename T> [[nodiscard]] inline bool empty(const QueueBase<T>* s) { re
 template<typename T> [[nodiscard]] inline bool empty(const Queue<T>* s) { return empty(&s->base); }
 
 } /* namespace utils */
-
-template<typename T> [[nodiscard]] inline int QueueNextI(const QueueBase<T>*s, int i) { return (i + 1) >= s->cap ? 0 : (i + 1); }
-template<typename T> [[nodiscard]] inline int QueuePrevI(const QueueBase<T>* s, int i) { return (i - 1) < 0 ? s->cap - 1 : (i - 1); }
-template<typename T> [[nodiscard]] inline int QueueFirstI(const QueueBase<T>* s) { return utils::empty(s) ? -1 : s->first; }
-template<typename T> [[nodiscard]] inline int QueueLastI(const QueueBase<T>* s) { return utils::empty(s) ? 0 : s->last - 1; }
-
-template<typename T> [[nodiscard]] inline int QueueNextI(const Queue<T>*s, int i) { return QueueNextI(&s->base, i); }
-template<typename T> [[nodiscard]] inline int QueuePrevI(const Queue<T>* s, int i) { return QueuePrevI(&s->base, i); }
-template<typename T> [[nodiscard]] inline int QueueFirstI(const Queue<T>* s) { return QueueFirstI(&s->base); }
-template<typename T> [[nodiscard]] inline int QueueLastI(const Queue<T>* s) { return QueueLastI(&s->base); }
 
 namespace print
 {
@@ -233,8 +230,8 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const QueueBas
     for (const auto& it : x)
     {
         const char* fmt;
-        if constexpr (std::is_floating_point_v<T>) fmt = (QueueIdx(&x, &it) == x.last - 1U ? "{:.3}" : "{:.3}, ");
-        else fmt = (QueueIdx(&x, &it) == x.last - 1U ? "{}" : "{}, ");
+        if constexpr (std::is_floating_point_v<T>) fmt = (x.idx(&it) == x.last - 1U ? "{:.3}" : "{:.3}, ");
+        else fmt = (x.idx(&it) == x.last - 1U ? "{}" : "{}, ");
 
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it);
     }

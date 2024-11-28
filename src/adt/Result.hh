@@ -10,8 +10,8 @@ enum RESULT : u8 { SUCCES = 0, FAILURE };
 template<typename T, typename E = RESULT>
 struct Result
 {
-    T data;
-    E eCode;
+    T data {};
+    E eCode = FAILURE;
 
     constexpr explicit operator bool() const
     {

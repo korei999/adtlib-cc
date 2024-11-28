@@ -33,6 +33,14 @@ struct FreeListData
     // constexpr FreeListData* nextNode() const { return (FreeListData*)((u8*)this + getSize()); }
 };
 
+struct FreeList;
+
+inline void* FreeListAlloc(FreeList* s, u64 nMembers, u64 mSize);
+inline void* FreeListZalloc(FreeList* s, u64 nMembers, u64 mSize);
+inline void* FreeListRealloc(FreeList* s, void* ptr, u64 nMembers, u64 mSize);
+inline void FreeListFree(FreeList* s, void* ptr);
+inline void FreeListFreeAll(FreeList* s);
+
 /* best-fit logarithmic time thing */
 struct FreeList
 {
@@ -45,6 +53,12 @@ struct FreeList
 
     FreeList() = default;
     FreeList(u64 _blockSize);
+
+    [[nodiscard]] void* alloc(u64 mCount, u64 mSize) { return FreeListAlloc(this, mCount, mSize); }
+    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize) { return FreeListZalloc(this, mCount, mSize); }
+    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize) { return FreeListRealloc(this, ptr, mCount, mSize); }
+    void free(void* ptr) { FreeListFree(this, ptr); }
+    void freeAll() { FreeListFreeAll(this); }
 };
 
 inline void
@@ -328,23 +342,17 @@ FreeListRealloc(FreeList* s, void* ptr, u64 nMembers, u64 mSize)
     return pRet;
 }
 
-inline const AllocatorInterface inl_FreeListAllocatorVTable {
-    .alloc = decltype(AllocatorInterface::alloc)(FreeListAlloc),
-    .zalloc = decltype(AllocatorInterface::zalloc)(FreeListZalloc),
-    .realloc = decltype(AllocatorInterface::realloc)(FreeListRealloc),
-    .free = decltype(AllocatorInterface::free)(FreeListFree),
-    .freeAll = decltype(AllocatorInterface::freeAll)(FreeListFreeAll),
+inline const AllocatorVTable inl_FreeListAllocatorVTable {
+    .alloc = decltype(AllocatorVTable::alloc)(+[](FreeList* s, u64 mCount, u64 mSize) { return s->alloc(mCount, mSize); }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](FreeList* s, u64 mCount, u64 mSize) { return s->zalloc(mCount, mSize); }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](FreeList* s, void* ptr, u64 mCount, u64 mSize) { return s->realloc(ptr, mCount, mSize); }),
+    .free = decltype(AllocatorVTable::free)(+[](FreeList* s, void* ptr) { s->free(ptr); }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](FreeList* s) { s->freeAll(); } ),
 };
 
 inline FreeList::FreeList(u64 _blockSize)
     : super(&inl_FreeListAllocatorVTable),
       blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
       pBlocks(FreeListAllocBlock(this, this->blockSize)) {}
-
-inline void* alloc(FreeList* s, u64 mCount, u64 mSize) { return FreeListAlloc(s, mCount, mSize); }
-inline void* zalloc(FreeList* s, u64 mCount, u64 mSize) { return FreeListZalloc(s, mCount, mSize); }
-inline void* realloc(FreeList* s, void* p, u64 mCount, u64 mSize) { return FreeListRealloc(s, p, mCount, mSize); }
-inline void free(FreeList* s, void* p) { FreeListFree(s, p); }
-inline void freeAll(FreeList* s) { FreeListFreeAll(s); }
 
 } /* namespace adt */
