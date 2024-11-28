@@ -548,60 +548,45 @@ testThreadPool()
     LOG("num: {}\n", (int)num);
 }
 
-struct KeyVal
-{
-    String sKey {};
-    long val {};
-};
-
-static bool
-operator==(const KeyVal l, const KeyVal r)
-{
-    return l.sKey == r.sKey;
-}
-
-template<>
-inline u64
-hash::func(const KeyVal& x)
-{
-    return hash::func(x.sKey);
-}
-
 static void
 testMap()
 {
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
-    Map<KeyVal> map(&arena.super);
-    auto one = MapInsert(&map, {"One", 1});
-    auto one2 = MapTryInsert(&map, {"One", 999});
-    auto two = MapInsert(&map, {"Two", 2});
-    MapInsert(&map, {"Three", 3});
-    MapInsert(&map, {"Four", 4});
-    MapInsert(&map, {"Five", 5});
+    Map<String, int> map(&arena.super);
+    MapInsert(&map, {"one", 1});
+    MapInsert(&map, {"two", 2});
+    MapInsert(&map, {"three", 3});
+    auto tried = MapTryInsert(&map, {"three", 4});
+    MapInsert(&map, {"five", 5});
+    MapInsert(&map, {"six", 6});
+    MapInsert(&map, {"seven", 7});
 
-    auto fOne = MapSearch(&map, {"One"});
-    auto fTwo = MapSearch(&map, {"Two"});
-    auto fThree = MapSearch(&map, {"Three"});
-    auto fFour = MapSearch(&map, {"Four"});
-    auto fFive = MapSearch(&map, {"Five"});
-    auto fSix = MapSearch(&map, {"Six"});
+    MapRemove(&map, String("two"));
 
-    assert(fOne.pData->sKey == "One");
-    assert(!one2.bInserted);
-    assert(fTwo.pData->sKey == "Two");
-    assert(fThree.pData->sKey == "Three");
-    assert(fFour.pData->sKey == "Four");
-    assert(fFive.pData->sKey == "Five");
-    assert(!fSix);
+    auto one = MapSearch(&map, String("one"));
+    auto two = MapSearch(&map, String("two"));
+    auto three = MapSearch(&map, String("three"));
+    auto four = MapSearch(&map, String("four"));
 
-    LOG("one: ['{}', {}]\n", fOne.pData->sKey, fOne.pData->val);
-    LOG("two: ['{}', {}]\n", fTwo.pData->sKey, fTwo.pData->val);
-    LOG("three: ['{}', {}]\n", fThree.pData->sKey, fThree.pData->val);
-    LOG("four: ['{}', {}]\n", fFour.pData->sKey, fFour.pData->val);
-    LOG("five: ['{}', {}]\n", fFive.pData->sKey, fFive.pData->val);
-    LOG("six: {}\n", fSix.pData);
+    assert(one);
+    assert(!two);
+    assert(three);
+    assert(!four);
+
+    LOG("size: {}, capacity: {}\n\n", MapSize(&map), MapCap(&map));
+
+    LOG("one: {}, idx: {}\n", *one.pData, MapIdx(&map, one));
+    LOG("two: {} ({})\n", two.pData, two.eStatus);
+    LOG("three: {}, idx: {}\n", *three.pData, MapIdx(&map, three));
+    LOG("four: {} ({})\n", four.pData, four.eStatus);
+    LOG("tried: {} , idx: {}, ({})\n", *tried.pData, MapIdx(&map, tried), tried.eStatus);
+
+    CERR("\n");
+    for (auto& [k, v] : map)
+        LOG("'{}', {}\n", k, v);
+    CERR("\n");
 
     LOG_GOOD("passed\n");
 }
