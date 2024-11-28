@@ -12,6 +12,7 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/sort.hh"
+#include "adt/Map.hh"
 #include "json/Parser.hh"
 
 using namespace adt;
@@ -495,7 +496,7 @@ testPool()
     int vecSize = 0;
 
     for (u32 i = 0; i < BIG / 2; i++)
-        auto _i = PoolRent(&s_poolOfInts);
+        [[maybe_unused]] auto _i = PoolRent(&s_poolOfInts);
 
     f64 t0 = utils::timeNowMS();
     /*for (auto& e : s_poolOfInts)*/
@@ -545,6 +546,64 @@ testThreadPool()
     ThreadPoolDestroy(&tp);
 
     LOG("num: {}\n", (int)num);
+}
+
+struct KeyVal
+{
+    String sKey {};
+    long val {};
+};
+
+static bool
+operator==(const KeyVal l, const KeyVal r)
+{
+    return l.sKey == r.sKey;
+}
+
+template<>
+inline u64
+hash::func(const KeyVal& x)
+{
+    return hash::func(x.sKey);
+}
+
+static void
+testMap()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+
+    Map<KeyVal> map(&arena.super);
+    auto one = MapInsert(&map, {"One", 1});
+    auto one2 = MapTryInsert(&map, {"One", 999});
+    auto two = MapInsert(&map, {"Two", 2});
+    MapInsert(&map, {"Three", 3});
+    MapInsert(&map, {"Four", 4});
+    MapInsert(&map, {"Five", 5});
+
+    auto fOne = MapSearch(&map, {"One"});
+    auto fTwo = MapSearch(&map, {"Two"});
+    auto fThree = MapSearch(&map, {"Three"});
+    auto fFour = MapSearch(&map, {"Four"});
+    auto fFive = MapSearch(&map, {"Five"});
+    auto fSix = MapSearch(&map, {"Six"});
+
+    assert(fOne.pData->sKey == "One");
+    assert(!one2.bInserted);
+    assert(fTwo.pData->sKey == "Two");
+    assert(fThree.pData->sKey == "Three");
+    assert(fFour.pData->sKey == "Four");
+    assert(fFive.pData->sKey == "Five");
+    assert(!fSix);
+
+    LOG("one: ['{}', {}]\n", fOne.pData->sKey, fOne.pData->val);
+    LOG("two: ['{}', {}]\n", fTwo.pData->sKey, fTwo.pData->val);
+    LOG("three: ['{}', {}]\n", fThree.pData->sKey, fThree.pData->val);
+    LOG("four: ['{}', {}]\n", fFour.pData->sKey, fFour.pData->val);
+    LOG("five: ['{}', {}]\n", fFive.pData->sKey, fFive.pData->val);
+    LOG("six: {}\n", fSix.pData);
+
+    LOG_GOOD("passed\n");
 }
 
 int
@@ -614,6 +673,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--threadpool"))
     {
         testThreadPool();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--map"))
+    {
+        testMap();
         return 0;
     }
 

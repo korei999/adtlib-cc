@@ -9,14 +9,10 @@ namespace adt
 constexpr f32 MAP_DEFAULT_LOAD_FACTOR = 0.5f;
 constexpr f32 MAP_DEFAULT_LOAD_FACTOR_INV = 1.0f / MAP_DEFAULT_LOAD_FACTOR;
 
-template<typename T> struct MapBase;
-
-template<typename T> inline void _MapRehash(MapBase<T>* s, Allocator* p, u32 size);
-
 template<typename T>
 struct Bucket
 {
-    T data;
+    T data {};
     bool bOccupied = false;
     bool bDeleted = false;
 };
@@ -25,9 +21,9 @@ struct Bucket
 template<typename T>
 struct MapResult
 {
-    T* pData;
-    u64 hash;
-    bool bInserted;
+    T* pData {};
+    u64 hash {};
+    bool bInserted {};
 
     constexpr explicit
     operator bool() const
@@ -36,8 +32,23 @@ struct MapResult
     }
 };
 
+template<typename T> struct MapBase;
+
+template<typename T> inline u32 MapIdx(MapBase<T>* s, T* p);
+template<typename T> inline u32 MapIdx(MapBase<T>* s, MapResult<T>* pRes);
+template<typename T> inline u32 MapFirstI(MapBase<T>* s);
+template<typename T> inline u32 MapNextI(MapBase<T>* s, u32 i);
+template<typename T> inline f32 MapLoadFactor(MapBase<T>* s);
+template<typename T> inline MapResult<T> MapInsert(MapBase<T>* s, Allocator* p, const T& value);
+template<typename T> inline MapResult<T> MapSearch(MapBase<T>* s, const T& value);
+template<typename T> inline void MapRemove(MapBase<T>*s, u32 i);
+template<typename T> inline void MapRemove(MapBase<T>*s, const T& x);
+template<typename T> inline void _MapRehash(MapBase<T>* s, Allocator* p, u32 size);
+template<typename T> inline MapResult<T> MapTryInsert(MapBase<T>* s, Allocator* p, const T& value);
+template<typename T> inline void MapDestroy(MapBase<T>* s, Allocator* p);
+
 /* Value is the key in this map.
- * For key/value pairs, use struct { KEY k; VALUE v; }, add `u64 adt::hash::func(const struct&)`
+ * For key/value pairs, use struct { KEY k; VALUE v; }, add `template<> u64 adt::hash::func(const struct&)`
  * and* bool operator==(const struct& l, const struct& r). */
 template<typename T>
 struct MapBase
@@ -97,7 +108,7 @@ MapFirstI(MapBase<T>* s)
 {
     u32 i = 0;
     while (i < VecCap(&s->aBuckets) && !s->aBuckets[i].bOccupied)
-        i++;
+        ++i;
 
     if (i >= VecCap(&s->aBuckets)) i = NPOS;
 
@@ -110,7 +121,7 @@ MapNextI(MapBase<T>* s, u32 i)
 {
     ++i;
     while (i < VecCap(&s->aBuckets) && !s->aBuckets[i].bOccupied)
-        i++;
+        ++i;
 
     if (i >= VecCap(&s->aBuckets)) i = NPOS;
 
@@ -138,7 +149,7 @@ MapInsert(MapBase<T>* s, Allocator* p, const T& value)
 
     while (s->aBuckets[idx].bOccupied)
     {
-        idx++;
+        ++idx;
         if (idx >= VecCap(&s->aBuckets))
             idx = 0;
     }
@@ -146,7 +157,7 @@ MapInsert(MapBase<T>* s, Allocator* p, const T& value)
     s->aBuckets[idx].data = value;
     s->aBuckets[idx].bOccupied = true;
     s->aBuckets[idx].bDeleted = false;
-    s->bucketCount++;
+    ++s->bucketCount;
 
     return {
         .pData = &s->aBuckets[idx].data,
@@ -159,8 +170,6 @@ template<typename T>
 inline MapResult<T>
 MapSearch(MapBase<T>* s, const T& value)
 {
-    assert(s && "MapBase: map is nullptr");
-
     if (s->bucketCount == 0) return {};
 
     u64 hash = hash::func(value);
@@ -179,11 +188,10 @@ MapSearch(MapBase<T>* s, const T& value)
             break;
         }
 
-        idx++;
+        ++idx;
         if (idx >= VecCap(&s->aBuckets)) idx = 0;
     }
 
-    /*ret.idx = idx;*/
     return ret;
 }
 
@@ -193,8 +201,7 @@ MapRemove(MapBase<T>*s, u32 i)
 {
     s->aBuckets[i].bDeleted = true;
     s->aBuckets[i].bOccupied = false;
-
-    s->bucketCount--;
+    --s->bucketCount;
 }
 
 template<typename T>
@@ -202,7 +209,8 @@ inline void
 MapRemove(MapBase<T>*s, const T& x)
 {
     auto f = MapSearch(s, x);
-    MapRemove(s, f.idx);
+    assert(f && "[Map]: not found");
+    MapRemove(s, MapIdx(s, f));
 }
 
 template<typename T>
@@ -211,7 +219,7 @@ _MapRehash(MapBase<T>* s, Allocator* p, u32 size)
 {
     auto mNew = MapBase<T>(p, size);
 
-    for (u32 i = 0; i < VecCap(&s->aBuckets); i++)
+    for (u32 i = 0; i < VecCap(&s->aBuckets); ++i)
         if (s->aBuckets[i].bOccupied)
             MapInsert(&mNew, p, s->aBuckets[i].data);
 
@@ -265,17 +273,17 @@ struct Map
     const MapBase<T>::It rend() const { return rend(); }
 };
 
-template<typename T> inline u32 MapIdx(Map<T>* s, T* p) { return MapIdx(&s->base, p); }
-template<typename T> inline u32 MapIdx(Map<T>* s, MapResult<T>* pRes) { return MapIdx(s->base, pRes); }
-template<typename T> inline u32 MapFirstI(Map<T>* s) { return MapFirstI(&s->base); }
-template<typename T> inline u32 MapNextI(Map<T>* s, u32 i) { return MapNextI(&s->base, i); }
-template<typename T> inline f32 MapLoadFactor(Map<T>* s) { return MapLoadFactor(&s->base); }
-template<typename T> inline MapResult<T> MapInsert(Map<T>* s, const T& value) { return MapInsert(&s->base, s->pA, value); }
-template<typename T> inline MapResult<T> MapSearch(Map<T>* s, const T& value) { return MapSearch(&s->base, value); }
-template<typename T> inline void MapRemove(Map<T>*s, u32 i) { MapRemove(&s->base, i); }
-template<typename T> inline void MapRemove(Map<T>*s, const T& x) { MapRemove(&s->base, x); }
-template<typename T> inline void _MapRehash(Map<T>* s, u32 size) { _MapRehash(&s->base, s->pA, size); }
-template<typename T> inline MapResult<T> MapTryInsert(Map<T>* s, const T& value) { return MapTryInsert(&s->base, s->pA, value); }
-template<typename T> inline void MapDestroy(Map<T>* s) { MapDestroy(&s->base, s->pA); }
+template<typename T> inline u32 MapIdx(Map<T>* s, T* p) { return MapIdx<T>(&s->base, p); }
+template<typename T> inline u32 MapIdx(Map<T>* s, MapResult<T>* pRes) { return MapIdx<T>(s->base, pRes); }
+template<typename T> inline u32 MapFirstI(Map<T>* s) { return MapFirstI<T>(&s->base); }
+template<typename T> inline u32 MapNextI(Map<T>* s, u32 i) { return MapNextI<T>(&s->base, i); }
+template<typename T> inline f32 MapLoadFactor(Map<T>* s) { return MapLoadFactor<T>(&s->base); }
+template<typename T> inline MapResult<T> MapInsert(Map<T>* s, const T& value) { return MapInsert<T>(&s->base, s->pA, value); }
+template<typename T> inline MapResult<T> MapSearch(Map<T>* s, const T& value) { return MapSearch<T>(&s->base, value); }
+template<typename T> inline void MapRemove(Map<T>*s, u32 i) { MapRemove<T>(&s->base, i); }
+template<typename T> inline void MapRemove(Map<T>*s, const T& x) { MapRemove<T>(&s->base, x); }
+template<typename T> inline void _MapRehash(Map<T>* s, u32 size) { _MapRehash<T>(&s->base, s->pA, size); }
+template<typename T> inline MapResult<T> MapTryInsert(Map<T>* s, const T& value) { return MapTryInsert<T>(&s->base, s->pA, value); }
+template<typename T> inline void MapDestroy(Map<T>* s) { MapDestroy<T>(&s->base, s->pA); }
 
 } /* namespace adt */
