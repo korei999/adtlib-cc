@@ -321,13 +321,9 @@ struct Map
 
     MapBase<K, V>::It begin() { return base.begin(); }
     MapBase<K, V>::It end() { return base.end(); }
-    MapBase<K, V>::It rbegin() { return base.rbegin(); }
-    MapBase<K, V>::It rend() { return rend(); }
 
     const MapBase<K, V>::It begin() const { return base.begin(); }
     const MapBase<K, V>::It end() const { return base.end(); }
-    const MapBase<K, V>::It rbegin() const { return base.rbegin(); }
-    const MapBase<K, V>::It rend() const { return rend(); }
 };
 
 template<typename K, typename V>

@@ -556,6 +556,9 @@ testMap()
 
     Map<String, int> map(&arena.super);
 
+    using bucket_t = decltype(map.base.aBuckets[0]);
+    LOG("sizeof(bucket_t): {}\n", sizeof(bucket_t));
+
     MapInsert(&map, {"one"}, 1);
     MapInsert(&map, {"two"}, 2);
     MapInsert(&map, {"three"}, 3);
@@ -590,6 +593,72 @@ testMap()
     CERR("\n");
 
     LOG_GOOD("passed\n");
+}
+
+struct Animal;
+
+struct AnimalVTable
+{
+    void (Animal::*say)();
+    void (Animal::*sayWord)(const String sWord);
+};
+
+struct Animal
+{
+    const AnimalVTable* vptr {};
+
+    void say() { (this->*vptr->say)(); }
+    void sayWord(const String sWord) { (this->*vptr->sayWord)(sWord); }
+};
+
+struct Cow
+{
+    Animal super {};
+
+    Cow();
+
+    void say() { COUT("MOO\n"); }
+    void sayWord(const String sWord) { COUT("Moo: '{}'\n", sWord); }
+};
+
+inline const AnimalVTable inl_CowVTable {
+    .say = decltype(AnimalVTable::say)(&Cow::say),
+    .sayWord = decltype(AnimalVTable::sayWord)(&Cow::sayWord),
+};
+
+Cow::Cow() : super(&inl_CowVTable) {}
+
+struct Cat
+{
+    Animal super {};
+
+    Cat();
+
+    void say() { COUT("MEW\n"); }
+    void sayWord(const String sWord) { COUT("Mew: '{}'\n", sWord); }
+};
+
+inline const AnimalVTable inl_CatVTable {
+    .say = decltype(AnimalVTable::say)(&Cat::say),
+    .sayWord = decltype(AnimalVTable::sayWord)(&Cat::sayWord),
+};
+
+Cat::Cat() : super(&inl_CatVTable) {}
+
+static void
+animalSay(Animal* s)
+{
+    s->say();
+    s->sayWord("SHIEEET");
+}
+
+static void
+testVTable()
+{
+    Cow cow {};
+    Cat cat {};
+    animalSay(&cow.super);
+    animalSay(&cat.super);
 }
 
 int
