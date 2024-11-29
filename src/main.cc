@@ -585,11 +585,11 @@ testMap()
 
     LOG("size: {}, capacity: {}\n\n", MapSize(&map), MapCap(&map));
 
-    LOG("one: ['{}', {}], idx: {}\n", one.pData->what, one.pData->is, MapIdx(&map, one));
+    LOG("one: {}, idx: {}\n", *one.pData, MapIdx(&map, one));
     LOG("two: {} ({})\n", two.pData, two.eStatus);
-    LOG("three: ['{}', {}], idx: {}\n", three.pData->what, three.pData->is, MapIdx(&map, three));
+    LOG("three: {}, idx: {}\n", *three.pData, MapIdx(&map, three));
     LOG("four: {} ({})\n", four.pData, four.eStatus);
-    LOG("tried: ['{}', {}] , idx: {}, ({})\n", tried.pData->what, tried.pData->is, MapIdx(&map, tried), tried.eStatus);
+    LOG("tried: {}, idx: {}, ({})\n", *tried.pData, MapIdx(&map, tried), tried.eStatus);
 
     CERR("\n");
     for (auto& [k, v] : map)
