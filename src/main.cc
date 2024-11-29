@@ -555,13 +555,14 @@ testMap()
     defer( freeAll(&arena) );
 
     Map<String, int> map(&arena.super);
-    MapInsert(&map, {"one", 1});
-    MapInsert(&map, {"two", 2});
-    MapInsert(&map, {"three", 3});
-    auto tried = MapTryInsert(&map, {"three", 4});
-    MapInsert(&map, {"five", 5});
-    MapInsert(&map, {"six", 6});
-    MapInsert(&map, {"seven", 7});
+
+    MapInsert(&map, {"one"}, 1);
+    MapInsert(&map, {"two"}, 2);
+    MapInsert(&map, {"three"}, 3);
+    auto tried = MapTryInsert(&map, {"three"}, 4);
+    MapInsert(&map, {"five"}, 5);
+    MapInsert(&map, {"six"}, 6);
+    MapInsert(&map, {"seven"}, 7);
 
     MapRemove(&map, String("two"));
 
