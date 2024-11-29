@@ -24,10 +24,35 @@ struct PoolNode
 
 template<typename T, u32 CAP> struct Pool;
 
-template<typename T, u32 CAP> inline s64 PoolNextIdx(Pool<T, CAP>* s, s64 i);
-template<typename T, u32 CAP> inline s64 PoolPrevIdx(Pool<T, CAP>* s, s64 i);
-template<typename T, u32 CAP> inline s64 PoolFirstIdx(Pool<T, CAP>* s);
-template<typename T, u32 CAP> inline s64 PoolLastIdx(Pool<T, CAP>* s);
+template<typename T, u32 CAP>
+inline s64 PoolFirstIdx(Pool<T, CAP>* s);
+
+template<typename T, u32 CAP>
+inline s64 PoolLastIdx(Pool<T, CAP>* s);
+
+template<typename T, u32 CAP>
+inline s64 PoolNextIdx(Pool<T, CAP>* s, s64 i);
+
+template<typename T, u32 CAP>
+inline s64 PoolPrevIdx(Pool<T, CAP>* s, s64 i);
+
+template<typename T, u32 CAP>
+inline u32 PoolIdx(const Pool<T, CAP>* s, const PoolNode<T>* p);
+
+template<typename T, u32 CAP>
+inline u32 PoolIdx(const Pool<T, CAP>* s, const T* p);
+
+template<typename T, u32 CAP>
+inline void PoolDestroy(Pool<T, CAP>* s);
+
+template<typename T, u32 CAP>
+[[nodiscard]] inline PoolHnd PoolRent(Pool<T, CAP>* s);
+
+template<typename T, u32 CAP>
+inline PoolHnd PoolRent(Pool<T, CAP>* s, const T& value);
+
+template<typename T, u32 CAP>
+inline void PoolReturn(Pool<T, CAP>* s, PoolHnd hnd);
 
 /* statically allocated reusable resource collection */
 template<typename T, u32 CAP>
