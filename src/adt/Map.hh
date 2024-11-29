@@ -381,6 +381,15 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, MAP_RESULT_STA
     return printArgs(ctx, map[statusIdx]);
 }
 
+template<typename K, typename V>
+inline u32
+formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const KeyValue<K, V>& x)
+{
+    ctx.fmt = "[{}, {}]";
+    ctx.fmtIdx = 0;
+    return printArgs(ctx, x.key, x.val);
+}
+
 } /* namespace print */
 
 } /* namespace adt */
