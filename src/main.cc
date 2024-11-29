@@ -548,27 +548,35 @@ testThreadPool()
     LOG("num: {}\n", (int)num);
 }
 
+template<typename K, typename V>
+struct WhatIs
+{
+    K what {};
+    V is {};
+};
+
 static void
 testMap()
 {
     Arena arena(SIZE_1K);
     defer( freeAll(&arena) );
 
-    Map<String, int> map(&arena.super);
-    MapInsert(&map, {"one", 1});
-    MapInsert(&map, {"two", 2});
-    MapInsert(&map, {"three", 3});
-    auto tried = MapTryInsert(&map, {"three", 4});
-    MapInsert(&map, {"five", 5});
-    MapInsert(&map, {"six", 6});
-    MapInsert(&map, {"seven", 7});
+    Map<String, int, WhatIs> map(&arena.super);
+
+    MapInsert(&map, {"one"}, 1);
+    MapInsert(&map, {"two"}, 2);
+    MapInsert(&map, {"three"}, 3);
+    auto tried = MapTryInsert(&map, {"three"}, 4);
+    MapInsert(&map, {"five"}, 5);
+    MapInsert(&map, {"six"}, 6);
+    MapInsert(&map, {"seven"}, 7);
 
     MapRemove(&map, String("two"));
 
-    auto one = MapSearch(&map, String("one"));
-    auto two = MapSearch(&map, String("two"));
-    auto three = MapSearch(&map, String("three"));
-    auto four = MapSearch(&map, String("four"));
+    auto one = MapSearch(&map, {"one"});
+    auto two = MapSearch(&map, {"two"});
+    auto three = MapSearch(&map, {"three"});
+    auto four = MapSearch(&map, {"four"});
 
     assert(one);
     assert(!two);
@@ -577,15 +585,15 @@ testMap()
 
     LOG("size: {}, capacity: {}\n\n", MapSize(&map), MapCap(&map));
 
-    LOG("one: {}, idx: {}\n", *one.pData, MapIdx(&map, one));
+    LOG("one: ['{}', {}], idx: {}\n", one.pData->what, one.pData->is, MapIdx(&map, one));
     LOG("two: {} ({})\n", two.pData, two.eStatus);
-    LOG("three: {}, idx: {}\n", *three.pData, MapIdx(&map, three));
+    LOG("three: ['{}', {}], idx: {}\n", three.pData->what, three.pData->is, MapIdx(&map, three));
     LOG("four: {} ({})\n", four.pData, four.eStatus);
-    LOG("tried: {} , idx: {}, ({})\n", *tried.pData, MapIdx(&map, tried), tried.eStatus);
+    LOG("tried: ['{}', {}] , idx: {}, ({})\n", tried.pData->what, tried.pData->is, MapIdx(&map, tried), tried.eStatus);
 
     CERR("\n");
     for (auto& [k, v] : map)
-        LOG("'{}', {}\n", k, v);
+        LOG("['{}', {}]\n", k, v);
     CERR("\n");
 
     LOG_GOOD("passed\n");
