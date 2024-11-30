@@ -17,6 +17,7 @@
 #include "adt/FixedAllocator.hh"
 #include "adt/FreeList.hh"
 #include "adt/ChunkAllocator.hh"
+#include "adt/AllocatorPool.hh"
 
 using namespace adt;
 
