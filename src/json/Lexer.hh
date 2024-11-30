@@ -1,7 +1,7 @@
 #pragma once
 
 #include "adt/String.hh"
-#include "adt/Allocator.hh"
+#include "adt/IAllocator.hh"
 
 namespace json
 {

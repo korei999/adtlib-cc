@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Allocator.hh"
+#include "IAllocator.hh"
 #include "String.hh"
 #include "utils.hh"
 #include "Pair.hh"

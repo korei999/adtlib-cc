@@ -33,7 +33,7 @@ constexpr u64 SIZE_8G = SIZE_1G * SIZE_1K;
 
 struct IAllocator;
 
-/* some methods may not be supported */
+/* at least alloc() and free() or freeAll() must be supported */
 struct AllocatorVTable
 {
     void* (*alloc)(IAllocator* s, u64 mCount, u64 mSize);

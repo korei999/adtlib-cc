@@ -1,7 +1,6 @@
 #pragma once
 
 #include "List.hh"
-#include "Allocator.hh"
 #include "ChunkAllocator.hh"
 
 #include <cassert>

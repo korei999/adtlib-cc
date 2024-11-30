@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "Allocator.hh"
+#include "IAllocator.hh"
 #include "String.hh"
 #include "utils.hh"
 #include "Pair.hh"
@@ -42,7 +42,7 @@ namespace adt
 {
 
 enum class RB_COL : long { BLACK, RED };
-enum class RB_ORDER { PRE, IN, POST };
+enum class RB_ORDER : u8 { PRE, IN, POST };
 
 template<typename T>
 struct RBNode
