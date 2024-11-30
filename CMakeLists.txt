@@ -9,7 +9,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-project(adtlib-test VERSION 0.2 LANGUAGES CXX)
+project(adtlib-test VERSION 0.3 LANGUAGES CXX)
 
 # if (NOT CMAKE_BUILD_TYPE MATCHES "Asan")
 #     set(BUILD_SHARED_LIBS OFF)
@@ -43,6 +43,7 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions("-DDEBUG")
+    add_compile_definitions("-DADT_DBG_MEMORY")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
 endif()
 

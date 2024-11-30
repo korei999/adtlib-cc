@@ -33,12 +33,12 @@ struct Token
 
 struct Lexer
 {
-    adt::Allocator* pAlloc {};
+    adt::IAllocator* pAlloc {};
     adt::String sFile;
     adt::u32 pos = 0;
 
     Lexer() = default;
-    Lexer(adt::Allocator* p) : pAlloc(p) {}
+    Lexer(adt::IAllocator* p) : pAlloc(p) {}
 };
 
 void LexerDestroy(Lexer* s);

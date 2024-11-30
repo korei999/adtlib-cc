@@ -31,26 +31,27 @@ constexpr u64 SIZE_8M = 8UL * SIZE_1M;
 constexpr u64 SIZE_1G = SIZE_1M * SIZE_1K; 
 constexpr u64 SIZE_8G = SIZE_1G * SIZE_1K;
 
-struct Allocator;
+struct IAllocator;
 
-struct AllocatorInterface
+/* some methods may not be supported */
+struct AllocatorVTable
 {
-    void* (*alloc)(Allocator* s, u64 mCount, u64 mSize);
-    void* (*zalloc)(Allocator* s, u64 mCount, u64 mSize);
-    void* (*realloc)(Allocator* s, void* p, u64 mCount, u64 mSize); /* realloc should alloc() if p == nullptr */
-    void (*free)(Allocator* s, void* p); /* not all allocators can free() */
-    void (*freeAll)(Allocator* s); /* not all allocators can freeAll() */
+    void* (*alloc)(IAllocator* s, u64 mCount, u64 mSize);
+    void* (*zalloc)(IAllocator* s, u64 mCount, u64 mSize);
+    void* (*realloc)(IAllocator* s, void* p, u64 mCount, u64 mSize);
+    void (*free)(IAllocator* s, void* p);
+    void (*freeAll)(IAllocator* s);
 };
 
-struct Allocator
+struct IAllocator
 {
-    const AllocatorInterface* pVTable;
+    const AllocatorVTable* pVTable {};
 };
 
-[[nodiscard]] ADT_NO_UB constexpr void* alloc(Allocator* s, u64 mCount, u64 mSize) { return s->pVTable->alloc(s, mCount, mSize); }
-[[nodiscard]] ADT_NO_UB constexpr void* zalloc(Allocator* s, u64 mCount, u64 mSize) { return s->pVTable->zalloc(s, mCount, mSize); }
-[[nodiscard]] ADT_NO_UB constexpr void* realloc(Allocator* s, void* p, u64 mCount, u64 mSize) { return s->pVTable->realloc(s, p, mCount, mSize); }
-ADT_NO_UB constexpr void free(Allocator* s, void* p) { s->pVTable->free(s, p); }
-ADT_NO_UB constexpr void freeAll(Allocator* s) { s->pVTable->freeAll(s); }
+[[nodiscard]] ADT_NO_UB constexpr void* alloc(IAllocator* s, u64 mCount, u64 mSize) { return s->pVTable->alloc(s, mCount, mSize); }
+[[nodiscard]] ADT_NO_UB constexpr void* zalloc(IAllocator* s, u64 mCount, u64 mSize) { return s->pVTable->zalloc(s, mCount, mSize); }
+[[nodiscard]] ADT_NO_UB constexpr void* realloc(IAllocator* s, void* p, u64 mCount, u64 mSize) { return s->pVTable->realloc(s, p, mCount, mSize); }
+ADT_NO_UB constexpr void free(IAllocator* s, void* p) { s->pVTable->free(s, p); }
+ADT_NO_UB constexpr void freeAll(IAllocator* s) { s->pVTable->freeAll(s); }
 
 } /* namespace adt */

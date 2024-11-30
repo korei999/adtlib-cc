@@ -1,11 +1,6 @@
 #include "adt/AVLTree.hh"
-#include "adt/Arena.hh"
 #include "adt/Arr.hh"
-#include "adt/Buddy.hh"
-#include "adt/FixedAllocator.hh"
-#include "adt/FreeList.hh"
 #include "adt/List.hh"
-#include "adt/OsAllocator.hh"
 #include "adt/Pool.hh"
 #include "adt/RBTree.hh"
 #include "adt/ThreadPool.hh"
@@ -14,6 +9,14 @@
 #include "adt/sort.hh"
 #include "adt/Map.hh"
 #include "json/Parser.hh"
+
+#include "adt/Arena.hh"
+#include "adt/Buddy.hh"
+#include "adt/MutexArena.hh"
+#include "adt/OsAllocator.hh"
+#include "adt/FixedAllocator.hh"
+#include "adt/FreeList.hh"
+#include "adt/ChunkAllocator.hh"
 
 using namespace adt;
 
@@ -548,6 +551,24 @@ testThreadPool()
     LOG("num: {}\n", (int)num);
 }
 
+struct CustomKey
+{
+    u64 number {};
+
+    bool
+    operator==(const CustomKey& other)
+    {
+        return number == other.number;
+    }
+};
+
+template<>
+constexpr u64
+hash::func(const CustomKey& k)
+{
+    return hash::func(k.number);
+}
+
 static void
 testMap()
 {
@@ -592,73 +613,21 @@ testMap()
         LOG("'{}', {}\n", k, v);
     CERR("\n");
 
+    {
+        Map<CustomKey, int> map1(&arena.super);
+        MapInsert(&map1, {12}, 1);
+        MapInsert(&map1, {99}, 2);
+        auto fOne = MapSearch(&map1, {12});
+        auto fTwo = MapSearch(&map1, {99});
+
+        assert(fOne);
+        assert(fTwo);
+
+        LOG("fOne: ['{}', {}]\n", fOne.pData->key.number, fOne.pData->val);
+        LOG("fTwo: ['{}', {}]\n", fTwo.pData->key.number, fTwo.pData->val);
+    }
+
     LOG_GOOD("passed\n");
-}
-
-struct Animal;
-
-struct AnimalVTable
-{
-    void (Animal::*say)();
-    void (Animal::*sayWord)(const String sWord);
-};
-
-struct Animal
-{
-    const AnimalVTable* vptr {};
-
-    void say() { (this->*vptr->say)(); }
-    void sayWord(const String sWord) { (this->*vptr->sayWord)(sWord); }
-};
-
-struct Cow
-{
-    Animal super {};
-
-    Cow();
-
-    void say() { COUT("MOO\n"); }
-    void sayWord(const String sWord) { COUT("Moo: '{}'\n", sWord); }
-};
-
-inline const AnimalVTable inl_CowVTable {
-    .say = decltype(AnimalVTable::say)(&Cow::say),
-    .sayWord = decltype(AnimalVTable::sayWord)(&Cow::sayWord),
-};
-
-Cow::Cow() : super(&inl_CowVTable) {}
-
-struct Cat
-{
-    Animal super {};
-
-    Cat();
-
-    void say() { COUT("MEW\n"); }
-    void sayWord(const String sWord) { COUT("Mew: '{}'\n", sWord); }
-};
-
-inline const AnimalVTable inl_CatVTable {
-    .say = decltype(AnimalVTable::say)(&Cat::say),
-    .sayWord = decltype(AnimalVTable::sayWord)(&Cat::sayWord),
-};
-
-Cat::Cat() : super(&inl_CatVTable) {}
-
-static void
-animalSay(Animal* s)
-{
-    s->say();
-    s->sayWord("SHIEEET");
-}
-
-static void
-testVTable()
-{
-    Cow cow {};
-    Cat cat {};
-    animalSay(&cow.super);
-    animalSay(&cat.super);
 }
 
 int
@@ -767,18 +736,18 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        Arena arena(SIZE_1M);
-        defer( freeAll(&arena) );
-        /*OsAllocator arena;*/
-        /*FreeList arena(SIZE_1G * 2);*/
+        FreeList al(SIZE_1G * 1.5);
+        /*Arena al(SIZE_1M * 100);*/
+        defer( freeAll(&al) );
+        /*OsAllocator al;*/
 
-        json::Parser p(&arena.super);
-        json::RESULT res = json::ParserLoadParse(&p, argv[1]);
+        json::Parser p(&al.super);
+        json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);
         LOG("parsed\n");
-        if (res == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
+        if (eRes == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
 
-        /*if (argc >= 3 && "-p" == String(argv[2]))*/
-        /*    json::ParserPrint(&p, stdout);*/
+        if (argc >= 3 && "-p" == String(argv[2]))
+            json::ParserPrint(&p, stdout);
 
         /*json::ParserDestroy(&p);*/
         /*_FreeListPrintTree(&al, &arena.base);*/
