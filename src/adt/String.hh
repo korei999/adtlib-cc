@@ -366,14 +366,14 @@ template<>
 constexpr u64
 hash::func(String& str)
 {
-    return hash::fnvStr(str.pData, str.size, FNV1_64_INIT);
+    return hash::fnvStr(str.pData, str.size);
 }
 
 template<>
 constexpr u64
 hash::func(const String& str)
 {
-    return hash::fnvStr(str.pData, str.size, FNV1_64_INIT);
+    return hash::fnvStr(str.pData, str.size);
 }
 
 namespace utils

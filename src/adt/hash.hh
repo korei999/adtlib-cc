@@ -74,8 +74,10 @@ func(T& x)
 
 /* generic version that hashes everything */
 inline u64
-fnvBuff(void* pBuf, u32 byteSize, u64 hval = FNV1_64_INIT)
+fnvBuff(void* pBuf, u32 byteSize)
 {
+    u64 hval = FNV1_64_INIT;
+
     u8* p = (u8*)pBuf;
     for (u32 i = 0; i < byteSize; ++i)
     {
@@ -90,8 +92,10 @@ fnvBuff(void* pBuf, u32 byteSize, u64 hval = FNV1_64_INIT)
 
 /* constexpr version can't have reinterpret_cast */
 constexpr u64
-fnvStr(char* pBuff, u32 byteSize, u64 hval = FNV1_64_INIT)
+fnvStr(char* pBuff, u32 byteSize)
 {
+    u64 hval = FNV1_64_INIT;
+
     for (u32 i = 0; i < byteSize; ++i)
     {
         hval ^= u64(pBuff[i]);
@@ -103,11 +107,29 @@ fnvStr(char* pBuff, u32 byteSize, u64 hval = FNV1_64_INIT)
     return hval;
 }
 
+/* Reusing hash value. Init with FNV1_64_INIT */
+inline u64
+fnvBuffHVal(void* pBuf, u32 byteSize, u64 hval)
+{
+    u8* p = (u8*)pBuf;
+    for (u32 i = 0; i < byteSize; ++i)
+    {
+        hval ^= u64(p[i]);
+        hval += (hval << 1) + (hval << 4) +
+                (hval << 5) + (hval << 7) +
+                (hval << 8) + (hval << 40);
+    }
+
+    return hval;
+}
+
 /* and last one for constexpr string literals */
 template<u32 N>
 constexpr u64
-fnvAChar(const char(&aChars)[N], u64 hval = FNV1_64_INIT)
+fnvAChar(const char(&aChars)[N])
 {
+    u64 hval = FNV1_64_INIT;
+
     for (u32 i = 0; i < N; ++i)
     {
         hval ^= u64(aChars[i]);
@@ -123,7 +145,7 @@ template<u32 N>
 constexpr u64
 func(const char(&aChars)[N])
 {
-    return fnvAChar(aChars, N);
+    return fnvAChar(aChars);
 }
 
 } /* namespace hash */
