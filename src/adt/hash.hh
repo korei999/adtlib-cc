@@ -167,7 +167,7 @@ template<u32 N>
 constexpr u64
 func(const char(&aChars)[N])
 {
-    return fnvACharHVal(aChars);
+    return fnvAChar(aChars);
 }
 
 template<u32 N>
