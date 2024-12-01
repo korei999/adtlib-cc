@@ -376,6 +376,20 @@ hash::func(const String& str)
     return hash::fnvStr(str.pData, str.size);
 }
 
+template<>
+inline u64
+hash::funcHVal(String& str, u64 hashValue)
+{
+    return hash::fnvBuffHVal(str.pData, str.size, hashValue);
+}
+
+template<>
+inline u64
+hash::funcHVal(const String& str, u64 hashValue)
+{
+    return hash::fnvBuffHVal(str.pData, str.size, hashValue);
+}
+
 namespace utils
 {
 

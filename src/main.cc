@@ -580,7 +580,7 @@ hash::func(const CustomKey& k)
 static void
 testMap()
 {
-    Arena arena(SIZE_1K);
+    Arena arena(SIZE_1M);
     defer( freeAll(&arena) );
 
     Map<String, int> map(&arena.super);
@@ -633,6 +633,26 @@ testMap()
 
         LOG("fOne: ['{}', {}]\n", fOne.pData->key.number, fOne.pData->val);
         LOG("fTwo: ['{}', {}]\n", fTwo.pData->key.number, fTwo.pData->val);
+    }
+
+    {
+        MapRehashed<String, String> map2(&arena.super, 50);
+
+        auto i0 = MapInsert(&map2, {"what"}, {"is"}, hash::FNV1_64_INIT);
+        auto i1 = MapInsert(&map2, {"this"}, {"thing"}, i0.hash);
+        auto i2 = MapInsert(&map2, {"doing"}, {"here"}, i1.hash);
+
+        auto s0 = MapSearch(&map2, {"what"}, hash::FNV1_64_INIT);
+        auto s1 = MapSearch(&map2, {"this"}, i0.hash);
+        auto s2 = MapSearch(&map2, {"doing"}, i1.hash);
+
+        assert(s0);
+        assert(s1);
+        assert(s2);
+
+        LOG("s0: {}\n", *s0.pData);
+        LOG("s1: {}\n", *s1.pData);
+        LOG("s2: {}\n", *s2.pData);
     }
 
     LOG_GOOD("passed\n");
