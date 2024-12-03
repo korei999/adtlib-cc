@@ -61,7 +61,7 @@ testRB()
     };
 
     [[maybe_unused]] void (*pfnPrintInt)(const RBNode<long>*, void* pArgs) = +[](const RBNode<long>* pNode, [[maybe_unused]] void* pArgs) -> void {
-        COUT("%s" ADT_LOGS_COL_NORM " %d\n", pNode->color == RB_COL::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data);
+        COUT("%s" ADT_LOGS_COL_NORM " %d\n", pNode->color == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data);
     };
 
     /*void (*pfnPrintNodes)(const RBNode<FreeListNode>*, void* pArgs) = [](const RBNode<FreeListNode>* pNode, void* pArgs) -> void {*/
@@ -764,8 +764,8 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        FreeList al(SIZE_1G * 1.5);
-        /*Arena al(SIZE_1M * 100);*/
+        /*FreeList al(SIZE_1G * 4);*/
+        Arena al(SIZE_1G * 4);
         defer( freeAll(&al) );
         /*OsAllocator al;*/
 
