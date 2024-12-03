@@ -37,9 +37,9 @@ testRB()
 {
     /*ChunkAllocator alloc(sizeof(RBNode<int>), SIZE_1M * 100);*/
 
-    /*FreeList alloc(SIZE_8M);*/
+    FreeList alloc(SIZE_8M);
     /*FixedAllocator alloc(BIG, sizeof(BIG));*/
-    Arena alloc(SIZE_8M);
+    /*Arena alloc(SIZE_8M);*/
     /*OsAllocator alloc;*/
 
     /*Buddy alloc(SIZE_8M);*/
@@ -764,8 +764,8 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        /*FreeList al(SIZE_1G * 4);*/
-        Arena al(SIZE_1G * 4);
+        /*FreeList al(SIZE_1G * 2);*/
+        Arena al(SIZE_1G * 2);
         defer( freeAll(&al) );
         /*OsAllocator al;*/
 
