@@ -200,7 +200,7 @@ _FreeListVerify(FreeList* s)
     auto* pBlock = s->pBlocks;
     while (pBlock)
     {
-        auto* pListNode = &FreeListNodeFromBlock(pBlock)->data;
+        auto* pListNode = &_FreeListNodeFromBlock(pBlock)->data;
         auto* pPrev = pListNode;
 
         while (pListNode)
