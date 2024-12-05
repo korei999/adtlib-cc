@@ -278,7 +278,7 @@ testSort()
 
     srand(1290837027);
 
-    u32 size = 10000000;
+    u32 size = 1000000;
 
     Vec<int> vec(&arena.super);
     VecSetSize(&vec, size);
@@ -299,14 +299,16 @@ testSort()
     auto t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::INC));
     COUT("sorted      {} items in: {} ms\n", size, t1);
+    /*COUT("vec: {}\n", vec);*/
 
     fill();
 
     t0 = utils::timeNowMS();
-    sort::quick<VecBase, int, utils::compareRev<int>>(&vec.base);
+    sort::quick<VecBase, int, utils::compareRev>(&vec.base);
     t1 = utils::timeNowMS() - t0;
     assert(sort::sorted(vec.base, sort::DEC));
     COUT("sorted(Rev) {} items in: {} ms\n", size, t1);
+    /*COUT("vec: {}\n", vec);*/
 
     fill();
 
