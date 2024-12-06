@@ -30,7 +30,7 @@ using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
 
-constexpr int total = 10000;
+constexpr int total = 100000;
 
 static void
 testRB()
@@ -39,9 +39,6 @@ testRB()
 
     FreeList alloc(SIZE_8M);
     LOG_GOOD("sizeof(FreeList::Node): {}\n", sizeof(FreeList::Node));
-
-    int five = 6;
-    LOG_GOOD("{:#b}, {:#b}\n", five, utils::setBit(five, 0, 1));
 
     /*FixedAllocator alloc(BIG, sizeof(BIG));*/
     /*Arena alloc(SIZE_8M);*/

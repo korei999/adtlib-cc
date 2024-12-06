@@ -40,7 +40,7 @@ struct FreeListData
 
     FreeListData* pPrev {};
     FreeListData* pNext {}; /* TODO: calculate from the size (save 8 bytes) */
-    u64 sizeAndIsFree {}; /* isFree bool as leftmost bit */
+    u64 sizeAndIsFree {}; /* isFree bool as leftmost(most significant) bit */
     u8 pMem[];
 
     constexpr u64 getSize() const { return sizeAndIsFree & ~IS_FREE_MASK; }
@@ -49,16 +49,16 @@ struct FreeListData
     constexpr void setSizeSetFree(u64 _size, bool _bFree) { sizeAndIsFree = _size; setFree(_bFree); }
     constexpr void setSize(u64 _size) { setSizeSetFree(_size, isFree()); }
     constexpr void addSize(u64 _size) { setSize(_size + getSize()); }
-    // constexpr FreeListData* nextNode() const { return (FreeListData*)((u8*)this + getSize()); }
+    // constexpr FreeListData* next() const { return (FreeListData*)((u8*)this + getSize()); }
 };
 
 struct FreeList
 {
-    using Node = RBNode<FreeListData>;
+    using Node = RBNode<FreeListData>; /* node is the header + memory chunk of the allocation */
 
     IAllocator super {};
     u64 blockSize {};
-    RBTreeBase<FreeListData> tree {};
+    RBTreeBase<FreeListData> tree {}; /* free nodes sorted by size */
     FreeListBlock* pBlocks {};
 
     FreeList() = default;
@@ -281,19 +281,20 @@ again:
         return pFree->data.pMem;
     }
 
-    FreeList::Node* pSplit = (FreeList::Node*)((u8*)pFree + splitSize);
-    pSplit->data.setSizeSetFree(realSize, false);
+    /* split the node then return the left part */
+    FreeList::Node* pSplit = (FreeList::Node*)((u8*)pFree + realSize);
+    pSplit->data.setSizeSetFree(splitSize, true);
 
     pSplit->data.pNext = pFree->data.pNext;
     pSplit->data.pPrev = &pFree->data;
 
     if (pFree->data.pNext) pFree->data.pNext->pPrev = &pSplit->data;
     pFree->data.pNext = &pSplit->data;
-    pFree->data.setSizeSetFree(splitSize, true);
+    pFree->data.setSizeSetFree(realSize, false);
 
-    RBInsert(&s->tree, pFree, true);
+    RBInsert(&s->tree, pSplit, true);
 
-    return pSplit->data.pMem;
+    return pFree->data.pMem;
 }
 
 inline void*
