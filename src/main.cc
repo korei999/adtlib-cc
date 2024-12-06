@@ -30,7 +30,7 @@ using namespace adt;
 
 /*u8 BIG[SIZE_1G * 4] {};*/
 
-constexpr int total = 1000000;
+constexpr int total = 10000;
 
 static void
 testRB()
@@ -38,6 +38,11 @@ testRB()
     /*ChunkAllocator alloc(sizeof(RBNode<int>), SIZE_1M * 100);*/
 
     FreeList alloc(SIZE_8M);
+    LOG_GOOD("sizeof(FreeList::Node): {}\n", sizeof(FreeList::Node));
+
+    int five = 6;
+    LOG_GOOD("{:#b}, {:#b}\n", five, utils::setBit(five, 0, 1));
+
     /*FixedAllocator alloc(BIG, sizeof(BIG));*/
     /*Arena alloc(SIZE_8M);*/
     /*OsAllocator alloc;*/
@@ -54,14 +59,15 @@ testRB()
 
     Vec<RBNode<long>*> a(&alloc.super, 32);
 
-    bool (*pfnCollect)(RBNode<long>*, RBNode<long>*, void* pArgs) = +[]([[maybe_unused]] RBNode<long>* pPar, RBNode<long>* pNode, void* pArgs) -> bool {
+    bool (*pfnCollect)(RBNode<long>*, void* pArgs) = +[](RBNode<long>* pNode, void* pArgs) -> bool {
         auto* a = (Vec<RBNode<long>*>*)pArgs;
         VecPush(a, pNode);
+
         return false;
     };
 
     [[maybe_unused]] void (*pfnPrintInt)(const RBNode<long>*, void* pArgs) = +[](const RBNode<long>* pNode, [[maybe_unused]] void* pArgs) -> void {
-        COUT("%s" ADT_LOGS_COL_NORM " %d\n", pNode->color == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data);
+        COUT("%s" ADT_LOGS_COL_NORM " %d\n", pNode->getColor() == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data);
     };
 
     /*void (*pfnPrintNodes)(const RBNode<FreeListNode>*, void* pArgs) = [](const RBNode<FreeListNode>* pNode, void* pArgs) -> void {*/
@@ -82,7 +88,7 @@ testRB()
         /*COUT("inserting '%d'\n", r);*/
     }
 
-    RBTraverse({}, kek.base.pRoot, pfnCollect, &a, RB_ORDER::PRE);
+    RBTraverse(kek.base.pRoot, pfnCollect, &a, RB_ORDER::PRE);
     auto depth = RBDepth(kek.base.pRoot);
 
     i = 0;
@@ -746,8 +752,8 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        /*FreeList al(SIZE_1G * 2);*/
-        Arena al(SIZE_1G * 2);
+        FreeList al(SIZE_1G * 3);
+        /*Arena al(SIZE_1G * 2);*/
         defer( freeAll(&al) );
         /*OsAllocator al;*/
 

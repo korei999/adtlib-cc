@@ -74,7 +74,7 @@ _FreeListPrintTree(FreeList* s, IAllocator* pAlloc)
     auto pfn = +[](const FreeList::Node* pNode, [[maybe_unused]] void* pArgs) -> void {
         CERR(
             "{}" ADT_LOGS_COL_NORM " {}\n",
-            pNode->color == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()
+            pNode->getColor() == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()
         );
     };
 
@@ -186,8 +186,8 @@ _FreeListFindFittingNode(FreeList* s, const u64 size)
         long cmp = realSize - nodeSize;
 
         if (cmp == 0) break;
-        else if (cmp < 0) it = it->left;
-        else it = it->right;
+        else if (cmp < 0) it = it->left();
+        else it = it->right();
     }
 
     return pLastFitting;
