@@ -74,7 +74,7 @@ _FreeListPrintTree(FreeList* s, IAllocator* pAlloc)
     auto pfn = +[](const FreeList::Node* pNode, [[maybe_unused]] void* pArgs) -> void {
         CERR(
             "{}" ADT_LOGS_COL_NORM " {}\n",
-            pNode->getColor() == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()
+            pNode->color() == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()
         );
     };
 
