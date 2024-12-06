@@ -10,7 +10,7 @@ namespace adt
 {
 
 /* Best-fit logarithmic time allocator, all IAllocator methods are supported.
- * Can be slow and memory wasteful for small allocations (56 bytes of metadata for each allocation).
+ * Can be slow and memory wasteful for small allocations (48 bytes of metadata per allocation).
  * Preallocating big blocks would help. */
 struct FreeList;
 

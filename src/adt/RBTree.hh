@@ -75,6 +75,10 @@ public:
         m_parentCol = (RBNode*)(((u64)par & ~COLOR_MASK) | (u64)getColor());
         return getParent();
     }
+
+    RBNode*& parentAndColor() { return m_parentCol; }
+
+    RBNode* const& parentAndColor() const { return m_parentCol; }
 };
 
 template<typename T>
@@ -147,9 +151,7 @@ _RBSetLinks(RBNode<T>* l, RBNode<T>* r)
 {
     l->left() = r->left();
     l->right() = r->right();
-    /*l->_parentCol = r->_parentCol;*/
-    l->setParent(r->getParent());
-    l->setColor(r->getColor());
+    l->parentAndColor() = r->parentAndColor();
 }
 
 template<typename T>
@@ -157,8 +159,7 @@ inline void
 _RBSet(RBNode<T>* elm, RBNode<T>* parent)
 {
     elm->setParent(parent);
-    elm->left() = nullptr;
-    elm->right() = nullptr;
+    elm->left() = elm->right() = nullptr;
     elm->setColor(RB_COLOR::RED);
 }
 
@@ -202,7 +203,7 @@ _RBRotateLeft(RBTreeBase<T>* s, RBNode<T>* elm)
     {
         tmp->left()->setParent(elm);
     }
-    if ((tmp->setParent(elm->getParent())))
+    if ((tmp->setParent(elm->parentAndColor())))
     {
         if (elm == elm->getParent()->left())
             elm->getParent()->left() = tmp;
@@ -225,7 +226,7 @@ _RBRotateRight(RBTreeBase<T>* s, RBNode<T>* elm)
     {
         tmp->right()->setParent(elm);
     }
-    if ((tmp->setParent(elm->getParent())))
+    if ((tmp->setParent(elm->parentAndColor())))
     {
         if (elm == elm->getParent()->left())
             elm->getParent()->left() = tmp;
