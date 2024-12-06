@@ -40,7 +40,6 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions("-DDEBUG")
     add_compile_definitions("-DADT_DBG_MEMORY")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
-
 else()
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs -lc -lm")
 endif()
