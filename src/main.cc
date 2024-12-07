@@ -765,7 +765,7 @@ main(int argc, char* argv[])
     {
         FreeList al(SIZE_1G * 2);
         /*Arena al(SIZE_1G * 2);*/
-        defer( freeAll(&al) );
+        /*defer( freeAll(&al) );*/
         /*OsAllocator al;*/
 
         json::Parser p(&al.super);
