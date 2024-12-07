@@ -210,20 +210,34 @@ testFreeList()
 {
     LOG_GOOD("testFreeList()\n");
 
-    Arena list(SIZE_8K);
-    defer( freeAll(&list) );
+    Arena arena(SIZE_8K);
+    defer( freeAll(&arena) );
 
-    Vec<int> vec(&list.super);
+    FreeList al(SIZE_1K * 2);
+    defer( freeAll(&al) );
+
+    Vec<s64> vec(&al.super);
     int what = 2;
 
-    void* p = alloc(&list, what, sizeof(int));
-    memset(p, 1, what * sizeof(int));
+    void* p = alloc(&al, what, sizeof(s64));
+    memset(p, 0, what * sizeof(s64));
     for (u32 i = 0; i < 20; ++i)
     {
-        VecPush(&vec, int(i));
+        VecPush(&vec, s64(i));
+        ++what;
+        /*LOG("i: {}, p: {}\n", i, p);*/
+        p = realloc(&al, p, what, sizeof(s64));
+        memset(p, 0, what * sizeof(s64));
 
-        p = realloc(&list, p, what + i, sizeof(int));
+        _FreeListVerify(&al);
+        _FreeListPrintTree(&al, &arena.super);
+        CERR("\n");
     }
+
+    /*COUT("vec:  {}\n", vec);*/
+    for (int i = 0; i < what; ++i)
+        COUT("{}, ", ((s64*)p)[i]);
+    COUT("\n");
 }
 
 void
@@ -749,7 +763,7 @@ main(int argc, char* argv[])
 
     if (argc >= 2)
     {
-        FreeList al(SIZE_1G * 3);
+        FreeList al(SIZE_1G * 2);
         /*Arena al(SIZE_1G * 2);*/
         defer( freeAll(&al) );
         /*OsAllocator al;*/
