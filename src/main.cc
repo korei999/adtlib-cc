@@ -457,7 +457,7 @@ static Pool<int, BIG> s_poolOfInts;
 void
 testPool()
 {
-    Pool<long, 4> pool(INIT);
+    Pool<long, 4> pool(INIT_FLAG::INIT);
     defer( PoolDestroy(&pool) );
 
     LOG("sizeof(pool): {}\n", sizeof(pool));
