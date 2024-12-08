@@ -33,8 +33,9 @@ LexerSkipWhiteSpace(Lexer* s)
 {
     auto oneOf = [](char c) -> bool {
         const char skipChars[] = " \t\n\r";
-        for (auto& s : skipChars)
-            if (c == s) return true;
+
+        for (auto ch : skipChars)
+            if (c == ch) return true;
 
         return false;
     };
@@ -50,10 +51,12 @@ LexerNumber(Lexer* s)
     u32 start = s->pos;
     u32 i = start;
 
-    while (isxdigit(s->sFile[i])       ||
-                    s->sFile[i] == '.' ||
-                    s->sFile[i] == '-' ||
-                    s->sFile[i] == '+')
+    while (
+        isxdigit(s->sFile[i]) ||
+        s->sFile[i] == '.'    ||
+        s->sFile[i] == '-'    ||
+        s->sFile[i] == '+'
+    )
     {
         i++;
     }
