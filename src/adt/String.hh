@@ -259,6 +259,8 @@ StringLastOf(String sv, char c)
 inline String
 StringAlloc(IAllocator* p, const char* str, u32 size)
 {
+    if (str == nullptr || size == 0) return {};
+
     char* pData = (char*)zalloc(p, size + 1, sizeof(char));
     strncpy(pData, str, size);
     pData[size] = '\0';
@@ -269,6 +271,8 @@ StringAlloc(IAllocator* p, const char* str, u32 size)
 inline String
 StringAlloc(IAllocator* p, u32 size)
 {
+    if (size == 0) return {};
+
     char* pData = (char*)zalloc(p, size + 1, sizeof(char));
     return {pData, size};
 }
