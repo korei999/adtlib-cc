@@ -362,7 +362,14 @@ StringContains(String l, const String r)
 {
     if (l.size < r.size) return false;
 
-    return strstr(l.pData, r.pData) != nullptr;
+    for (u32 i = 0; i < l.size; ++i)
+    {
+        if (i + r.size > l.size) break;
+        const String sub(&l[i], l.size - i);
+        if (sub == r) return true;
+    }
+
+    return false;
 }
 
 template<>
