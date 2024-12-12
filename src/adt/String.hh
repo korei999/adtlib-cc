@@ -27,7 +27,7 @@ struct String;
 [[nodiscard]] inline bool operator==(const String& l, const char* r);
 [[nodiscard]] inline bool operator!=(const String& l, const String& r);
 [[nodiscard]] constexpr s64 operator-(const String& l, const String& r);
-[[nodiscard]] constexpr u32 StringLastOf(String sv, char c);
+[[nodiscard]] inline u32 StringLastOf(const String s, const char c);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str);
@@ -37,7 +37,7 @@ inline void StringDestroy(IAllocator* p, String* s);
 inline void StringAppend(String* l, const String r);
 inline void StringTrimEnd(String* s);
 constexpr void StringRemoveNLEnd(String* s); /* removes nextline character if it ends with one */
-[[nodiscard]] constexpr bool StringContains(String l, const String r);
+[[nodiscard]] inline bool StringContains(String haystack, const String needle);
 
 /* just pointer + size, no allocations, use `StringAlloc()` for that */
 struct String
@@ -246,14 +246,12 @@ operator-(const String& l, const String& r)
     return sum;
 }
 
-constexpr u32
-StringLastOf(String sv, char c)
+inline u32
+StringLastOf(const String s, const char c)
 {
-    for (int i = sv.size - 1; i >= 0; i--)
-        if (sv[i] == c)
-            return i;
-
-    return NPOS;
+    auto* p = strrchr(s.pData, c);
+    if (p) return p - (s.pData + s.size);
+    else return NPOS;
 }
 
 inline String
@@ -357,20 +355,12 @@ StringRemoveNLEnd(String* s)
         s->pData[--s->size] = '\0';
 }
 
-constexpr bool
-StringContains(String l, const String r)
+inline bool
+StringContains(String haystack, const String needle)
 {
+    if (haystack.size < needle.size) return false;
 
-    if (l.size < r.size) return false;
-
-    for (u32 i = 0; i < l.size; ++i)
-    {
-        if (i + r.size > l.size) break;
-        const String sub(&l[i], l.size - i);
-        if (sub == r) return true;
-    }
-
-    return false;
+    return strstr(haystack.pData, needle.pData) != nullptr;
 }
 
 template<>
