@@ -3,6 +3,8 @@
 #include "Lexer.hh"
 #include "ast.hh"
 
+#include <cassert>
+
 namespace json
 {
 
@@ -49,36 +51,42 @@ searchObject(adt::VecBase<Object>& aObj, adt::String svKey)
 inline adt::VecBase<Object>&
 getObject(Object* obj)
 {
+    assert(obj->tagVal.tag == TAG::OBJECT);
     return obj->tagVal.val.o;
 }
 
 inline adt::VecBase<Object>&
 getArray(Object* obj)
 {
+    assert(obj->tagVal.tag == TAG::ARRAY);
     return obj->tagVal.val.a;
 }
 
 inline long
 getLong(Object* obj)
 {
+    assert(obj->tagVal.tag == TAG::LONG);
     return obj->tagVal.val.l;
 }
 
 inline double
 getDouble(Object* obj)
 {
+    assert(obj->tagVal.tag == TAG::DOUBLE);
     return obj->tagVal.val.d;
 }
 
 inline adt::String
 getString(Object* obj)
 {
+    assert(obj->tagVal.tag == TAG::STRING);
     return obj->tagVal.val.sv;
 }
 
 inline bool
 getBool(Object* obj)
 {
+    assert(obj->tagVal.tag == TAG::BOOL);
     return obj->tagVal.val.b;
 }
 

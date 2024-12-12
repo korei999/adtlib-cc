@@ -37,7 +37,7 @@ inline void StringDestroy(IAllocator* p, String* s);
 inline void StringAppend(String* l, const String r);
 inline void StringTrimEnd(String* s);
 constexpr void StringRemoveNLEnd(String* s); /* removes nextline character if it ends with one */
-[[nodiscard]] constexpr bool StringContains(String l, const String r);
+[[nodiscard]] inline bool StringContains(String l, const String r);
 
 /* just pointer + size, no allocations, use `StringAlloc()` for that */
 struct String
@@ -357,7 +357,7 @@ StringRemoveNLEnd(String* s)
         s->pData[--s->size] = '\0';
 }
 
-constexpr bool
+inline bool
 StringContains(String l, const String r)
 {
     if (l.size < r.size) return false;
