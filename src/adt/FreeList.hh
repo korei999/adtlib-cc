@@ -34,6 +34,8 @@ struct FreeListBlock
     u8 pMem[];
 };
 
+constexpr u64 FREE_LIST_IS_FREE_MASK = 1ULL << 63;
+
 struct FreeListData
 {
     static constexpr u64 IS_FREE_MASK = 1ULL << 63;
@@ -49,7 +51,6 @@ struct FreeListData
     constexpr void setSizeSetFree(u64 _size, bool _bFree) { sizeAndIsFree = _size; setFree(_bFree); }
     constexpr void setSize(u64 _size) { setSizeSetFree(_size, isFree()); }
     constexpr void addSize(u64 _size) { setSize(_size + getSize()); }
-    // constexpr FreeListData* next() const { return (FreeListData*)((u8*)this + getSize()); }
 };
 
 struct FreeList
@@ -74,7 +75,7 @@ _FreeListPrintTree(FreeList* s, IAllocator* pAlloc)
     auto pfn = +[](const FreeList::Node* pNode, [[maybe_unused]] void* pArgs) -> void {
         CERR(
             "{}" ADT_LOGS_COL_NORM " {}\n",
-            pNode->color() == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()
+            RBColor(pNode) == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()
         );
     };
 
@@ -192,8 +193,8 @@ _FreeListFindFittingNode(FreeList* s, const u64 size)
         s64 cmp = realSize - nodeSize;
 
         if (cmp == 0) break;
-        else if (cmp < 0) it = it->left();
-        else it = it->right();
+        else if (cmp < 0) it = RBLeft(it);
+        else it = RBRight(it);
     }
 
     return pLastFitting;
