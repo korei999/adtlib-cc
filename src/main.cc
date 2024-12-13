@@ -765,8 +765,9 @@ main(int argc, char* argv[])
     {
         FreeList al(SIZE_1G * 2);
         /*Arena al(SIZE_1G * 2);*/
-        /*defer( freeAll(&al) );*/
         /*OsAllocator al;*/
+
+        defer( freeAll(&al) );
 
         json::Parser p(&al.super);
         json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);
