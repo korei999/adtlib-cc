@@ -16,8 +16,8 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    /*FreeList al(SIZE_1G * 2);*/
-    Arena al(SIZE_1G * 2);
+    FreeList al(SIZE_1M * 2);
+    /*Arena al(SIZE_1G * 2);*/
     /*OsAllocator al;*/
 
     defer( freeAll(&al) );
