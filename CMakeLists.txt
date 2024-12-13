@@ -18,6 +18,11 @@ add_executable(
     src/json/Parser.cc
 )
 
+add_executable(
+    vec-test
+    src/VecTest.cc
+)
+
 add_definitions("-DADT_LOGS")
 add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGS_LESS_TYPING")
