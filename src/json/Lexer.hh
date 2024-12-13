@@ -1,7 +1,7 @@
 #pragma once
 
-#include "adt/String.hh"
 #include "adt/IAllocator.hh"
+#include "adt/String.hh"
 
 namespace json
 {
@@ -33,16 +33,14 @@ struct Token
 
 struct Lexer
 {
-    adt::IAllocator* pAlloc {};
     adt::String sFile;
     adt::u32 pos = 0;
 
     Lexer() = default;
-    Lexer(adt::IAllocator* p) : pAlloc(p) {}
 };
 
-void LexerDestroy(Lexer* s);
-RESULT LexerLoadFile(Lexer* s, adt::String path);
+void LexerDestroy(Lexer* s, adt::IAllocator* pAlloc);
+RESULT LexerLoadFile(Lexer* s, adt::IAllocator* pAlloc, adt::String path);
 Token LexerNext(Lexer* s);
 
 void LexerSkipWhiteSpace(Lexer* s);

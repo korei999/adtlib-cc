@@ -18,7 +18,7 @@ struct Parser
     Token tNext;
 
     Parser() = default;
-    Parser(adt::IAllocator* p) : pAlloc(p), l(p) {}
+    Parser(adt::IAllocator* p) : pAlloc(p) {}
 };
 
 void ParserDestroy(Parser* s);

@@ -11,15 +11,14 @@ namespace json
 {
 
 void
-LexerDestroy(Lexer* s)
+LexerDestroy(Lexer* s, adt::IAllocator* pAlloc)
 {
-    free(s->pAlloc, s->sFile.pData);
+    free(pAlloc, s->sFile.pData);
 }
 
-RESULT
-LexerLoadFile(Lexer* s, adt::String path)
+RESULT LexerLoadFile(Lexer* s, IAllocator* pAlloc, adt::String path)
 {
-    Opt<String> rs = file::load(s->pAlloc, path);
+    Opt<String> rs = file::load(pAlloc, path);
     if (!rs) return FAIL;
 
     s->sFile = rs.data;

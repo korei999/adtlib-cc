@@ -23,7 +23,7 @@ RESULT
 ParserLoad(Parser* s, adt::String path)
 {
     s->sName = path;
-    if (LexerLoadFile(&s->l, path) == FAIL) return FAIL;
+    if (LexerLoadFile(&s->l, s->pAlloc, path) == FAIL) return FAIL;
 
     s->tCurr = LexerNext(&s->l);
     s->tNext = LexerNext(&s->l);
@@ -253,7 +253,7 @@ ParserDestroy(Parser* s)
     };
 
     ParserTraverseAll(s, fn, s->pAlloc);
-    LexerDestroy(&s->l);
+    LexerDestroy(&s->l, s->pAlloc);
     VecDestroy(&s->aObjects, s->pAlloc);
 }
 
