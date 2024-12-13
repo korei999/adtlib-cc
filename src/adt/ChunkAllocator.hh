@@ -106,12 +106,7 @@ ChunkZalloc(ChunkAllocator* s, [[maybe_unused]] u64 ignored0, [[maybe_unused]] u
 }
 
 inline void*
-_ChunkRealloc(
-    [[maybe_unused]] ChunkAllocator* s,
-    [[maybe_unused]] void* ___ignored,
-    [[maybe_unused]] u64 _ignored,
-    [[maybe_unused]] u64 __ignored
-)
+_ChunkRealloc(ChunkAllocator*, void*, u64, u64)
 {
     assert(false && "ChunkAllocator can't realloc()");
     return nullptr;

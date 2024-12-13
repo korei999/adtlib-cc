@@ -35,14 +35,21 @@ struct OsAllocator
 {
     IAllocator super {};
 
-    constexpr OsAllocator([[maybe_unused]] u32 _ingnored = 0) : super(&inl_OsAllocatorVTable) {}
+    constexpr OsAllocator([[maybe_unused]] u64 _ingnored = 0) : super(&inl_OsAllocatorVTable) {}
 };
 
-inline OsAllocator inl_OsAllocator {};
-inline IAllocator* inl_pOsAlloc = &inl_OsAllocator.super;
+/*inline OsAllocator inl_OsAllocator {};*/
+/*inline IAllocator* inl_pOsAlloc = &inl_OsAllocator.super;*/
+
+inline IAllocator*
+OsAllocatorGet()
+{
+    static OsAllocator alloc {};
+    return &alloc.super;
+}
 
 inline void*
-OsAlloc([[maybe_unused]] OsAllocator* s, u64 mCount, u64 mSize)
+OsAlloc(OsAllocator*, u64 mCount, u64 mSize)
 {
     auto* r = ::malloc(mCount * mSize);
     assert(r != nullptr && "[OsAllocator]: calloc failed");
@@ -50,7 +57,7 @@ OsAlloc([[maybe_unused]] OsAllocator* s, u64 mCount, u64 mSize)
 }
 
 inline void*
-OsZalloc([[maybe_unused]] OsAllocator* s, u64 mCount, u64 mSize)
+OsZalloc(OsAllocator*, u64 mCount, u64 mSize)
 {
     auto* r = ::calloc(mCount, mSize);
     assert(r != nullptr && "[OsAllocator]: calloc failed");
@@ -58,7 +65,7 @@ OsZalloc([[maybe_unused]] OsAllocator* s, u64 mCount, u64 mSize)
 }
 
 inline void*
-OsRealloc([[maybe_unused]] OsAllocator* s, void* p, u64 mCount, u64 mSize)
+OsRealloc(OsAllocator*, void* p, u64 mCount, u64 mSize)
 {
     auto* r = ::realloc(p, mCount * mSize);
     assert(r != nullptr && "[OsAllocator]: realloc failed");
@@ -66,13 +73,13 @@ OsRealloc([[maybe_unused]] OsAllocator* s, void* p, u64 mCount, u64 mSize)
 }
 
 inline void
-OsFree([[maybe_unused]] OsAllocator* s, void* p)
+OsFree(OsAllocator*, void* p)
 {
     ::free(p);
 }
 
 inline void
-_OsFreeAll([[maybe_unused]] OsAllocator* s)
+_OsFreeAll(OsAllocator*)
 {
     assert(false && "[OsAllocator]: no 'freeAll()' method");
 }

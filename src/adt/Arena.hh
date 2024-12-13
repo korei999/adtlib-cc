@@ -38,9 +38,9 @@ struct Arena
 [[nodiscard]] inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
 [[nodiscard]] inline void* ArenaZalloc(Arena* s, u64 mCount, u64 mSize);
 [[nodiscard]] inline void* ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize);
-inline void ArenaFree(Arena* s, void* ptr);
+inline void ArenaFree(Arena* s, void* ptr); /* noop */
 inline void ArenaFreeAll(Arena* s);
-inline void ArenaReset(Arena* s);
+inline void ArenaReset(Arena* s); /* reset without deallocation */
 
 [[nodiscard]] inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
 [[nodiscard]] inline void* zalloc(Arena* s, u64 mCount, u64 mSize) { return ArenaZalloc(s, mCount, mSize); }
