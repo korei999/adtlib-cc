@@ -79,6 +79,18 @@ min(auto& l, auto& r)
     return l < r ? l : r;
 }
 
+[[nodiscard]] constexpr auto
+maxVal(const auto& l, const auto& r)
+{
+    return l > r ? l : r;
+}
+
+[[nodiscard]] constexpr auto
+minVal(const auto& l, const auto& r)
+{
+    return l < r ? l : r;
+}
+
 [[nodiscard]] constexpr u64
 size(const auto& a)
 {

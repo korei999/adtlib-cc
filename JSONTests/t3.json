@@ -1,0 +1,17 @@
+{
+    "one": 1.0,
+    "two": 2,
+    "three": "three",
+    "four.five": 4.5,
+    "bool0": true,
+    "bool1": false,
+    "obj": {
+        "wow": 404,
+        "wow2": 202
+    },
+    "obj2": {
+        "five": 4,
+        "six": 6.666
+    },
+    "arr": [3, "three", 3.0, {"three": true}]
+}

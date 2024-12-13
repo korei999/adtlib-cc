@@ -14,13 +14,18 @@ project(adtlib-test VERSION 0.4 LANGUAGES CXX)
 add_executable(
     ${CMAKE_PROJECT_NAME}
     src/main.cc
-    src/json/Lexer.cc
-    src/json/Parser.cc
 )
 
 add_executable(
-    vec-test
+    adt-vec
     src/VecTest.cc
+)
+
+add_executable(
+    adt-json
+    src/JSONTest.cc
+    src/json/Parser.cc
+    src/json/Lexer.cc
 )
 
 add_definitions("-DADT_LOGS")

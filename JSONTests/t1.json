@@ -1,0 +1,14 @@
+[
+    {
+        "one": 1,
+        "two": 2
+    },
+    {
+        "two": "two",
+        "three": [3, "three", 3.0, {"three": true}],
+        "not empty": {
+            "empty": "are not \"allowed"
+        },
+        "empty2": ""
+    }
+]

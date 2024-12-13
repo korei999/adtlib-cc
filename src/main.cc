@@ -9,7 +9,6 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/sort.hh"
-#include "json/Parser.hh"
 #include "adt/Pair.hh"
 #include "adt/math.hh"
 #include "adt/Result.hh"
@@ -660,13 +659,6 @@ testMap()
 int
 main(int argc, char* argv[])
 {
-    if (argc <= 1)
-    {
-        COUT("jsonast version: {:.1}\n\n", ADTLIB_CC_VERSION);
-        COUT("usage: {} <path to json> [-p(print)|-e(json creation example)]\n", argv[0]);
-        return 0;
-    }
-
     if (argc >= 2 && (String(argv[1]) == "--buddy"))
     {
         testBuddy();
@@ -761,25 +753,5 @@ main(int argc, char* argv[])
     if (String(argv[1]) == "--avl" || String(argv[1]) == "--rb" || String(argv[1]) == "--tree")
         return 0;
 
-    if (argc >= 2)
-    {
-        FreeList al(SIZE_1G * 2);
-        /*Arena al(SIZE_1G * 2);*/
-        /*OsAllocator al;*/
-
-        defer( freeAll(&al) );
-
-        json::Parser p(&al.super);
-        json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);
-        LOG("parsed\n");
-        if (eRes == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
-
-        if (argc >= 3 && "-p" == String(argv[2]))
-            json::ParserPrint(&p, stdout);
-
-        /*json::ParserDestroy(&p);*/
-        /*_FreeListPrintTree(&al, &arena.base);*/
-
-    }
     LOG("done\n");
 }
