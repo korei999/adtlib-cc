@@ -455,12 +455,12 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
     return nRead;
 }
 
-template<typename... ARGS_T>
+template<u32 SIZE = 512, typename... ARGS_T>
 constexpr u32
 toFILE(FILE* fp, const String fmt, const ARGS_T&... tArgs)
 {
-    /* TODO: set size / allow allocation maybe */
-    char aBuff[1024] {};
+    /* TODO: allow allocation? */
+    char aBuff[SIZE] {};
     Context ctx {fmt, aBuff, utils::size(aBuff) - 1};
     auto r = printArgs(ctx, tArgs...);
     fputs(aBuff, fp);
