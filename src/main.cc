@@ -656,6 +656,22 @@ testMap()
     LOG_GOOD("passed\n");
 }
 
+static void
+testArena()
+{
+    Arena arena(SIZE_1K);
+    defer( freeAll(&arena) );
+
+    u32 size = 967792;
+
+    auto* p0 = (char*)alloc(&arena, size*1.1, 1);
+    auto* p1 = (char*)alloc(&arena, size, 1);
+
+    memcpy(p1, p0, size);
+
+    LOG("testArena() passed\n");
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -722,6 +738,12 @@ main(int argc, char* argv[])
     if (argc >= 2 && (String(argv[1]) == "--map"))
     {
         testMap();
+        return 0;
+    }
+
+    if (argc >= 2 && (String(argv[1]) == "--arena"))
+    {
+        testArena();
         return 0;
     }
 

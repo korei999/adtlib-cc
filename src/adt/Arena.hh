@@ -40,7 +40,7 @@ struct Arena
 [[nodiscard]] inline void* ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize);
 inline void ArenaFree(Arena* s, void* ptr); /* noop */
 inline void ArenaFreeAll(Arena* s);
-inline void ArenaReset(Arena* s); /* reset without deallocation */
+inline void ArenaReset(Arena* s);
 
 [[nodiscard]] inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
 [[nodiscard]] inline void* zalloc(Arena* s, u64 mCount, u64 mSize) { return ArenaZalloc(s, mCount, mSize); }
@@ -111,7 +111,7 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 
     if (!pBlock) pBlock = _ArenaPrependBlock(s, utils::max(s->defaultCapacity, realSize*2));
 
-    auto* pRet = pBlock->pLastAlloc + pBlock->lastAllocSize;
+    auto* pRet = pBlock->pMem + pBlock->nBytesOccupied;
 
     pBlock->pLastAlloc = pRet;
     pBlock->nBytesOccupied += realSize;
@@ -142,8 +142,6 @@ ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
     if (ptr == pBlock->pLastAlloc &&
         pBlock->pLastAlloc + realSize < pBlock->pMem + pBlock->size) /* bump case */
     {
-        if (pBlock->lastAllocSize >= requested) return ptr;
-
         pBlock->nBytesOccupied -= pBlock->lastAllocSize;
         pBlock->nBytesOccupied += realSize;
         pBlock->lastAllocSize = realSize;
