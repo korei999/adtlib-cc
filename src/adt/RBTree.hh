@@ -513,8 +513,8 @@ RBTraversePRE(
     if (p)
     {
         if (pfn(p, pUserData)) return {p};
-        RBTraversePOST(RBLeft(p), pfn, pUserData);
-        RBTraversePOST(RBRight(p), pfn, pUserData);
+        RBTraversePRE(RBLeft(p), pfn, pUserData);
+        RBTraversePRE(RBRight(p), pfn, pUserData);
     }
 
     return {};
@@ -530,9 +530,9 @@ RBTraverseIN(
 {
     if (p)
     {
-        RBTraversePOST(RBLeft(p), pfn, pUserData);
+        RBTraverseIN(RBLeft(p), pfn, pUserData);
         if (pfn(p, pUserData)) return {p};
-        RBTraversePOST(RBRight(p), pfn, pUserData);
+        RBTraverseIN(RBRight(p), pfn, pUserData);
     }
 
     return {};
