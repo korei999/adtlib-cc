@@ -51,7 +51,7 @@ struct RBNode
 {
     RBNode* left {};
     RBNode* right {};
-    RBNode* parCol {}; /* NOTE: color is stored as the least significant bit */
+    RBNode* parentPlusColor {}; /* NOTE: color is stored as the least significant bit */
     T data {};
 };
 
@@ -68,22 +68,22 @@ template<typename T>
 inline RBNode<T>* const& RBRight(const RBNode<T>* s) { return s->right; }
 
 template<typename T>
-inline RBNode<T>* RBParent(RBNode<T>* s) { return (RBNode<T>*)((u64)s->parCol & ~RB_COLOR_MASK); }
+inline RBNode<T>* RBParent(RBNode<T>* s) { return (RBNode<T>*)((u64)s->parentPlusColor & ~RB_COLOR_MASK); }
 
 template<typename T>
-inline RB_COLOR RBColor(const RBNode<T>* s) { return (RB_COLOR)((u64)s->parCol & RB_COLOR_MASK); }
+inline RB_COLOR RBColor(const RBNode<T>* s) { return (RB_COLOR)((u64)s->parentPlusColor & RB_COLOR_MASK); }
 
 template<typename T>
-inline void RBSetParent(RBNode<T>* s, RBNode<T>* par) { s->parCol = (RBNode<T>*)(((u64)par & ~RB_COLOR_MASK) | (u64)RBColor<T>(s)); }
+inline void RBSetParent(RBNode<T>* s, RBNode<T>* par) { s->parentPlusColor = (RBNode<T>*)(((u64)par & ~RB_COLOR_MASK) | (u64)RBColor<T>(s)); }
 
 template<typename T>
-inline RB_COLOR RBSetColor(RBNode<T>* s, RB_COLOR eColor) { s->parCol = (RBNode<T>*)((u64)RBParent<T>(s) | (u64)eColor); return eColor; }
+inline RB_COLOR RBSetColor(RBNode<T>* s, RB_COLOR eColor) { s->parentPlusColor = (RBNode<T>*)((u64)RBParent<T>(s) | (u64)eColor); return eColor; }
 
 template<typename T>
-inline RBNode<T>*& RBParCol(RBNode<T>* s) { return s->parCol; }
+inline RBNode<T>*& RBParCol(RBNode<T>* s) { return s->parentPlusColor; }
 
 template<typename T>
-inline RBNode<T>* const& RBParCol(const RBNode<T>* s) { return s->parCol; }
+inline RBNode<T>* const& RBParCol(const RBNode<T>* s) { return s->parentPlusColor; }
 
 template<typename T>
 struct RBTreeBase
