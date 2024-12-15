@@ -38,9 +38,6 @@ struct OsAllocator
     constexpr OsAllocator([[maybe_unused]] u64 _ingnored = 0) : super(&inl_OsAllocatorVTable) {}
 };
 
-/*inline OsAllocator inl_OsAllocator {};*/
-/*inline IAllocator* inl_pOsAlloc = &inl_OsAllocator.super;*/
-
 inline IAllocator*
 OsAllocatorGet()
 {
