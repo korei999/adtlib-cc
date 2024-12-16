@@ -266,7 +266,7 @@ StringAlloc(IAllocator* p, const char* str, u32 size)
 {
     if (str == nullptr || size == 0) return {};
 
-    char* pData = (char*)zalloc(p, size + 1, sizeof(char));
+    char* pData = (char*)p->zalloc(size + 1, sizeof(char));
     strncpy(pData, str, size);
     pData[size] = '\0';
 
@@ -278,7 +278,7 @@ StringAlloc(IAllocator* p, u32 size)
 {
     if (size == 0) return {};
 
-    char* pData = (char*)zalloc(p, size + 1, sizeof(char));
+    char* pData = (char*)p->zalloc(size + 1, sizeof(char));
     return {pData, size};
 }
 
@@ -297,7 +297,7 @@ StringAlloc(IAllocator* p, const String s)
 inline void
 StringDestroy(IAllocator* p, String* s)
 {
-    free(p, s->pData);
+    p->free(s->pData);
     *s = {};
 }
 
@@ -305,7 +305,7 @@ inline String
 StringCat(IAllocator* p, const String l, const String r)
 {
     u32 len = l.size + r.size;
-    char* ret = (char*)zalloc(p, len + 1, sizeof(char));
+    char* ret = (char*)p->zalloc(len + 1, sizeof(char));
 
     u32 pos = 0;
     for (u32 i = 0; i < l.size; ++i, ++pos)

@@ -11,15 +11,15 @@ endif()
 
 project(adtlib-test VERSION 0.4 LANGUAGES CXX)
 
-add_executable(
-    ${CMAKE_PROJECT_NAME}
-    src/main.cc
-)
-
-add_executable(
-    adt-vec
-    src/VecTest.cc
-)
+# add_executable(
+#     ${CMAKE_PROJECT_NAME}
+#     src/main.cc
+# )
+# 
+# add_executable(
+#     adt-vec
+#     src/VecTest.cc
+# )
 
 add_executable(
     adt-json

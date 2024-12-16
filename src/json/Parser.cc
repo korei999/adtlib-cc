@@ -247,7 +247,7 @@ ParserDestroy(Parser* s)
         auto* pAlloc = (IAllocator*)a;
 
         if (p->tagVal.tag == TAG::ARRAY || p->tagVal.tag == TAG::OBJECT)
-            free(pAlloc, p->tagVal.val.a.pData);
+            pAlloc->free(p->tagVal.val.a.pData);
 
         return false;
     };

@@ -1,9 +1,7 @@
-#include "adt/FreeList.hh"
-#include "adt/OsAllocator.hh"
+#include "adt/Arena.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
-#include "adt/MutexArena.hh"
 
 using namespace adt;
 
@@ -24,7 +22,7 @@ main(int argc, char* argv[])
 
     defer( freeAll(&al) );
 
-    json::Parser p((IAllocator*)&al);
+    json::Parser p(&al);
     json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);
     if (eRes == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
 

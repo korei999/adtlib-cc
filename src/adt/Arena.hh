@@ -25,11 +25,16 @@ struct ArenaBlock
 };
 
 /* fast region based allocator, only freeAll() free's memory, free() does nothing */
-struct Arena
+struct Arena : IAllocator
 {
-    IAllocator super {};
     u64 defaultCapacity {};
     ArenaBlock* pBlocks {};
+
+    virtual inline void* alloc(u64 mCount, u64 mSize);
+    virtual inline void* zalloc(u64 mCount, u64 mSize);
+    virtual inline void* realloc(void* ptr, u64 mCount, u64 mSize);
+    virtual inline void free(void* ptr);
+    virtual inline void freeAll();
 
     Arena() = default;
     Arena(u64 capacity);
@@ -204,17 +209,14 @@ ArenaReset(Arena* s)
     }
 }
 
-inline const AllocatorVTable inl_ArenaVTable {
-    .alloc = decltype(AllocatorVTable::alloc)(ArenaAlloc),
-    .zalloc = decltype(AllocatorVTable::zalloc)(ArenaZalloc),
-    .realloc = decltype(AllocatorVTable::realloc)(ArenaRealloc),
-    .free = decltype(AllocatorVTable::free)(ArenaFree),
-    .freeAll = decltype(AllocatorVTable::freeAll)(ArenaFreeAll),
-};
+inline void* Arena::alloc(u64 mCount, u64 mSize) { return ArenaAlloc(this, mCount, mSize); }
+inline void* Arena::zalloc(u64 mCount, u64 mSize) { return ArenaZalloc(this, mCount, mSize); }
+inline void* Arena::realloc(void* ptr, u64 mCount, u64 mSize) { return ArenaRealloc(this, ptr, mCount, mSize); }
+inline void Arena::free(void* ptr) { /* noop */ }
+inline void Arena::freeAll() { ArenaFreeAll(this); }
 
 inline Arena::Arena(u64 capacity)
-    : super(&inl_ArenaVTable),
-      defaultCapacity(align8(capacity)),
+    : defaultCapacity(align8(capacity)),
       pBlocks(_ArenaAllocBlock(this->defaultCapacity)) {}
 
 } /* namespace adt */

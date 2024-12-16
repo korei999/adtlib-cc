@@ -13,7 +13,7 @@ namespace json
 void
 LexerDestroy(Lexer* s, adt::IAllocator* pAlloc)
 {
-    free(pAlloc, s->sFile.pData);
+    pAlloc->free(s->sFile.pData);
 }
 
 RESULT LexerLoadFile(Lexer* s, IAllocator* pAlloc, adt::String path)

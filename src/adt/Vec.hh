@@ -87,7 +87,7 @@ struct VecBase
 
     VecBase() = default;
     VecBase(IAllocator* p, u32 prealloc = 1)
-        : pData((T*)alloc(p, prealloc, sizeof(T))),
+        : pData((T*)p->alloc(prealloc, sizeof(T))),
           size(0),
           capacity(prealloc) {}
 
@@ -183,7 +183,7 @@ template<typename T>
 inline void
 VecSetCap(VecBase<T>* s, IAllocator* p, u32 cap)
 {
-    s->pData = (T*)realloc(p, s->pData, cap, sizeof(T));
+    s->pData = (T*)p->realloc(s->pData, cap, sizeof(T));
     s->capacity = cap;
 
     if (s->size > cap) s->size = cap;
@@ -239,7 +239,7 @@ template<typename T>
 inline void
 VecDestroy(VecBase<T>* s, IAllocator* p)
 {
-    free(p, s->pData);
+    p->free(s->pData);
 }
 
 template<typename T>
@@ -287,7 +287,7 @@ _VecGrow(VecBase<T>* s, IAllocator* p, u32 newCapacity)
 {
     assert(newCapacity * sizeof(T) > 0);
     s->capacity = newCapacity;
-    s->pData = (T*)realloc(p, s->pData, newCapacity, sizeof(T));
+    s->pData = (T*)p->realloc(s->pData, newCapacity, sizeof(T));
 }
 
 template<typename T>
