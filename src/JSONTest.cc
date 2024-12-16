@@ -20,7 +20,7 @@ main(int argc, char* argv[])
 
     /*OsAllocator al;*/
 
-    defer( freeAll(&al) );
+    defer( al.freeAll() );
 
     json::Parser p(&al);
     json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);

@@ -30,28 +30,15 @@ struct Arena : IAllocator
     u64 defaultCapacity {};
     ArenaBlock* pBlocks {};
 
-    virtual inline void* alloc(u64 mCount, u64 mSize);
-    virtual inline void* zalloc(u64 mCount, u64 mSize);
-    virtual inline void* realloc(void* ptr, u64 mCount, u64 mSize);
-    virtual inline void free(void* ptr);
-    virtual inline void freeAll();
+    virtual inline void* alloc(u64 mCount, u64 mSize) final;
+    virtual inline void* zalloc(u64 mCount, u64 mSize) final;
+    virtual inline void* realloc(void* ptr, u64 mCount, u64 mSize) final;
+    virtual inline void free(void* ptr) final;
+    virtual inline void freeAll() final;
 
     Arena() = default;
     Arena(u64 capacity);
 };
-
-[[nodiscard]] inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
-[[nodiscard]] inline void* ArenaZalloc(Arena* s, u64 mCount, u64 mSize);
-[[nodiscard]] inline void* ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize);
-inline void ArenaFree(Arena* s, void* ptr); /* noop */
-inline void ArenaFreeAll(Arena* s);
-inline void ArenaReset(Arena* s);
-
-[[nodiscard]] inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
-[[nodiscard]] inline void* zalloc(Arena* s, u64 mCount, u64 mSize) { return ArenaZalloc(s, mCount, mSize); }
-[[nodiscard]] inline void* realloc(Arena* s, void* ptr, u64 mCount, u64 mSize) { return ArenaRealloc(s, ptr, mCount, mSize); }
-inline void free(Arena* s, void* ptr) { return ArenaFree(s, ptr); }
-inline void freeAll(Arena* s) { return ArenaFreeAll(s); }
 
 [[nodiscard]] inline ArenaBlock*
 _ArenaFindBlockFromPtr(Arena* s, u8* ptr)
@@ -104,8 +91,10 @@ _ArenaPrependBlock(Arena* s, u64 size)
 }
 
 inline void*
-ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
+Arena::alloc(u64 mCount, u64 mSize)
 {
+    auto* s = this;
+
     assert(s != nullptr && "[Arena]: nullptr self passed");
 
     u64 realSize = align8(mCount * mSize);
@@ -129,21 +118,25 @@ ArenaAlloc(Arena* s, u64 mCount, u64 mSize)
 }
 
 inline void*
-ArenaZalloc(Arena* s, u64 mCount, u64 mSize)
+Arena::zalloc(u64 mCount, u64 mSize)
 {
+    auto* s = this;
+
     assert(s != nullptr && "[Arena]: nullptr self passed");
 
-    auto* p = ArenaAlloc(s, mCount, mSize);
+    auto* p = s->alloc(mCount, mSize);
     memset(p, 0, align8(mCount * mSize));
     return p;
 }
 
 inline void*
-ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
+Arena::realloc(void* ptr, u64 mCount, u64 mSize)
 {
+    auto* s = this;
+
     assert(s != nullptr && "[Arena]: nullptr self passed");
 
-    if (!ptr) return ArenaAlloc(s, mCount, mSize);
+    if (!ptr) return alloc(mCount, mSize);
 
     u64 requested = mSize * mCount;
     u64 realSize = align8(requested);
@@ -162,7 +155,7 @@ ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
     }
     else
     {
-        auto* pRet = ArenaAlloc(s, mCount, mSize);
+        auto* pRet = alloc(mCount, mSize);
         u64 nBytesUntilEndOfBlock = &pBlock->pMem[pBlock->size] - (u8*)ptr;
         u64 nBytesToCopy = utils::min(requested, nBytesUntilEndOfBlock); /* out of range memcpy */
         nBytesToCopy = utils::min(nBytesToCopy, u64((u8*)pRet - (u8*)ptr)); /* overlap memcpy */
@@ -173,24 +166,24 @@ ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize)
 }
 
 inline void
-ArenaFree(Arena*, void*)
+Arena::free(void*)
 {
     /* noop */
 }
 
 inline void
-ArenaFreeAll(Arena* s)
+Arena::freeAll()
 {
     assert(s != nullptr && "[Arena]: nullptr self passed");
 
-    auto* it = s->pBlocks;
+    auto* it = this->pBlocks;
     while (it)
     {
         auto* next = it->pNext;
         ::free(it);
         it = next;
     }
-    s->pBlocks = nullptr;
+    this->pBlocks = nullptr;
 }
 
 inline void
@@ -208,12 +201,6 @@ ArenaReset(Arena* s)
         it = it->pNext;
     }
 }
-
-inline void* Arena::alloc(u64 mCount, u64 mSize) { return ArenaAlloc(this, mCount, mSize); }
-inline void* Arena::zalloc(u64 mCount, u64 mSize) { return ArenaZalloc(this, mCount, mSize); }
-inline void* Arena::realloc(void* ptr, u64 mCount, u64 mSize) { return ArenaRealloc(this, ptr, mCount, mSize); }
-inline void Arena::free(void* ptr) { /* noop */ }
-inline void Arena::freeAll() { ArenaFreeAll(this); }
 
 inline Arena::Arena(u64 capacity)
     : defaultCapacity(align8(capacity)),
