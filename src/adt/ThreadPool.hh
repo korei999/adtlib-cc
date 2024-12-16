@@ -185,7 +185,7 @@ _ThreadPoolLoop(void* p)
 
         if (task.eWait == WAIT_FLAG::WAIT)
         {
-            /* keep signaling until it's truly awakaned */
+            /* keep signaling until it's truly awakened */
             while (atomic_load_explicit(&task.pLock->bSignaled, memory_order_relaxed) == false)
                 cnd_signal(&task.pLock->cnd);
         }
