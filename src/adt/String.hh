@@ -10,12 +10,12 @@ namespace adt
 {
 
 [[nodiscard]] constexpr u32
-nullTermStringSize(const char* str)
+nullTermStringSize(const char* nts)
 {
     u32 i = 0;
-    if (!str) return 0;
+    if (!nts) return 0;
 
-    while (str[i] != '\0') ++i;
+    while (nts[i] != '\0') ++i;
 
     return i;
 }
@@ -28,16 +28,21 @@ struct String;
 [[nodiscard]] inline bool operator!=(const String& l, const String& r);
 [[nodiscard]] constexpr s64 operator-(const String& l, const String& r);
 [[nodiscard]] constexpr u32 StringLastOf(String sv, char c);
+
+/* StringAlloc() inserts '\0' char */
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const String s);
 inline void StringDestroy(IAllocator* p, String* s);
+
 [[nodiscard]] inline String StringCat(IAllocator* p, const String l, const String r);
 inline void StringAppend(String* l, const String r);
 inline void StringTrimEnd(String* s);
 constexpr void StringRemoveNLEnd(String* s); /* removes nextline character if it ends with one */
 [[nodiscard]] inline bool StringContains(String l, const String r);
+
+[[nodiscard]] inline u32 nGlyphs(const String str);
 
 /* just pointer + size, no allocations, use `StringAlloc()` for that */
 struct String
@@ -370,6 +375,19 @@ StringContains(String l, const String r)
     }
 
     return false;
+}
+
+inline u32
+nGlyphs(const String str)
+{
+    u32 n = 0;
+    for (u32 i = 0; i < str.size; )
+    {
+        i+= mblen(&str[i], str.size - i);
+        ++n;
+    }
+
+    return n;
 }
 
 template<>
