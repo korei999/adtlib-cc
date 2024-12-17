@@ -48,7 +48,7 @@ struct Pool
 
     void destroy();
 
-    [[nodiscard]] PoolHnd rent();
+    [[nodiscard]] PoolHnd getHandle();
 
     [[nodiscard]] PoolHnd getHandle(const T& value);
 
@@ -187,7 +187,7 @@ Pool<T, CAP>::destroy()
 
 template<typename T, u32 CAP>
 inline PoolHnd
-Pool<T, CAP>::rent()
+Pool<T, CAP>::getHandle()
 {
     guard::Mtx lock(&this->mtx);
 

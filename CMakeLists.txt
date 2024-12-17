@@ -17,6 +17,11 @@ add_executable(
 )
 
 add_executable(
+    adt-string
+    src/StringTest.cc
+)
+
+add_executable(
     adt-pool
     src/PoolTest.cc
 )

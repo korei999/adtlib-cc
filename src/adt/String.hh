@@ -1,8 +1,10 @@
 #pragma once
 
 #include "IAllocator.hh"
+#include "utils.hh"
 #include "hash.hh"
 
+#include <cassert>
 #include <cstring>
 #include <immintrin.h>
 
@@ -22,41 +24,52 @@ nullTermStringSize(const char* nts)
 
 struct String;
 
-[[nodiscard]] constexpr bool StringEndsWith(String l, String r);
 [[nodiscard]] inline bool operator==(const String& l, const String& r);
 [[nodiscard]] inline bool operator==(const String& l, const char* r);
 [[nodiscard]] inline bool operator!=(const String& l, const String& r);
 [[nodiscard]] constexpr s64 operator-(const String& l, const String& r);
-[[nodiscard]] constexpr u32 StringLastOf(String sv, char c);
 
 /* StringAlloc() inserts '\0' char */
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const String s);
-inline void StringDestroy(IAllocator* p, String* s);
 
 [[nodiscard]] inline String StringCat(IAllocator* p, const String l, const String r);
-inline void StringAppend(String* l, const String r);
-inline void StringTrimEnd(String* s);
-constexpr void StringRemoveNLEnd(String* s); /* removes nextline character if it ends with one */
-[[nodiscard]] inline bool StringContains(String l, const String r);
 
 [[nodiscard]] inline u32 nGlyphs(const String str);
 
 /* just pointer + size, no allocations, use `StringAlloc()` for that */
 struct String
 {
-    char* pData = nullptr;
-    u32 size = 0;
+    char* pData {};
+    u32 size {};
+    u32 capacity {}; /* allocated strings have non zero capacity */
 
     constexpr String() = default;
     constexpr String(char* sNullTerminated) : pData(sNullTerminated), size(nullTermStringSize(sNullTerminated)) {}
     constexpr String(const char* sNullTerminated) : pData(const_cast<char*>(sNullTerminated)), size(nullTermStringSize(sNullTerminated)) {}
     constexpr String(char* pStr, u32 len) : pData(pStr), size(len) {}
 
-    constexpr char& operator[](u32 i) { return pData[i]; }
-    constexpr const char& operator[](u32 i) const { return pData[i]; }
+    constexpr char& operator[](u32 i)             { assert(i < size && "[String]: out of size"); return pData[i]; }
+    constexpr const char& operator[](u32 i) const { assert(i < size && "[String]: out of size"); return pData[i]; }
+
+    [[nodiscard]] constexpr u32 getCap() const { return capacity; }
+    [[nodiscard]] constexpr bool isAllocated() const { return capacity > 0; }
+
+    [[nodiscard]] constexpr bool endsWith(const String r) const;
+
+    [[nodiscard]] constexpr u32 lastOf(char c) const;
+
+    void destroy(IAllocator* p);
+
+    void append(const String r);
+
+    void trimEnd();
+
+    constexpr void removeNLEnd(); /* remove \r\n */
+
+    [[nodiscard]] bool contains(const String r) const;
 
     struct It
     {
@@ -270,7 +283,9 @@ StringAlloc(IAllocator* p, const char* str, u32 size)
     strncpy(pData, str, size);
     pData[size] = '\0';
 
-    return {pData, size};
+    String n {pData, size};
+    n.capacity = size + 1;
+    return n;
 }
 
 inline String
@@ -279,7 +294,10 @@ StringAlloc(IAllocator* p, u32 size)
     if (size == 0) return {};
 
     char* pData = (char*)p->zalloc(size + 1, sizeof(char));
-    return {pData, size};
+
+    String n {pData, 0};
+    n.capacity = size + 1;
+    return n;
 }
 
 inline String
@@ -315,40 +333,47 @@ StringCat(IAllocator* p, const String l, const String r)
 
     ret[len] = '\0';
 
-    return {ret, len};
+    String n {ret, len};
+    n.capacity = len + 1;
+    return n;
 }
 
 inline void
-StringAppend(String* l, const String r)
+String::append(const String r)
 {
-    for (long i = l->size, j = 0; i < long(l->size + r.size); ++i, ++j)
-        (*l)[i] = r[j];
+    assert(this->isAllocated() && "[String]: can't append to unallocated string");
 
-    l->size += r.size;
+    long max = utils::minVal(this->capacity, r.size);
+
+    for (long i = this->size, j = 0; i < max; ++i, ++j)
+    {
+        (*this)[i] = r[j];
+        ++this->size;
+    }
 }
 
 inline void
-StringTrimEnd(String* s)
+String::trimEnd()
 {
     auto isWhiteSpace = [&](int i) -> bool {
-        char c = s->pData[i];
+        char c = this->pData[i];
         if (c == '\n' || c == ' ' || c == '\r' || c == '\t' || c == '\0')
             return true;
 
         return false;
     };
 
-    for (int i = s->size - 1; i >= 0; --i)
+    for (int i = this->size - 1; i >= 0; --i)
         if (isWhiteSpace(i))
         {
-            s->pData[i] = 0;
-            --s->size;
+            this->pData[i] = 0;
+            --this->size;
         }
         else break;
 }
 
 constexpr void
-StringRemoveNLEnd(String* s)
+String::removeNLEnd()
 {
     auto oneOf = [&](char c) -> bool {
         constexpr String chars = "\r\n";
@@ -357,20 +382,20 @@ StringRemoveNLEnd(String* s)
         return false;
     };
 
-    u64 pos = s->size - 1;
-    while (s->size > 0 && oneOf((*s)[pos]))
-        s->pData[--s->size] = '\0';
+    u64 pos = this->size - 1;
+    while (this->size > 0 && oneOf((*this)[pos]))
+        this->pData[--this->size] = '\0';
 }
 
 inline bool
-StringContains(String l, const String r)
+String::contains(const String r) const
 {
-    if (l.size < r.size) return false;
+    if (this->size < r.size) return false;
 
-    for (u32 i = 0; i < l.size; ++i)
+    for (u32 i = 0; i < this->size; ++i)
     {
-        if (i + r.size > l.size) break;
-        const String sub(&l[i], l.size - i);
+        if (i + r.size > this->size) break;
+        const String sub(&this->pData[i], this->size - i);
         if (sub == r) return true;
     }
 
