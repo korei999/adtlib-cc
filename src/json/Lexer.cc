@@ -21,7 +21,7 @@ RESULT LexerLoadFile(Lexer* s, IAllocator* pAlloc, adt::String path)
     Opt<String> rs = file::load(pAlloc, path);
     if (!rs) return FAIL;
 
-    s->sFile = rs.data;
+    s->sFile = rs.data();
     s->pos = 0;
 
     return OK;

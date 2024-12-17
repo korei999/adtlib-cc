@@ -1,25 +1,29 @@
 #pragma once
 
+#include <cassert>
+
 namespace adt
 {
 
 template<typename T>
-struct Opt
+class Opt
 {
-    T data {};
-    bool bHasValue = false;
+    T m_data {};
+    bool m_bHasValue = false;
 
+public:
     constexpr Opt() = default;
-
     constexpr Opt(const T& x, bool _bHasValue = true)
     {
-        bHasValue = _bHasValue;
-        data = x;
+        m_bHasValue = _bHasValue;
+        m_data = x;
     }
+
+    T& data() { assert(m_bHasValue && "[Opt]: has no data"); return m_data; }
 
     constexpr explicit operator bool() const
     {
-        return this->bHasValue;
+        return this->m_bHasValue;
     }
 };
 
