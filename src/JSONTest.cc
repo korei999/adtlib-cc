@@ -19,10 +19,6 @@ main(int argc, char* argv[])
     Arena al(SIZE_1G * 2);
     /*MutexArena al(SIZE_1G * 2);*/
 
-    /*OsAllocator al;*/
-
-    LOG_BAD("v1: {}, v2: {}\n", sizeof(AllocatorVTable), sizeof(AllocatorVTableV2));
-
     defer( al.freeAll() );
 
     json::Parser p((IAllocator*)&al);
