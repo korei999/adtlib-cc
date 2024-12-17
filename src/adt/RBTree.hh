@@ -30,6 +30,7 @@
 #include "IAllocator.hh"
 #include "String.hh"
 #include "utils.hh"
+#include "print.hh"
 
 #include <cstdio>
 #include <cassert>
@@ -133,10 +134,7 @@ template<typename T>
 inline void
 RBPrintNodes(
     IAllocator* pA,
-    const RBTreeBase<T>* s,
     const RBNode<T>* pNode,
-    void (*pfnPrint)(const RBNode<T>*, void*),
-    void* pFnData,
     FILE* pF,
     const String sPrefix,
     bool bLeft
@@ -621,10 +619,7 @@ template<typename T>
 inline void
 RBPrintNodes(
     IAllocator* pA,
-    const RBTreeBase<T>* s,
     const RBNode<T>* pNode,
-    void (*pfnPrint)(const RBNode<T>*, void*),
-    void* pFnData,
     FILE* pF,
     const String sPrefix,
     bool bLeft
@@ -632,13 +627,12 @@ RBPrintNodes(
 {
     if (pNode)
     {
-        fprintf(pF, "%.*s%s", sPrefix.size, sPrefix.pData, bLeft ? "|__" : "\\__");
-        pfnPrint(pNode, pFnData);
+        print::toFILE(pF, "{}{} {}\n", sPrefix, bLeft ? "|__" : "\\__", pNode->data);
 
         String sCat = StringCat(pA, sPrefix, bLeft ? "|   " : "    ");
 
-        RBPrintNodes(pA, s, pNode->left(), pfnPrint, pFnData, pF, sCat, true);
-        RBPrintNodes(pA, s, pNode->right(), pfnPrint, pFnData, pF, sCat, false);
+        RBPrintNodes(pA, pNode->left(), pF, sCat, true);
+        RBPrintNodes(pA, pNode->right(), pF, sCat, false);
 
         pA->free(sCat.pData);
     }
