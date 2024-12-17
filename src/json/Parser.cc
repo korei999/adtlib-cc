@@ -42,8 +42,8 @@ ParserParse(Parser* s)
 {
     do
     {
-        VecPush(&s->aObjects, s->pAlloc, {});
-        if (parseNode(s, &VecLast(&s->aObjects)) == FAIL)
+        s->aObjects.push(s->pAlloc, {});
+        if (parseNode(s, &s->aObjects.last()) == FAIL)
         {
             LOG_WARN("parseNode() failed\n");
             return FAIL;
@@ -154,14 +154,14 @@ parseObject(Parser* s, Object* pNode)
         OK_OR_RET(expect(s, Token::IDENT, ADT_LOGS_FILE, __LINE__));
 
         Object ob {.svKey = s->tCurr.sLiteral, .tagVal = {}};
-        adt::VecPush(&aObjs, s->pAlloc, ob);
+        aObjs.push(s->pAlloc, ob);
 
         /* skip identifier and ':' */
         next(s);
         OK_OR_RET(expect(s, Token::ASSIGN, ADT_LOGS_FILE, __LINE__));
         next(s);
 
-        OK_OR_RET(parseNode(s, &adt::VecLast(&aObjs)));
+        OK_OR_RET(parseNode(s, &aObjs.last()));
 
         if (s->tCurr.type != Token::COMMA)
         {
@@ -170,7 +170,7 @@ parseObject(Parser* s, Object* pNode)
         }
     }
 
-    if (VecSize(&aObjs) == 0) next(s);
+    if (aObjs.getSize() == 0) next(s);
 
     return OK;
 }
@@ -185,31 +185,31 @@ parseArray(Parser* s, Object* pNode)
     /* collect each key/value pair inside array */
     for (; s->tCurr.type != Token::RBRACKET; next(s))
     {
-        adt::VecPush(&aTVs, s->pAlloc, {});
+        aTVs.push(s->pAlloc, {});
 
         switch (s->tCurr.type)
         {
             default:
             case Token::IDENT:
-                parseIdent(s, &adt::VecLast(&aTVs).tagVal);
+                parseIdent(s, &aTVs.last().tagVal);
                 break;
 
             case Token::NULL_:
-                parseNull(s, &adt::VecLast(&aTVs).tagVal);
+                parseNull(s, &aTVs.last().tagVal);
                 break;
 
             case Token::TRUE_:
             case Token::FALSE_:
-                parseBool(s, &adt::VecLast(&aTVs).tagVal);
+                parseBool(s, &aTVs.last().tagVal);
                 break;
 
             case Token::NUMBER:
-                parseNumber(s, &adt::VecLast(&aTVs).tagVal);
+                parseNumber(s, &aTVs.last().tagVal);
                 break;
 
             case Token::LBRACE:
                 next(s);
-                OK_OR_RET(parseObject(s, &adt::VecLast(&aTVs)));
+                OK_OR_RET(parseObject(s, &aTVs.last()));
                 break;
         }
 
@@ -220,7 +220,7 @@ parseArray(Parser* s, Object* pNode)
         }
     }
 
-    if (VecSize(&aTVs) == 0) next(s);
+    if (aTVs.getSize() == 0) next(s);
 
     return OK;
 }
@@ -254,7 +254,7 @@ ParserDestroy(Parser* s)
 
     ParserTraverseAll(s, fn, s->pAlloc);
     LexerDestroy(&s->l, s->pAlloc);
-    VecDestroy(&s->aObjects, s->pAlloc);
+    s->aObjects.destroy(s->pAlloc);
 }
 
 void
@@ -295,9 +295,9 @@ ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
                 fprintf(fp, "%*s", depth, "");
                 /*COUT("{: >{}}", "", depth);*/
                 print::toFILE(fp, "{}{}{}{}{\n", q0, objName0, q1, objName1);
-                for (u32 i = 0; i < VecSize(&obj); i++)
+                for (u32 i = 0; i < obj.getSize(); i++)
                 {
-                    adt::String slE = (i == VecSize(&obj) - 1) ? "\n" : ",\n";
+                    adt::String slE = (i == obj.getSize() - 1) ? "\n" : ",\n";
                     ParserPrintNode(fp, &obj[i], slE, depth + 2);
                 }
                 fprintf(fp, "%*s", depth, "");
@@ -324,7 +324,7 @@ ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
                 fprintf(fp, "%*s", depth, "");
                 /*COUT("{: >{}}", "", depth);*/
 
-                if (VecSize(&arr) == 0)
+                if (arr.getSize() == 0)
                 {
                     print::toFILE(fp, "{}{}{}{}[", q0, arrName0, q1, arrName1);
                     print::toFILE(fp, "]{}", svEnd);
@@ -332,9 +332,9 @@ ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
                 }
 
                 print::toFILE(fp, "{}{}{}{}[\n", q0, arrName0, q1, arrName1);
-                for (u32 i = 0; i < VecSize(&arr); i++)
+                for (u32 i = 0; i < arr.getSize(); i++)
                 {
-                    adt::String slE = (i == VecSize(&arr) - 1) ? "\n" : ",\n";
+                    adt::String slE = (i == arr.getSize() - 1) ? "\n" : ",\n";
 
                     switch (arr[i].tagVal.tag)
                     {
@@ -438,7 +438,7 @@ ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), v
         case TAG::OBJECT: {
             auto& obj = getObject(pNode);
 
-            for (u32 i = 0; i < VecSize(&obj); i++)
+            for (u32 i = 0; i < obj.getSize(); i++)
                 ParserTraverse(s, &obj[i], pfn, pArgs);
         } break;
     }
@@ -451,7 +451,7 @@ ParserGetRoot(Parser* s)
 {
     assert(s->aObjects.size > 0 && "[Parser]: this json is empty");
 
-    if (s->aObjects.size == 1) return getObject(&adt::VecFirst(&s->aObjects));
+    if (s->aObjects.size == 1) return getObject(&s->aObjects.first());
     else return s->aObjects;
 }
 

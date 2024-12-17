@@ -41,7 +41,7 @@ ParserTraverseAll(Parser* s, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 inline Object*
 searchObject(adt::VecBase<Object>& aObj, adt::String svKey)
 {
-    for (adt::u32 i = 0; i < VecSize(&aObj); i++)
+    for (adt::u32 i = 0; i < aObj.getSize(); i++)
         if (aObj[i].svKey == svKey)
             return &aObj[i];
 
@@ -156,13 +156,13 @@ makeNull(adt::String key)
 inline adt::u32
 pushToObject(Object* pObj, adt::IAllocator* p, Object o)
 {
-    return adt::VecPush(&pObj->tagVal.val.o, p, o);
+    return pObj->tagVal.val.o.push(p, o);
 }
 
 inline adt::u32
 pushToArray(Object* pObj, adt::IAllocator* p, Object o)
 {
-    return adt::VecPush(&pObj->tagVal.val.a, p, o);
+    return pObj->tagVal.val.a.push(p, o);
 }
 
 } /* namespace json */
