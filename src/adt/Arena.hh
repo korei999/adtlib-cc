@@ -218,24 +218,34 @@ ArenaReset(Arena* s)
     }
 }
 
-// inline const AllocatorVTable inl_ArenaVTable {
-//     .alloc = decltype(AllocatorVTable::alloc)(ArenaAlloc),
-//     .zalloc = decltype(AllocatorVTable::zalloc)(ArenaZalloc),
-//     .realloc = decltype(AllocatorVTable::realloc)(ArenaRealloc),
-//     .free = decltype(AllocatorVTable::free)(ArenaFree),
-//     .freeAll = decltype(AllocatorVTable::freeAll)(ArenaFreeAll),
-// };
-
-inline const AllocatorVTableV2 inl_ArenaVTableV2 {
-    .alloc = decltype(AllocatorVTableV2::alloc)(&Arena::alloc),
-    .zalloc = decltype(AllocatorVTableV2::zalloc)(&Arena::zalloc),
-    .realloc = decltype(AllocatorVTableV2::realloc)(&Arena::realloc),
-    .free = decltype(AllocatorVTableV2::free)(&Arena::free),
-    .freeAll = decltype(AllocatorVTableV2::freeAll)(&Arena::freeAll),
+inline const AllocatorVTable inl_ArenaVTable {
+    .alloc = decltype(AllocatorVTable::alloc)(+[](Arena* s, u64 mCount, u64 mSize) {
+        return s->alloc(mCount, mSize);
+    }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](Arena* s, u64 mCount, u64 mSize) {
+        return s->zalloc(mCount, mSize);
+    }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](Arena* s, void* ptr, u64 mCount, u64 mSize) {
+        return s->realloc(ptr, mCount, mSize);
+    }),
+    .free = decltype(AllocatorVTable::free)(+[](Arena* s, void* ptr) {
+        return s->free(ptr);
+    }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](Arena* s) {
+        return s->freeAll();
+    }),
 };
 
+// inline const AllocatorVTableV2 inl_ArenaVTableV2 {
+//     .alloc = decltype(AllocatorVTableV2::alloc)(&Arena::alloc),
+//     .zalloc = decltype(AllocatorVTableV2::zalloc)(&Arena::zalloc),
+//     .realloc = decltype(AllocatorVTableV2::realloc)(&Arena::realloc),
+//     .free = decltype(AllocatorVTableV2::free)(&Arena::free),
+//     .freeAll = decltype(AllocatorVTableV2::freeAll)(&Arena::freeAll),
+// };
+
 inline Arena::Arena(u64 capacity)
-    : super(&inl_ArenaVTableV2),
+    : super(&inl_ArenaVTable),
       defaultCapacity(align8(capacity)),
       pBlocks(_ArenaAllocBlock(this->defaultCapacity)) {}
 
