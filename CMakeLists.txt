@@ -17,6 +17,11 @@ add_executable(
 )
 
 add_executable(
+    adt-pool
+    src/PoolTest.cc
+)
+
+add_executable(
     adt-map
     src/MapTest.cc
 )
