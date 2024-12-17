@@ -10,18 +10,6 @@ namespace adt
 {
 
 /* fixed byte size (chunk) per alloc. Calling realloc() is an error */
-struct ChunkAllocator;
-
-inline void* ChunkAlloc(ChunkAllocator* s, u64 ignored0, u64 ignored1);
-inline void* ChunkZalloc(ChunkAllocator* s, u64 ignored0, u64 ignored1);
-inline void ChunkFree(ChunkAllocator* s, void* p);
-inline void ChunkFreeAll(ChunkAllocator* s);
-
-inline void* alloc(ChunkAllocator* s, u64 mCount, u64 mSize) { return ChunkAlloc(s, mCount, mSize); }
-inline void* zalloc(ChunkAllocator* s, u64 mCount, u64 mSize) { return ChunkZalloc(s, mCount, mSize); }
-inline void free(ChunkAllocator* s, void* p) { ChunkFree(s, p); }
-inline void freeAll(ChunkAllocator* s) { ChunkFreeAll(s); }
-
 struct ChunkAllocatorNode
 {
     ChunkAllocatorNode* next;
@@ -45,6 +33,12 @@ struct ChunkAllocator
 
     ChunkAllocator() = default;
     ChunkAllocator(u64 chunkSize, u64 blockSize);
+
+    [[nodiscard]] void* alloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
+    void free(void* ptr);
+    void freeAll();
 };
 
 inline ChunkAllocatorBlock*
@@ -70,13 +64,13 @@ _ChunkAllocatorNewBlock(ChunkAllocator* s)
 }
 
 inline void*
-ChunkAlloc(ChunkAllocator* s, [[maybe_unused]] u64 ignored0, [[maybe_unused]] u64 ignored1)
+ChunkAllocator::alloc([[maybe_unused]] u64 ignored0, [[maybe_unused]] u64 ignored1)
 {
-    ChunkAllocatorBlock* pBlock = s->pBlocks;
+    ChunkAllocatorBlock* pBlock = this->pBlocks;
     ChunkAllocatorBlock* pPrev = nullptr;
     while (pBlock)
     {
-        if (s->blockCap - pBlock->used >= s->chunkSize) break;
+        if (this->blockCap - pBlock->used >= this->chunkSize) break;
         else
         {
             pPrev = pBlock;
@@ -86,22 +80,22 @@ ChunkAlloc(ChunkAllocator* s, [[maybe_unused]] u64 ignored0, [[maybe_unused]] u6
 
     if (!pBlock)
     {
-        pPrev->next = _ChunkAllocatorNewBlock(s);
+        pPrev->next = _ChunkAllocatorNewBlock(this);
         pBlock = pPrev->next;
     }
 
     auto* head = pBlock->head;
     pBlock->head = head->next;
-    pBlock->used += s->chunkSize;
+    pBlock->used += this->chunkSize;
 
     return head->pNodeMem;
 }
 
 inline void*
-ChunkZalloc(ChunkAllocator* s, [[maybe_unused]] u64 ignored0, [[maybe_unused]] u64 ignored1)
+ChunkAllocator::zalloc([[maybe_unused]] u64 ignored0, [[maybe_unused]] u64 ignored1)
 {
-    auto* p = ChunkAlloc(s, ignored0, ignored1);
-    memset(p, 0, s->chunkSize);
+    auto* p = this->alloc(ignored0, ignored1);
+    memset(p, 0, this->chunkSize);
     return p;
 }
 
@@ -113,16 +107,16 @@ _ChunkRealloc(ChunkAllocator*, void*, u64, u64)
 }
 
 inline void
-ChunkFree(ChunkAllocator* s, void* p)
+ChunkAllocator::free(void* p)
 {
     if (!p) return;
 
     auto* node = (ChunkAllocatorNode*)((u8*)p - sizeof(ChunkAllocatorNode));
 
-    auto* pBlock = s->pBlocks;
+    auto* pBlock = this->pBlocks;
     while (pBlock)
     {
-        if ((u8*)p > (u8*)pBlock->pMem && ((u8*)pBlock + s->blockCap) > (u8*)p)
+        if ((u8*)p > (u8*)pBlock->pMem && ((u8*)pBlock + this->blockCap) > (u8*)p)
             break;
 
         pBlock = pBlock->next;
@@ -132,28 +126,38 @@ ChunkFree(ChunkAllocator* s, void* p)
     
     node->next = pBlock->head;
     pBlock->head = node;
-    pBlock->used -= s->chunkSize;
+    pBlock->used -= this->chunkSize;
 }
 
 inline void
-ChunkFreeAll(ChunkAllocator* s)
+ChunkAllocator::freeAll()
 {
-    ChunkAllocatorBlock* p = s->pBlocks, * next = nullptr;
+    ChunkAllocatorBlock* p = this->pBlocks, * next = nullptr;
     while (p)
     {
         next = p->next;
         ::free(p);
         p = next;
     }
-    s->pBlocks = nullptr;
+    this->pBlocks = nullptr;
 }
 
 inline const AllocatorVTable inl_chunkAllocatorVTable {
-    .alloc = decltype(AllocatorVTable::alloc)(ChunkAlloc),
-    .zalloc = decltype(AllocatorVTable::zalloc)(ChunkZalloc),
-    .realloc = decltype(AllocatorVTable::realloc)(_ChunkRealloc),
-    .free = decltype(AllocatorVTable::free)(ChunkFree),
-    .freeAll = decltype(AllocatorVTable::freeAll)(ChunkFreeAll),
+    .alloc = decltype(AllocatorVTable::alloc)(+[](ChunkAllocator* s, u64 mCount, u64 mSize) {
+        return s->alloc(mCount, mSize);
+    }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](ChunkAllocator* s, u64 mCount, u64 mSize) {
+        return s->zalloc(mCount, mSize);
+    }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](ChunkAllocator* s, void* ptr, u64 mCount, u64 mSize) {
+        return s->realloc(ptr, mCount, mSize);
+    }),
+    .free = decltype(AllocatorVTable::free)(+[](ChunkAllocator* s, void* ptr) {
+        return s->free(ptr);
+    }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](ChunkAllocator* s) {
+        return s->freeAll();
+    }),
 };
 
 inline
