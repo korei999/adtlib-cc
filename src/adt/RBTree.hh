@@ -627,7 +627,7 @@ RBPrintNodes(
 {
     if (pNode)
     {
-        print::toFILE(pF, "{}{} {}\n", sPrefix, bLeft ? "|__" : "\\__", pNode->data);
+        print::toFILE(pF, "{}{} {}\n", sPrefix, bLeft ? "|__" : "\\__", *pNode);
 
         String sCat = StringCat(pA, sPrefix, bLeft ? "|   " : "    ");
 
@@ -687,7 +687,8 @@ inline u32
 formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const RBNode<T>& node)
 {
     char aBuff[128] {};
-    print::toBuffer(aBuff, utils::size(aBuff), ADT_LOGS_COL_RED "{}" ADT_LOGS_COL_NORM, node.data);
+    const String sCol = node.color() == RB_COLOR::BLACK ? ADT_LOGS_COL_BLUE : ADT_LOGS_COL_RED;
+    print::toBuffer(aBuff, utils::size(aBuff), "{}{}" ADT_LOGS_COL_NORM, sCol, node.data);
 
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
 }
