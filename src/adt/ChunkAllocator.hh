@@ -100,7 +100,7 @@ ChunkAllocator::zalloc([[maybe_unused]] u64 ignored0, [[maybe_unused]] u64 ignor
 }
 
 inline void*
-_ChunkRealloc(ChunkAllocator*, void*, u64, u64)
+ChunkAllocator::realloc(void*, u64, u64)
 {
     assert(false && "ChunkAllocator can't realloc()");
     return nullptr;
@@ -142,7 +142,7 @@ ChunkAllocator::freeAll()
     this->pBlocks = nullptr;
 }
 
-inline const AllocatorVTable inl_chunkAllocatorVTable {
+inline const AllocatorVTable inl_ChunkAllocatorVTable {
     .alloc = decltype(AllocatorVTable::alloc)(+[](ChunkAllocator* s, u64 mCount, u64 mSize) {
         return s->alloc(mCount, mSize);
     }),
@@ -162,7 +162,7 @@ inline const AllocatorVTable inl_chunkAllocatorVTable {
 
 inline
 ChunkAllocator::ChunkAllocator(u64 chunkSize, u64 blockSize)
-    : super {&inl_chunkAllocatorVTable},
+    : super {&inl_ChunkAllocatorVTable},
       blockCap {align(blockSize, chunkSize + sizeof(ChunkAllocatorNode))},
       chunkSize {chunkSize + sizeof(ChunkAllocatorNode)},
       pBlocks {_ChunkAllocatorNewBlock(this)} {}

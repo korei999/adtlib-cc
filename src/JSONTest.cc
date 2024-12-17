@@ -15,8 +15,8 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    /*FreeList al(SIZE_1G * 2);*/
-    Arena al(SIZE_1G * 2);
+    FreeList al(SIZE_1G * 2);
+    /*Arena al(SIZE_1G * 2);*/
     /*MutexArena al(SIZE_1G * 2);*/
 
     defer( al.freeAll() );
