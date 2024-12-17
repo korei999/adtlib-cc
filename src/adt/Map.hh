@@ -40,7 +40,7 @@ struct MapResult
     u64 hash {};
     MAP_RESULT_STATUS eStatus {};
 
-    constexpr explicit operator bool() const
+    constexpr operator bool() const
     {
         return this->pData != nullptr;
     }

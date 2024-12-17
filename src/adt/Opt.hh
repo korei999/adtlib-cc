@@ -21,7 +21,7 @@ public:
 
     constexpr T& data() { assert(m_bHasValue && "[Opt]: has no data"); return m_data; }
 
-    constexpr explicit operator bool() const
+    constexpr operator bool() const
     {
         return this->m_bHasValue;
     }
