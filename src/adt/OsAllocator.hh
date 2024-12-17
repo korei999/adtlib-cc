@@ -10,32 +10,18 @@ namespace adt
 
 /* default os allocator (aka malloc() / calloc() / realloc() / free()).
  * freeAll() method is not supported. */
-struct OsAllocator;
-
-inline void* OsAlloc(OsAllocator* s, u64 mCount, u64 mSize);
-inline void* OsZalloc(OsAllocator* s, u64 mCount, u64 mSize);
-inline void* OsRealloc(OsAllocator* s, void* p, u64 mCount, u64 mSize);
-inline void OsFree(OsAllocator* s, void* p);
-inline void _OsFreeAll(OsAllocator* s);
-
-inline void* alloc(OsAllocator* s, u64 mCount, u64 mSize) { return OsAlloc(s, mCount, mSize); }
-inline void* zalloc(OsAllocator* s, u64 mCount, u64 mSize) { return OsZalloc(s, mCount, mSize); }
-inline void* realloc(OsAllocator* s, void* p, u64 mCount, u64 mSize) { return OsRealloc(s, p, mCount, mSize); }
-inline void free(OsAllocator* s, void* p) { OsFree(s, p); }
-
-inline const AllocatorVTable inl_OsAllocatorVTable {
-    .alloc = decltype(AllocatorVTable::alloc)(OsAlloc),
-    .zalloc = decltype(AllocatorVTable::zalloc)(OsZalloc),
-    .realloc = decltype(AllocatorVTable::realloc)(OsRealloc),
-    .free = decltype(AllocatorVTable::free)(OsFree),
-    .freeAll = decltype(AllocatorVTable::freeAll)(_OsFreeAll),
-};
-
 struct OsAllocator
 {
     IAllocator super {};
 
-    constexpr OsAllocator([[maybe_unused]] u64 _ingnored = 0) : super(&inl_OsAllocatorVTable) {}
+    OsAllocator([[maybe_unused]] u64 _ingnored = 0);
+
+    [[nodiscard]] void* alloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
+    void free(void* ptr);
+    void freeAll();
+    void reset();
 };
 
 inline IAllocator*
@@ -46,7 +32,7 @@ OsAllocatorGet()
 }
 
 inline void*
-OsAlloc(OsAllocator*, u64 mCount, u64 mSize)
+OsAllocator::alloc(u64 mCount, u64 mSize)
 {
     auto* r = ::malloc(mCount * mSize);
     assert(r != nullptr && "[OsAllocator]: calloc failed");
@@ -54,7 +40,7 @@ OsAlloc(OsAllocator*, u64 mCount, u64 mSize)
 }
 
 inline void*
-OsZalloc(OsAllocator*, u64 mCount, u64 mSize)
+OsAllocator::zalloc(u64 mCount, u64 mSize)
 {
     auto* r = ::calloc(mCount, mSize);
     assert(r != nullptr && "[OsAllocator]: calloc failed");
@@ -62,7 +48,7 @@ OsZalloc(OsAllocator*, u64 mCount, u64 mSize)
 }
 
 inline void*
-OsRealloc(OsAllocator*, void* p, u64 mCount, u64 mSize)
+OsAllocator::realloc(void* p, u64 mCount, u64 mSize)
 {
     auto* r = ::realloc(p, mCount * mSize);
     assert(r != nullptr && "[OsAllocator]: realloc failed");
@@ -70,15 +56,35 @@ OsRealloc(OsAllocator*, void* p, u64 mCount, u64 mSize)
 }
 
 inline void
-OsFree(OsAllocator*, void* p)
+OsAllocator::free(void* p)
 {
     ::free(p);
 }
 
 inline void
-_OsFreeAll(OsAllocator*)
+OsAllocator::freeAll()
 {
     assert(false && "[OsAllocator]: no 'freeAll()' method");
 }
+
+inline const AllocatorVTable inl_OsAllocatorVTable {
+    .alloc = decltype(AllocatorVTable::alloc)(+[](OsAllocator* s, u64 mCount, u64 mSize) {
+        return s->alloc(mCount, mSize);
+    }),
+    .zalloc = decltype(AllocatorVTable::zalloc)(+[](OsAllocator* s, u64 mCount, u64 mSize) {
+        return s->zalloc(mCount, mSize);
+    }),
+    .realloc = decltype(AllocatorVTable::realloc)(+[](OsAllocator* s, void* ptr, u64 mCount, u64 mSize) {
+        return s->realloc(ptr, mCount, mSize);
+    }),
+    .free = decltype(AllocatorVTable::free)(+[](OsAllocator* s, void* ptr) {
+        return s->free(ptr);
+    }),
+    .freeAll = decltype(AllocatorVTable::freeAll)(+[](OsAllocator* s) {
+        return s->freeAll();
+    }),
+};
+
+inline OsAllocator::OsAllocator(u64) : super(&inl_OsAllocatorVTable) {}
 
 } /* namespace adt */

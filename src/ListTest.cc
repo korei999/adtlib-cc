@@ -1,17 +1,15 @@
 #include "adt/logs.hh"
 #include "adt/List.hh"
-#include "adt/ChunkAllocator.hh"
 #include "adt/defer.hh"
+#include "adt/OsAllocator.hh"
 
 using namespace adt;
 
 int
 main()
 {
-    ChunkAllocator chunks(sizeof(ListNode<long>), SIZE_1K);
-    defer( chunks.freeAll() );
-
-    List<long> list(&chunks.super);
+    List<long> list(OsAllocatorGet());
+    defer( list.destroy() );
 
     list.pushBack(1);
     list.pushBack(2);
