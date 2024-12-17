@@ -19,7 +19,7 @@ public:
         m_data = x;
     }
 
-    T& data() { assert(m_bHasValue && "[Opt]: has no data"); return m_data; }
+    constexpr T& data() { assert(m_bHasValue && "[Opt]: has no data"); return m_data; }
 
     constexpr explicit operator bool() const
     {

@@ -44,6 +44,13 @@ struct MapResult
     {
         return this->pData != nullptr;
     }
+
+    constexpr const KeyVal<K, V>&
+    getData() const
+    {
+        assert(eStatus != MAP_RESULT_STATUS::NOT_FOUND && "[Map]: not found");
+        return *(KeyVal<K, V>*)pData;
+    }
 };
 
 template<typename K, typename V>

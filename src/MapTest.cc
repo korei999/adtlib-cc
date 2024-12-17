@@ -23,15 +23,15 @@ main()
 
     {
         auto fSixteen = map.search("Sixteen");
-        if (fSixteen) LOG("found: {}, {}\n", fSixteen.pData->key, fSixteen.pData->val);
+        if (fSixteen) LOG("found: {}\n", fSixteen.getData());
     }
     {
         auto fThirdyTwo = map.search("ThirdyTwo");
-        if (fThirdyTwo) LOG("found: {}, {}\n", fThirdyTwo.pData->key, fThirdyTwo.pData->val);
+        if (fThirdyTwo) LOG("found: {}\n", fThirdyTwo.getData());
     }
     {
         auto fSeventeen = map.search("Seventeen");
-        if (fSeventeen) LOG("found: {}, {}\n", fSeventeen.pData->key, fSeventeen.pData->val);
+        if (fSeventeen) LOG("found: {}, {}\n", fSeventeen.getData());
         else LOG("Seventeen: not found\n");
     }
 }
