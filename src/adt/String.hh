@@ -363,13 +363,12 @@ String::removeNLEnd()
 inline bool
 String::contains(const String r) const
 {
-    if (this->size < r.size) return false;
+    if (this->size < r.size || this->size == 0 || r.size == 0) return false;
 
-    for (u32 i = 0; i < this->size; ++i)
+    for (u32 i = 0; i < this->size - r.size + 1; ++i)
     {
-        if (i + r.size > this->size) break;
-        const String sub(&this->pData[i], this->size - i);
-        if (sub == r) return true;
+        const String sSub {const_cast<char*>(&(*this)[i]), r.size};
+        if (sSub == r) return true;
     }
 
     return false;
