@@ -17,6 +17,11 @@ add_executable(
 )
 
 add_executable(
+    adt-heap
+    src/HeapTest.cc
+)
+
+add_executable(
     adt-string
     src/StringTest.cc
 )
