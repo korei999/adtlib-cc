@@ -38,7 +38,7 @@ struct String;
 
 [[nodiscard]] inline u32 nGlyphs(const String str);
 
-/* just pointer + size, no allocations, use `StringAlloc()` for that */
+/* just pointer + size, no allocations */
 struct String
 {
     char* pData {};
@@ -57,8 +57,6 @@ struct String
     [[nodiscard]] constexpr u32 lastOf(char c) const;
 
     void destroy(IAllocator* p);
-
-    void append(const String r);
 
     void trimEnd();
 
@@ -278,8 +276,7 @@ StringAlloc(IAllocator* p, const char* str, u32 size)
     strncpy(pData, str, size);
     pData[size] = '\0';
 
-    String n {pData, size};
-    return n;
+    return {pData, size};
 }
 
 inline String
@@ -289,8 +286,7 @@ StringAlloc(IAllocator* p, u32 size)
 
     char* pData = (char*)p->zalloc(size + 1, sizeof(char));
 
-    String n {pData, 0};
-    return n;
+    return {pData, size};
 }
 
 inline String
@@ -326,18 +322,7 @@ StringCat(IAllocator* p, const String l, const String r)
 
     ret[len] = '\0';
 
-    String n {ret, len};
-    return n;
-}
-
-inline void
-String::append(const String r)
-{
-    for (u32 i = this->size, j = 0; j < r.size; ++i, ++j)
-    {
-        (*this)[i] = r[j];
-        ++this->size;
-    }
+    return {ret, len};
 }
 
 inline void
