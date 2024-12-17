@@ -66,14 +66,7 @@ struct FreeList
 inline void
 _FreeListPrintTree(FreeList* s, IAllocator* pAlloc)
 {
-    /*auto pfn = +[](const FreeList::Node* pNode, [[maybe_unused]] void* pArgs) -> void {*/
-    /*    CERR(*/
-    /*        "{}" ADT_LOGS_COL_NORM " {}\n",*/
-    /*        pNode->color() == RB_COLOR::RED ? ADT_LOGS_COL_RED "(R)" : ADT_LOGS_COL_BLUE "(B)", pNode->data.getSize()*/
-    /*    );*/
-    /*};*/
-
-    /*RBPrintNodes(pAlloc, &s->tree, s->tree.pRoot, pfn, {}, stderr, {}, false);*/
+    /*RBPrintNodes(pAlloc, s->tree.pRoot, stderr, {}, false);*/
 }
 #else
     #define _FreeListPrintTree(...) (void)0

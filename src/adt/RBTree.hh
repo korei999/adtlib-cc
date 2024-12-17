@@ -30,7 +30,7 @@
 #include "IAllocator.hh"
 #include "String.hh"
 #include "utils.hh"
-#include "print.hh"
+#include "logs.hh"
 
 #include <cstdio>
 #include <cassert>
@@ -678,5 +678,20 @@ struct RBTree
 
     void destroy() { base.destroy(pAlloc); }
 };
+
+namespace print
+{
+
+template<typename T>
+inline u32
+formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const RBNode<T>& node)
+{
+    char aBuff[128] {};
+    print::toBuffer(aBuff, utils::size(aBuff), ADT_LOGS_COL_RED "{}" ADT_LOGS_COL_NORM, node.data);
+
+    return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
+}
+
+} /* namespace print */
 
 } /* namespace adt */

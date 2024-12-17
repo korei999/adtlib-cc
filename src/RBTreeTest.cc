@@ -27,7 +27,9 @@ main()
     tree.insert(10L, false);
     tree.insert(22L, false);
 
-    RBPrintNodes(&arena.super, tree.getRoot(), stdout, "", false);
+    tree.removeAndFree(-3L);
 
-    /*LOG("node: {}\n", *tree.getRoot());*/
+    LOG_GOOD("root: {}\n", *tree.getRoot());
+
+    RBPrintNodes(&arena.super, tree.getRoot(), stdout, "", false);
 }
