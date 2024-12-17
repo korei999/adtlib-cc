@@ -22,6 +22,11 @@ add_executable(
 )
 
 add_executable(
+    adt-map
+    src/MapTest.cc
+)
+
+add_executable(
     adt-threadpool
     src/ThreadPoolTest.cc
 )
