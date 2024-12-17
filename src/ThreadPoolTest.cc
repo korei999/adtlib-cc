@@ -1,7 +1,7 @@
 #include "adt/defer.hh"
-#include "adt/Arena.hh"
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
+#include "adt/FixedAllocator.hh"
 
 using namespace adt;
 
@@ -22,13 +22,14 @@ signaled(void* pArg)
     return thrd_success;
 }
 
+static u8 s_aBuff[100000] {};
+
 int
 main()
 {
-    Arena arena(SIZE_1K);
-    defer( arena.freeAll() );
+    FixedAllocator fixed(s_aBuff, sizeof(s_aBuff));
 
-    ThreadPool tp(&arena.super);
+    ThreadPool tp(&fixed.super);
     defer( tp.destroy() );
     tp.start();
 
