@@ -1,7 +1,6 @@
 #pragma once
 
 #include "IAllocator.hh"
-#include "utils.hh"
 #include "hash.hh"
 
 #include <cassert>
@@ -44,7 +43,6 @@ struct String
 {
     char* pData {};
     u32 size {};
-    u32 capacity {}; /* allocated strings have non zero capacity */
 
     constexpr String() = default;
     constexpr String(char* sNullTerminated) : pData(sNullTerminated), size(nullTermStringSize(sNullTerminated)) {}
@@ -53,9 +51,6 @@ struct String
 
     constexpr char& operator[](u32 i)             { assert(i < size && "[String]: out of size"); return pData[i]; }
     constexpr const char& operator[](u32 i) const { assert(i < size && "[String]: out of size"); return pData[i]; }
-
-    [[nodiscard]] constexpr u32 getCap() const { return capacity; }
-    [[nodiscard]] constexpr bool isAllocated() const { return capacity > 0; }
 
     [[nodiscard]] constexpr bool endsWith(const String r) const;
 
@@ -284,7 +279,6 @@ StringAlloc(IAllocator* p, const char* str, u32 size)
     pData[size] = '\0';
 
     String n {pData, size};
-    n.capacity = size + 1;
     return n;
 }
 
@@ -296,7 +290,6 @@ StringAlloc(IAllocator* p, u32 size)
     char* pData = (char*)p->zalloc(size + 1, sizeof(char));
 
     String n {pData, 0};
-    n.capacity = size + 1;
     return n;
 }
 
@@ -334,18 +327,13 @@ StringCat(IAllocator* p, const String l, const String r)
     ret[len] = '\0';
 
     String n {ret, len};
-    n.capacity = len + 1;
     return n;
 }
 
 inline void
 String::append(const String r)
 {
-    assert(this->isAllocated() && "[String]: can't append to unallocated string");
-
-    long max = utils::minVal(this->capacity, r.size);
-
-    for (long i = this->size, j = 0; i < max; ++i, ++j)
+    for (u32 i = this->size, j = 0; j < r.size; ++i, ++j)
     {
         (*this)[i] = r[j];
         ++this->size;
