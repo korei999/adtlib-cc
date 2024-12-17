@@ -12,30 +12,30 @@ int
 main()
 {
     Arena arena(adt::SIZE_1K);
-    defer( freeAll(&arena) );
+    defer( arena.freeAll() );
 
     Vec<int> vec(&arena.super);
 
-    VecPush(&vec, 5);
-    VecPush(&vec, 3);
-    VecPush(&vec, -1);
-    VecPush(&vec, 123);
-    VecPush(&vec, -999);
-    VecPush(&vec, 2);
-    VecPush(&vec, 1);
-    VecPush(&vec, 23);
-    VecPush(&vec, 200);
-    VecPush(&vec, -20);
+    vec.push(5);
+    vec.push(3);
+    vec.push(-1);
+    vec.push(123);
+    vec.push(-999);
+    vec.push(2);
+    vec.push(1);
+    vec.push(23);
+    vec.push(200);
+    vec.push(-20);
 
     {
-        auto vec0 = VecClone(&vec, &arena.super);
+        auto vec0 = vec.clone(&arena.super);
         sort::quick(&vec0.base);
         COUT("vec0: {}\n", vec0);
         assert(sort::sorted(vec0.base));
     }
 
     {
-        auto vec1 = VecClone(&vec, &arena.super);
+        auto vec1 = vec.clone(&arena.super);
         sort::quick<VecBase, int, utils::compareRev>(&vec1.base);
         COUT("vec0: {}\n", vec1);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));

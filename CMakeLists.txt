@@ -15,11 +15,16 @@ project(adtlib-test VERSION 0.4 LANGUAGES CXX)
 #     ${CMAKE_PROJECT_NAME}
 #     src/main.cc
 # )
-# 
-# add_executable(
-#     adt-vec
-#     src/VecTest.cc
-# )
+
+add_executable(
+    adt-vec
+    src/VecTest.cc
+)
+
+add_executable(
+    adt-arr
+    src/ArrTest.cc
+)
 
 add_executable(
     adt-json

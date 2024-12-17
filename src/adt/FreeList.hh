@@ -427,14 +427,6 @@ inline const AllocatorVTable inl_FreeListVTable {
     .freeAll = decltype(AllocatorVTable::freeAll)(+[](FreeList* s) { return s->freeAll(); } ),
 };
 
-// inline const AllocatorVTableV2 inl_FreeListVTableV2 {
-//     .alloc = decltype(AllocatorVTableV2::alloc)(&FreeList::alloc),
-//     .zalloc = decltype(AllocatorVTableV2::zalloc)(&FreeList::zalloc),
-//     .realloc = decltype(AllocatorVTableV2::realloc)(&FreeList::realloc),
-//     .free = decltype(AllocatorVTableV2::free)(&FreeList::free),
-//     .freeAll = decltype(AllocatorVTableV2::freeAll)(&FreeList::freeAll),
-// };
-
 inline FreeList::FreeList(u64 _blockSize)
     : super(&inl_FreeListVTable),
       blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),

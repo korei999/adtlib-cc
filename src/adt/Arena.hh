@@ -34,25 +34,13 @@ struct Arena
     Arena() = default;
     Arena(u64 capacity);
 
-    [[nodiscard]] inline void* alloc(u64 mCount, u64 mSize);
-    [[nodiscard]] inline void* zalloc(u64 mCount, u64 mSize);
-    [[nodiscard]] inline void* realloc(void* ptr, u64 mCount, u64 mSize);
-    inline void free(void* ptr);
-    inline void freeAll();
+    [[nodiscard]] void* alloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
+    void free(void* ptr);
+    void freeAll();
+    void reset();
 };
-
-// [[nodiscard]] inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
-// [[nodiscard]] inline void* ArenaZalloc(Arena* s, u64 mCount, u64 mSize);
-// [[nodiscard]] inline void* ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize);
-// inline void ArenaFree(Arena* s, void* ptr); /* noop */
-// inline void ArenaFreeAll(Arena* s);
-// inline void ArenaReset(Arena* s);
-
-// [[nodiscard]] inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
-// [[nodiscard]] inline void* zalloc(Arena* s, u64 mCount, u64 mSize) { return ArenaZalloc(s, mCount, mSize); }
-// [[nodiscard]] inline void* realloc(Arena* s, void* ptr, u64 mCount, u64 mSize) { return ArenaRealloc(s, ptr, mCount, mSize); }
-// inline void free(Arena* s, void* ptr) { return ArenaFree(s, ptr); }
-// inline void freeAll(Arena* s) { return ArenaFreeAll(s); }
 
 [[nodiscard]] inline ArenaBlock*
 _ArenaFindBlockFromPtr(Arena* s, u8* ptr)
@@ -107,19 +95,15 @@ _ArenaPrependBlock(Arena* s, u64 size)
 inline void*
 Arena::alloc(u64 mCount, u64 mSize)
 {
-    auto* s = this;
-
-    assert(s != nullptr && "[Arena]: nullptr self passed");
-
     u64 realSize = align8(mCount * mSize);
-    auto* pBlock = _ArenaFindFittingBlock(s, realSize);
+    auto* pBlock = _ArenaFindFittingBlock(this, realSize);
 
 #if defined ADT_DBG_MEMORY
-    if (s->defaultCapacity <= realSize)
-        fprintf(stderr, "[Arena]: allocating more than defaultCapacity (%llu, %llu)\n", s->defaultCapacity, realSize);
+    if (this->defaultCapacity <= realSize)
+        fprintf(stderr, "[Arena]: allocating more than defaultCapacity (%llu, %llu)\n", this->defaultCapacity, realSize);
 #endif
 
-    if (!pBlock) pBlock = _ArenaPrependBlock(s, utils::max(s->defaultCapacity, realSize*2));
+    if (!pBlock) pBlock = _ArenaPrependBlock(this, utils::max(this->defaultCapacity, realSize*2));
 
     auto* pRet = pBlock->pMem + pBlock->nBytesOccupied;
     assert(pRet == pBlock->pLastAlloc + pBlock->lastAllocSize);
@@ -134,11 +118,7 @@ Arena::alloc(u64 mCount, u64 mSize)
 inline void*
 Arena::zalloc(u64 mCount, u64 mSize)
 {
-    auto* s = this;
-
-    assert(s != nullptr && "[Arena]: nullptr self passed");
-
-    auto* p = s->alloc(mCount, mSize);
+    auto* p = this->alloc(mCount, mSize);
     memset(p, 0, align8(mCount * mSize));
     return p;
 }
@@ -146,15 +126,11 @@ Arena::zalloc(u64 mCount, u64 mSize)
 inline void*
 Arena::realloc(void* ptr, u64 mCount, u64 mSize)
 {
-    auto* s = this;
-
-    assert(s != nullptr && "[Arena]: nullptr self passed");
-
-    if (!ptr) return s->alloc(mCount, mSize);
+    if (!ptr) return this->alloc(mCount, mSize);
 
     u64 requested = mSize * mCount;
     u64 realSize = align8(requested);
-    auto* pBlock = _ArenaFindBlockFromPtr(s, (u8*)ptr);
+    auto* pBlock = _ArenaFindBlockFromPtr(this, (u8*)ptr);
 
     assert(pBlock && "[Arena]: pointer doesn't belong to this arena");
 
@@ -169,7 +145,7 @@ Arena::realloc(void* ptr, u64 mCount, u64 mSize)
     }
     else
     {
-        auto* pRet = s->alloc(mCount, mSize);
+        auto* pRet = this->alloc(mCount, mSize);
         u64 nBytesUntilEndOfBlock = &pBlock->pMem[pBlock->size] - (u8*)ptr;
         u64 nBytesToCopy = utils::min(requested, nBytesUntilEndOfBlock); /* out of range memcpy */
         nBytesToCopy = utils::min(nBytesToCopy, u64((u8*)pRet - (u8*)ptr)); /* overlap memcpy */
@@ -188,26 +164,20 @@ Arena::free(void*)
 inline void
 Arena::freeAll()
 {
-    auto* s = this;
-
-    assert(s != nullptr && "[Arena]: nullptr self passed");
-
-    auto* it = s->pBlocks;
+    auto* it = this->pBlocks;
     while (it)
     {
         auto* next = it->pNext;
         ::free(it);
         it = next;
     }
-    s->pBlocks = nullptr;
+    this->pBlocks = nullptr;
 }
 
 inline void
-ArenaReset(Arena* s)
+Arena::reset()
 {
-    assert(s != nullptr && "[Arena]: nullptr self passed");
-
-    auto* it = s->pBlocks;
+    auto* it = this->pBlocks;
     while (it)
     {
         it->nBytesOccupied = 0;
@@ -235,14 +205,6 @@ inline const AllocatorVTable inl_ArenaVTable {
         return s->freeAll();
     }),
 };
-
-// inline const AllocatorVTableV2 inl_ArenaVTableV2 {
-//     .alloc = decltype(AllocatorVTableV2::alloc)(&Arena::alloc),
-//     .zalloc = decltype(AllocatorVTableV2::zalloc)(&Arena::zalloc),
-//     .realloc = decltype(AllocatorVTableV2::realloc)(&Arena::realloc),
-//     .free = decltype(AllocatorVTableV2::free)(&Arena::free),
-//     .freeAll = decltype(AllocatorVTableV2::freeAll)(&Arena::freeAll),
-// };
 
 inline Arena::Arena(u64 capacity)
     : super(&inl_ArenaVTable),
