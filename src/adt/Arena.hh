@@ -25,20 +25,34 @@ struct ArenaBlock
 };
 
 /* fast region based allocator, only freeAll() free's memory, free() does nothing */
-struct Arena : IAllocator
+struct Arena
 {
+    IAllocator super {};
     u64 defaultCapacity {};
     ArenaBlock* pBlocks {};
 
-    virtual inline void* alloc(u64 mCount, u64 mSize) final;
-    virtual inline void* zalloc(u64 mCount, u64 mSize) final;
-    virtual inline void* realloc(void* ptr, u64 mCount, u64 mSize) final;
-    virtual inline void free(void* ptr) final;
-    virtual inline void freeAll() final;
-
     Arena() = default;
     Arena(u64 capacity);
+
+    [[nodiscard]] inline void* alloc(u64 mCount, u64 mSize);
+    [[nodiscard]] inline void* zalloc(u64 mCount, u64 mSize);
+    [[nodiscard]] inline void* realloc(void* ptr, u64 mCount, u64 mSize);
+    inline void free(void* ptr);
+    inline void freeAll();
 };
+
+// [[nodiscard]] inline void* ArenaAlloc(Arena* s, u64 mCount, u64 mSize);
+// [[nodiscard]] inline void* ArenaZalloc(Arena* s, u64 mCount, u64 mSize);
+// [[nodiscard]] inline void* ArenaRealloc(Arena* s, void* ptr, u64 mCount, u64 mSize);
+// inline void ArenaFree(Arena* s, void* ptr); /* noop */
+// inline void ArenaFreeAll(Arena* s);
+// inline void ArenaReset(Arena* s);
+
+// [[nodiscard]] inline void* alloc(Arena* s, u64 mCount, u64 mSize) { return ArenaAlloc(s, mCount, mSize); }
+// [[nodiscard]] inline void* zalloc(Arena* s, u64 mCount, u64 mSize) { return ArenaZalloc(s, mCount, mSize); }
+// [[nodiscard]] inline void* realloc(Arena* s, void* ptr, u64 mCount, u64 mSize) { return ArenaRealloc(s, ptr, mCount, mSize); }
+// inline void free(Arena* s, void* ptr) { return ArenaFree(s, ptr); }
+// inline void freeAll(Arena* s) { return ArenaFreeAll(s); }
 
 [[nodiscard]] inline ArenaBlock*
 _ArenaFindBlockFromPtr(Arena* s, u8* ptr)
@@ -136,7 +150,7 @@ Arena::realloc(void* ptr, u64 mCount, u64 mSize)
 
     assert(s != nullptr && "[Arena]: nullptr self passed");
 
-    if (!ptr) return alloc(mCount, mSize);
+    if (!ptr) return s->alloc(mCount, mSize);
 
     u64 requested = mSize * mCount;
     u64 realSize = align8(requested);
@@ -155,7 +169,7 @@ Arena::realloc(void* ptr, u64 mCount, u64 mSize)
     }
     else
     {
-        auto* pRet = alloc(mCount, mSize);
+        auto* pRet = s->alloc(mCount, mSize);
         u64 nBytesUntilEndOfBlock = &pBlock->pMem[pBlock->size] - (u8*)ptr;
         u64 nBytesToCopy = utils::min(requested, nBytesUntilEndOfBlock); /* out of range memcpy */
         nBytesToCopy = utils::min(nBytesToCopy, u64((u8*)pRet - (u8*)ptr)); /* overlap memcpy */
@@ -174,16 +188,18 @@ Arena::free(void*)
 inline void
 Arena::freeAll()
 {
+    auto* s = this;
+
     assert(s != nullptr && "[Arena]: nullptr self passed");
 
-    auto* it = this->pBlocks;
+    auto* it = s->pBlocks;
     while (it)
     {
         auto* next = it->pNext;
         ::free(it);
         it = next;
     }
-    this->pBlocks = nullptr;
+    s->pBlocks = nullptr;
 }
 
 inline void
@@ -202,8 +218,25 @@ ArenaReset(Arena* s)
     }
 }
 
+// inline const AllocatorVTable inl_ArenaVTable {
+//     .alloc = decltype(AllocatorVTable::alloc)(ArenaAlloc),
+//     .zalloc = decltype(AllocatorVTable::zalloc)(ArenaZalloc),
+//     .realloc = decltype(AllocatorVTable::realloc)(ArenaRealloc),
+//     .free = decltype(AllocatorVTable::free)(ArenaFree),
+//     .freeAll = decltype(AllocatorVTable::freeAll)(ArenaFreeAll),
+// };
+
+inline const AllocatorVTableV2 inl_ArenaVTableV2 {
+    .alloc = decltype(AllocatorVTableV2::alloc)(&Arena::alloc),
+    .zalloc = decltype(AllocatorVTableV2::zalloc)(&Arena::zalloc),
+    .realloc = decltype(AllocatorVTableV2::realloc)(&Arena::realloc),
+    .free = decltype(AllocatorVTableV2::free)(&Arena::free),
+    .freeAll = decltype(AllocatorVTableV2::freeAll)(&Arena::freeAll),
+};
+
 inline Arena::Arena(u64 capacity)
-    : defaultCapacity(align8(capacity)),
+    : super(&inl_ArenaVTableV2),
+      defaultCapacity(align8(capacity)),
       pBlocks(_ArenaAllocBlock(this->defaultCapacity)) {}
 
 } /* namespace adt */

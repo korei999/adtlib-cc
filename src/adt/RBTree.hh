@@ -186,7 +186,7 @@ template<typename T>
 inline RBNode<T>*
 RBNodeAlloc(IAllocator* pA, const T& data)
 {
-    auto* r = (RBNode<T>*)alloc(pA, 1, sizeof(RBNode<T>));
+    auto* r = (RBNode<T>*)pA->alloc(1, sizeof(RBNode<T>));
     r->data = data;
     return r;
 }
@@ -633,7 +633,7 @@ RBPrintNodes(
         RBPrintNodes(pA, s, RBLeft(pNode), pfnPrint, pFnData, pF, sCat, true);
         RBPrintNodes(pA, s, RBRight(pNode), pfnPrint, pFnData, pF, sCat, false);
 
-        free(pA, sCat.pData);
+        pA->free(sCat.pData);
     }
 }
 

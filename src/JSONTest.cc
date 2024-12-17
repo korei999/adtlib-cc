@@ -1,4 +1,5 @@
 #include "adt/Arena.hh"
+#include "adt/FreeList.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
@@ -14,15 +15,17 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    /*FreeList al(SIZE_1G * 2);*/
-    Arena al(SIZE_1G * 2);
+    FreeList al(SIZE_1G * 2);
+    /*Arena al(SIZE_1G * 2);*/
     /*MutexArena al(SIZE_1G * 2);*/
 
     /*OsAllocator al;*/
 
+    LOG_BAD("v1: {}, v2: {}\n", sizeof(AllocatorVTable), sizeof(AllocatorVTableV2));
+
     defer( al.freeAll() );
 
-    json::Parser p(&al);
+    json::Parser p((IAllocator*)&al);
     json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);
     if (eRes == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
 
