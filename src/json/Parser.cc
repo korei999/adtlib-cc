@@ -435,12 +435,22 @@ ParserTraverse(Parser*s, Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), v
         default: break;
 
         case TAG::ARRAY:
-        case TAG::OBJECT: {
+        {
+            auto& obj = getArray(pNode);
+
+            for (u32 i = 0; i < obj.getSize(); i++)
+                ParserTraverse(s, &obj[i], pfn, pArgs);
+        }
+        break;
+
+        case TAG::OBJECT:
+        {
             auto& obj = getObject(pNode);
 
             for (u32 i = 0; i < obj.getSize(); i++)
                 ParserTraverse(s, &obj[i], pfn, pArgs);
-        } break;
+        }
+        break;
     }
 
     if (pfn(pNode, pArgs)) return;

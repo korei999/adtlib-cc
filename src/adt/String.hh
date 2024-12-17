@@ -49,8 +49,8 @@ struct String
     constexpr String(const char* sNullTerminated) : pData(const_cast<char*>(sNullTerminated)), size(nullTermStringSize(sNullTerminated)) {}
     constexpr String(char* pStr, u32 len) : pData(pStr), size(len) {}
 
-    constexpr char& operator[](u32 i)             { assert(i < size && "[String]: out of size"); return pData[i]; }
-    constexpr const char& operator[](u32 i) const { assert(i < size && "[String]: out of size"); return pData[i]; }
+    constexpr char& operator[](u32 i)             { return pData[i]; }
+    constexpr const char& operator[](u32 i) const { return pData[i]; }
 
     [[nodiscard]] constexpr bool endsWith(const String r) const;
 
