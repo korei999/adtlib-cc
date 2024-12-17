@@ -59,22 +59,54 @@ public:
     RBNode* const& left() const { return m_left; }
     RBNode*& right() { return m_right; }
     RBNode* const& right() const { return m_right; }
+
     RB_COLOR color() const { return (RB_COLOR)((u64)m_parentColor & COLOR_MASK); }
     RB_COLOR setColor(const RB_COLOR eColor) { m_parentColor = (RBNode*)((u64)parent() | (u64)eColor); return eColor; }
+
     RBNode* parent() const {  return (RBNode*)((u64)m_parentColor & ~COLOR_MASK); }
     void setParent(RBNode* par) { m_parentColor = (RBNode*)(((u64)par & ~COLOR_MASK) | (u64)color()); }
+
     RBNode*& parentAndColor() { return m_parentColor; }
     RBNode* const& parentAndColor() const { return m_parentColor; }
 };
 
 template<typename T>
-inline RBNode<T>*
-RBNodeAlloc(IAllocator* pA, const T& data)
-{
-    auto* r = (RBNode<T>*)pA->alloc(1, sizeof(RBNode<T>));
-    r->data = data;
-    return r;
-}
+inline RBNode<T>* RBNodeAlloc(IAllocator* pA, const T& data);
+
+template<typename T>
+inline RBNode<T>* RBTraversePRE(
+    RBNode<T>* p,
+    bool (*pfn)(RBNode<T>* pNode, void* pArg),
+    void* pUserData
+);
+
+template<typename T>
+inline RBNode<T>* RBTraverseIN(
+    RBNode<T>* p,
+    bool (*pfn)(RBNode<T>* pNode, void* pArg),
+    void* pUserData
+);
+
+template<typename T>
+inline RBNode<T>* RBTraversePOST(
+    RBNode<T>* p,
+    bool (*pfn)(RBNode<T>* pNode, void* pArg),
+    void* pUserData
+);
+
+template<typename T>
+inline RBNode<T>* RBTraverse(
+    RBNode<T>* p,
+    bool (*pfn)(RBNode<T>* pNode, void* pArg),
+    void* pUserData,
+    RB_ORDER order
+);
+
+template<typename T>
+inline RBNode<T>* RBSearch(RBNode<T>* p, const T& data);
+
+template<typename T>
+inline int RBDepth(RBNode<T>* p);
 
 template<typename T>
 struct RBTreeBase
@@ -96,21 +128,6 @@ struct RBTreeBase
 
     void destroy(IAllocator* pA);
 };
-
-template<typename T>
-inline RBNode<T>*
-RBTraverse(
-    RBNode<T>* p,
-    bool (*pfn)(RBNode<T>* pNode, void* pArg),
-    void* pUserData,
-    RB_ORDER order
-);
-
-template<typename T>
-inline RBNode<T>* RBSearch(RBNode<T>* p, const T& data);
-
-template<typename T>
-inline int RBDepth(RBNode<T>* p);
 
 template<typename T>
 inline void
@@ -481,6 +498,15 @@ RBTreeBase<T>::insert(IAllocator* pA, const T& data, bool bAllowDuplicates)
 {
     RBNode<T>* pNew = RBNodeAlloc(pA, data);
     return this->insert(pNew, bAllowDuplicates);
+}
+
+template<typename T>
+inline RBNode<T>*
+RBNodeAlloc(IAllocator* pA, const T& data)
+{
+    auto* r = (RBNode<T>*)pA->alloc(1, sizeof(RBNode<T>));
+    r->data = data;
+    return r;
 }
 
 template<typename T>
