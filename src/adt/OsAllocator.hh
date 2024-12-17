@@ -20,7 +20,7 @@ struct OsAllocator
     [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
     [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
     void free(void* ptr);
-    void freeAll();
+    void freeAll(); /* assert(false) */
     void reset();
 };
 

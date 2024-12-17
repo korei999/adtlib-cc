@@ -22,6 +22,11 @@ add_executable(
 )
 
 add_executable(
+    adt-queue
+    src/QueueTest.cc
+)
+
+add_executable(
     adt-list
     src/ListTest.cc
 )
