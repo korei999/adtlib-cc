@@ -57,9 +57,9 @@ enum class INIT_FLAG : u8 { NO_INIT, INIT };
     #define ADT_NO_UB
 #endif
 
-template<typename METHOD_D>
+template<typename METHOD_T>
 [[nodiscard]] constexpr void*
-methodPointer(METHOD_D ptr)
+methodPointer(METHOD_T ptr)
 {
     return *reinterpret_cast<void**>(&ptr);
 }
