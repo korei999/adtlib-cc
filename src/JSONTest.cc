@@ -28,6 +28,6 @@ main(int argc, char* argv[])
     if (argc >= 3 && "-p" == String(argv[2]))
         json::ParserPrint(&p, stdout);
 
-    json::ParserDestroy(&p);
+    /*json::ParserDestroy(&p);*/
     /*_FreeListPrintTree(&al, &arena.base);*/
 }
