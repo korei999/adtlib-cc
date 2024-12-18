@@ -26,4 +26,5 @@ main()
 
     LOG("null: {}, What: {}, is: {}, this: {}, Wh: {}, his: {}, HWha: {}\n", bNull, bWhat, bIs, bThis, bWh, bHis, bHWha);
 
+    sHello.destroy(&arena.super);
 }

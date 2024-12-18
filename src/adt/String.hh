@@ -302,10 +302,10 @@ StringAlloc(IAllocator* p, const String s)
 }
 
 inline void
-StringDestroy(IAllocator* p, String* s)
+String::destroy(IAllocator* p)
 {
-    p->free(s->pData);
-    *s = {};
+    p->free(this->pData);
+    *this = {};
 }
 
 inline String
