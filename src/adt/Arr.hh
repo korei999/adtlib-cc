@@ -51,6 +51,8 @@ struct Arr
     constexpr const It rbegin() const { return {&this->aData[this->size - 1]}; }
     constexpr const It rend() const { return {this->aData - 1}; }
 
+    constexpr bool empty() const { return size == 0; }
+
     constexpr u32 push(const T& x);
     constexpr u32 fakePush();
     constexpr T* pop();
@@ -165,18 +167,6 @@ constexpr Arr<T, CAP>::Arr(std::initializer_list<T> list)
     for (auto& e : list) this->push(e);
 }
 
-namespace utils
-{
-
-template<typename T, u32 CAP>
-[[nodiscard]] constexpr bool
-empty(const Arr<T, CAP>* s)
-{
-    return s->size == 0;
-}
-
-} /* namespace utils */
-
 namespace sort
 {
 
@@ -207,7 +197,7 @@ template<typename T, u32 CAP>
 inline u32
 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const Arr<T, CAP>& x)
 {
-    if (utils::empty(&x))
+    if (x.empty())
     {
         ctx.fmt = "{}";
         ctx.fmtIdx = 0;

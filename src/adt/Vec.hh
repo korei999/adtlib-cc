@@ -29,6 +29,7 @@ struct VecBase
     T& operator[](u32 i)             { assert(i < size && "[Vec] out of size"); return pData[i]; }
     const T& operator[](u32 i) const { assert(i < size && "[Vec] out of size"); return pData[i]; }
 
+    [[nodiscard]] bool empty() const { return size == 0; }
     u32 push(IAllocator* p, const T& data);
     [[nodiscard]] T& last();
     [[nodiscard]] const T& last() const;
@@ -270,16 +271,7 @@ struct Vec
     T& operator[](u32 i) { return base[i]; }
     const T& operator[](u32 i) const { return base[i]; }
 
-    VecBase<T>::It begin() { return base.begin(); }
-    VecBase<T>::It end() { return base.end(); }
-    VecBase<T>::It rbegin() { return base.rbegin(); }
-    VecBase<T>::It rend() { return rend(); }
-
-    const VecBase<T>::It begin() const { return base.begin(); }
-    const VecBase<T>::It end() const { return base.end(); }
-    const VecBase<T>::It rbegin() const { return base.rbegin(); }
-    const VecBase<T>::It rend() const { return rend(); }
-
+    [[nodiscard]] bool empty() const { return base.empty(); }
     u32 push(const T& data) { return this->base.push(this->pAlloc, data); }
     [[nodiscard]] T& VecLast() { return this->base.last(); }
     [[nodiscard]] const T& last() const { return this->base.last(); }
@@ -310,18 +302,17 @@ struct Vec
         nVec.pAlloc = pAlloc;
         return nVec;
     }
+
+    VecBase<T>::It begin() { return base.begin(); }
+    VecBase<T>::It end() { return base.end(); }
+    VecBase<T>::It rbegin() { return base.rbegin(); }
+    VecBase<T>::It rend() { return rend(); }
+
+    const VecBase<T>::It begin() const { return base.begin(); }
+    const VecBase<T>::It end() const { return base.end(); }
+    const VecBase<T>::It rbegin() const { return base.rbegin(); }
+    const VecBase<T>::It rend() const { return rend(); }
 };
-
-namespace utils
-{
-
-template<typename T>
-[[nodiscard]] inline bool empty(const VecBase<T>* s) { return s->size == 0; }
-
-template<typename T>
-[[nodiscard]] inline bool empty(const Vec<T>* s) { return empty(&s->base); }
-
-} /* namespace utils */
 
 namespace print
 {
@@ -330,7 +321,7 @@ template<typename T>
 inline u32
 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const VecBase<T>& x)
 {
-    if (utils::empty(&x))
+    if (x.empty())
     {
         ctx.fmt = "{}";
         ctx.fmtIdx = 0;
