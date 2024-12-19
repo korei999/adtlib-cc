@@ -116,17 +116,11 @@ struct RBTreeBase
     u64 size = 0;
 
     RBNode<T>* getRoot();
-
     bool empty();
-
     RBNode<T>* remove(RBNode<T>* elm);
-
     void removeAndFree(IAllocator* p, RBNode<T>* elm);
-
     RBNode<T>* insert(RBNode<T>* elm, bool bAllowDuplicates);
-
     RBNode<T>* insert(IAllocator* pA, const T& data, bool bAllowDuplicates);
-
     void destroy(IAllocator* pA);
 };
 
@@ -661,21 +655,13 @@ struct RBTree
     RBTree(IAllocator* p) : pAlloc(p) {}
 
     RBNode<T>* getRoot() { return base.getRoot(); }
-
     bool empty() { return base.empty(); }
-
     RBNode<T>* remove(RBNode<T>* elm) { return base.remove(elm); }
-
     RBNode<T>* remove(const T& x) { return base.remove(RBSearch<T>(getRoot(), x)); }
-
     void removeAndFree(RBNode<T>* elm) { base.removeAndFree(pAlloc, elm); }
-
     void removeAndFree(const T& x) { base.removeAndFree(pAlloc, RBSearch<T>(getRoot(), x)); }
-
     RBNode<T>* insert(RBNode<T>* elm, bool bAllowDuplicates) { return base.insert(elm, bAllowDuplicates); }
-
     RBNode<T>* insert(const T& data, bool bAllowDuplicates) { return base.insert(pAlloc, data, bAllowDuplicates); }
-
     void destroy() { base.destroy(pAlloc); }
 };
 
