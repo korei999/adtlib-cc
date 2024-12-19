@@ -54,11 +54,11 @@ struct FreeList
     FreeList() = default;
     FreeList(u64 _blockSize);
 
-    [[nodiscard]] inline void* alloc(u64 mCount, u64 mSize);
-    [[nodiscard]] inline void* zalloc(u64 mCount, u64 mSize);
-    [[nodiscard]] inline void* realloc(void* ptr, u64 mCount, u64 mSize);
-    inline void free(void* ptr);
-    inline void freeAll();
+    [[nodiscard]] void* alloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
+    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
+    void free(void* ptr);
+    void freeAll();
 };
 
 template<>
@@ -303,7 +303,7 @@ FreeList::free(void* ptr)
     if (ptr == nullptr) return;
 
     auto* pNode = _FreeListNodeFromPtr(ptr);
-    assert(!pNode->data.isFree());
+    assert(!pNode->data.isFree() && "[FreeList]: double free");
 
     auto* pBlock = _FreeListBlockFromNode(this, pNode);
 
