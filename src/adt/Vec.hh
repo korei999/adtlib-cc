@@ -51,7 +51,7 @@ struct VecBase
     [[nodiscard]] T* const& data() const;
     void zeroOut();
     [[nodiscard]] VecBase<T> clone(IAllocator* pAlloc) const;
-    void _grow(IAllocator* p, u32 newCapacity);
+    void grow(IAllocator* p, u32 newCapacity);
 
     struct It
     {
@@ -88,7 +88,7 @@ inline u32
 VecBase<T>::push(IAllocator* p, const T& data)
 {
     if (this->size >= this->capacity)
-        this->_grow(p, utils::max(this->capacity * 2U, u32(SIZE_MIN)));
+        this->grow(p, utils::max(this->capacity * 2U, u32(SIZE_MIN)));
 
     this->pData[this->size++] = data;
     return this->size - 1;
@@ -134,7 +134,7 @@ template<typename T>
 inline void
 VecBase<T>::setSize(IAllocator* p, u32 size)
 {
-    if (this->capacity < size) this->_grow(p, size);
+    if (this->capacity < size) this->grow(p, size);
 
     this->size = size;
 }
@@ -252,7 +252,7 @@ VecBase<T>::clone(IAllocator* pAlloc) const
 
 template<typename T>
 inline void
-VecBase<T>::_grow(IAllocator* p, u32 newCapacity)
+VecBase<T>::grow(IAllocator* p, u32 newCapacity)
 {
     assert(newCapacity * sizeof(T) > 0);
     this->capacity = newCapacity;
