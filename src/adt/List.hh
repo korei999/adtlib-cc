@@ -64,21 +64,13 @@ struct ListBase
     const It rend() const { return nullptr; }
 
     constexpr void destroy(IAllocator* pA);
-
     constexpr ListNode<T>* pushFront(ListNode<T>* pNew);
-
     constexpr ListNode<T>* pushBack(ListNode<T>* pNew);
-
     constexpr ListNode<T>* pushFront(IAllocator* pA, const T& x);
-
     constexpr ListNode<T>* pushBack(IAllocator* pA, const T& x);
-
     constexpr void remove(ListNode<T>* p);
-
     constexpr void insertAfter(ListNode<T>* pAfter, ListNode<T>* p);
-
     constexpr void insertBefore(ListNode<T>* pBefore, ListNode<T>* p);
-
     template<auto FN_CMP = utils::compare<T>>
     constexpr void sort();
 
