@@ -364,10 +364,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const ListBase
     u32 nRead = 0;
     ADT_LIST_FOREACH(&x, it)
     {
-        const char* fmt;
-        if constexpr (std::is_floating_point_v<T>) fmt = it == x.pLast ? "{:.3}" : "{:.3}, ";
-        else fmt = it == x.pLast ? "{}" : "{}, ";
-
+        const char* fmt = it == x.pLast ? "{}" : "{}, ";
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it->data);
     }
 

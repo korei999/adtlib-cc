@@ -30,48 +30,27 @@ struct VecBase
     const T& operator[](u32 i) const { assert(i < size && "[Vec] out of size"); return pData[i]; }
 
     u32 push(IAllocator* p, const T& data);
-
-    [[nodiscard]] inline T& last();
-
-    [[nodiscard]] inline const T& last() const;
-
-    [[nodiscard]] inline T& first();
-
-    [[nodiscard]] inline const T& first() const;
-
-    inline T* pop();
-
-    inline void setSize(IAllocator* p, u32 size);
-
-    inline void setCap(IAllocator* p, u32 cap);
-
-    inline void swapWithLast(u32 i);
-
-    inline void popAsLast(u32 i);
-
-    [[nodiscard]] inline u32 idx(const T* x) const;
-
-    [[nodiscard]] inline u32 lastI() const;
-
-    [[nodiscard]] inline T& at(u32 i);
-
-    [[nodiscard]] inline const T& at(u32 i) const;
-
-    inline void destroy(IAllocator* p);
-
-    [[nodiscard]] inline u32 getSize() const;
-
-    [[nodiscard]] inline u32 getCap() const;
-
-    [[nodiscard]] inline T*& data();
-
-    [[nodiscard]] inline T* const& data() const;
-
-    inline void zeroOut();
-
-    [[nodiscard]] inline VecBase<T> clone(IAllocator* pAlloc) const;
-
-    inline void _grow(IAllocator* p, u32 newCapacity);
+    [[nodiscard]] T& last();
+    [[nodiscard]] const T& last() const;
+    [[nodiscard]] T& first();
+    [[nodiscard]] const T& first() const;
+    T* pop();
+    void setSize(IAllocator* p, u32 size);
+    void setCap(IAllocator* p, u32 cap);
+    void swapWithLast(u32 i);
+    void popAsLast(u32 i);
+    [[nodiscard]] u32 idx(const T* x) const;
+    [[nodiscard]] u32 lastI() const;
+    [[nodiscard]] T& at(u32 i);
+    [[nodiscard]] const T& at(u32 i) const;
+    void destroy(IAllocator* p);
+    [[nodiscard]] u32 getSize() const;
+    [[nodiscard]] u32 getCap() const;
+    [[nodiscard]] T*& data();
+    [[nodiscard]] T* const& data() const;
+    void zeroOut();
+    [[nodiscard]] VecBase<T> clone(IAllocator* pAlloc) const;
+    void _grow(IAllocator* p, u32 newCapacity);
 
     struct It
     {
@@ -382,10 +361,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const VecBase<
     u32 nRead = 0;
     for (u32 i = 0; i < x.size; ++i)
     {
-        const char* fmt;
-        if constexpr (std::is_floating_point_v<T>) fmt = i == x.size - 1 ? "{:.3}" : "{:.3}, ";
-        else fmt = i == x.size - 1 ? "{}" : "{}, ";
-
+        const char* fmt = i == x.size - 1 ? "{}" : "{}, ";
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, x[i]);
     }
 

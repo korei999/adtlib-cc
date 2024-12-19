@@ -52,27 +52,16 @@ struct Arr
     constexpr const It rend() const { return {this->aData - 1}; }
 
     constexpr u32 push(const T& x);
-
     constexpr u32 fakePush();
-
     constexpr T* pop();
-
     constexpr void fakePop();
-
     constexpr u32 getCap() const;
-
     constexpr u32 getSize() const;
-
     constexpr void setSize(u32 newSize);
-
     constexpr u32 idx(const T* p);
-
     constexpr T& first();
-
     constexpr const T& first() const;
-
     constexpr T& last();
-
     constexpr const T& last() const;
 };
 
@@ -229,10 +218,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const Arr<T, C
     u32 nRead = 0;
     for (u32 i = 0; i < x.size; ++i)
     {
-        const char* fmt;
-        if constexpr (std::is_floating_point_v<T>) fmt = i == x.size - 1 ? "{:.3}" : "{:.3}, ";
-        else fmt = i == x.size - 1 ? "{}" : "{}, ";
-
+        const char* fmt = i == x.size - 1 ? "{}" : "{}, ";
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, x[i]);
     }
 
