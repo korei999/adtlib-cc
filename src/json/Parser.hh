@@ -10,32 +10,35 @@ namespace json
 
 struct Parser
 {
-    adt::IAllocator* pAlloc;
-    Lexer l;
-    adt::String sName;
-    adt::VecBase<Object> aObjects {};
-    Token tCurr;
-    Token tNext;
+    adt::IAllocator* m_pAlloc;
+    Lexer m_lex;
+    adt::String m_sName;
+    adt::VecBase<Object> m_aObjects {};
+    Token m_tCurr;
+    Token m_tNext;
+
+    /* */
 
     Parser() = default;
-    Parser(adt::IAllocator* p) : pAlloc(p) {}
+    Parser(adt::IAllocator* p) : m_pAlloc(p) {}
+
+    void destroy();
+    RESULT load(adt::String path);
+    RESULT parse();
+    RESULT loadParse(adt::String path);
+    void print(FILE* fp);
+    void traverse(Object* pNode, bool (*pfn)(Object* pNode, void* pArgs), void* pArgs);
+    /* if root json object consists of only one object return that, otherwise get array of root objects */
+    adt::VecBase<Object>& getRoot();
+
+    void
+    traverseAll(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+    {
+        for (auto& obj : m_aObjects) traverse(&obj, pfn, pArgs);
+    }
 };
 
-void ParserDestroy(Parser* s);
-void ParserPrintNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
-RESULT ParserLoad(Parser* s, adt::String path);
-RESULT ParserParse(Parser* s);
-RESULT ParserLoadParse(Parser* s, adt::String path);
-void ParserPrint(Parser* s, FILE* fp);
-void ParserTraverse(Parser* s, Object* pNode, bool (*pfn)(Object* p, void* a), void* args);
-/* if root json object consists of only one object return that, otherwise get array of root objects */
-adt::VecBase<Object>& ParserGetRoot(Parser* s);
-
-inline void
-ParserTraverseAll(Parser* s, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
-{
-    for (auto& obj : s->aObjects) ParserTraverse(s, &obj, pfn, pArgs);
-}
+void printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
 
 /* Linear search inside JSON object. Returns nullptr if not found */
 inline Object*

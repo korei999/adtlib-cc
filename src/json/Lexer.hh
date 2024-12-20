@@ -33,20 +33,16 @@ struct Token
 
 struct Lexer
 {
-    adt::String sFile;
-    adt::u32 pos = 0;
+    adt::String m_sFile;
+    adt::u32 m_pos = 0;
+
+    /* */
 
     Lexer() = default;
+
+    void destroy(adt::IAllocator* pAlloc);
+    RESULT loadFile(adt::IAllocator* pAlloc, adt::String path);
+    Token next();
 };
-
-void LexerDestroy(Lexer* s, adt::IAllocator* pAlloc);
-RESULT LexerLoadFile(Lexer* s, adt::IAllocator* pAlloc, adt::String path);
-Token LexerNext(Lexer* s);
-
-void LexerSkipWhiteSpace(Lexer* s);
-Token LexerNumber(Lexer* s);
-Token LexerStringNoQuotes(Lexer* s);
-Token LexerString(Lexer* s);
-Token LexerChar(Lexer* s, enum Token::TYPE type);
 
 } /* namespace json */

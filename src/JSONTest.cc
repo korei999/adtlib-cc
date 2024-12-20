@@ -21,12 +21,12 @@ main(int argc, char* argv[])
 
     defer( al.freeAll() );
 
-    json::Parser p((IAllocator*)&al);
-    json::RESULT eRes = json::ParserLoadParse(&p, argv[1]);
-    if (eRes == json::FAIL) LOG_WARN("json::ParserLoadAndParse() failed\n");
+    json::Parser p(&al.super);
+    json::RESULT eRes = p.loadParse(argv[1]);
+    if (eRes == json::FAIL) LOG_WARN("json::Parser::loadAndParse() failed\n");
 
     if (argc >= 3 && "-p" == String(argv[2]))
-        json::ParserPrint(&p, stdout);
+        p.print(stdout);
 
     /*json::ParserDestroy(&p);*/
     /*_FreeListPrintTree(&al, &arena.base);*/

@@ -37,15 +37,13 @@ main()
     {
         RBTree<Big> tree(&fl.super);
 
-        auto t0 = utils::timeNowMS();
         constexpr long max = 1000000;
         for (long i = 0; i < max; ++i)
             tree.insert({i + 0, i + 1, i + 2, i + 3}, true);
 
         tree.destroy();
-        auto t1 = utils::timeNowMS();
 
-        LOG("warmup in {} ms\n", t1 - t0);
+        LOG("warmup...\n");
     }
 
     {

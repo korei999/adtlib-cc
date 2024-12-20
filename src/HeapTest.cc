@@ -20,8 +20,8 @@ main()
     h.pushMax(&arena.super, -2);
     h.pushMax(&arena.super, 8);
 
-    LOG("h: [{}]\n", h.vec);
+    LOG("h: [{}]\n", h.m_vec);
 
-    while (h.vec.getSize() > 0)
+    while (h.m_vec.getSize() > 0)
         LOG("max: {}\n", h.maxExtract());
 }
