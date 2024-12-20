@@ -28,6 +28,8 @@ struct Arr
 
     /* */
 
+    constexpr T* data() { return m_aData; }
+    constexpr const T* data() const { return m_aData; }
     constexpr bool empty() const { return m_size == 0; }
     constexpr u32 push(const T& x);
     constexpr u32 fakePush();
