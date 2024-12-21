@@ -5,6 +5,7 @@
 #include "print.hh"
 
 #include <cassert>
+#include <new> /* IWYU pragma: keep */
 
 namespace adt
 {
@@ -93,10 +94,11 @@ template<typename T>
 inline u32
 VecBase<T>::push(IAllocator* p, const T& data)
 {
-    if (this->m_size >= this->m_capacity)
-        this->grow(p, utils::max(this->m_capacity * 2U, u32(SIZE_MIN)));
+    if (m_size >= m_capacity)
+        grow(p, utils::max(m_capacity * 2U, u32(SIZE_MIN)));
 
-    this->m_pData[this->m_size++] = data;
+    new(m_pData + m_size++) T(data);
+
     return this->m_size - 1;
 }
 

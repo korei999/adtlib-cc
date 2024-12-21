@@ -159,7 +159,7 @@ _FreeListNodeFromPtr(void* p)
 inline FreeList::Node*
 _FreeListFindFittingNode(FreeList* s, const u64 size)
 {
-    auto* it = s->m_tree.pRoot;
+    auto* it = s->m_tree.m_pRoot;
     const s64 realSize = size + sizeof(FreeList::Node);
 
     FreeList::Node* pLastFitting {};
