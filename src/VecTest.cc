@@ -2,6 +2,7 @@
 #include "adt/Arena.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
+#include "adt/OsAllocator.hh"
 #include "adt/sort.hh"
 
 #include <cassert>
@@ -11,10 +12,13 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(adt::SIZE_1K);
-    defer( arena.freeAll() );
+    VecBase<Arena> aArenas(OsAllocatorGet(), 1);
+    defer( aArenas.destroy(OsAllocatorGet()) );
 
-    Vec<f64> vec(&arena);
+    aArenas.push(OsAllocatorGet(), SIZE_1K);
+    defer( aArenas[0].freeAll() );
+
+    Vec<f64> vec(&aArenas[0]);
 
     vec.push(5.0);
     vec.push(3.0);
@@ -28,14 +32,14 @@ main()
     vec.push(-20.0);
 
     {
-        auto vec0 = vec.clone(&arena);
+        auto vec0 = vec.clone(&aArenas[0]);
         sort::quick(&vec0.base);
         COUT("vec0: {}\n", vec0);
         assert(sort::sorted(vec0.base));
     }
 
     {
-        auto vec1 = vec.clone(&arena);
+        auto vec1 = vec.clone(&aArenas[0]);
         sort::quick<VecBase, f64, utils::compareRev>(&vec1.base);
         COUT("vec0: {}\n", vec1);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
