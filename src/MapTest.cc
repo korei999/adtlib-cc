@@ -10,7 +10,6 @@ main()
 {
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
-    arena.freeAll();
 
     Map<String, u32> map(&arena.super);
 
