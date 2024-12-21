@@ -102,11 +102,11 @@ Arena::alloc(u64 mCount, u64 mSize)
     auto* pBlock = _ArenaFindFittingBlock(this, realSize);
 
 #if defined ADT_DBG_MEMORY
-    if (this->m_defaultCapacity <= realSize)
-        fprintf(stderr, "[Arena]: allocating more than defaultCapacity (%llu, %llu)\n", this->m_defaultCapacity, realSize);
+    if (m_defaultCapacity <= realSize)
+        fprintf(stderr, "[Arena]: allocating more than defaultCapacity (%llu, %llu)\n", m_defaultCapacity, realSize);
 #endif
 
-    if (!pBlock) pBlock = _ArenaPrependBlock(this, utils::max(this->m_defaultCapacity, realSize*2));
+    if (!pBlock) pBlock = _ArenaPrependBlock(this, utils::max(m_defaultCapacity, realSize*2));
 
     auto* pRet = pBlock->pMem + pBlock->nBytesOccupied;
     assert(pRet == pBlock->pLastAlloc + pBlock->lastAllocSize);
@@ -121,7 +121,7 @@ Arena::alloc(u64 mCount, u64 mSize)
 inline void*
 Arena::zalloc(u64 mCount, u64 mSize)
 {
-    auto* p = this->alloc(mCount, mSize);
+    auto* p = alloc(mCount, mSize);
     memset(p, 0, align8(mCount * mSize));
     return p;
 }
@@ -129,7 +129,7 @@ Arena::zalloc(u64 mCount, u64 mSize)
 inline void*
 Arena::realloc(void* ptr, u64 mCount, u64 mSize)
 {
-    if (!ptr) return this->alloc(mCount, mSize);
+    if (!ptr) return alloc(mCount, mSize);
 
     u64 requested = mSize * mCount;
     u64 realSize = align8(requested);
@@ -148,7 +148,7 @@ Arena::realloc(void* ptr, u64 mCount, u64 mSize)
     }
     else
     {
-        auto* pRet = this->alloc(mCount, mSize);
+        auto* pRet = alloc(mCount, mSize);
         u64 nBytesUntilEndOfBlock = &pBlock->pMem[pBlock->size] - (u8*)ptr;
         u64 nBytesToCopy = utils::min(requested, nBytesUntilEndOfBlock); /* out of range memcpy */
         nBytesToCopy = utils::min(nBytesToCopy, u64((u8*)pRet - (u8*)ptr)); /* overlap memcpy */
@@ -167,20 +167,20 @@ Arena::free(void*)
 inline void
 Arena::freeAll()
 {
-    auto* it = this->m_pBlocks;
+    auto* it = m_pBlocks;
     while (it)
     {
         auto* next = it->pNext;
         ::free(it);
         it = next;
     }
-    this->m_pBlocks = nullptr;
+    m_pBlocks = nullptr;
 }
 
 inline void
 Arena::reset()
 {
-    auto* it = this->m_pBlocks;
+    auto* it = m_pBlocks;
     while (it)
     {
         it->nBytesOccupied = 0;
@@ -193,6 +193,6 @@ Arena::reset()
 
 inline Arena::Arena(u64 capacity)
     : m_defaultCapacity(align8(capacity)),
-      m_pBlocks(_ArenaAllocBlock(this->m_defaultCapacity)) {}
+      m_pBlocks(_ArenaAllocBlock(m_defaultCapacity)) {}
 
 } /* namespace adt */
