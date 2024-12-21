@@ -287,6 +287,7 @@ struct Vec
     [[nodiscard]] bool empty() const { return base.empty(); }
     u32 push(const T& data) { return base.push(m_pAlloc, data); }
     [[nodiscard]] T& VecLast() { return base.last(); }
+    [[nodiscard]] T& last() { return base.last(); }
     [[nodiscard]] const T& last() const { return base.last(); }
     [[nodiscard]] T& first() { return base.first(); }
     [[nodiscard]] const T& first() const { return base.first(); }
