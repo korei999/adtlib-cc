@@ -16,7 +16,7 @@ struct Opt
     constexpr Opt(const T& x, bool _bHasValue = true)
     {
         bHasValue = _bHasValue;
-        new(&data) T(x);
+        data = x;
     }
 
     constexpr T& getData() { assert(bHasValue && "[Opt]: has no data"); return data; }
