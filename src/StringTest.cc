@@ -11,7 +11,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    String sHello = StringAlloc(&arena.super, "What is this");
+    String sHello = StringAlloc(&arena, "What is this");
 
     bool bNull = sHello.contains("");
 
@@ -26,5 +26,5 @@ main()
 
     LOG("null: {}, What: {}, is: {}, this: {}, Wh: {}, his: {}, HWha: {}\n", bNull, bWhat, bIs, bThis, bWh, bHis, bHWha);
 
-    sHello.destroy(&arena.super);
+    sHello.destroy(&arena);
 }

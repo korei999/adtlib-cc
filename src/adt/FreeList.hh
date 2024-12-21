@@ -41,11 +41,9 @@ struct FreeListData
     constexpr void addSize(u64 _size) { setSize(_size + getSize()); }
 };
 
-struct FreeList
+struct FreeList : IAllocator
 {
     using Node = RBNode<FreeListData>; /* node is the header + memory chunk of the allocation */
-
-    IAllocator super {};
 
     /* */
 
@@ -61,11 +59,11 @@ struct FreeList
 
     /* */
 
-    [[nodiscard]] void* alloc(u64 mCount, u64 mSize);
-    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
-    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
-    void free(void* ptr);
-    void freeAll();
+    [[nodiscard]] virtual void* alloc(u64 mCount, u64 mSize) override;
+    [[nodiscard]] virtual void* zalloc(u64 mCount, u64 mSize) override;
+    [[nodiscard]] virtual void* realloc(void* ptr, u64 mCount, u64 mSize) override;
+    virtual void free(void* ptr) override;
+    virtual void freeAll() override;
 };
 
 template<>
@@ -399,11 +397,8 @@ FreeList::realloc(void* ptr, u64 nMembers, u64 mSize)
     return pRet;
 }
 
-inline const AllocatorVTable inl_FreeListVTable = AllocatorVTableGenerate<FreeList>();
-
 inline FreeList::FreeList(u64 _blockSize)
-    : super(&inl_FreeListVTable),
-      m_blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
+    : m_blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
       m_pBlocks(_FreeListAllocBlock(this, this->m_blockSize)) {}
 
 } /* namespace adt */

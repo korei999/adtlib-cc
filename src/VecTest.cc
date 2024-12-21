@@ -14,7 +14,7 @@ main()
     Arena arena(adt::SIZE_1K);
     defer( arena.freeAll() );
 
-    Vec<f64> vec(&arena.super);
+    Vec<f64> vec(&arena);
 
     vec.push(5.0);
     vec.push(3.0);
@@ -28,14 +28,14 @@ main()
     vec.push(-20.0);
 
     {
-        auto vec0 = vec.clone(&arena.super);
+        auto vec0 = vec.clone(&arena);
         sort::quick(&vec0.base);
         COUT("vec0: {}\n", vec0);
         assert(sort::sorted(vec0.base));
     }
 
     {
-        auto vec1 = vec.clone(&arena.super);
+        auto vec1 = vec.clone(&arena);
         sort::quick<VecBase, f64, utils::compareRev>(&vec1.base);
         COUT("vec0: {}\n", vec1);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));

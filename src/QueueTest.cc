@@ -11,7 +11,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    Queue<long> q(&arena.super);
+    Queue<long> q(&arena);
 
     q.pushBack(1);
     q.pushBack(2);

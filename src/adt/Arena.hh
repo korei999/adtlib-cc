@@ -25,12 +25,8 @@ struct ArenaBlock
 };
 
 /* fast region based allocator, only freeAll() free's memory, free() does nothing */
-struct Arena
+struct Arena : IAllocator
 {
-    IAllocator super {};
-
-    /* */
-
     u64 m_defaultCapacity {};
     ArenaBlock* m_pBlocks {};
 
@@ -41,11 +37,11 @@ struct Arena
 
     /* */
 
-    [[nodiscard]] void* alloc(u64 mCount, u64 mSize);
-    [[nodiscard]] void* zalloc(u64 mCount, u64 mSize);
-    [[nodiscard]] void* realloc(void* ptr, u64 mCount, u64 mSize);
-    void free(void* ptr);
-    void freeAll();
+    [[nodiscard]] virtual void* alloc(u64 mCount, u64 mSize) override final;
+    [[nodiscard]] virtual void* zalloc(u64 mCount, u64 mSize) override final;
+    [[nodiscard]] virtual void* realloc(void* ptr, u64 mCount, u64 mSize) override final;
+    virtual void free(void* ptr) override final;
+    virtual void freeAll() override final;
     void reset();
 };
 
@@ -195,11 +191,8 @@ Arena::reset()
     }
 }
 
-inline const AllocatorVTable inl_ArenaVTable = AllocatorVTableGenerate<Arena>();
-
 inline Arena::Arena(u64 capacity)
-    : super(&inl_ArenaVTable),
-      m_defaultCapacity(align8(capacity)),
+    : m_defaultCapacity(align8(capacity)),
       m_pBlocks(_ArenaAllocBlock(this->m_defaultCapacity)) {}
 
 } /* namespace adt */

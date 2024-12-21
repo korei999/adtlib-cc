@@ -11,14 +11,14 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    Heap<long> h(&arena.super);
-    defer( h.destroy(&arena.super) );
+    Heap<long> h(&arena);
+    defer( h.destroy(&arena) );
 
-    h.pushMax(&arena.super, 2);
-    h.pushMax(&arena.super, 4);
-    h.pushMax(&arena.super, 1);
-    h.pushMax(&arena.super, -2);
-    h.pushMax(&arena.super, 8);
+    h.pushMax(&arena, 2);
+    h.pushMax(&arena, 4);
+    h.pushMax(&arena, 1);
+    h.pushMax(&arena, -2);
+    h.pushMax(&arena, 8);
 
     LOG("h: [{}]\n", h.m_vec);
 

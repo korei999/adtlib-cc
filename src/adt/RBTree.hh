@@ -376,7 +376,7 @@ template<typename T>
 inline RBNode<T>*
 RBTreeBase<T>::remove(RBNode<T>* elm)
 {
-    assert(size > 0 && "[RBTree]: empty");
+    assert(m_size > 0 && "[RBTree]: empty");
 
     RBNode<T>* child, * parent, * old = elm;
     enum RB_COLOR color;

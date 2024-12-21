@@ -15,7 +15,7 @@ main()
     ChunkAllocator al(sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
-    RBTree<long> tree(&al.super);
+    RBTree<long> tree(&al);
     defer( tree.destroy() );
 
     tree.insert(1L, false);
@@ -31,5 +31,5 @@ main()
 
     LOG_GOOD("root: {}\n", *tree.getRoot());
 
-    RBPrintNodes(&arena.super, tree.getRoot(), stdout, "", false);
+    RBPrintNodes(&arena, tree.getRoot(), stdout, "", false);
 }

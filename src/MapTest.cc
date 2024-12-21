@@ -11,7 +11,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    Map<String, u32> map(&arena.super);
+    Map<String, u32> map(&arena);
 
     map.insert("ThirdyTwo", 32);
     map.insert("Sixteen", 16);

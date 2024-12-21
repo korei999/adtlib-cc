@@ -12,11 +12,6 @@ endif()
 project(adtlib-test VERSION 0.4 LANGUAGES CXX)
 
 add_executable(
-    adt-vtable
-    src/vtableTest.cc
-)
-
-add_executable(
     adt-vec
     src/VecTest.cc
 )

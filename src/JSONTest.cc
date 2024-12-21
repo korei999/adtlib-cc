@@ -1,4 +1,5 @@
 #include "adt/Arena.hh"
+#include "adt/MutexArena.hh"
 #include "adt/FreeList.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
@@ -21,7 +22,7 @@ main(int argc, char* argv[])
 
     defer( al.freeAll() );
 
-    json::Parser p(&al.super);
+    json::Parser p(&al);
     json::RESULT eRes = p.loadParse(argv[1]);
     if (eRes == json::FAIL) LOG_WARN("json::Parser::loadAndParse() failed\n");
 

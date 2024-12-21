@@ -29,7 +29,7 @@ main()
 {
     FixedAllocator fixed(s_aBuff, sizeof(s_aBuff));
 
-    ThreadPool tp(&fixed.super);
+    ThreadPool tp(&fixed);
     defer( tp.destroy() );
     tp.start();
 
