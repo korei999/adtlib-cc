@@ -32,7 +32,7 @@ struct String;
 /* StringAlloc() inserts '\0' char */
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str, u32 size);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, u32 size);
-[[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str);
+[[nodiscard]] inline String StringAlloc(IAllocator* p, const char* nts);
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const String s);
 
 [[nodiscard]] inline String StringCat(IAllocator* p, const String l, const String r);
@@ -54,8 +54,8 @@ struct String
 
     /* */
 
-    constexpr char& operator[](u32 i)             { return m_pData[i]; }
-    constexpr const char& operator[](u32 i) const { return m_pData[i]; }
+    constexpr char& operator[](u32 i)             { assert(i < m_size && "[String]: out of size"); return m_pData[i]; }
+    constexpr const char& operator[](u32 i) const { assert(i < m_size && "[String]: out of size"); return m_pData[i]; }
 
     const char* data() const { return m_pData; }
     char* data() { return m_pData; }
@@ -66,6 +66,7 @@ struct String
     void trimEnd();
     constexpr void removeNLEnd(); /* remove \r\n */
     [[nodiscard]] bool contains(const String r) const;
+    [[nodiscard]] String clone(IAllocator* pAlloc) const;
 
     /* */
 
@@ -295,15 +296,21 @@ StringAlloc(IAllocator* p, u32 size)
 }
 
 inline String
-StringAlloc(IAllocator* p, const char* str)
+StringAlloc(IAllocator* p, const char* nts)
 {
-    return StringAlloc(p, str, nullTermStringSize(str));
+    return StringAlloc(p, nts, nullTermStringSize(nts));
 }
 
 inline String
 StringAlloc(IAllocator* p, const String s)
 {
-    return StringAlloc(p, s.m_pData, s.m_size);
+    if (s.getSize() == 0) return {};
+
+    char* pData = (char*)p->zalloc(s.getSize() + 1, sizeof(char));
+    strncpy(pData, s.data(), s.getSize());
+    pData[s.getSize()] = '\0';
+
+    return {pData, s.getSize()};
 }
 
 inline void
@@ -377,6 +384,12 @@ String::contains(const String r) const
     }
 
     return false;
+}
+
+[[nodiscard]] inline String
+String::clone(IAllocator* pAlloc) const
+{
+    return StringAlloc(pAlloc, *this);
 }
 
 inline u32
