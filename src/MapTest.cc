@@ -47,4 +47,20 @@ main()
         assert(fNineHundredNinetyNine);
         if (fNineHundredNinetyNine) LOG("found: {}\n", fNineHundredNinetyNine.getData());
     }
+
+    Map<int, int> map2(&arena);
+    map2.insert(12, 1);
+    map2.insert(13, 2);
+
+    {
+        auto one = map2.search(12);
+        assert(one);
+        LOG("one: {}\n", one.getData());
+    }
+
+    {
+        auto two = map2.search(13);
+        assert(two);
+        LOG("one: {}\n", two.getData());
+    }
 }
