@@ -7,10 +7,6 @@
 #include <cassert>
 #include <new> /* IWYU pragma: keep */
 
-#ifndef NDEBUG
-    #include <stdckdint.h>
-#endif
-
 namespace adt
 {
 
@@ -103,11 +99,7 @@ VecBase<T>::push(IAllocator* p, const T& data)
 {
     if (m_size >= m_capacity)
     {
-#ifndef NDEBUG
-        u32 _result = 0;
-        assert(!ckd_add(&_result, m_capacity, 1U) && "[Vec]: capacity overflows");
         assert(nextPowerOf2(m_capacity + 1U) > m_capacity && "[Vec]: can't grow to nextPowerOf2 (overflow)");
-#endif
         grow(p, nextPowerOf2(m_capacity + 1U));
     }
 
