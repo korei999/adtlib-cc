@@ -2,6 +2,7 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/String.hh"
+#include "adt/ReverseIt.hh"
 
 using namespace adt;
 
@@ -27,4 +28,11 @@ main()
     LOG("null: {}, What: {}, is: {}, this: {}, Wh: {}, his: {}, HWha: {}\n", bNull, bWhat, bIs, bThis, bWh, bHis, bHWha);
 
     sHello.destroy(&arena);
+
+    {
+        String s0 = "HELLO BIDEN";
+        for (auto ch : ReverseIt(s0))
+            putchar(ch);
+        putchar('\n');
+    }
 }

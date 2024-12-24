@@ -312,12 +312,12 @@ struct Vec
     VecBase<T>::It begin() { return base.begin(); }
     VecBase<T>::It end() { return base.end(); }
     VecBase<T>::It rbegin() { return base.rbegin(); }
-    VecBase<T>::It rend() { return rend(); }
+    VecBase<T>::It rend() { return base.rend(); }
 
     const VecBase<T>::It begin() const { return base.begin(); }
     const VecBase<T>::It end() const { return base.end(); }
     const VecBase<T>::It rbegin() const { return base.rbegin(); }
-    const VecBase<T>::It rend() const { return rend(); }
+    const VecBase<T>::It rend() const { return base.rend(); }
 };
 
 namespace print

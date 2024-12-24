@@ -5,12 +5,17 @@
 #include "adt/defer.hh"
 #include "adt/OsAllocator.hh"
 #include "adt/sort.hh"
+#include "adt/FixedAllocator.hh"
+#include "adt/ReverseIt.hh"
 
 #include <cassert>
 
 #include <vector>
 
 using namespace adt;
+
+const u32 BIG = 10000000;
+static u8 s_bigMem[BIG * 16 + sizeof(FixedAllocator)] {};
 
 int
 main()
@@ -44,11 +49,15 @@ main()
     {
         auto vec1 = vec.clone(&aArenas[0]);
         sort::quick<VecBase, f64, utils::compareRev>(&vec1.base);
-        COUT("vec0: {}\n", vec1);
+        COUT("vec1: {}\n", vec1);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
+
+        COUT("vec1(rev): ");
+        for (auto e : ReverseIt(vec1))
+            COUT("{}, ", e);
+        COUT("\n");
     }
 
-    const u32 big = 100000000;
 
     struct A
     {
@@ -68,9 +77,9 @@ main()
     };
 
     {
-        Arena a(sizeof(u32) * big);
+        Arena a(sizeof(u32) * BIG);
         Vec<B> vec(&a, 77);
-        for (u32 i = 0; i < big / 4; ++i)
+        for (u32 i = 0; i < BIG / 4; ++i)
             vec.push(i);
         a.freeAll();
     }
@@ -79,17 +88,19 @@ main()
         f64 t0 = utils::timeNowMS();
 
         /* why arena is slower??? */
-        FreeList a(sizeof(u32) * big);
+        /*FreeList a(sizeof(u32) * BIG);*/
+        /*FixedAllocator a(s_bigMem, sizeof(s_bigMem));*/
+        OsAllocator a;
         /*Arena a(nextPowerOf2(sizeof(u32) * big));*/
 
         Vec<B> vec(&a);
-        for (u32 i = 0; i < big; ++i)
+        for (u32 i = 0; i < BIG; ++i)
             vec.push(i);
 
         f64 t1 = utils::timeNowMS();
         LOG("adt: {} ms\n", t1 - t0);
 
-        a.freeAll();
+        vec.destroy();
     }
 
     {
@@ -97,7 +108,7 @@ main()
 
         std::vector<B> stdvec;
         /*stdvec.reserve(big);*/
-        for (u32 i = 0; i < big; ++i)
+        for (u32 i = 0; i < BIG; ++i)
             stdvec.push_back(i);
 
         f64 t1 = utils::timeNowMS();
