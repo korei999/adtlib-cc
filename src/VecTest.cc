@@ -44,4 +44,16 @@ main()
         COUT("vec0: {}\n", vec1);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
     }
+
+    {
+        f64 t0 = utils::timeNowMS();
+
+        const u32 big = 100000000;
+        Vec<u32> vec(&aArenas.first(), 77);
+        for (u32 i = 0; i < big; ++i)
+            vec.push(i);
+
+        f64 t1 = utils::timeNowMS();
+        LOG("{} ms\n", t1 - t0);
+    }
 }
