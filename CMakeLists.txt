@@ -96,7 +96,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions("-DADT_DBG_MEMORY")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
 else()
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs -lc -lm")
+    # SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nodefaultlibs -lc -lm")
 endif()
 
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
@@ -108,6 +108,6 @@ message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 # pkg_check_modules(LINUX_PKGS REQUIRED mimalloc)
 # include_directories(BEFORE ${LINUX_PKGS_INCLUDE_DIRS})
 # target_link_libraries(
-#     ${CMAKE_PROJECT_NAME} PRIVATE
+#     adt-vec PRIVATE
 #     ${LINUX_PKGS_LIBRARIES}
 # )

@@ -1,6 +1,7 @@
 #include "adt/Arena.hh"
-#include "adt/MutexArena.hh"
 #include "adt/FreeList.hh"
+#include "adt/MutexArena.hh"
+#include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
@@ -16,19 +17,19 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    /*FreeList al(SIZE_1G * 2);*/
-    Arena al(SIZE_1G * 2);
+    /*FreeList al(SIZE_1G * 5);*/
+    /*Arena al(SIZE_1G * 3);*/
     /*MutexArena al(SIZE_1G * 2);*/
 
-    defer( al.freeAll() );
+    /*defer( al.freeAll() );*/
 
-    json::Parser p(&al);
+    json::Parser p(OsAllocatorGet());
     json::RESULT eRes = p.loadParse(argv[1]);
     if (eRes == json::FAIL) LOG_WARN("json::Parser::loadAndParse() failed\n");
 
     if (argc >= 3 && "-p" == String(argv[2]))
         p.print(stdout);
 
-    /*json::ParserDestroy(&p);*/
+    p.destroy();
     /*_FreeListPrintTree(&al, &arena.base);*/
 }
