@@ -48,6 +48,11 @@ main()
         if (fNineHundredNinetyNine) LOG("found: {}\n", fNineHundredNinetyNine.getData());
     }
 
+    COUT("map auto loop: ");
+    for (auto& [k, v] : map)
+        COUT("['{}', {}], ", k, v);
+    COUT("\n");
+
     Map<int, int> map2(&arena);
     map2.insert(12, 1);
     map2.insert(13, 2);
