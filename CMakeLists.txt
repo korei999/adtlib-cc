@@ -73,7 +73,7 @@ add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 # add_definitions("-DADT_STD_TYPES")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics -fno-exceptions -fno-unwind-tables")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics -fno-rtti -fno-exceptions -fno-unwind-tables")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wswitch -Wimplicit-fallthrough")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -87,7 +87,7 @@ include_directories(BEFORE "src")
 
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g3 -fsanitize=undefined -fsanitize=address -fsanitize=integer")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g3 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=integer")
     add_link_options(-fsanitize=undefined -fsanitize=address -fsanitize=integer)
 endif()
 
