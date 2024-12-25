@@ -1,6 +1,6 @@
-/* simple hashmap with linear probing.
- * For customr key types, add template<> hash::func(const key& x), (or template<> hash::funcHVal(const key& x, u64 hval) for reusable hash)
- * and bool operator==(const key& other) */
+/* Hashmap with linear probing.
+ * For custom hash function add template<> hash::func(const KeyType& x),
+ * and bool operator==(const KeyType& other) */
 
 #pragma once
 

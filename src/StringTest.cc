@@ -4,11 +4,15 @@
 #include "adt/String.hh"
 #include "adt/ReverseIt.hh"
 
+#include <clocale>
+
 using namespace adt;
 
 int
 main()
 {
+    setlocale(LC_ALL, "");
+
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
@@ -34,5 +38,14 @@ main()
         for (auto ch : ReverseIt(s0))
             putchar(ch);
         putchar('\n');
+    }
+
+    {
+        const String s = "私は日本語を話せません";
+        assert(s.endsWith("せません"));
+
+        for (auto wc : StringGlyphIt(s))
+            COUT("{}", wc);
+        COUT("\n");
     }
 }
