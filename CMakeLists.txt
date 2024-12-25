@@ -87,7 +87,7 @@ include_directories(BEFORE "src")
 
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fsanitize=address -fsanitize=integer")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g3 -fsanitize=undefined -fsanitize=address -fsanitize=integer")
     add_link_options(-fsanitize=undefined -fsanitize=address -fsanitize=integer)
 endif()
 
