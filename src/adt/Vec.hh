@@ -193,7 +193,7 @@ template<typename T>
 [[nodiscard]] inline u32
 VecBase<T>::lastI() const
 {
-    return idx(last());
+    return idx(&last());
 }
 
 template<typename T>
