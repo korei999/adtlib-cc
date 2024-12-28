@@ -50,7 +50,7 @@ private:
     void parseNumber(TagVal* pTV);
     void parseFloat(TagVal* pTV);
     STATUS expect(TOKEN_TYPE t);
-    void printNodeError();
+    STATUS printNodeError();
     void next();
 };
 

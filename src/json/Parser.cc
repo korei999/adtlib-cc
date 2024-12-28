@@ -53,13 +53,14 @@ Parser::loadParse(adt::String path)
     return STATUS::OK;
 }
 
-void
+STATUS
 Parser::printNodeError()
 {
     const auto& tok = m_tCurr;
     CERR("({}, {}): unexpected token: '{}'\n",
         tok.row, tok.column, m_tCurr.eType
     );
+    return STATUS::FAIL;
 }
 
 void
@@ -90,8 +91,7 @@ Parser::parseNode(Object* pNode)
     switch (m_tCurr.eType)
     {
         default:
-            printNodeError();
-            return STATUS::FAIL;
+            return printNodeError();
             break;
 
         case json::TOKEN_TYPE::QUOTED_STRING:
