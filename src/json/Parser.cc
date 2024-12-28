@@ -342,46 +342,50 @@ printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
                 {
                     default:
                     case TAG::STRING:
-                        {
-                            adt::String sl = getString(&arr[i]);
-                            fprintf(fp, "%*s", depth + 2, "");
-                            /*COUT("{: >{}}", "", depth + 2);*/
-                            print::toFILE(fp, "\"{}\"{}", sl, slE);
-                        } break;
+                    {
+                        adt::String sl = getString(&arr[i]);
+                        fprintf(fp, "%*s", depth + 2, "");
+                        /*COUT("{: >{}}", "", depth + 2);*/
+                        print::toFILE(fp, "\"{}\"{}", sl, slE);
+                    }
+                    break;
 
                     case TAG::NULL_:
-                            fprintf(fp, "%*s", depth + 2, "");
-                            /*COUT("{: >{}}", "", depth + 2);*/
-                            print::toFILE(fp, "{}{}", "null", slE);
-                        break;
+                    fprintf(fp, "%*s", depth + 2, "");
+                    /*COUT("{: >{}}", "", depth + 2);*/
+                    print::toFILE(fp, "{}{}", "null", slE);
+                    break;
 
                     case TAG::LONG:
-                        {
-                            long num = getLong(&arr[i]);
-                            fprintf(fp, "%*s", depth + 2, "");
-                            /*COUT("{: >{}}", "", depth + 2);*/
-                            print::toFILE(fp, "{}{}", num, slE);
-                        } break;
+                    {
+                        long num = getLong(&arr[i]);
+                        fprintf(fp, "%*s", depth + 2, "");
+                        /*COUT("{: >{}}", "", depth + 2);*/
+                        print::toFILE(fp, "{}{}", num, slE);
+                    }
+                    break;
 
                     case TAG::DOUBLE:
-                        {
-                            double dnum = getDouble(&arr[i]);
-                            fprintf(fp, "%*s", depth + 2, "");
-                            /*COUT("{: >{}}", "", depth + 2);*/
-                            print::toFILE(fp, "{}{}", dnum, slE);
-                        } break;
+                    {
+                        double dnum = getDouble(&arr[i]);
+                        fprintf(fp, "%*s", depth + 2, "");
+                        /*COUT("{: >{}}", "", depth + 2);*/
+                        print::toFILE(fp, "{}{}", dnum, slE);
+                    }
+                    break;
 
                     case TAG::BOOL:
-                        {
-                            bool b = getBool(&arr[i]);
-                            fprintf(fp, "%*s", depth + 2, "");
-                            /*COUT("{: >{}}", "", depth + 2);*/
-                            print::toFILE(fp, "{}{}", b ? "true" : "false", slE);
-                        } break;
+                    {
+                        bool b = getBool(&arr[i]);
+                        fprintf(fp, "%*s", depth + 2, "");
+                        /*COUT("{: >{}}", "", depth + 2);*/
+                        print::toFILE(fp, "{}{}", b ? "true" : "false", slE);
+                    }
+                    break;
 
                     case TAG::OBJECT:
-                            printNode(fp, &arr[i], slE, depth + 2);
-                        break;
+                    printNode(fp, &arr[i], slE, depth + 2);
+                    break;
                 }
             }
             fprintf(fp, "%*s", depth, "");
