@@ -74,7 +74,8 @@ STATUS
 Parser::expect(TOKEN_TYPE t)
 {
     const auto& tok = m_tCurr;
-    if (tok.eType != t)
+
+    if (int(tok.eType & t) == 0)
     {
         CERR("({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
              tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
@@ -174,8 +175,7 @@ Parser::parseObject(Object* pNode)
         /* make sure key is quoted */
         OK_OR_RET(expect(TOKEN_TYPE::QUOTED_STRING));
 
-        Object ob {.svKey = m_tCurr.sLiteral, .tagVal = {}};
-        aObjs.push(m_pAlloc, ob);
+        aObjs.push(m_pAlloc, {.svKey = m_tCurr.sLiteral, .tagVal = {}});
 
         /* skip identifier and ':' */
         next();
@@ -186,6 +186,7 @@ Parser::parseObject(Object* pNode)
 
         if (m_tCurr.eType != TOKEN_TYPE::COMMA)
         {
+            OK_OR_RET(expect(TOKEN_TYPE::R_BRACE));
             next();
             break;
         }
