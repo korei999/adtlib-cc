@@ -9,26 +9,29 @@ namespace json
 
 #define OK_OR_RET(RES) do { if (RES == RESULT::FAIL) return FAIL; } while(false)
 
-static RESULT expect(Parser*s, enum Token::TYPE t, adt::String svFile, int line);
+static RESULT expect(Parser*s, TOKEN_TYPE t, adt::String sFile, int line);
 static void next(Parser* s);
 static RESULT parseNode(Parser* s, Object* pNode);
 static RESULT parseObject(Parser* s, Object* pNode);
 static RESULT parseArray(Parser* s, Object* pNode); /* arrays are same as objects */
+static void parseString(Parser* s, TagVal* pTV);
 static void parseIdent(Parser* s, TagVal* pTV);
 static void parseNumber(Parser* s, TagVal* pTV);
+static void parseFloat(Parser* s, TagVal* pTV);
 static void parseNull(Parser* s, TagVal* pTV);
-static void parseBool(Parser* s, TagVal* pTV);
+static void parseTrue(Parser* s, TagVal* pTV);
+static void parseFalse(Parser* s, TagVal* pTV);
 
 RESULT
 Parser::load(adt::String path)
 {
     m_sName = path;
-    if (m_lex.loadFile(m_pAlloc, path) == FAIL) return FAIL;
+    m_lex = Lexer(path);
 
     m_tCurr = m_lex.next();
     m_tNext = m_lex.next();
 
-    if ((m_tCurr.type != Token::LBRACE) && (m_tCurr.type != Token::LBRACKET))
+    if ((m_tCurr.eType != TOKEN_TYPE::L_BRACE) && (m_tCurr.eType != TOKEN_TYPE::L_BRACKET))
     {
         CERR("wrong first token\n");
         return RESULT::FAIL;
@@ -49,7 +52,7 @@ Parser::parse()
             return FAIL;
         }
 
-    } while (m_tCurr.type == Token::LBRACE);
+    } while (m_tCurr.eType == TOKEN_TYPE::L_BRACE);
 
     return OK;
 }
@@ -65,12 +68,12 @@ Parser::loadParse(adt::String path)
 }
 
 static RESULT
-expect(Parser* s, enum Token::TYPE t, adt::String svFile, int line)
+expect(Parser* s, TOKEN_TYPE t, adt::String svFile, int line)
 {
-    if (s->m_tCurr.type != t)
+    if (s->m_tCurr.eType != t)
     {
         CERR("('{}', at {}): ({}): unexpected token: expected: '{}', got '{}'\n",
-             svFile, line, s->m_sName, char(t), char(s->m_tCurr.type));
+             svFile, line, s->m_sName, char(t), char(s->m_tCurr.eType));
         return FAIL;
     }
 
@@ -87,41 +90,63 @@ next(Parser* s)
 static RESULT
 parseNode(Parser* s, Object* pNode)
 {
-    switch (s->m_tCurr.type)
+    switch (s->m_tCurr.eType)
     {
         default:
             next(s);
             break;
 
-        case Token::IDENT:
+        case json::TOKEN_TYPE::QUOTED_STRING:
             parseIdent(s, &pNode->tagVal);
             break;
 
-        case Token::NUMBER:
+        case json::TOKEN_TYPE::STRING:
+            parseString(s, &pNode->tagVal);
+            break;
+
+        case TOKEN_TYPE::NUMBER:
             parseNumber(s, &pNode->tagVal);
             break;
 
-        case Token::LBRACE:
+        case TOKEN_TYPE::FLOAT:
+            parseFloat(s, &pNode->tagVal);
+            break;
+
+        case TOKEN_TYPE::L_BRACE:
             next(s); /* skip brace */
             OK_OR_RET(parseObject(s, pNode));
             break;
 
-        case Token::LBRACKET:
+        case TOKEN_TYPE::L_BRACKET:
             next(s); /* skip bracket */
             OK_OR_RET(parseArray(s, pNode));
-            break;
-
-        case Token::NULL_:
-            parseNull(s, &pNode->tagVal);
-            break;
-
-        case Token::TRUE_:
-        case Token::FALSE_:
-            parseBool(s, &pNode->tagVal);
             break;
     }
 
     return OK;
+}
+
+static void
+parseString(Parser* s, TagVal* pTV)
+{
+    const auto& sLit = s->m_tCurr.sLiteral;
+
+    if (sLit == "null")
+    {
+        parseNull(s, pTV);
+    }
+    else if (sLit == "true")
+    {
+        parseTrue(s, pTV);
+    }
+    else if (sLit == "false")
+    {
+        parseFalse(s, pTV);
+    }
+    else
+    {
+        parseIdent(s, pTV);
+    }
 }
 
 static void
@@ -134,11 +159,14 @@ parseIdent(Parser* s, TagVal* pTV)
 static void
 parseNumber(Parser* s, TagVal* pTV)
 {
-    bool bReal = s->m_tCurr.sLiteral.lastOf('.') != adt::NPOS;
+    *pTV = TagVal{.tag = TAG::LONG, .val = {.l = atol(s->m_tCurr.sLiteral.m_pData)}};
+    next(s);
+}
 
-    if (bReal) *pTV = {.tag = TAG::DOUBLE, .val = {.d = atof(s->m_tCurr.sLiteral.m_pData)}};
-    else *pTV = TagVal{.tag = TAG::LONG, .val = {.l = atol(s->m_tCurr.sLiteral.m_pData)}};
-
+static void
+parseFloat(Parser* s, TagVal* pTV)
+{
+    *pTV = TagVal{.tag = TAG::DOUBLE, .val = {.d = atof(s->m_tCurr.sLiteral.m_pData)}};
     next(s);
 }
 
@@ -149,21 +177,21 @@ parseObject(Parser* s, Object* pNode)
     pNode->tagVal.val.o = adt::VecBase<Object>(s->m_pAlloc, 1);
     auto& aObjs = getObject(pNode);
 
-    for (; s->m_tCurr.type != Token::RBRACE; next(s))
+    for (; s->m_tCurr.eType != TOKEN_TYPE::R_BRACE; next(s))
     {
-        OK_OR_RET(expect(s, Token::IDENT, ADT_LOGS_FILE, __LINE__));
+        /*OK_OR_RET(expect(s, TOKEN_TYPE::STRING, ADT_LOGS_FILE, __LINE__));*/
 
         Object ob {.svKey = s->m_tCurr.sLiteral, .tagVal = {}};
         aObjs.push(s->m_pAlloc, ob);
 
         /* skip identifier and ':' */
         next(s);
-        OK_OR_RET(expect(s, Token::ASSIGN, ADT_LOGS_FILE, __LINE__));
+        OK_OR_RET(expect(s, TOKEN_TYPE::COLON, ADT_LOGS_FILE, __LINE__));
         next(s);
 
         OK_OR_RET(parseNode(s, &aObjs.last()));
 
-        if (s->m_tCurr.type != Token::COMMA)
+        if (s->m_tCurr.eType != TOKEN_TYPE::COMMA)
         {
             next(s);
             break;
@@ -183,37 +211,33 @@ parseArray(Parser* s, Object* pNode)
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
-    for (; s->m_tCurr.type != Token::RBRACKET; next(s))
+    for (; s->m_tCurr.eType != TOKEN_TYPE::R_BRACKET; next(s))
     {
         aTVs.push(s->m_pAlloc, {});
 
-        switch (s->m_tCurr.type)
+        switch (s->m_tCurr.eType)
         {
             default:
-            case Token::IDENT:
-                parseIdent(s, &aTVs.last().tagVal);
+            case TOKEN_TYPE::QUOTED_STRING:
+            case TOKEN_TYPE::STRING:
+                parseString(s, &aTVs.last().tagVal);
                 break;
 
-            case Token::NULL_:
-                parseNull(s, &aTVs.last().tagVal);
-                break;
-
-            case Token::TRUE_:
-            case Token::FALSE_:
-                parseBool(s, &aTVs.last().tagVal);
-                break;
-
-            case Token::NUMBER:
+            case TOKEN_TYPE::NUMBER:
                 parseNumber(s, &aTVs.last().tagVal);
                 break;
 
-            case Token::LBRACE:
+            case TOKEN_TYPE::FLOAT:
+                parseFloat(s, &aTVs.last().tagVal);
+                break;
+
+            case TOKEN_TYPE::L_BRACE:
                 next(s);
                 OK_OR_RET(parseObject(s, &aTVs.last()));
                 break;
         }
 
-        if (s->m_tCurr.type != Token::COMMA)
+        if (s->m_tCurr.eType != TOKEN_TYPE::COMMA)
         {
             next(s);
             break;
@@ -233,10 +257,16 @@ parseNull(Parser* s, TagVal* pTV)
 }
 
 static void
-parseBool(Parser* s, TagVal* pTV)
+parseTrue(Parser* s, TagVal* pTV)
 {
-    bool b = s->m_tCurr.type == Token::TRUE_ ? true : false;
-    *pTV = {.tag = TAG::BOOL, .val = {.b = b}};
+    *pTV = {.tag = TAG::BOOL, .val = {.b = true}};
+    next(s);
+}
+
+static void
+parseFalse(Parser* s, TagVal* pTV)
+{
+    *pTV = {.tag = TAG::BOOL, .val = {.b = false}};
     next(s);
 }
 
@@ -253,7 +283,6 @@ Parser::destroy()
     };
 
     traverseAll(fn, m_pAlloc);
-    m_lex.destroy(m_pAlloc);
     m_aObjects.destroy(m_pAlloc);
 }
 

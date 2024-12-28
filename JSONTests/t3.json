@@ -1,4 +1,5 @@
 {
+    "string": "string",
     "one": 1.0,
     "two": 2,
     "three": "three",
@@ -13,5 +14,5 @@
         "five": 4,
         "six": 6.666
     },
-    "arr": [3, "three", 3.0, {"three": true}]
+    "arr": [3, "three", 3.01, {"three": true}]
 }

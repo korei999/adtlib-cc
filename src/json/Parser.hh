@@ -22,6 +22,8 @@ struct Parser
     Parser() = default;
     Parser(adt::IAllocator* p) : m_pAlloc(p) {}
 
+    /* */
+
     void destroy();
     RESULT load(adt::String path);
     RESULT parse();

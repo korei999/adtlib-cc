@@ -9,6 +9,8 @@
         "not empty": {
             "empty": "are not \"allowed"
         },
-        "empty2": ""
+        "empty2": "",
+        "bool0": true,
+        "bool1": false
     }
 ]
