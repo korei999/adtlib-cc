@@ -94,9 +94,9 @@ formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const json::T
     if (u32(x & json::TOKEN_TYPE::R_BRACE))
         n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | R_BRACE" : "R_BRACE");
     if (u32(x & json::TOKEN_TYPE::L_BRACKET))
-        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | L_BRACKER" : "L_BRACKER");
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | L_BRACKET" : "L_BRACKET");
     if (u32(x & json::TOKEN_TYPE::R_BRACKET))
-        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | R_BRACKER" : "R_BRACKER");
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | R_BRACKET" : "R_BRACKET");
     if (u32(x & json::TOKEN_TYPE::NUMBER))
         n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | NUMBER" : "NUMBER");
     if (u32(x & json::TOKEN_TYPE::FLOAT))

@@ -30,8 +30,8 @@ main(int argc, char* argv[])
     /*defer( o_sJson.value().destroy(OsAllocatorGet()) );*/
 
     json::Parser p(&al);
-    json::STATUS eRes = p.loadParse(o_sJson.value());
-    if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::loadAndParse() failed\n");
+    json::STATUS eRes = p.parse(o_sJson.value());
+    if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::parse() failed\n");
 
     if (argc >= 3 && "-p" == String(argv[2]))
         p.print(stdout);

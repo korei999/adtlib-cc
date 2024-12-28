@@ -27,9 +27,7 @@ public:
     /* */
 
     void destroy();
-    STATUS load(adt::String path);
-    STATUS parse();
-    STATUS loadParse(adt::String path);
+    STATUS parse(adt::String sJson);
     void print(FILE* fp);
     void traverse(Object* pNode, bool (*pfn)(Object* pNode, void* pArgs), void* pArgs);
     /* if root json object consists of only one object return that, otherwise get array of root objects */

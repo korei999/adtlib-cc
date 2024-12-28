@@ -10,9 +10,9 @@ namespace json
 #define OK_OR_RET(RES) if (RES == STATUS::FAIL) return STATUS::FAIL;
 
 STATUS
-Parser::load(adt::String path)
+Parser::parse(adt::String sJson)
 {
-    m_lex = Lexer(path);
+    m_lex = Lexer(sJson);
 
     m_tCurr = m_lex.next();
     m_tNext = m_lex.next();
@@ -23,12 +23,6 @@ Parser::load(adt::String path)
         return STATUS::FAIL;
     }
 
-    return STATUS::OK;
-}
-
-STATUS
-Parser::parse()
-{
     do
     {
         m_aObjects.push(m_pAlloc, {});
@@ -40,16 +34,6 @@ Parser::parse()
     }
     while (m_tCurr.eType == TOKEN_TYPE::L_BRACE); /* some json files have multiple root objects */
 
-    return STATUS::OK;
-}
-
-STATUS
-Parser::loadParse(adt::String path)
-{
-    if (load(path) == STATUS::FAIL)
-        return STATUS::FAIL;
-
-    parse();
     return STATUS::OK;
 }
 
