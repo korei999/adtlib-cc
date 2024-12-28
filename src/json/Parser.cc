@@ -278,153 +278,159 @@ printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
         default: break;
 
         case TAG::OBJECT:
+        {
+            auto& obj = getObject(pNode);
+            adt::String q0, q1, objName0, objName1;
+
+            if (key.m_size == 0)
             {
-                auto& obj = getObject(pNode);
-                adt::String q0, q1, objName0, objName1;
+                q0 = q1 = objName1 = objName0 = "";
+            }
+            else
+            {
+                objName0 = key;
+                objName1 = ": ";
+                q1 = q0 = "\"";
+            }
 
-                if (key.m_size == 0)
-                {
-                    q0 = q1 = objName1 = objName0 = "";
-                }
-                else
-                {
-                    objName0 = key;
-                    objName1 = ": ";
-                    q1 = q0 = "\"";
-                }
-
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "{}{}{}{}{\n", q0, objName0, q1, objName1);
-                for (u32 i = 0; i < obj.getSize(); i++)
-                {
-                    adt::String slE = (i == obj.getSize() - 1) ? "\n" : ",\n";
-                    printNode(fp, &obj[i], slE, depth + 2);
-                }
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "}{}", svEnd);
-            } break;
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "{}{}{}{}{\n", q0, objName0, q1, objName1);
+            for (u32 i = 0; i < obj.getSize(); i++)
+            {
+                adt::String slE = (i == obj.getSize() - 1) ? "\n" : ",\n";
+                printNode(fp, &obj[i], slE, depth + 2);
+            }
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "}{}", svEnd);
+        }
+        break;
 
         case TAG::ARRAY:
+        {
+            auto& arr = getArray(pNode);
+            adt::String q0, q1, arrName0, arrName1;
+
+            if (key.m_size == 0)
             {
-                auto& arr = getArray(pNode);
-                adt::String q0, q1, arrName0, arrName1;
+                q0 =  q1 = arrName1 = arrName0 = "";
+            }
+            else
+            {
+                arrName0 = key;
+                arrName1 = ": ";
+                q1 = q0 = "\"";
+            }
 
-                if (key.m_size == 0)
-                {
-                    q0 =  q1 = arrName1 = arrName0 = "";
-                }
-                else
-                {
-                    arrName0 = key;
-                    arrName1 = ": ";
-                    q1 = q0 = "\"";
-                }
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
 
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-
-                if (arr.getSize() == 0)
-                {
-                    print::toFILE(fp, "{}{}{}{}[", q0, arrName0, q1, arrName1);
-                    print::toFILE(fp, "]{}", svEnd);
-                    break;
-                }
-
-                print::toFILE(fp, "{}{}{}{}[\n", q0, arrName0, q1, arrName1);
-                for (u32 i = 0; i < arr.getSize(); i++)
-                {
-                    adt::String slE = (i == arr.getSize() - 1) ? "\n" : ",\n";
-
-                    switch (arr[i].tagVal.tag)
-                    {
-                        default:
-                        case TAG::STRING:
-                            {
-                                adt::String sl = getString(&arr[i]);
-                                fprintf(fp, "%*s", depth + 2, "");
-                                /*COUT("{: >{}}", "", depth + 2);*/
-                                print::toFILE(fp, "\"{}\"{}", sl, slE);
-                            } break;
-
-                        case TAG::NULL_:
-                                fprintf(fp, "%*s", depth + 2, "");
-                                /*COUT("{: >{}}", "", depth + 2);*/
-                                print::toFILE(fp, "{}{}", "null", slE);
-                            break;
-
-                        case TAG::LONG:
-                            {
-                                long num = getLong(&arr[i]);
-                                fprintf(fp, "%*s", depth + 2, "");
-                                /*COUT("{: >{}}", "", depth + 2);*/
-                                print::toFILE(fp, "{}{}", num, slE);
-                            } break;
-
-                        case TAG::DOUBLE:
-                            {
-                                double dnum = getDouble(&arr[i]);
-                                fprintf(fp, "%*s", depth + 2, "");
-                                /*COUT("{: >{}}", "", depth + 2);*/
-                                print::toFILE(fp, "{}{}", dnum, slE);
-                            } break;
-
-                        case TAG::BOOL:
-                            {
-                                bool b = getBool(&arr[i]);
-                                fprintf(fp, "%*s", depth + 2, "");
-                                /*COUT("{: >{}}", "", depth + 2);*/
-                                print::toFILE(fp, "{}{}", b ? "true" : "false", slE);
-                            } break;
-
-                        case TAG::OBJECT:
-                                printNode(fp, &arr[i], slE, depth + 2);
-                            break;
-                    }
-                }
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
+            if (arr.getSize() == 0)
+            {
+                print::toFILE(fp, "{}{}{}{}[", q0, arrName0, q1, arrName1);
                 print::toFILE(fp, "]{}", svEnd);
-            } break;
+                break;
+            }
+
+            print::toFILE(fp, "{}{}{}{}[\n", q0, arrName0, q1, arrName1);
+            for (u32 i = 0; i < arr.getSize(); i++)
+            {
+                adt::String slE = (i == arr.getSize() - 1) ? "\n" : ",\n";
+
+                switch (arr[i].tagVal.tag)
+                {
+                    default:
+                    case TAG::STRING:
+                        {
+                            adt::String sl = getString(&arr[i]);
+                            fprintf(fp, "%*s", depth + 2, "");
+                            /*COUT("{: >{}}", "", depth + 2);*/
+                            print::toFILE(fp, "\"{}\"{}", sl, slE);
+                        } break;
+
+                    case TAG::NULL_:
+                            fprintf(fp, "%*s", depth + 2, "");
+                            /*COUT("{: >{}}", "", depth + 2);*/
+                            print::toFILE(fp, "{}{}", "null", slE);
+                        break;
+
+                    case TAG::LONG:
+                        {
+                            long num = getLong(&arr[i]);
+                            fprintf(fp, "%*s", depth + 2, "");
+                            /*COUT("{: >{}}", "", depth + 2);*/
+                            print::toFILE(fp, "{}{}", num, slE);
+                        } break;
+
+                    case TAG::DOUBLE:
+                        {
+                            double dnum = getDouble(&arr[i]);
+                            fprintf(fp, "%*s", depth + 2, "");
+                            /*COUT("{: >{}}", "", depth + 2);*/
+                            print::toFILE(fp, "{}{}", dnum, slE);
+                        } break;
+
+                    case TAG::BOOL:
+                        {
+                            bool b = getBool(&arr[i]);
+                            fprintf(fp, "%*s", depth + 2, "");
+                            /*COUT("{: >{}}", "", depth + 2);*/
+                            print::toFILE(fp, "{}{}", b ? "true" : "false", slE);
+                        } break;
+
+                    case TAG::OBJECT:
+                            printNode(fp, &arr[i], slE, depth + 2);
+                        break;
+                }
+            }
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "]{}", svEnd);
+        }
+        break;
 
         case TAG::DOUBLE:
-            {
-                double f = getDouble(pNode);
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "\"{}\": {}{}", key, f, svEnd);
-            } break;
+        {
+            double f = getDouble(pNode);
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "\"{}\": {}{}", key, f, svEnd);
+        }
+        break;
 
         case TAG::LONG:
-            {
-                long i = getLong(pNode);
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "\"{}\": {}{}", key, i, svEnd);
-            } break;
+        {
+            long i = getLong(pNode);
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "\"{}\": {}{}", key, i, svEnd);
+        }
+        break;
 
         case TAG::NULL_:
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "\"{}\": {}{}", key, "null", svEnd);
-            break;
+        fprintf(fp, "%*s", depth, "");
+        /*COUT("{: >{}}", "", depth);*/
+        print::toFILE(fp, "\"{}\": {}{}", key, "null", svEnd);
+        break;
 
         case TAG::STRING:
-            {
-                adt::String sl = getString(pNode);
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "\"{}\": \"{}\"{}", key, sl, svEnd);
-            } break;
+        {
+            adt::String sl = getString(pNode);
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "\"{}\": \"{}\"{}", key, sl, svEnd);
+        }
+        break;
 
         case TAG::BOOL:
-            {
-                bool b = getBool(pNode);
-                fprintf(fp, "%*s", depth, "");
-                /*COUT("{: >{}}", "", depth);*/
-                print::toFILE(fp, "\"{}\": {}{}", key, b ? "true" : "false", svEnd);
-            } break;
+        {
+            bool b = getBool(pNode);
+            fprintf(fp, "%*s", depth, "");
+            /*COUT("{: >{}}", "", depth);*/
+            print::toFILE(fp, "\"{}\": {}{}", key, b ? "true" : "false", svEnd);
+        }
+        break;
     }
 }
 
