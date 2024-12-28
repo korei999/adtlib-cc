@@ -75,20 +75,39 @@ Parser::expect(TOKEN_TYPE t)
 {
     const auto& tok = m_tCurr;
 
-    if (int(tok.eType & t) == 0)
+    if (u32(tok.eType & t) > 0u)
     {
-        CERR("({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
-             tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+        return STATUS::OK;
+    }
+    else
+    {
+        CERR("{}, ({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
+             int(tok.eType & t), tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
         );
         return STATUS::FAIL;
     }
+}
 
-    return STATUS::OK;
+STATUS
+Parser::expectNot(TOKEN_TYPE t)
+{
+    const auto& tok = m_tCurr;
+
+    if (u32(tok.eType & t) > 0u)
+    {
+        CERR("{}, ({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
+             int(tok.eType & t), tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+        );
+        return STATUS::FAIL;
+    }
+    else return STATUS::OK;
 }
 
 STATUS
 Parser::parseNode(Object* pNode)
 {
+    /*LOG_WARN("({}, {}): '{}': '{}'\n", m_tCurr.row, m_tCurr.column, m_tCurr.eType, m_tCurr.sLiteral);*/
+
     switch (m_tCurr.eType)
     {
         default:
@@ -170,7 +189,7 @@ Parser::parseObject(Object* pNode)
     pNode->tagVal.val.o = adt::VecBase<Object>(m_pAlloc, 2);
     auto& aObjs = getObject(pNode);
 
-    for (; m_tCurr.eType != TOKEN_TYPE::R_BRACE; next())
+    while (m_tCurr.eType != TOKEN_TYPE::R_BRACE)
     {
         /* make sure key is quoted */
         OK_OR_RET(expect(TOKEN_TYPE::QUOTED_STRING));
@@ -190,6 +209,11 @@ Parser::parseObject(Object* pNode)
             next();
             break;
         }
+        else
+        {
+            next();
+            OK_OR_RET(expectNot(TOKEN_TYPE::R_BRACE | TOKEN_TYPE::STRING));
+        }
     }
 
     if (aObjs.getSize() == 0) next();
@@ -205,7 +229,7 @@ Parser::parseArray(Object* pNode)
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
-    for (; m_tCurr.eType != TOKEN_TYPE::R_BRACKET; next())
+    while (m_tCurr.eType != TOKEN_TYPE::R_BRACKET)
     {
         aTVs.push(m_pAlloc, {});
 
@@ -233,8 +257,14 @@ Parser::parseArray(Object* pNode)
 
         if (m_tCurr.eType != TOKEN_TYPE::COMMA)
         {
+            OK_OR_RET(expect(TOKEN_TYPE::R_BRACKET));
             next();
             break;
+        }
+        else
+        {
+            next();
+            OK_OR_RET(expectNot(TOKEN_TYPE::L_BRACKET));
         }
     }
 

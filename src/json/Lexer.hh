@@ -74,24 +74,35 @@ formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const json::T
     ctx.fmt = "{}";
     ctx.fmtIdx = 0;
 
-    const char* nts = "UNKNOWN";
-    switch (x)
-    {
-        case json::TOKEN_TYPE::NONE: nts = "NONE"; break;
-        case json::TOKEN_TYPE::DOT: nts = "DOT"; break;
-        case json::TOKEN_TYPE::COMMA: nts = "COMMA"; break;
-        case json::TOKEN_TYPE::STRING: nts = "STRING"; break;
-        case json::TOKEN_TYPE::QUOTED_STRING: nts = "QUOTED_STRING"; break;
-        case json::TOKEN_TYPE::COLON: nts = "COLON"; break;
-        case json::TOKEN_TYPE::L_BRACE: nts = "L_BRACE"; break;
-        case json::TOKEN_TYPE::R_BRACE: nts = "R_BRACE"; break;
-        case json::TOKEN_TYPE::L_BRACKET: nts = "L_BRACKET"; break;
-        case json::TOKEN_TYPE::R_BRACKET: nts = "R_BRACKET"; break;
-        case json::TOKEN_TYPE::NUMBER: nts = "NUMBER"; break;
-        case json::TOKEN_TYPE::FLOAT: nts = "FLOAT"; break;
-    }
+    char aBuff[512] {};
+    u32 n = 0;
 
-    return printArgs(ctx, nts);
+    if (u32(x & json::TOKEN_TYPE::NONE))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, "NONE | ");
+    if (u32(x & json::TOKEN_TYPE::DOT))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | DOT" : "DOT");
+    if (u32(x & json::TOKEN_TYPE::COMMA))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | COMMA" : "COMMA");
+    if (u32(x & json::TOKEN_TYPE::STRING))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | STRING" : "STRING");
+    if (u32(x & json::TOKEN_TYPE::QUOTED_STRING))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | QUOTED_STRING" : "QUOTED_STRING");
+    if (u32(x & json::TOKEN_TYPE::COLON))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | COLON" : "COLON");
+    if (u32(x & json::TOKEN_TYPE::L_BRACE))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | L_BRACE" : "L_BRACE");
+    if (u32(x & json::TOKEN_TYPE::R_BRACE))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | R_BRACE" : "R_BRACE");
+    if (u32(x & json::TOKEN_TYPE::L_BRACKET))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | L_BRACKER" : "L_BRACKER");
+    if (u32(x & json::TOKEN_TYPE::R_BRACKET))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | R_BRACKER" : "R_BRACKER");
+    if (u32(x & json::TOKEN_TYPE::NUMBER))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | NUMBER" : "NUMBER");
+    if (u32(x & json::TOKEN_TYPE::FLOAT))
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | FLOAT" : "FLOAT");
+
+    return printArgs(ctx, aBuff);
 }
 
 } /* namespace print */
