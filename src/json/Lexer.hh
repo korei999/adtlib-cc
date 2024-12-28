@@ -78,7 +78,7 @@ formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const json::T
     u32 n = 0;
 
     if (u32(x & json::TOKEN_TYPE::NONE))
-        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, "NONE | ");
+        n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, "NONE");
     if (u32(x & json::TOKEN_TYPE::DOT))
         n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | DOT" : "DOT");
     if (u32(x & json::TOKEN_TYPE::COMMA))
