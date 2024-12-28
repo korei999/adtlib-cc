@@ -81,8 +81,8 @@ Parser::expect(TOKEN_TYPE t)
     }
     else
     {
-        CERR("{}, ({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
-             int(tok.eType & t), tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+        CERR("({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
+             tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
         );
         return STATUS::FAIL;
     }
@@ -95,8 +95,8 @@ Parser::expectNot(TOKEN_TYPE t)
 
     if (u32(tok.eType & t) > 0u)
     {
-        CERR("{}, ({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
-             int(tok.eType & t), tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+        CERR("({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
+             tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
         );
         return STATUS::FAIL;
     }
