@@ -151,7 +151,7 @@ Parser::parseIdent(TagVal* pTV)
 void
 Parser::parseNumber(TagVal* pTV)
 {
-    *pTV = {.tag = TAG::LONG, .val = {.l = atol(m_tCurr.sLiteral.m_pData)}};
+    *pTV = {.tag = TAG::LONG, .val = {.l = atoll(m_tCurr.sLiteral.m_pData)}};
     next();
 }
 

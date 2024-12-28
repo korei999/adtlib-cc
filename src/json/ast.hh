@@ -33,8 +33,8 @@ union Val
 {
     adt::null n;
     adt::String sv;
-    long l;
-    double d;
+    adt::s64 l;
+    adt::f64 d;
     adt::VecBase<Object> a;
     adt::VecBase<Object> o;
     bool b;
