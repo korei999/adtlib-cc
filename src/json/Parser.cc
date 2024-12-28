@@ -7,25 +7,11 @@ using namespace adt;
 namespace json
 {
 
-#define OK_OR_RET(RES) do { if (RES == RESULT::FAIL) return FAIL; } while(false)
+#define OK_OR_RET(RES) if (RES == STATUS::FAIL) return STATUS::FAIL;
 
-static RESULT expect(Parser*s, TOKEN_TYPE t, adt::String sFile, int line);
-static void next(Parser* s);
-static RESULT parseNode(Parser* s, Object* pNode);
-static RESULT parseObject(Parser* s, Object* pNode);
-static RESULT parseArray(Parser* s, Object* pNode); /* arrays are same as objects */
-static void parseString(Parser* s, TagVal* pTV);
-static void parseIdent(Parser* s, TagVal* pTV);
-static void parseNumber(Parser* s, TagVal* pTV);
-static void parseFloat(Parser* s, TagVal* pTV);
-static void parseNull(Parser* s, TagVal* pTV);
-static void parseTrue(Parser* s, TagVal* pTV);
-static void parseFalse(Parser* s, TagVal* pTV);
-
-RESULT
+STATUS
 Parser::load(adt::String path)
 {
-    m_sName = path;
     m_lex = Lexer(path);
 
     m_tCurr = m_lex.next();
@@ -34,240 +20,226 @@ Parser::load(adt::String path)
     if ((m_tCurr.eType != TOKEN_TYPE::L_BRACE) && (m_tCurr.eType != TOKEN_TYPE::L_BRACKET))
     {
         CERR("wrong first token\n");
-        return RESULT::FAIL;
+        return STATUS::FAIL;
     }
 
-    return RESULT::OK;
+    return STATUS::OK;
 }
 
-RESULT
+STATUS
 Parser::parse()
 {
     do
     {
         m_aObjects.push(m_pAlloc, {});
-        if (parseNode(this, &m_aObjects.last()) == FAIL)
+        if (parseNode(&m_aObjects.last()) == STATUS::FAIL)
         {
             LOG_WARN("parseNode() failed\n");
-            return FAIL;
+            return STATUS::FAIL;
         }
+    }
+    while (m_tCurr.eType == TOKEN_TYPE::L_BRACE); /* some json files have multiple root objects */
 
-    } while (m_tCurr.eType == TOKEN_TYPE::L_BRACE);
-
-    return OK;
+    return STATUS::OK;
 }
 
-RESULT
+STATUS
 Parser::loadParse(adt::String path)
 {
-    if (load(path) == RESULT::FAIL)
-        return FAIL;
+    if (load(path) == STATUS::FAIL)
+        return STATUS::FAIL;
 
     parse();
-    return OK;
+    return STATUS::OK;
 }
 
-static RESULT
-expect(Parser* s, TOKEN_TYPE t, adt::String svFile, int line)
+void
+Parser::printNodeError()
 {
-    if (s->m_tCurr.eType != t)
+    const auto& tok = m_tCurr;
+    CERR("({}, {}): unexpected token: '{}'\n",
+        tok.row, tok.column, m_tCurr.eType
+    );
+}
+
+void
+Parser::next()
+{
+    m_tCurr = m_tNext;
+    m_tNext = m_lex.next();
+}
+
+STATUS
+Parser::expect(TOKEN_TYPE t)
+{
+    const auto& tok = m_tCurr;
+    if (tok.eType != t)
     {
-        CERR("('{}', at {}): ({}): unexpected token: expected: '{}', got '{}'\n",
-             svFile, line, s->m_sName, char(t), char(s->m_tCurr.eType));
-        return FAIL;
+        CERR("({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
+             tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+        );
+        return STATUS::FAIL;
     }
 
-    return OK;
+    return STATUS::OK;
 }
 
-static void
-next(Parser* s)
+STATUS
+Parser::parseNode(Object* pNode)
 {
-    s->m_tCurr = s->m_tNext;
-    s->m_tNext = s->m_lex.next();
-}
-
-static RESULT
-parseNode(Parser* s, Object* pNode)
-{
-    switch (s->m_tCurr.eType)
+    switch (m_tCurr.eType)
     {
         default:
-            next(s);
+            printNodeError();
+            return STATUS::FAIL;
             break;
 
         case json::TOKEN_TYPE::QUOTED_STRING:
-            parseIdent(s, &pNode->tagVal);
+            parseIdent(&pNode->tagVal);
             break;
 
         case json::TOKEN_TYPE::STRING:
-            parseString(s, &pNode->tagVal);
+            parseString(&pNode->tagVal);
             break;
 
         case TOKEN_TYPE::NUMBER:
-            parseNumber(s, &pNode->tagVal);
+            parseNumber(&pNode->tagVal);
             break;
 
         case TOKEN_TYPE::FLOAT:
-            parseFloat(s, &pNode->tagVal);
+            parseFloat(&pNode->tagVal);
             break;
 
         case TOKEN_TYPE::L_BRACE:
-            next(s); /* skip brace */
-            OK_OR_RET(parseObject(s, pNode));
+            next(); /* skip brace */
+            OK_OR_RET(parseObject(pNode));
             break;
 
         case TOKEN_TYPE::L_BRACKET:
-            next(s); /* skip bracket */
-            OK_OR_RET(parseArray(s, pNode));
+            next(); /* skip bracket */
+            OK_OR_RET(parseArray(pNode));
             break;
     }
 
-    return OK;
+    return STATUS::OK;
 }
 
-static void
-parseString(Parser* s, TagVal* pTV)
+void
+Parser::parseString(TagVal* pTV)
 {
-    const auto& sLit = s->m_tCurr.sLiteral;
+    const auto& sLit = m_tCurr.sLiteral;
 
     if (sLit == "null")
-    {
-        parseNull(s, pTV);
-    }
+        *pTV = {.tag = TAG::NULL_, .val = {nullptr}};
     else if (sLit == "true")
-    {
-        parseTrue(s, pTV);
-    }
+        *pTV = {.tag = TAG::BOOL, .val = {.b = true}};
     else if (sLit == "false")
-    {
-        parseFalse(s, pTV);
-    }
+        *pTV = {.tag = TAG::BOOL, .val = {.b = false}};
     else
-    {
-        parseIdent(s, pTV);
-    }
+        *pTV = {.tag = TAG::STRING, .val {.sv = m_tCurr.sLiteral}};
+
+    next();
 }
 
-static void
-parseIdent(Parser* s, TagVal* pTV)
+void
+Parser::parseIdent(TagVal* pTV)
 {
-    *pTV = {.tag = TAG::STRING, .val {.sv = s->m_tCurr.sLiteral}};
-    next(s);
+    *pTV = {.tag = TAG::STRING, .val {.sv = m_tCurr.sLiteral}};
+    next();
 }
 
-static void
-parseNumber(Parser* s, TagVal* pTV)
+void
+Parser::parseNumber(TagVal* pTV)
 {
-    *pTV = TagVal{.tag = TAG::LONG, .val = {.l = atol(s->m_tCurr.sLiteral.m_pData)}};
-    next(s);
+    *pTV = {.tag = TAG::LONG, .val = {.l = atol(m_tCurr.sLiteral.m_pData)}};
+    next();
 }
 
-static void
-parseFloat(Parser* s, TagVal* pTV)
+void
+Parser::parseFloat(TagVal* pTV)
 {
-    *pTV = TagVal{.tag = TAG::DOUBLE, .val = {.d = atof(s->m_tCurr.sLiteral.m_pData)}};
-    next(s);
+    *pTV = {.tag = TAG::DOUBLE, .val = {.d = atof(m_tCurr.sLiteral.m_pData)}};
+    next();
 }
 
-static RESULT
-parseObject(Parser* s, Object* pNode)
+STATUS
+Parser::parseObject(Object* pNode)
 {
     pNode->tagVal.tag = TAG::OBJECT;
-    pNode->tagVal.val.o = adt::VecBase<Object>(s->m_pAlloc, 1);
+    pNode->tagVal.val.o = adt::VecBase<Object>(m_pAlloc, 2);
     auto& aObjs = getObject(pNode);
 
-    for (; s->m_tCurr.eType != TOKEN_TYPE::R_BRACE; next(s))
+    for (; m_tCurr.eType != TOKEN_TYPE::R_BRACE; next())
     {
-        /*OK_OR_RET(expect(s, TOKEN_TYPE::STRING, ADT_LOGS_FILE, __LINE__));*/
+        /* make sure key is quoted */
+        OK_OR_RET(expect(TOKEN_TYPE::QUOTED_STRING));
 
-        Object ob {.svKey = s->m_tCurr.sLiteral, .tagVal = {}};
-        aObjs.push(s->m_pAlloc, ob);
+        Object ob {.svKey = m_tCurr.sLiteral, .tagVal = {}};
+        aObjs.push(m_pAlloc, ob);
 
         /* skip identifier and ':' */
-        next(s);
-        OK_OR_RET(expect(s, TOKEN_TYPE::COLON, ADT_LOGS_FILE, __LINE__));
-        next(s);
+        next();
+        OK_OR_RET(expect(TOKEN_TYPE::COLON));
+        next();
 
-        OK_OR_RET(parseNode(s, &aObjs.last()));
+        OK_OR_RET(parseNode(&aObjs.last()));
 
-        if (s->m_tCurr.eType != TOKEN_TYPE::COMMA)
+        if (m_tCurr.eType != TOKEN_TYPE::COMMA)
         {
-            next(s);
+            next();
             break;
         }
     }
 
-    if (aObjs.getSize() == 0) next(s);
+    if (aObjs.getSize() == 0) next();
 
-    return OK;
+    return STATUS::OK;
 }
 
-static RESULT
-parseArray(Parser* s, Object* pNode)
+STATUS
+Parser::parseArray(Object* pNode)
 {
     pNode->tagVal.tag = TAG::ARRAY;
-    pNode->tagVal.val.a = adt::VecBase<Object>(s->m_pAlloc, 1);
+    pNode->tagVal.val.a = adt::VecBase<Object>(m_pAlloc, 2);
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
-    for (; s->m_tCurr.eType != TOKEN_TYPE::R_BRACKET; next(s))
+    for (; m_tCurr.eType != TOKEN_TYPE::R_BRACKET; next())
     {
-        aTVs.push(s->m_pAlloc, {});
+        aTVs.push(m_pAlloc, {});
 
-        switch (s->m_tCurr.eType)
+        switch (m_tCurr.eType)
         {
             default:
             case TOKEN_TYPE::QUOTED_STRING:
             case TOKEN_TYPE::STRING:
-                parseString(s, &aTVs.last().tagVal);
+                parseString(&aTVs.last().tagVal);
                 break;
 
             case TOKEN_TYPE::NUMBER:
-                parseNumber(s, &aTVs.last().tagVal);
+                parseNumber(&aTVs.last().tagVal);
                 break;
 
             case TOKEN_TYPE::FLOAT:
-                parseFloat(s, &aTVs.last().tagVal);
+                parseFloat(&aTVs.last().tagVal);
                 break;
 
             case TOKEN_TYPE::L_BRACE:
-                next(s);
-                OK_OR_RET(parseObject(s, &aTVs.last()));
+                next();
+                OK_OR_RET(parseObject(&aTVs.last()));
                 break;
         }
 
-        if (s->m_tCurr.eType != TOKEN_TYPE::COMMA)
+        if (m_tCurr.eType != TOKEN_TYPE::COMMA)
         {
-            next(s);
+            next();
             break;
         }
     }
 
-    if (aTVs.getSize() == 0) next(s);
+    if (aTVs.getSize() == 0) next();
 
-    return OK;
-}
-
-static void
-parseNull(Parser* s, TagVal* pTV)
-{
-    *pTV = {.tag = TAG::NULL_, .val = {nullptr}};
-    next(s);
-}
-
-static void
-parseTrue(Parser* s, TagVal* pTV)
-{
-    *pTV = {.tag = TAG::BOOL, .val = {.b = true}};
-    next(s);
-}
-
-static void
-parseFalse(Parser* s, TagVal* pTV)
-{
-    *pTV = {.tag = TAG::BOOL, .val = {.b = false}};
-    next(s);
+    return STATUS::OK;
 }
 
 void

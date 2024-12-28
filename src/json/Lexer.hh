@@ -1,11 +1,9 @@
 #pragma once
 
-#include "adt/String.hh"
+#include "adt/print.hh"
 
 namespace json
 {
-
-enum RESULT : adt::u8 { OK, FAIL };
 
 enum class TOKEN_TYPE : adt::u8
 {
@@ -27,7 +25,7 @@ struct Token
 {
     TOKEN_TYPE eType {};
     adt::String sLiteral {};
-    adt::u32 raw {};
+    adt::u32 row {};
     adt::u32 column {};
 };
 
@@ -42,7 +40,7 @@ class Lexer
 
 public:
     Lexer() = default;
-    Lexer(adt::String sJson) : m_sJson(sJson) {}
+    Lexer(adt::String sJson) : m_sJson(sJson), m_row(1), m_column(1) {}
 
     /* */
 
@@ -53,11 +51,44 @@ public:
 
 private:
     void skipWhitespace();
+    Token nextChar(TOKEN_TYPE eType);
     Token nextString();
     Token nextStringNoQuotes();
     Token nextNumber();
 
-    void advance(std::size_t nChars) { m_pos += nChars, m_column += nChars; }
+    void advanceOne() { ++m_pos, ++m_column; }
 };
 
 } /* namespace json */
+
+namespace adt
+{
+namespace print
+{
+
+inline u32
+formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
+{
+    ctx.fmt = "{}";
+    ctx.fmtIdx = 0;
+
+    constexpr String map[] {
+        "NONE",
+        "DOT",
+        "COMMA",
+        "STRING",
+        "QUOTED_STRING",
+        "COLON",
+        "L_BRACE",
+        "R_BRACE",
+        "L_BRACKET",
+        "R_BRACKET",
+        "NUMBER",
+        "FLOAT",
+    };
+
+    return printArgs(ctx, map[int(x)]);
+}
+
+} /* namespace print */
+} /* namespace adt */

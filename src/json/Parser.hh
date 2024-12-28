@@ -8,26 +8,28 @@
 namespace json
 {
 
-struct Parser
+enum class STATUS : adt::u8 { OK, FAIL };
+
+class Parser
 {
     adt::IAllocator* m_pAlloc;
     Lexer m_lex;
-    adt::String m_sName;
     adt::VecBase<Object> m_aObjects {};
     Token m_tCurr;
     Token m_tNext;
 
     /* */
 
+public:
     Parser() = default;
     Parser(adt::IAllocator* p) : m_pAlloc(p) {}
 
     /* */
 
     void destroy();
-    RESULT load(adt::String path);
-    RESULT parse();
-    RESULT loadParse(adt::String path);
+    STATUS load(adt::String path);
+    STATUS parse();
+    STATUS loadParse(adt::String path);
     void print(FILE* fp);
     void traverse(Object* pNode, bool (*pfn)(Object* pNode, void* pArgs), void* pArgs);
     /* if root json object consists of only one object return that, otherwise get array of root objects */
@@ -38,6 +40,18 @@ struct Parser
     {
         for (auto& obj : m_aObjects) traverse(&obj, pfn, pArgs);
     }
+
+private:
+    STATUS parseNode(Object* pNode);
+    STATUS parseObject(Object* pNode);
+    STATUS parseArray(Object* pNode); /* arrays are same as objects */
+    void parseIdent(TagVal* pTV);
+    void parseString(TagVal* pTV);
+    void parseNumber(TagVal* pTV);
+    void parseFloat(TagVal* pTV);
+    STATUS expect(TOKEN_TYPE t);
+    void printNodeError();
+    void next();
 };
 
 void printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
