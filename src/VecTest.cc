@@ -70,7 +70,7 @@ main()
     };
     struct B : A
     {
-        B(int _i) : A(_i) {}
+        B(int _i, int _i1) : A(_i + _i1) {}
         virtual ~B() override {}
 
         virtual void hi() override final {};
@@ -80,7 +80,7 @@ main()
         Arena a(sizeof(u32) * BIG);
         Vec<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
-            vec.push(i);
+            vec.push({(int)i, 0});
         a.freeAll();
     }
 
@@ -95,7 +95,7 @@ main()
 
         Vec<B> vec(&a);
         for (u32 i = 0; i < BIG; ++i)
-            vec.push(i);
+            vec.emplace(i, i);
 
         f64 t1 = utils::timeNowMS();
         LOG("adt: {} ms\n", t1 - t0);
@@ -109,7 +109,7 @@ main()
         std::vector<B> stdvec;
         /*stdvec.reserve(big);*/
         for (u32 i = 0; i < BIG; ++i)
-            stdvec.push_back(i);
+            stdvec.emplace_back(i, i);
 
         f64 t1 = utils::timeNowMS();
         LOG("std: {} ms\n", t1 - t0);

@@ -1,7 +1,7 @@
 #include "adt/Arena.hh"
 // #include "adt/FreeList.hh"
 // #include "adt/MutexArena.hh"
-#include "adt/OsAllocator.hh"
+// #include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/file.hh"
 #include "adt/logs.hh"
@@ -18,17 +18,17 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    /*FreeList al(SIZE_1G * 5);*/
-    Arena al(SIZE_1G * 3);
-    /*MutexArena al(SIZE_1G * 2);*/
-    defer( al.freeAll() );
 
     if (argc >= 1 && String(argv[1]) == "-e")
     {
-        auto jObj = json::makeObject(&al, "obj0");
+        Arena al(SIZE_1K);
+        defer( al.freeAll() );
+
+        auto jObj = json::makeObject(&al, ""); /* root object usually has no name, this json parser allows to have it */
         jObj.pushToObject(&al, json::makeNumber("fifteen", 15));
         jObj.pushToObject(&al, json::makeFloat("fifteen.dot.fifteen", 15.15));
         u32 arrIdx = jObj.pushToObject(&al, json::makeArray(&al, "arr"));
+        /* array values have no keys, but this json parser makes no distiction between arrays and objects, so the keys are empty here */
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string0"));
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string1"));
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string2"));
@@ -38,6 +38,9 @@ main(int argc, char* argv[])
 
         return 0;
     }
+
+    Arena al(SIZE_1G * 3);
+    defer( al.freeAll() );
 
     Opt<String> o_sJson = file::load(&al, argv[1]);
 
