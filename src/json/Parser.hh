@@ -53,14 +53,14 @@ private:
     void next();
 };
 
-void printNode(FILE* fp, Object* pNode, adt::String svEnd = "", int depth = 0);
+void printNode(FILE* fp, Object* pNode, adt::String sEnd = "", int depth = 0);
 
 /* Linear search inside JSON object. Returns nullptr if not found */
 [[nodiscard]] inline Object*
-searchObject(adt::VecBase<Object>& aObj, adt::String svKey)
+searchObject(adt::VecBase<Object>& aObj, adt::String sKey)
 {
     for (adt::u32 i = 0; i < aObj.getSize(); i++)
-        if (aObj[i].svKey == svKey)
+        if (aObj[i].sKey == sKey)
             return &aObj[i];
 
     return nullptr;
@@ -98,7 +98,7 @@ getDouble(Object* obj)
 getString(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::STRING);
-    return obj->tagVal.val.sv;
+    return obj->tagVal.val.s;
 }
 
 [[nodiscard]] inline bool
@@ -112,7 +112,7 @@ getBool(Object* obj)
 makeObject(adt::IAllocator* pAlloc, adt::String key)
 {
     return {
-        .svKey = key,
+        .sKey = key,
         .tagVal {.tag = TAG::OBJECT, .val {.o {pAlloc}}}
     };
 }
@@ -121,7 +121,7 @@ makeObject(adt::IAllocator* pAlloc, adt::String key)
 makeArray(adt::IAllocator* pAlloc, adt::String key)
 {
     return {
-        .svKey = key,
+        .sKey = key,
         .tagVal {.tag = TAG::ARRAY, .val {.a {pAlloc}}}
     };
 }
@@ -130,7 +130,7 @@ makeArray(adt::IAllocator* pAlloc, adt::String key)
 makeNumber(adt::String key, adt::s64 l)
 {
     return {
-        .svKey = key,
+        .sKey = key,
         .tagVal {.tag = TAG::LONG, .val {.l = l}}
     };
 }
@@ -139,7 +139,7 @@ makeNumber(adt::String key, adt::s64 l)
 makeFloat(adt::String key, adt::f64 d)
 {
     return {
-        .svKey = key,
+        .sKey = key,
         .tagVal {.tag = TAG::DOUBLE, .val {.d = d}}
     };
 }
@@ -148,8 +148,8 @@ makeFloat(adt::String key, adt::f64 d)
 makeString(adt::String key, adt::String s)
 {
     return {
-        .svKey = key,
-        .tagVal {.tag = TAG::STRING, .val {.sv = s}}
+        .sKey = key,
+        .tagVal {.tag = TAG::STRING, .val {.s = s}}
     };
 }
 
@@ -157,7 +157,7 @@ makeString(adt::String key, adt::String s)
 makeBool(adt::String key, bool b)
 {
     return {
-        .svKey = key,
+        .sKey = key,
         .tagVal {.tag = TAG::BOOL, .val {.b = b}}
     };
 }
@@ -166,7 +166,7 @@ makeBool(adt::String key, bool b)
 makeNull(adt::String key)
 {
     return {
-        .svKey = key,
+        .sKey = key,
         .tagVal {.tag = TAG::NULL_, .val {.n = nullptr}}
     };
 }

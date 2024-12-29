@@ -32,7 +32,7 @@ struct Object;
 union Val
 {
     adt::null n;
-    adt::String sv;
+    adt::String s;
     adt::s64 l;
     adt::f64 d;
     adt::VecBase<Object> a;
@@ -48,7 +48,7 @@ struct TagVal
 
 struct Object
 {
-    adt::String svKey;
+    adt::String sKey;
     TagVal tagVal;
 
     /* */

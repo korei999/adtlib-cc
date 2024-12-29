@@ -140,7 +140,7 @@ Parser::parseString(TagVal* pTV)
     else if (sLit == "false")
         *pTV = {.tag = TAG::BOOL, .val = {.b = false}};
     else
-        *pTV = {.tag = TAG::STRING, .val {.sv = m_tCurr.sLiteral}};
+        *pTV = {.tag = TAG::STRING, .val {.s = m_tCurr.sLiteral}};
 
     next();
 }
@@ -148,7 +148,7 @@ Parser::parseString(TagVal* pTV)
 void
 Parser::parseIdent(TagVal* pTV)
 {
-    *pTV = {.tag = TAG::STRING, .val {.sv = m_tCurr.sLiteral}};
+    *pTV = {.tag = TAG::STRING, .val {.s = m_tCurr.sLiteral}};
     next();
 }
 
@@ -178,7 +178,7 @@ Parser::parseObject(Object* pNode)
         /* make sure key is quoted */
         OK_OR_RET(expect(TOKEN_TYPE::QUOTED_STRING));
 
-        aObjs.push(m_pAlloc, {.svKey = m_tCurr.sLiteral, .tagVal = {}});
+        aObjs.push(m_pAlloc, {.sKey = m_tCurr.sLiteral, .tagVal = {}});
 
         /* skip identifier and ':' */
         next();
@@ -286,7 +286,7 @@ Parser::print(FILE* fp)
 void
 printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
 {
-    adt::String key = pNode->svKey;
+    adt::String key = pNode->sKey;
 
     switch (pNode->tagVal.tag)
     {
