@@ -40,7 +40,6 @@ struct Pool
         if (e != INIT_FLAG::INIT) return;
 
         mtx_init(&m_mtx, mtx_plain);
-        for (auto& e : m_aNodes) e.bDeleted = true;
     }
 
     /* */
@@ -59,6 +58,7 @@ struct Pool
     [[nodiscard]] PoolHnd push(const T& value);
     template<typename ...ARGS> [[nodiscard]] PoolHnd emplace(ARGS&&... args);
     void giveBack(PoolHnd hnd);
+    u32 getCap() const { return CAP; }
 
     /* */
 
