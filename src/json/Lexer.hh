@@ -69,12 +69,12 @@ namespace print
 {
 
 inline u32
-formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
+formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
 {
     ctx.fmt = "{}";
     ctx.fmtIdx = 0;
 
-    char aBuff[512] {};
+    char aBuff[256] {};
     u32 n = 0;
 
     if (u32(x & json::TOKEN_TYPE::NONE))
