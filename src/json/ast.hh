@@ -50,6 +50,43 @@ struct Object
 {
     adt::String svKey;
     TagVal tagVal;
+
+    /* */
+
+    Object&
+    operator[](adt::u32 i)
+    {
+        assert(tagVal.tag == TAG::OBJECT || tagVal.tag == TAG::ARRAY && "[json]: using operator[] on non ARRAY or OBJECT");
+        return tagVal.val.o[i];
+    }
+
+    Object&
+    first()
+    {
+        assert(tagVal.tag == TAG::OBJECT || tagVal.tag == TAG::ARRAY && "[json]: last() on non ARRAY or OBJECT");
+        return tagVal.val.o.first();
+    }
+
+    Object&
+    last()
+    {
+        assert(tagVal.tag == TAG::OBJECT || tagVal.tag == TAG::ARRAY && "[json]: last() on non ARRAY or OBJECT");
+        return tagVal.val.o.last();
+    }
+
+    adt::u32
+    pushToArray(adt::IAllocator* pAlloc, const Object& o)
+    {
+        assert(tagVal.tag == TAG::ARRAY && "[json]: this object is not tagged as ARRAY");
+        return tagVal.val.a.push(pAlloc, o);
+    }
+
+    adt::u32
+    pushToObject(adt::IAllocator* pAlloc, const Object& o)
+    {
+        assert(tagVal.tag == TAG::OBJECT && "[json]: this object is not tagged as OBJECT");
+        return tagVal.val.o.push(pAlloc, o);
+    }
 };
 
 } /* namespace json */

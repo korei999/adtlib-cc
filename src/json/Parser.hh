@@ -53,10 +53,10 @@ private:
     void next();
 };
 
-void printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth);
+void printNode(FILE* fp, Object* pNode, adt::String svEnd = "", int depth = 0);
 
 /* Linear search inside JSON object. Returns nullptr if not found */
-inline Object*
+[[nodiscard]] inline Object*
 searchObject(adt::VecBase<Object>& aObj, adt::String svKey)
 {
     for (adt::u32 i = 0; i < aObj.getSize(); i++)
@@ -66,50 +66,50 @@ searchObject(adt::VecBase<Object>& aObj, adt::String svKey)
     return nullptr;
 }
 
-inline adt::VecBase<Object>&
+[[nodiscard]] inline adt::VecBase<Object>&
 getObject(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::OBJECT);
     return obj->tagVal.val.o;
 }
 
-inline adt::VecBase<Object>&
+[[nodiscard]] inline adt::VecBase<Object>&
 getArray(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::ARRAY);
     return obj->tagVal.val.a;
 }
 
-inline long
+[[nodiscard]] inline long
 getLong(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::LONG);
     return obj->tagVal.val.l;
 }
 
-inline double
+[[nodiscard]] inline double
 getDouble(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::DOUBLE);
     return obj->tagVal.val.d;
 }
 
-inline adt::String
+[[nodiscard]] inline adt::String
 getString(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::STRING);
     return obj->tagVal.val.sv;
 }
 
-inline bool
+[[nodiscard]] inline bool
 getBool(Object* obj)
 {
     assert(obj->tagVal.tag == TAG::BOOL);
     return obj->tagVal.val.b;
 }
 
-inline Object
-makeObject(adt::String key, adt::IAllocator* pAlloc)
+[[nodiscard]] inline Object
+makeObject(adt::IAllocator* pAlloc, adt::String key)
 {
     return {
         .svKey = key,
@@ -117,8 +117,8 @@ makeObject(adt::String key, adt::IAllocator* pAlloc)
     };
 }
 
-inline Object
-makeArray(adt::String key, adt::IAllocator* pAlloc)
+[[nodiscard]] inline Object
+makeArray(adt::IAllocator* pAlloc, adt::String key)
 {
     return {
         .svKey = key,
@@ -126,8 +126,8 @@ makeArray(adt::String key, adt::IAllocator* pAlloc)
     };
 }
 
-inline Object
-makeLong(adt::String key, long l)
+[[nodiscard]] inline Object
+makeNumber(adt::String key, adt::s64 l)
 {
     return {
         .svKey = key,
@@ -135,8 +135,8 @@ makeLong(adt::String key, long l)
     };
 }
 
-inline Object
-makeDouble(adt::String key, double d)
+[[nodiscard]] inline Object
+makeFloat(adt::String key, adt::f64 d)
 {
     return {
         .svKey = key,
@@ -144,7 +144,7 @@ makeDouble(adt::String key, double d)
     };
 }
 
-inline Object
+[[nodiscard]] inline Object
 makeString(adt::String key, adt::String s)
 {
     return {
@@ -153,7 +153,7 @@ makeString(adt::String key, adt::String s)
     };
 }
 
-inline Object
+[[nodiscard]] inline Object
 makeBool(adt::String key, bool b)
 {
     return {
@@ -162,25 +162,13 @@ makeBool(adt::String key, bool b)
     };
 }
 
-inline Object
+[[nodiscard]] inline Object
 makeNull(adt::String key)
 {
     return {
         .svKey = key,
         .tagVal {.tag = TAG::NULL_, .val {.n = nullptr}}
     };
-}
-
-inline adt::u32
-pushToObject(Object* pObj, adt::IAllocator* p, Object o)
-{
-    return pObj->tagVal.val.o.push(p, o);
-}
-
-inline adt::u32
-pushToArray(Object* pObj, adt::IAllocator* p, Object o)
-{
-    return pObj->tagVal.val.a.push(p, o);
 }
 
 } /* namespace json */
