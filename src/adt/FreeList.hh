@@ -140,6 +140,7 @@ FreeList::freeAll()
         it = next;
     }
     m_pBlocks = nullptr;
+    m_tree = {};
 }
 
 inline FreeListData*

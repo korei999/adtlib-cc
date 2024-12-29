@@ -1,7 +1,7 @@
 #include "adt/Arena.hh"
-// #include "adt/FreeList.hh"
+#include "adt/FreeList.hh"
 // #include "adt/MutexArena.hh"
-// #include "adt/OsAllocator.hh"
+#include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/file.hh"
 #include "adt/logs.hh"
@@ -40,7 +40,9 @@ main(int argc, char* argv[])
     }
 
     Arena al(SIZE_1G * 3);
-    defer( al.freeAll() );
+    /*FreeList al(SIZE_1G * 3);*/
+    /*OsAllocator al;*/
+    /*defer( al.freeAll() );*/
 
     Opt<String> o_sJson = file::load(&al, argv[1]);
 
