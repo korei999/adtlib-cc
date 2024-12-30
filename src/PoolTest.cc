@@ -7,7 +7,7 @@ using namespace adt;
 int
 main()
 {
-    Pool<long, 32> p(INIT_FLAG::INIT);
+    Pool<long, 32> p(INIT);
     defer( p.destroy() );
 
     [[maybe_unused]] auto h32 = p.push(32L);

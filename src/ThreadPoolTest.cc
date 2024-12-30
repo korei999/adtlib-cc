@@ -35,7 +35,7 @@ main()
 
     f64 ms = 500.0;
 
-    ThreadPoolLock lock(INIT_FLAG::INIT);
+    ThreadPoolLock lock(INIT);
     defer( lock.destroy() );
 
     tp.submit(task, &ms);
