@@ -1,5 +1,5 @@
 #include "adt/Arena.hh"
-#include "adt/OsAllocator.hh"
+#include "adt/OsAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/Heap.hh"
@@ -9,7 +9,7 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(OsAllocatorGet(), SIZE_1K);
+    Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
     Heap<long> h(&arena);

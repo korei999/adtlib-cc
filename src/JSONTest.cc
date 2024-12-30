@@ -20,7 +20,7 @@ main(int argc, char* argv[])
 
     if (argc >= 1 && String(argv[1]) == "-e")
     {
-        Arena al(OsAllocatorGet(), SIZE_1K);
+        Arena al(SIZE_1K);
         defer( al.freeAll() );
 
         auto jObj = json::makeObject(&al, ""); /* root object usually has no name, this json parser allows to have it */
@@ -38,7 +38,7 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    Arena al(OsAllocatorGet(), SIZE_8M);
+    Arena al(SIZE_8M);
     /*FreeList al(SIZE_1G);*/
     /*OsAllocator al;*/
     defer( al.freeAll() );

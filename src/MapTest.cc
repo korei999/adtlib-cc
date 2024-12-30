@@ -9,7 +9,7 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(OsAllocatorGet(), SIZE_1K);
+    Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
     Map<String, u32> map(&arena);

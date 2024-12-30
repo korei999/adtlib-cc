@@ -10,10 +10,10 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(OsAllocatorGet(), SIZE_1K);
+    Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    ChunkAllocator al(OsAllocatorGet(), sizeof(RBNode<long>), SIZE_8K);
+    ChunkAllocator al(sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
     RBTree<long> tree(&al);

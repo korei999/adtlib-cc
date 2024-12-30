@@ -1,5 +1,4 @@
 #include "adt/Arena.hh"
-#include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/String.hh"
@@ -14,7 +13,7 @@ main()
 {
     setlocale(LC_ALL, "");
 
-    Arena arena(OsAllocatorGet(), SIZE_1K);
+    Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
     String sHello = StringAlloc(&arena, "What is this");
