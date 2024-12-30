@@ -1,6 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/ChunkAllocator.hh"
 #include "adt/RBTree.hh"
+#include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 
@@ -9,10 +10,10 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(SIZE_1K);
+    Arena arena(OsAllocatorGet(), SIZE_1K);
     defer( arena.freeAll() );
 
-    ChunkAllocator al(sizeof(RBNode<long>), SIZE_8K);
+    ChunkAllocator al(OsAllocatorGet(), sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
     RBTree<long> tree(&al);

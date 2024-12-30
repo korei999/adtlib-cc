@@ -1,3 +1,4 @@
+#include "adt/OsAllocator.hh"
 #include "adt/logs.hh"
 #include "adt/defer.hh"
 #include "adt/Arena.hh"
@@ -8,7 +9,7 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(SIZE_1K);
+    Arena arena(OsAllocatorGet(), SIZE_1K);
     defer( arena.freeAll() );
 
     Queue<long> q(&arena);

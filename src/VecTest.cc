@@ -23,7 +23,7 @@ main()
     VecBase<Arena> aArenas(OsAllocatorGet(), 1);
     defer( aArenas.destroy(OsAllocatorGet()) );
 
-    aArenas.push(OsAllocatorGet(), SIZE_1M);
+    aArenas.push(OsAllocatorGet(), {OsAllocatorGet(),SIZE_1M});
     defer( aArenas[0].freeAll() );
 
     Vec<f64> vec(&aArenas[0]);
@@ -77,7 +77,7 @@ main()
     };
 
     {
-        Arena a(sizeof(u32) * BIG);
+        Arena a(OsAllocatorGet(), sizeof(u32) * BIG);
         Vec<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
             vec.push({(int)i, 0});

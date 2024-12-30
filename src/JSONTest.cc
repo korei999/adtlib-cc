@@ -1,6 +1,6 @@
 #include "adt/Arena.hh"
-#include "adt/FreeList.hh"
-// #include "adt/MutexArena.hh"
+#include "adt/FreeList.hh" /* IWYU pragma: keep */
+#include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/file.hh"
@@ -18,10 +18,9 @@ main(int argc, char* argv[])
         return 0;
     }
 
-
     if (argc >= 1 && String(argv[1]) == "-e")
     {
-        Arena al(SIZE_1K);
+        Arena al(OsAllocatorGet(), SIZE_1K);
         defer( al.freeAll() );
 
         auto jObj = json::makeObject(&al, ""); /* root object usually has no name, this json parser allows to have it */
@@ -39,10 +38,10 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    Arena al(SIZE_1G * 3);
-    /*FreeList al(SIZE_1G * 3);*/
+    Arena al(OsAllocatorGet(), SIZE_8M);
+    /*FreeList al(SIZE_1G);*/
     /*OsAllocator al;*/
-    /*defer( al.freeAll() );*/
+    defer( al.freeAll() );
 
     Opt<String> o_sJson = file::load(&al, argv[1]);
 
