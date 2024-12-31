@@ -37,7 +37,7 @@ struct VecBase
 
     [[nodiscard]] bool empty() const { return m_size == 0; }
     u32 push(IAllocator* p, const T& data);
-    template<typename ...ARGS> u32 emplace(IAllocator* p, ARGS&&... args);
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>) u32 emplace(IAllocator* p, ARGS&&... args);
     [[nodiscard]] T& last();
     [[nodiscard]] const T& last() const;
     [[nodiscard]] T& first();
@@ -106,7 +106,7 @@ VecBase<T>::push(IAllocator* p, const T& data)
 }
 
 template<typename T>
-template<typename ...ARGS>
+template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
 inline u32
 VecBase<T>::emplace(IAllocator* p, ARGS&&... args)
 {
@@ -296,7 +296,8 @@ struct Vec
 
     [[nodiscard]] bool empty() const { return base.empty(); }
     u32 push(const T& data) { return base.push(m_pAlloc, data); }
-    template<typename ...ARGS> u32 emplace(ARGS&&... args) { return base.emplace(m_pAlloc, std::forward<ARGS>(args)...); }
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+        u32 emplace(ARGS&&... args) { return base.emplace(m_pAlloc, std::forward<ARGS>(args)...); }
     [[nodiscard]] T& VecLast() { return base.last(); }
     [[nodiscard]] T& last() { return base.last(); }
     [[nodiscard]] const T& last() const { return base.last(); }

@@ -38,6 +38,7 @@ main()
     vec.push(23.0);
     vec.push(200.0);
     vec.push(-20.0);
+    vec.emplace(110001.0);
 
     {
         auto vec0 = vec.clone(&aArenas[0]);
