@@ -1,7 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
-#include "adt/OsAllocator.hh"
+#include "adt/OsAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/file.hh"
 #include "adt/logs.hh"
