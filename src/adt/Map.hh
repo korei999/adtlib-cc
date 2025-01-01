@@ -47,7 +47,7 @@ struct MapResult
 
     constexpr
     const KeyVal<K, V>&
-    getData() const
+    data() const
     {
         assert(eStatus != MAP_RESULT_STATUS::NOT_FOUND && "[Map]: not found");
         return *(KeyVal<K, V>*)pData;

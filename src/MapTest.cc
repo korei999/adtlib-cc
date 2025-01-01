@@ -26,27 +26,27 @@ main()
     {
         auto fSixteen = map.search("Sixteen");
         assert(fSixteen);
-        if (fSixteen) LOG("found: {}\n", fSixteen.getData());
+        if (fSixteen) LOG("found: {}\n", fSixteen.data());
     }
     {
         auto fThirdyTwo = map.search("ThirdyTwo");
         assert(fThirdyTwo);
-        if (fThirdyTwo) LOG("found: {}\n", fThirdyTwo.getData());
+        if (fThirdyTwo) LOG("found: {}\n", fThirdyTwo.data());
     }
     {
         auto fSeventeen = map.search("Seventeen");
         assert(fSeventeen == false);
-        if (fSeventeen) LOG("found: {}\n", fSeventeen.getData());
+        if (fSeventeen) LOG("found: {}\n", fSeventeen.data());
     }
     {
         auto fFiftyFive = map.search("FiftyFive");
         assert(fFiftyFive == false);
-        if (fFiftyFive) LOG("found: {}\n", fFiftyFive.getData());
+        if (fFiftyFive) LOG("found: {}\n", fFiftyFive.data());
     }
     {
         auto fNineHundredNinetyNine = map.search("NineHundredNinetyNine");
         assert(fNineHundredNinetyNine);
-        if (fNineHundredNinetyNine) LOG("found: {}\n", fNineHundredNinetyNine.getData());
+        if (fNineHundredNinetyNine) LOG("found: {}\n", fNineHundredNinetyNine.data());
     }
 
     COUT("map auto loop: ");
@@ -61,12 +61,12 @@ main()
     {
         auto one = map2.search(12);
         assert(one);
-        LOG("one: {}\n", one.getData());
+        LOG("one: {}\n", one.data());
     }
 
     {
         auto two = map2.search(13);
         assert(two);
-        LOG("one: {}\n", two.getData());
+        LOG("one: {}\n", two.data());
     }
 }
