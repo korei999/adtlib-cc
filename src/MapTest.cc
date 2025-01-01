@@ -18,7 +18,7 @@ main()
     map.insert("Sixteen", 16);
     map.insert("Seventeen", 17);
     map.insert("FiftyFive", 55);
-    map.insert("NineHundredNinetyNine", 999);
+    map.emplace("NineHundredNinetyNine", 999);
 
     map.remove("Seventeen");
     map.remove("FiftyFive");
