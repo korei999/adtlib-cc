@@ -1,4 +1,4 @@
-#include "adt/OsAllocator.hh"
+#include "adt/OsAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/Arena.hh"
