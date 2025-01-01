@@ -195,11 +195,11 @@ template<typename K, typename V>
 inline MapResult<K, V>
 MapBase<K, V>::insert(IAllocator* p, const K& key, const V& val)
 {
-    u64 keyHash = hash::func(key);
-
     if (m_aBuckets.getCap() == 0) *this = {p};
     else if (loadFactor() >= m_maxLoadFactor)
         rehash(p, m_aBuckets.getCap() * 2);
+
+    u64 keyHash = hash::func(key);
 
     return insertHashed(key, val, keyHash);
 }
@@ -209,6 +209,10 @@ template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>)
 inline MapResult<K, V>
 MapBase<K, V>::emplace(IAllocator* p, const K& key, ARGS&&... args)
 {
+    if (m_aBuckets.getCap() == 0) *this = {p};
+    else if (loadFactor() >= m_maxLoadFactor)
+        rehash(p, m_aBuckets.getCap() * 2);
+
     u64 keyHash = hash::func(key);
     u32 idx = getInsertionIdx(keyHash);
 
