@@ -105,6 +105,8 @@ struct MapBase
 
     [[nodiscard]] MapResult<K, V> searchHashed(const K& key, u64 keyHash);
 
+    void zeroOut();
+
     /* */
 
 private:
@@ -355,6 +357,14 @@ MapBase<K, V>::searchHashed(const K& key, u64 keyHash)
 }
 
 template<typename K, typename V>
+inline void
+MapBase<K, V>::zeroOut()
+{
+    m_aBuckets.zeroOut();
+    m_nOccupied = 0;
+}
+
+template<typename K, typename V>
 inline u32
 MapBase<K, V>::getInsertionIdx(u64 hash) const
 {
@@ -376,7 +386,7 @@ MapBase<K, V>::MapBase(IAllocator* pAllocator, u32 prealloc)
       m_maxLoadFactor(MAP_DEFAULT_LOAD_FACTOR)
 {
     m_aBuckets.setSize(pAllocator, prealloc * MAP_DEFAULT_LOAD_FACTOR_INV);
-    memset(m_aBuckets.data(), 0, sizeof(m_aBuckets[0]) * m_aBuckets.getSize());
+    m_aBuckets.zeroOut();
 }
 
 template<typename K, typename V>
@@ -424,6 +434,8 @@ struct Map
     [[nodiscard]] u32 getCap() const { return base.getCap(); }
 
     [[nodiscard]] u32 getSize() const { return base.getSize(); }
+
+    void zeroOut() { base.zeroOut(); }
 
     /* */
 
