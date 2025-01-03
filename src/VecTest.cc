@@ -28,6 +28,9 @@ main()
 
     Vec<f64> vec(&aArenas[0]);
 
+    for (auto what : vec)
+        LOG("asdf {}\n", what);
+
     vec.push(5.0);
     vec.push(3.0);
     vec.push(-1.0);

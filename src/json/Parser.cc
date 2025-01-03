@@ -10,8 +10,9 @@ namespace json
 #define OK_OR_RET(RES) if (RES == STATUS::FAIL) return STATUS::FAIL;
 
 STATUS
-Parser::parse(adt::String sJson)
+Parser::parse(adt::IAllocator* pAlloc, adt::String sJson)
 {
+    m_pAlloc = pAlloc;
     m_lex = Lexer(sJson);
 
     m_tCurr = m_lex.next();
@@ -269,7 +270,7 @@ Parser::destroy()
         return false;
     };
 
-    traverseAll(fn, m_pAlloc);
+    traverse(fn, m_pAlloc);
     m_aObjects.destroy(m_pAlloc);
 }
 
@@ -454,7 +455,7 @@ printNode(FILE* fp, Object* pNode, adt::String svEnd, int depth)
 }
 
 void
-Parser::traverse(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 {
     switch (pNode->tagVal.tag)
     {
@@ -465,7 +466,7 @@ Parser::traverse(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pAr
             auto& obj = getArray(pNode);
 
             for (u32 i = 0; i < obj.getSize(); i++)
-                traverse(&obj[i], pfn, pArgs);
+                traverseNode(&obj[i], pfn, pArgs);
         }
         break;
 
@@ -474,7 +475,7 @@ Parser::traverse(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pAr
             auto& obj = getObject(pNode);
 
             for (u32 i = 0; i < obj.getSize(); i++)
-                traverse(&obj[i], pfn, pArgs);
+                traverseNode(&obj[i], pfn, pArgs);
         }
         break;
     }
@@ -489,6 +490,12 @@ Parser::getRoot()
 
     if (m_aObjects.m_size == 1) return getObject(&m_aObjects.first());
     else return m_aObjects;
+}
+
+void
+Parser::traverse(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+{
+    for (auto& obj : m_aObjects) traverseNode(&obj, pfn, pArgs);
 }
 
 } /* namespace json */

@@ -12,32 +12,30 @@ enum class STATUS : adt::u8 { OK, FAIL };
 
 class Parser
 {
-    adt::IAllocator* m_pAlloc;
-    Lexer m_lex;
+    adt::IAllocator* m_pAlloc {};
+    Lexer m_lex {};
     adt::VecBase<Object> m_aObjects {};
-    Token m_tCurr;
-    Token m_tNext;
+    Token m_tCurr {};
+    Token m_tNext {};
 
     /* */
 
 public:
     Parser() = default;
-    Parser(adt::IAllocator* p) : m_pAlloc(p) {}
 
     /* */
 
     void destroy();
-    STATUS parse(adt::String sJson);
+
+    STATUS parse(adt::IAllocator* pAlloc, adt::String sJson);
+
     void print(FILE* fp);
-    void traverse(Object* pNode, bool (*pfn)(Object* pNode, void* pArgs), void* pArgs);
+
     /* if root json object consists of only one object return that, otherwise get array of root objects */
     adt::VecBase<Object>& getRoot();
 
-    void
-    traverseAll(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
-    {
-        for (auto& obj : m_aObjects) traverse(&obj, pfn, pArgs);
-    }
+    /* pfn returns true for early return */
+    void traverse(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs);
 
 private:
     STATUS parseNode(Object* pNode);
@@ -53,6 +51,9 @@ private:
     void next();
 };
 
+
+/* pfn returns true for early return */
+void traverseNode(Object* pNode, bool (*pfn)(Object* pNode, void* pArgs), void* pArgs);
 void printNode(FILE* fp, Object* pNode, adt::String sEnd = "", int depth = 0);
 
 /* Linear search inside JSON object. Returns nullptr if not found */

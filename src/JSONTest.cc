@@ -48,8 +48,8 @@ main(int argc, char* argv[])
     if (!o_sJson) return 1;
     /*defer( o_sJson.value().destroy(OsAllocatorGet()) );*/
 
-    json::Parser p(&al);
-    json::STATUS eRes = p.parse(o_sJson.value());
+    json::Parser p {};
+    json::STATUS eRes = p.parse(&al, o_sJson.value());
     if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::parse() failed\n");
 
     if (argc >= 3 && "-p" == String(argv[2]))
