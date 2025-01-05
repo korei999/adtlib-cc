@@ -48,7 +48,7 @@ constexpr u32
 printArgs(Context ctx)
 {
     u32 nRead = 0;
-    for (u32 i = ctx.fmtIdx; i < ctx.fmt.m_size; ++i, ++nRead)
+    for (u32 i = ctx.fmtIdx; i < ctx.fmt.getSize(); ++i, ++nRead)
     {
         if (ctx.buffIdx >= ctx.buffSize) break;
         ctx.pBuff[ctx.buffIdx++] = ctx.fmt[i];
@@ -84,7 +84,7 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
     auto skipUntil = [&](const String chars) -> void {
         memset(aBuff, 0, sizeof(aBuff));
         u32 bIdx = 0;
-        while (bIdx < sizeof(aBuff) - 1 && i < fmt.m_size && !oneOfChars(fmt[i], chars))
+        while (bIdx < sizeof(aBuff) - 1 && i < fmt.getSize() && !oneOfChars(fmt[i], chars))
         {
             aBuff[bIdx++] = fmt[i++];
             ++nRead;
@@ -92,11 +92,11 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
     };
 
     auto peek = [&] {
-        if (i + 1 < fmt.m_size) return fmt[i + 1];
+        if (i + 1 < fmt.getSize()) return fmt[i + 1];
         else return '\0';
     };
 
-    for (; i < fmt.m_size; ++i, ++nRead)
+    for (; i < fmt.getSize(); ++i, ++nRead)
     {
         if (bDone) break;
 
@@ -266,8 +266,14 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const String& str)
     auto& buffIdx = ctx.buffIdx;
 
     u32 nRead = 0;
-    for (u32 i = 0; i < str.m_size && buffIdx < buffSize && i < fmtArgs.maxLen; ++i, ++nRead)
-        pBuff[buffIdx++] = str[i];
+    for (u32 i = 0; buffIdx < buffSize; ++i, ++nRead)
+    {
+        if (i < str.getSize())
+            pBuff[buffIdx++] = str[i];
+        else if (i < fmtArgs.maxLen && fmtArgs.maxLen != NPOS16) /* fill extra space */
+            pBuff[buffIdx++] = ' ';
+        else break;
+    }
 
     return nRead;
 }
@@ -392,9 +398,13 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
     bool bArg = false;
     u32 i = ctx.fmtIdx;
 
-    if (ctx.fmtIdx >= ctx.fmt.m_size) return 0;
+    /* NOTE: ugly edge case, when we need to fill with spaces but fmt is out of range */
+    if (ctx.bUpdateFmtArgs && ctx.fmtIdx >= ctx.fmt.getSize())
+        return formatToContext(ctx, ctx.prevFmtArgs, tFirst);
+    else if (ctx.fmtIdx >= ctx.fmt.getSize())
+        return 0;
 
-    for (; i < ctx.fmt.m_size; ++i, ++nRead)
+    for (; i < ctx.fmt.getSize(); ++i, ++nRead)
     {
         if (ctx.buffIdx >= ctx.buffSize) return nRead;
 
@@ -414,7 +424,7 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
         }
         else if (ctx.fmt[i] == '{')
         {
-            if (i + 1 < ctx.fmt.m_size && ctx.fmt[i + 1] == '{')
+            if (i + 1 < ctx.fmt.getSize() && ctx.fmt[i + 1] == '{')
             {
                 i += 1, nRead += 1;
                 bArg = false;
@@ -431,6 +441,7 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
             {
                 if constexpr (std::is_integral_v<std::remove_reference_t<decltype(tFirst)>>)
                 {
+                    /* FIXME: these two should be separate */
                     fmtArgs.maxLen = tFirst;
                     fmtArgs.maxFloatLen = tFirst;
 
@@ -479,7 +490,7 @@ template<typename... ARGS_T>
 constexpr u32
 toString(String* pDest, const String fmt, const ARGS_T&... tArgs)
 {
-    return toBuffer(pDest->m_pData, pDest->m_size, fmt, tArgs...);
+    return toBuffer(pDest->data(), pDest->getSize(), fmt, tArgs...);
 }
 
 template<typename... ARGS_T>
