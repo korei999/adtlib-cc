@@ -11,6 +11,8 @@ endif()
 
 project(adtlib-test VERSION 0.4 LANGUAGES CXX)
 
+option(OPT_SSE4_2 "compile with SSE4_2 support" ON)
+
 add_executable(
     adt-print
     src/printTest.cc
@@ -89,6 +91,16 @@ add_definitions("-D_DEFAULT_SOURCE")
 add_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 include_directories(BEFORE "src")
+
+if (OPT_SSE4_2)
+    add_definitions("-DADT_SSE4_2")
+
+    if(MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE4.2")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
+    endif()
+endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")

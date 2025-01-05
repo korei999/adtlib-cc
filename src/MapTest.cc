@@ -6,6 +6,12 @@
 
 using namespace adt;
 
+enum CONSTEXPR_HASH : u64
+{
+    CONST = hash::func("CONST"),
+    EXPR = hash::func("EXPR"),
+};
+
 int
 main()
 {
@@ -67,6 +73,6 @@ main()
     {
         auto two = map2.search(13);
         assert(two);
-        LOG("one: {}\n", two.data());
+        LOG("two: {}\n", two.data());
     }
 }

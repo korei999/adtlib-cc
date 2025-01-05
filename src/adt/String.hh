@@ -464,28 +464,14 @@ template<>
 constexpr u64
 hash::func(String& str)
 {
-    return hash::fnvStr(str.m_pData, str.m_size);
+    return hash::func(str.data(), str.getSize());
 }
 
 template<>
 constexpr u64
 hash::func(const String& str)
 {
-    return hash::fnvStr(str.m_pData, str.m_size);
-}
-
-template<>
-inline u64
-hash::funcHVal(String& str, u64 hashValue)
-{
-    return hash::fnvBuffHVal(str.m_pData, str.m_size, hashValue);
-}
-
-template<>
-inline u64
-hash::funcHVal(const String& str, u64 hashValue)
-{
-    return hash::fnvBuffHVal(str.m_pData, str.m_size, hashValue);
+    return hash::func(str.data(), str.getSize());
 }
 
 namespace utils
