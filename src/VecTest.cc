@@ -14,12 +14,24 @@
 
 using namespace adt;
 
-const u32 BIG = 10000000;
+const ssize BIG = 10000000;
 static u8 s_bigMem[BIG * 16 + sizeof(FixedAllocator)] {};
 
 int
 main()
 {
+    {
+        auto a = align8(123);
+        LOG("a: {}\n", a);
+
+        Arena arena(SIZE_1K);
+        defer( arena.freeAll() );
+
+        Vec<int> vec(&arena);
+        for (int i = 0; i < 100000; ++i)
+            vec.push(i);
+    }
+
     VecBase<Arena> aArenas(OsAllocatorGet(), 1);
     defer( aArenas.destroy(OsAllocatorGet()) );
 
@@ -31,21 +43,22 @@ main()
     for (auto what : vec)
         LOG("asdf {}\n", what);
 
-    vec.push(5.0);
-    vec.push(3.0);
-    vec.push(-1.0);
-    vec.push(123.0);
-    vec.push(-999.0);
-    vec.push(2.0);
-    vec.push(1.0);
-    vec.push(23.0);
-    vec.push(200.0);
-    vec.push(-20.0);
-    vec.emplace(110001.0);
+    vec.push(5.123);
+    vec.push(3.234);
+    vec.push(-1.341);
+    vec.push(123.023);
+    vec.push(-999.1023);
+    vec.push(2.123);
+    vec.push(1.31);
+    vec.push(23.987);
+    vec.push(200.123);
+    vec.push(-20.999);
+    vec.emplace(110001.54123);
 
     {
         auto vec0 = vec.clone(&aArenas[0]);
-        sort::quick(&vec0.base);
+        sort::quick(&vec0);
+        /*sort::insertion(vec0.data(), 0, vec0.getSize() - 1);*/
         COUT("vec0: {}\n", vec0);
         assert(sort::sorted(vec0.base));
     }

@@ -63,18 +63,18 @@ namespace adt
 namespace hash
 {
 
-constexpr u64 FNV1_64_INIT = 0xcbf29ce484222325ULL;
+constexpr usize FNV1_64_INIT = 0xcbf29ce484222325ULL;
 
 template<typename T>
-inline constexpr u64
-fnv(const T* pBuf, u32 byteSize, const u64 seed)
+inline constexpr usize
+fnv(const T* pBuff, ssize byteSize, const usize seed)
 {
-    u64 hval = seed;
-    const char* p = (const char*)pBuf;
+    usize hval = seed;
+    const char* p = (const char*)pBuff;
 
-    for (u32 i = 0; i < byteSize; ++i)
+    for (ssize i = 0; i < byteSize; ++i)
     {
-        hval ^= u64(p[i]);
+        hval ^= usize(p[i]);
         hval += (hval << 1) + (hval << 4) + (hval << 5) + (hval << 7) + (hval << 8) + (hval << 40);
     }
 
@@ -82,22 +82,22 @@ fnv(const T* pBuf, u32 byteSize, const u64 seed)
 }
 
 template<typename T>
-inline u64
+inline usize
 func(const T& x)
 {
     return fnv((const char*)&x, sizeof(T), FNV1_64_INIT);
 }
 
-template<u32 N>
-constexpr u64
+template<ssize N>
+constexpr usize
 func(const char (&aChars)[N])
 {
     return fnv(aChars, N, FNV1_64_INIT);
 }
 
 template<typename T>
-inline u64
-func(const T* pBuff, u32 byteSize)
+inline usize
+func(const T* pBuff, ssize byteSize)
 {
     return fnv((const char*)pBuff, byteSize, FNV1_64_INIT);
 }

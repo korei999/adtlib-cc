@@ -34,21 +34,21 @@ struct Context
 {
     String fmt {};
     char* const pBuff {};
-    const u32 buffSize {};
-    u32 buffIdx {};
-    u32 fmtIdx {};
+    const ssize buffSize {};
+    ssize buffIdx {};
+    ssize fmtIdx {};
     FormatArgs prevFmtArgs {};
     bool bUpdateFmtArgs {};
 };
 
-template<typename... ARGS_T> constexpr u32 out(const String fmt, const ARGS_T&... tArgs);
-template<typename... ARGS_T> constexpr u32 err(const String fmt, const ARGS_T&... tArgs);
+template<typename... ARGS_T> constexpr ssize out(const String fmt, const ARGS_T&... tArgs);
+template<typename... ARGS_T> constexpr ssize err(const String fmt, const ARGS_T&... tArgs);
 
-constexpr u32
+constexpr ssize
 printArgs(Context ctx)
 {
-    u32 nRead = 0;
-    for (u32 i = ctx.fmtIdx; i < ctx.fmt.getSize(); ++i, ++nRead)
+    ssize nRead = 0;
+    for (ssize i = ctx.fmtIdx; i < ctx.fmt.getSize(); ++i, ++nRead)
     {
         if (ctx.buffIdx >= ctx.buffSize) break;
         ctx.pBuff[ctx.buffIdx++] = ctx.fmt[i];
@@ -66,10 +66,10 @@ oneOfChars(const char x, const String chars)
     return false;
 }
 
-inline u32
-parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
+inline ssize
+parseFormatArg(FormatArgs* pArgs, const String fmt, ssize fmtIdx)
 {
-    u32 nRead = 1;
+    ssize nRead = 1;
     bool bDone = false;
     bool bColon = false;
     bool bFloatPresicion = false;
@@ -79,12 +79,12 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
     bool bAlwaysShowSign = false;
 
     char aBuff[64] {};
-    u32 i = fmtIdx + 1;
+    ssize i = fmtIdx + 1;
 
     auto skipUntil = [&](const String chars) -> void {
         memset(aBuff, 0, sizeof(aBuff));
-        u32 bIdx = 0;
-        while (bIdx < sizeof(aBuff) - 1 && i < fmt.getSize() && !oneOfChars(fmt[i], chars))
+        ssize bIdx = 0;
+        while (bIdx < (ssize)sizeof(aBuff) - 1 && i < fmt.getSize() && !oneOfChars(fmt[i], chars))
         {
             aBuff[bIdx++] = fmt[i++];
             ++nRead;
@@ -183,11 +183,11 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, u32 fmtIdx)
 
 template<typename INT_T> requires std::is_integral_v<INT_T>
 constexpr char*
-intToBuffer(INT_T x, char* pDst, u32 dstSize, FormatArgs fmtArgs)
+intToBuffer(INT_T x, char* pDst, ssize dstSize, FormatArgs fmtArgs)
 {
     bool bNegative = false;
 
-    u32 i = 0;
+    ssize i = 0;
     auto push = [&](char c) -> bool {
         if (i < dstSize)
         {
@@ -248,25 +248,25 @@ intToBuffer(INT_T x, char* pDst, u32 dstSize, FormatArgs fmtArgs)
     return pDst;
 }
 
-constexpr u32
-copyBackToBuffer(Context ctx, char* pSrc, u32 srcSize)
+constexpr ssize
+copyBackToBuffer(Context ctx, char* pSrc, ssize srcSize)
 {
-    u32 i = 0;
+    ssize i = 0;
     for (; pSrc[i] != '\0' && i < srcSize && ctx.buffIdx < ctx.buffSize; ++i)
         ctx.pBuff[ctx.buffIdx++] = pSrc[i];
 
     return i;
 }
 
-constexpr u32
+constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const String& str)
 {
     auto& pBuff = ctx.pBuff;
     auto& buffSize = ctx.buffSize;
     auto& buffIdx = ctx.buffIdx;
 
-    u32 nRead = 0;
-    for (u32 i = 0; buffIdx < buffSize; ++i, ++nRead)
+    ssize nRead = 0;
+    for (ssize i = 0; buffIdx < buffSize; ++i, ++nRead)
     {
         if (i < str.getSize())
             pBuff[buffIdx++] = str[i];
@@ -278,26 +278,26 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const String& str)
     return nRead;
 }
 
-constexpr u32
+constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const char* str)
 {
     return formatToContext(ctx, fmtArgs, String(str));
 }
 
-constexpr u32
+constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, char* const& pNullTerm)
 {
     return formatToContext(ctx, fmtArgs, String(pNullTerm));
 }
 
-constexpr u32
+constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, bool b)
 {
     return formatToContext(ctx, fmtArgs, b ? "true" : "false");
 }
 
 template<typename INT_T> requires std::is_integral_v<INT_T>
-constexpr u32
+constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x)
 {
     char buff[64] {};
@@ -308,7 +308,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x)
     return copyBackToBuffer(ctx, p, utils::size(buff));
 }
 
-inline u32
+inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x)
 {
     char aBuff[64] {};
@@ -319,7 +319,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x)
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
 }
 
-inline u32
+inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x)
 {
 #if defined __GNUC__
@@ -341,7 +341,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x)
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
 }
 
-inline u32
+inline ssize
 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const wchar_t x)
 {
     char aBuff[4] {};
@@ -354,7 +354,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const wchar_t 
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
 }
 
-inline u32
+inline ssize
 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const char32_t x)
 {
     char aBuff[MB_LEN_MAX] {};
@@ -364,7 +364,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const char32_t
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
 }
 
-inline u32
+inline ssize
 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const char x)
 {
     char aBuff[4] {};
@@ -373,30 +373,30 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const char x)
     return copyBackToBuffer(ctx, aBuff, utils::size(aBuff));
 }
 
-inline u32
+inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, [[maybe_unused]] null nullPtr)
 {
     return formatToContext(ctx, fmtArgs, String("nullptr"));
 }
 
 template<typename PTR_T> requires std::is_pointer_v<PTR_T>
-inline u32
+inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, PTR_T p)
 {
     if (p == nullptr) return formatToContext(ctx, fmtArgs, nullptr);
 
     fmtArgs.bHash = true;
     fmtArgs.eBase = BASE::SIXTEEN;
-    return formatToContext(ctx, fmtArgs, u64(p));
+    return formatToContext(ctx, fmtArgs, usize(p));
 }
 
 template<typename T, typename... ARGS_T>
-constexpr u32
+constexpr ssize
 printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
 {
-    u32 nRead = 0;
+    ssize nRead = 0;
     bool bArg = false;
-    u32 i = ctx.fmtIdx;
+    ssize i = ctx.fmtIdx;
 
     /* NOTE: ugly edge case, when we need to fill with spaces but fmt is out of range */
     if (ctx.bUpdateFmtArgs && ctx.fmtIdx >= ctx.fmt.getSize())
@@ -415,7 +415,7 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
             ctx.bUpdateFmtArgs = false;
 
             fmtArgs = ctx.prevFmtArgs;
-            u32 addBuff = formatToContext(ctx, fmtArgs, tFirst);
+            ssize addBuff = formatToContext(ctx, fmtArgs, tFirst);
 
             ctx.buffIdx += addBuff;
             nRead += addBuff;
@@ -434,8 +434,8 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
 
         if (bArg)
         {
-            u32 addBuff = 0;
-            u32 add = parseFormatArg(&fmtArgs, ctx.fmt, i);
+            ssize addBuff = 0;
+            ssize add = parseFormatArg(&fmtArgs, ctx.fmt, i);
 
             if (fmtArgs.bArgIsFmt)
             {
@@ -466,8 +466,8 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs)
     return nRead;
 }
 
-template<u32 SIZE = 512, typename... ARGS_T>
-constexpr u32
+template<ssize SIZE = 512, typename... ARGS_T>
+constexpr ssize
 toFILE(FILE* fp, const String fmt, const ARGS_T&... tArgs)
 {
     /* TODO: allow allocation? */
@@ -479,29 +479,29 @@ toFILE(FILE* fp, const String fmt, const ARGS_T&... tArgs)
 }
 
 template<typename... ARGS_T>
-constexpr u32
-toBuffer(char* pBuff, u32 buffSize, const String fmt, const ARGS_T&... tArgs)
+constexpr ssize
+toBuffer(char* pBuff, ssize buffSize, const String fmt, const ARGS_T&... tArgs)
 {
     Context ctx {fmt, pBuff, buffSize};
     return printArgs(ctx, tArgs...);
 }
 
 template<typename... ARGS_T>
-constexpr u32
+constexpr ssize
 toString(String* pDest, const String fmt, const ARGS_T&... tArgs)
 {
     return toBuffer(pDest->data(), pDest->getSize(), fmt, tArgs...);
 }
 
 template<typename... ARGS_T>
-constexpr u32
+constexpr ssize
 out(const String fmt, const ARGS_T&... tArgs)
 {
     return toFILE(stdout, fmt, tArgs...);
 }
 
 template<typename... ARGS_T>
-constexpr u32
+constexpr ssize
 err(const String fmt, const ARGS_T&... tArgs)
 {
     return toFILE(stderr, fmt, tArgs...);

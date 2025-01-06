@@ -7,7 +7,7 @@
 
 using namespace adt;
 
-enum CONSTEXPR_HASH : u64
+enum CONSTEXPR_HASH : usize
 {
     CONST = hash::func("CONST"),
     EXPR = hash::func("EXPR"),
