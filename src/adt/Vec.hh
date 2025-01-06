@@ -292,8 +292,9 @@ VecBase<T>::growIfNeeded(IAllocator* p)
 {
     if (m_size >= m_capacity)
     {
-        assert(m_capacity * 2 > m_capacity && "[Vec]: can't grow (capacity overflow)");
-        grow(p, utils::max(decltype(m_capacity)(2), m_capacity * 2));
+        ssize newCap = utils::max(decltype(m_capacity)(SIZE_MIN), m_capacity * 2);
+        assert(newCap > m_capacity && "[Vec]: can't grow (capacity overflow)");
+        grow(p, newCap);
     }
 }
 
