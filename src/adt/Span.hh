@@ -25,19 +25,27 @@ struct Span
 
     constexpr ssize getSize() const { return m_size; }
 
-    constexpr ssize lastI() const { return m_size - 1; }
+    constexpr ssize lastI() const { assert(m_size > 0 && "[Span]: empty"); return m_size - 1; }
+
+    constexpr ssize
+    idx(const T* pItem) const
+    {
+        ssize i = pItem - m_pData;
+        assert(i >= 0 && i < m_size && "[Span]: out of range");
+        return i;
+    }
 
     constexpr T&
     operator[](ssize i)
     {
-        assert(i < m_size && "[Span]: out of range");
+        assert(i >= 0 && i < m_size && "[Span]: out of range");
         return m_pData[i];
     }
 
     constexpr const T&
     operator[](ssize i) const
     {
-        assert(i < m_size && "[Span]: out of range");
+        assert(i >= 0 && i < m_size && "[Span]: out of range");
         return m_pData[i];
     }
 
