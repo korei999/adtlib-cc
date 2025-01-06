@@ -31,15 +31,17 @@ struct Span
     operator[](ssize i)
     {
         assert(i < m_size && "[Span]: out of range");
-        return m_pData + i;
+        return m_pData[i];
     }
 
-    constexpr T&
+    constexpr const T&
     operator[](ssize i) const
     {
         assert(i < m_size && "[Span]: out of range");
-        return m_pData + i;
+        return m_pData[i];
     }
+
+    constexpr operator bool() const { return m_pData != nullptr; }
 
     /* */
 
