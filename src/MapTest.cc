@@ -3,6 +3,7 @@
 #include "adt/logs.hh"
 #include "adt/Arena.hh"
 #include "adt/Map.hh"
+#include "adt/Span.hh"
 
 using namespace adt;
 
@@ -75,4 +76,13 @@ main()
         assert(two);
         LOG("two: {}\n", two.data());
     }
+
+    int buff[123] {};
+    Span sp(buff, sizeof(buff));
+    hash::func(sp);
+
+    hash::func(String("asdf"));
+    String asdf = "asdf";
+    hash::func(asdf);
+    hash::func("asdf");
 }

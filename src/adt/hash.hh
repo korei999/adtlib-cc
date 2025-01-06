@@ -67,7 +67,7 @@ constexpr u64 FNV1_64_INIT = 0xcbf29ce484222325ULL;
 
 template<typename T>
 inline constexpr u64
-fnv(T* pBuf, u32 byteSize, u64 seed)
+fnv(const T* pBuf, u32 byteSize, const u64 seed)
 {
     u64 hval = seed;
     const char* p = (const char*)pBuf;
@@ -83,9 +83,9 @@ fnv(T* pBuf, u32 byteSize, u64 seed)
 
 template<typename T>
 inline u64
-func(T& x)
+func(const T& x)
 {
-    return fnv((char*)&x, sizeof(T), FNV1_64_INIT);
+    return fnv((const char*)&x, sizeof(T), FNV1_64_INIT);
 }
 
 template<u32 N>
@@ -97,9 +97,9 @@ func(const char (&aChars)[N])
 
 template<typename T>
 inline u64
-func(T* pBuff, u32 byteSize)
+func(const T* pBuff, u32 byteSize)
 {
-    return fnv((char*)pBuff, byteSize, FNV1_64_INIT);
+    return fnv((const char*)pBuff, byteSize, FNV1_64_INIT);
 }
 
 } /* namespace hash */

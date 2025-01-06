@@ -462,16 +462,9 @@ nGlyphs(const String str)
 
 template<>
 constexpr u64
-hash::func(String& str)
-{
-    return hash::func(str.data(), str.getSize());
-}
-
-template<>
-constexpr u64
 hash::func(const String& str)
 {
-    return hash::func(str.data(), str.getSize());
+    return hash::fnv(str.data(), str.getSize(), hash::FNV1_64_INIT);
 }
 
 namespace utils
