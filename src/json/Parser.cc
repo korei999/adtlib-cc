@@ -223,21 +223,21 @@ Parser::parseArray(Object* pNode)
             default:
             case TOKEN_TYPE::QUOTED_STRING:
             case TOKEN_TYPE::STRING:
-                parseString(&aTVs.last().tagVal);
-                break;
+            parseString(&aTVs.last().tagVal);
+            break;
 
             case TOKEN_TYPE::NUMBER:
-                parseNumber(&aTVs.last().tagVal);
-                break;
+            parseNumber(&aTVs.last().tagVal);
+            break;
 
             case TOKEN_TYPE::FLOAT:
-                parseFloat(&aTVs.last().tagVal);
-                break;
+            parseFloat(&aTVs.last().tagVal);
+            break;
 
             case TOKEN_TYPE::L_BRACE:
-                next();
-                OK_OR_RET(parseObject(&aTVs.last()));
-                break;
+            next();
+            OK_OR_RET(parseObject(&aTVs.last()));
+            break;
         }
 
         if (m_tCurr.eType != TOKEN_TYPE::COMMA)

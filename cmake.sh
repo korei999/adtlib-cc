@@ -69,6 +69,16 @@ asan()
     fi
 }
 
+asanGCC()
+{
+    _clean
+
+    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" "$@" 
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
 build()
 {
     cmake --build build/ -j
@@ -109,6 +119,7 @@ case "$1" in
     debug) debug "${@:2}" ;;
     debugGCC) debugGCC "${@:2}" ;;
     asan) asan "${@:2}" ;;
+    asanGCC) asanGCC "${@:2}" ;;
     release) release "${@:2}";;
     releaseGCC) releaseGCC "${@:2}";;
     install) _install ;;

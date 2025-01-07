@@ -5,7 +5,7 @@
 #include "adt/defer.hh"
 #include "adt/OsAllocator.hh"
 #include "adt/sort.hh"
-#include "adt/FixedAllocator.hh"
+#include "adt/FixedAllocator.hh" /* IWYU pragma: keep */
 #include "adt/ReverseIt.hh"
 
 #include <cassert>
@@ -15,7 +15,6 @@
 using namespace adt;
 
 const ssize BIG = 10000000;
-static u8 s_bigMem[BIG * 16 + sizeof(FixedAllocator)] {};
 
 int
 main()

@@ -2,7 +2,7 @@
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh" /* IWYU pragma: keep */
-#include "adt/Queue.hh"
+#include "adt/Queue.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/file.hh"
 #include "adt/logs.hh"
@@ -39,8 +39,8 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    /*Arena al(SIZE_8M);*/
-    FreeList al(SIZE_1G);
+    Arena al(SIZE_8M);
+    /*FreeList al(SIZE_1G);*/
     /*OsAllocator al;*/
     defer( al.freeAll() );
 
