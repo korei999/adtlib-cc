@@ -96,34 +96,34 @@ Parser::parseNode(Object* pNode)
     switch (m_tCurr.eType)
     {
         default:
-            return printNodeError();
-            break;
+        return printNodeError();
+        break;
 
         case TOKEN_TYPE::QUOTED_STRING:
-            parseIdent(&pNode->tagVal);
-            break;
+        parseIdent(&pNode->tagVal);
+        break;
 
         case TOKEN_TYPE::STRING:
-            parseString(&pNode->tagVal);
-            break;
+        parseString(&pNode->tagVal);
+        break;
 
         case TOKEN_TYPE::NUMBER:
-            parseNumber(&pNode->tagVal);
-            break;
+        parseNumber(&pNode->tagVal);
+        break;
 
         case TOKEN_TYPE::FLOAT:
-            parseFloat(&pNode->tagVal);
-            break;
+        parseFloat(&pNode->tagVal);
+        break;
 
         case TOKEN_TYPE::L_BRACE:
-            next(); /* skip brace */
-            OK_OR_RET(parseObject(pNode));
-            break;
+        next(); /* skip brace */
+        OK_OR_RET(parseObject(pNode));
+        break;
 
         case TOKEN_TYPE::L_BRACKET:
-            next(); /* skip bracket */
-            OK_OR_RET(parseArray(pNode));
-            break;
+        next(); /* skip bracket */
+        OK_OR_RET(parseArray(pNode));
+        break;
     }
 
     return STATUS::OK;
