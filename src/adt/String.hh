@@ -181,7 +181,7 @@ String::endsWith(const String r) const
     if (l.m_size < r.m_size)
         return false;
 
-    for (int i = r.m_size - 1, j = l.m_size - 1; i >= 0; --i, --j)
+    for (ssize i = r.m_size - 1, j = l.m_size - 1; i >= 0; --i, --j)
         if (r[i] != l[j])
             return false;
 
