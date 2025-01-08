@@ -26,9 +26,9 @@ struct FixedAllocator : IAllocator
     [[nodiscard]] virtual constexpr void* malloc(usize mCount, usize mSize) override final;
     [[nodiscard]] virtual constexpr void* zalloc(usize mCount, usize mSize) override final;
     [[nodiscard]] virtual constexpr void* realloc(void* ptr, usize mCount, usize mSize) override final;
-    constexpr virtual void free(void* ptr) override final;
-    constexpr virtual void freeAll() override final;
-    constexpr void reset();
+    constexpr virtual void free(void* ptr) noexcept override final;
+    constexpr virtual void freeAll() noexcept override final;
+    constexpr void reset() noexcept;
 };
 
 constexpr void*
@@ -81,19 +81,19 @@ FixedAllocator::realloc(void* p, usize mCount, usize mSize)
 }
 
 constexpr void
-FixedAllocator::free(void*)
+FixedAllocator::free(void*) noexcept
 {
     //
 }
 
 constexpr void
-FixedAllocator::freeAll()
+FixedAllocator::freeAll() noexcept
 {
     //
 }
 
 constexpr void
-FixedAllocator::reset()
+FixedAllocator::reset() noexcept
 {
     this->size = 0;
 }

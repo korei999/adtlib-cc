@@ -14,6 +14,11 @@ project(adtlib-test VERSION 0.4 LANGUAGES CXX)
 option(OPT_SSE4_2 "compile with SSE4_2 support" ON)
 
 add_executable(
+    adt-alloc
+    src/allocTest.cc
+)
+
+add_executable(
     adt-print
     src/printTest.cc
 )
@@ -80,7 +85,7 @@ add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 # add_definitions("-DADT_STD_TYPES")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics -fno-rtti -fno-exceptions -fno-unwind-tables")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-threadsafe-statics -fno-rtti -fno-exceptions -fno-unwind-tables")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wswitch -Wimplicit-fallthrough")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

@@ -70,8 +70,8 @@ public:
     [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) override;
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) override;
     [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) override;
-    virtual void free(void* ptr) override;
-    virtual void freeAll() override;
+    virtual void free(void* ptr) noexcept override;
+    virtual void freeAll() noexcept override;
     usize nBytesAllocated();
 
 #ifndef NDEBUG
@@ -152,7 +152,7 @@ FreeList::blockPrepend(usize size)
 }
 
 inline void
-FreeList::freeAll()
+FreeList::freeAll() noexcept
 {
     auto* it = m_pBlocks;
     while (it)
@@ -324,7 +324,7 @@ FreeList::zalloc(usize nMembers, usize mSize)
 }
 
 inline void
-FreeList::free(void* ptr)
+FreeList::free(void* ptr) noexcept
 {
     if (ptr == nullptr) return;
 

@@ -39,23 +39,30 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    Arena al(SIZE_8M);
-    /*FreeList al(SIZE_1G);*/
-    /*OsAllocator al;*/
-    defer( al.freeAll() );
+    try
+    {
+        Arena al(SIZE_8M);
+        /*FreeList al(SIZE_1G);*/
+        /*OsAllocator al;*/
+        defer( al.freeAll() );
 
-    Opt<String> o_sJson = file::load(&al, argv[1]);
+        Opt<String> o_sJson = file::load(&al, argv[1]);
 
-    if (!o_sJson) return 1;
-    /*defer( o_sJson.value().destroy(OsAllocatorGet()) );*/
+        if (!o_sJson) return 1;
+        /*defer( o_sJson.value().destroy(OsAllocatorGet()) );*/
 
-    json::Parser p {};
-    json::STATUS eRes = p.parse(&al, o_sJson.value());
-    if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::parse() failed\n");
+        json::Parser p {};
+        json::STATUS eRes = p.parse(&al, o_sJson.value());
+        if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::parse() failed\n");
 
-    if (argc >= 3 && "-p" == String(argv[2]))
-        p.print(stdout);
+        if (argc >= 3 && "-p" == String(argv[2]))
+            p.print(stdout);
 
-    /*p.destroy();*/
-    /*_FreeListPrintTree(&al, &arena.base);*/
+        /*p.destroy();*/
+        /*_FreeListPrintTree(&al, &arena.base);*/
+    }
+    catch (AllocException& ex)
+    {
+        ex.logErrorMsg();
+    }
 }
