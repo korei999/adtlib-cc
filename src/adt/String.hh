@@ -66,6 +66,7 @@ struct String
     const char* data() const { return m_pData; }
     char* data() { return m_pData; }
     ssize getSize() const { return m_size; }
+    [[nodiscard]] constexpr bool beginsWith(const String r) const;
     [[nodiscard]] constexpr bool endsWith(const String r) const;
     [[nodiscard]] constexpr ssize lastOf(char c) const;
     void destroy(IAllocator* p);
@@ -156,6 +157,21 @@ struct StringGlyphIt
     const It begin() const { return {s.data(), 0, s.getSize()}; }
     const It end() const { return {{}, NPOS, {}}; }
 };
+
+constexpr bool
+String::beginsWith(const String r) const
+{
+    const auto& l = *this;
+
+    if (l.getSize() < r.getSize())
+        return false;
+
+    for (ssize i = 0; i < r.getSize(); ++i)
+        if (l[i] != r[i])
+            return false;
+
+    return true;
+}
 
 constexpr bool
 String::endsWith(const String r) const
