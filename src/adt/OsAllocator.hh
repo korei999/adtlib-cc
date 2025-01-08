@@ -12,9 +12,9 @@ namespace adt
  * freeAll() method is not supported. */
 struct OsAllocator : IAllocator
 {
-    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) override final;
-    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) override final;
-    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) override final;
+    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
+    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
+    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override final;
     void virtual free(void* ptr) noexcept override final;
     void virtual freeAll() noexcept override final; /* assert(false) */
 };
@@ -30,7 +30,7 @@ inline void*
 OsAllocator::malloc(usize mCount, usize mSize)
 {
     auto* r = ::malloc(mCount * mSize);
-    if (!r) throw AllocException("malloc");
+    if (!r) throw AllocException("OsAllocator::malloc()");
     return r;
 }
 
@@ -38,7 +38,7 @@ inline void*
 OsAllocator::zalloc(usize mCount, usize mSize)
 {
     auto* r = ::calloc(mCount, mSize);
-    if (!r) throw AllocException("zalloc");
+    if (!r) throw AllocException("OsAllocator::zalloc()");
     return r;
 }
 
@@ -46,7 +46,7 @@ inline void*
 OsAllocator::realloc(void* p, usize mCount, usize mSize)
 {
     auto* r = ::realloc(p, mCount * mSize);
-    if (!r) throw AllocException("realloc");
+    if (!r) throw AllocException("OsAllocator::realloc()");
     return r;
 }
 

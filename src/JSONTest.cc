@@ -1,4 +1,5 @@
 #include "adt/Arena.hh"
+#include "adt/FixedAllocator.hh" /* IWYU pragma: keep */
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh" /* IWYU pragma: keep */
@@ -9,6 +10,8 @@
 #include "json/Parser.hh"
 
 using namespace adt;
+
+// [[maybe_unused]] static u8 s_aMem[SIZE_1G] {};
 
 int
 main(int argc, char* argv[])
@@ -41,6 +44,7 @@ main(int argc, char* argv[])
 
     try
     {
+        /*FixedAllocator al(s_aMem);*/
         Arena al(SIZE_8M);
         /*FreeList al(SIZE_1G);*/
         /*OsAllocator al;*/

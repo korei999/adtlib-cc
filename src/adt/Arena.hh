@@ -36,19 +36,26 @@ class Arena : public IAllocator
 public:
     Arena() = default;
 
-    Arena(usize capacity, IAllocator* pBackingAlloc = OsAllocatorGet())
+    Arena(usize capacity, IAllocator* pBackingAlloc = OsAllocatorGet()) noexcept(false)
         : m_defaultCapacity(align8(capacity)),
           m_pBackAlloc(pBackingAlloc),
           m_pBlocks(allocBlock(m_defaultCapacity)) {}
 
     /* */
 
-    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) override final;
-    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) override final;
-    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) override final;
+    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
+
+    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
+
+    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override final;
+
     virtual void free(void* ptr) noexcept override final;
+
     virtual void freeAll() noexcept override final;
+
     void reset() noexcept;
+
+    void shrinkToFirstBlock() noexcept;
 
     /* */
 
@@ -204,6 +211,19 @@ Arena::reset() noexcept
 
         it = it->pNext;
     }
+}
+
+inline void
+Arena::shrinkToFirstBlock() noexcept
+{
+    auto* it = m_pBlocks;
+    while (it->pNext)
+    {
+        auto* next = it->pNext;
+        m_pBackAlloc->free(it);
+        it = next;
+    }
+    m_pBlocks = it;
 }
 
 } /* namespace adt */

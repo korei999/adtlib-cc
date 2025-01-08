@@ -34,12 +34,12 @@ struct FreeListData
     
     /* */
 
-    constexpr usize getSize() const { return m_sizeAndIsFree & ~IS_FREE_MASK; }
-    constexpr bool isFree() const { return m_sizeAndIsFree & IS_FREE_MASK; }
-    constexpr void setFree(bool _bFree) { _bFree ? m_sizeAndIsFree |= IS_FREE_MASK : m_sizeAndIsFree &= ~IS_FREE_MASK; };
-    constexpr void setSizeSetFree(usize _size, bool _bFree) { m_sizeAndIsFree = _size; setFree(_bFree); }
-    constexpr void setSize(usize _size) { setSizeSetFree(_size, isFree()); }
-    constexpr void addSize(usize _size) { setSize(_size + getSize()); }
+    constexpr usize getSize() const noexcept { return m_sizeAndIsFree & ~IS_FREE_MASK; }
+    constexpr bool isFree() const noexcept { return m_sizeAndIsFree & IS_FREE_MASK; }
+    constexpr void setFree(bool _bFree) noexcept { _bFree ? m_sizeAndIsFree |= IS_FREE_MASK : m_sizeAndIsFree &= ~IS_FREE_MASK; };
+    constexpr void setSizeSetFree(usize _size, bool _bFree) noexcept { m_sizeAndIsFree = _size; setFree(_bFree); }
+    constexpr void setSize(usize _size) noexcept { setSizeSetFree(_size, isFree()); }
+    constexpr void addSize(usize _size) noexcept { setSize(_size + getSize()); }
 };
 
 class FreeList : public IAllocator
@@ -60,16 +60,16 @@ private:
 
 public:
     FreeList() = default;
-    FreeList(usize _blockSize, IAllocator* pBackAlloc = OsAllocatorGet())
+    FreeList(usize _blockSize, IAllocator* pBackAlloc = OsAllocatorGet()) noexcept(false)
         : m_blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
           m_pBackAlloc(pBackAlloc),
           m_pBlocks(allocBlock(m_blockSize)) {}
 
     /* */
 
-    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) override;
-    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) override;
-    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) override;
+    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override;
+    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override;
+    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override;
     virtual void free(void* ptr) noexcept override;
     virtual void freeAll() noexcept override;
     usize nBytesAllocated();
