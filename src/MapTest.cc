@@ -19,6 +19,60 @@ memeHash(const int& x)
     return usize(x);
 }
 
+static String
+genRandomString(IAllocator* pAlloc)
+{
+    const char* ntsChars = "1234567890-=qwertyuiop[]asdfghjklQWERTASDVZXCVKLJ:H";
+    ssize len = strlen(ntsChars);
+
+    ssize size = (rand() % (len-2)) + 2;
+    auto s = StringAlloc(pAlloc, size);
+
+    for (auto& ch : s)
+        ch = ntsChars[ rand() % len ];
+
+    return s;
+}
+
+static void
+microBench()
+{
+    Arena arena(SIZE_8M * 10);
+    defer( arena.freeAll() );
+
+    constexpr ssize BIG = 1000000;
+
+    Vec<String> vStrings(&arena, BIG);
+    vStrings.setSize(BIG);
+
+    for (ssize i = 0; i < BIG; ++i)
+        vStrings[i] = genRandomString(&arena);
+
+    Map<String, int> map(&arena);
+
+    {
+        f64 t0 = utils::timeNowMS();
+
+        for (ssize i = 0; i < BIG; ++i)
+            map.tryInsert(vStrings[i], i);
+
+        f64 t1 = utils::timeNowMS() - t0;
+        LOG("tryInsert {} items in {} ms\n", BIG, t1);
+    }
+
+    {
+        f64 t0 = utils::timeNowMS();
+
+        for (ssize i = 0; i < BIG; ++i)
+        {
+            auto f = map.search(vStrings[i]);
+        }
+
+        f64 t1 = utils::timeNowMS() - t0;
+        LOG("search {} items in {} ms\n", BIG, t1);
+    }
+}
+
 int
 main()
 {
@@ -92,4 +146,5 @@ main()
     hash::func(asdf);
     hash::func("asdf");
 
+    microBench();
 }
