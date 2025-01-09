@@ -13,12 +13,11 @@
 
 #include <type_traits>
 
-namespace adt
-{
-namespace print
+namespace adt::print
 {
 
 enum class BASE : u8 { TWO = 2, EIGHT = 8, TEN = 10, SIXTEEN = 16 };
+enum class JUSTIFY : u8 { RIGHT = '>', LEFT = '<' };
 
 struct FormatArgs
 {
@@ -28,6 +27,7 @@ struct FormatArgs
     bool bHash = false;
     bool bAlwaysShowSign = false;
     bool bArgIsFmt = false;
+    JUSTIFY eJustify = JUSTIFY::LEFT;
 };
 
 /* TODO: implement reallocatable backing buffer */
@@ -78,6 +78,7 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, ssize fmtIdx) noexcept
     bool bHex = false;
     bool bBinary = false;
     bool bAlwaysShowSign = false;
+    bool bRightJustify = false;
 
     char aBuff[64] {};
     ssize i = fmtIdx + 1;
@@ -126,6 +127,11 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, ssize fmtIdx) noexcept
             skipUntil("}");
             pArgs->maxFloatLen = atoi(aBuff);
         }
+        else if (bRightJustify)
+        {
+            bRightJustify = false;
+            pArgs->eJustify = JUSTIFY::RIGHT;
+        }
 
         if (bColon)
         {
@@ -169,6 +175,11 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, ssize fmtIdx) noexcept
             else if (fmt[i] == '+')
             {
                 bAlwaysShowSign = true;
+                continue;
+            }
+            else if (fmt[i] == '>')
+            {
+                bRightJustify = true;
                 continue;
             }
         }
@@ -250,11 +261,42 @@ intToBuffer(INT_T x, char* pDst, ssize dstSize, FormatArgs fmtArgs) noexcept
 }
 
 inline constexpr ssize
-copyBackToBuffer(Context ctx, Span<char> spSrc) noexcept
+copyBackToBuffer(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept
 {
     ssize i = 0;
-    for (; spSrc[i] && i < spSrc.getSize() && ctx.buffIdx < ctx.buffSize; ++i)
-        ctx.pBuff[ctx.buffIdx++] = spSrc[i];
+
+    auto copySpan = [&]
+    {
+        for (; i < spSrc.getSize() && spSrc[i] && ctx.buffIdx < ctx.buffSize; ++i)
+            ctx.pBuff[ctx.buffIdx++] = spSrc[i];
+    };
+
+    if (fmtArgs.eJustify == JUSTIFY::LEFT)
+    {
+        copySpan();
+
+        if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen > i)
+        {
+            for (; ctx.buffIdx < ctx.buffSize && i < fmtArgs.maxLen; ++i)
+                ctx.pBuff[ctx.buffIdx++] = ' ';
+        }
+    }
+    else
+    {
+        /* leave space for the string */
+        ssize nSpaces = fmtArgs.maxLen - strnlen(spSrc.data(), spSrc.getSize());
+        ssize j = 0;
+
+        if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen > i && nSpaces > 0)
+        {
+            for (j = 0; ctx.buffIdx < ctx.buffSize && j < nSpaces; ++j)
+                ctx.pBuff[ctx.buffIdx++] = ' ';
+        }
+
+        copySpan();
+
+        i += j;
+    }
 
     return i;
 }
@@ -262,21 +304,7 @@ copyBackToBuffer(Context ctx, Span<char> spSrc) noexcept
 inline constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const String& str) noexcept
 {
-    auto& pBuff = ctx.pBuff;
-    auto& buffSize = ctx.buffSize;
-    auto& buffIdx = ctx.buffIdx;
-
-    ssize nRead = 0;
-    for (ssize i = 0; buffIdx < buffSize; ++i, ++nRead)
-    {
-        if (i < str.getSize())
-            pBuff[buffIdx++] = str[i];
-        else if (i < fmtArgs.maxLen && fmtArgs.maxLen != NPOS16) /* fill extra space */
-            pBuff[buffIdx++] = ' ';
-        else break;
-    }
-
-    return nRead;
+    return copyBackToBuffer(ctx, fmtArgs, {const_cast<char*>(str.data()), str.getSize()});
 }
 
 inline constexpr ssize
@@ -306,7 +334,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept
     if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen < utils::size(buff) - 1)
         buff[fmtArgs.maxLen] = '\0';
 
-    return copyBackToBuffer(ctx, {p, utils::size(buff)});
+    return copyBackToBuffer(ctx, fmtArgs, {buff});
 }
 
 inline ssize
@@ -317,7 +345,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x) noexcept
         snprintf(aBuff, utils::size(aBuff), "%g", x);
     else snprintf(aBuff, utils::size(aBuff), "%.*f", fmtArgs.maxFloatLen, x);
 
-    return copyBackToBuffer(ctx, {aBuff});
+    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -339,7 +367,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x) noexcept
 #pragma GCC diagnostic pop
 #endif
 
-    return copyBackToBuffer(ctx, {aBuff});
+    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -352,7 +380,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const wchar_t 
     snprintf(aBuff, utils::size(aBuff), "%lc", x);
 #endif
 
-    return copyBackToBuffer(ctx, {aBuff});
+    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -362,7 +390,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const char32_t
     mbstate_t ps {};
     c32rtomb(aBuff, x, &ps);
 
-    return copyBackToBuffer(ctx, {aBuff});
+    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -371,7 +399,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const char x) 
     char aBuff[4] {};
     snprintf(aBuff, utils::size(aBuff), "%c", x);
 
-    return copyBackToBuffer(ctx, {aBuff});
+    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -508,5 +536,4 @@ err(const String fmt, const ARGS_T&... tArgs) noexcept
     return toFILE(stderr, fmt, tArgs...);
 }
 
-} /* namespace print */
-} /* namespace adt */
+} /* namespace adt::print */
