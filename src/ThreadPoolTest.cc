@@ -1,7 +1,7 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
-#include "adt/FixedAllocator.hh"
+#include "adt/BufferAllocator.hh"
 
 using namespace adt;
 
@@ -27,7 +27,7 @@ static u8 s_aBuff[100000] {};
 int
 main()
 {
-    FixedAllocator fixed(s_aBuff, sizeof(s_aBuff));
+    BufferAllocator fixed(s_aBuff, sizeof(s_aBuff));
 
     ThreadPool tp(&fixed);
     defer( tp.destroy() );

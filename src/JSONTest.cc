@@ -1,5 +1,5 @@
 #include "adt/Arena.hh"
-#include "adt/FixedAllocator.hh" /* IWYU pragma: keep */
+#include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh" /* IWYU pragma: keep */

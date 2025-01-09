@@ -5,7 +5,7 @@
 #include "adt/defer.hh"
 #include "adt/OsAllocator.hh"
 #include "adt/sort.hh"
-#include "adt/FixedAllocator.hh" /* IWYU pragma: keep */
+#include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/ReverseIt.hh"
 
 #include <cassert>

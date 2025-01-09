@@ -62,8 +62,10 @@ main()
 
     std::vector<int> vecStdWarmup {};
 
-    sizeof(vecArena);
-    sizeof(vecStd);
+    {
+        [[maybe_unused]] auto w0 = sizeof(vecArena);
+        [[maybe_unused]] auto w1 = sizeof(vecStd);
+    }
 
     int big = 10000000;
 
