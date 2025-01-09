@@ -217,15 +217,10 @@ VecBase<T>::removeAndShift(ssize i) noexcept
 {
     assert(m_size > 0 && "[Vec]: empty");
 
-    if (i == lastI())
-    {
-        pop();
-    }
-    else
-    {
+    if (i != lastI())
         utils::move(&operator[](i), &operator[](i + 1), (m_size - i - 1));
-        --m_size;
-    }
+
+    --m_size;
 }
 
 template<typename T>

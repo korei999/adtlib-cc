@@ -180,8 +180,7 @@ template<typename T>
 inline void
 copy(T* pDest, T* pSrc, ssize size)
 {
-    assert(pDest != nullptr);
-    assert(pSrc != nullptr);
+    assert(pDest != nullptr && pSrc != nullptr);
     memcpy(pDest, pSrc, size * sizeof(T));
 }
 
@@ -189,8 +188,7 @@ template<typename T>
 inline void
 move(T* pDest, T* pSrc, ssize size)
 {
-    assert(pDest != nullptr);
-    assert(pSrc != nullptr);
+    assert(pDest != nullptr && pSrc != nullptr);
     memmove(pDest, pSrc, size * sizeof(T));
 }
 
