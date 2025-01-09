@@ -16,7 +16,7 @@ struct ListNode
 {
     ListNode* pPrev;
     ListNode* pNext;
-    T data;
+    ADT_NO_UNIQUE_ADDRESS T data;
 };
 
 template<typename T>

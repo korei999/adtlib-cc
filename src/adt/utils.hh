@@ -28,9 +28,7 @@
 #include <cassert>
 #include <cmath>
 
-namespace adt
-{
-namespace utils
+namespace adt::utils
 {
 
 /* bit number starts from 0 */
@@ -188,6 +186,15 @@ copy(T* pDest, T* pSrc, ssize size)
 }
 
 template<typename T>
+inline void
+move(T* pDest, T* pSrc, ssize size)
+{
+    assert(pDest != nullptr);
+    assert(pSrc != nullptr);
+    memmove(pDest, pSrc, size * sizeof(T));
+}
+
+template<typename T>
 inline constexpr void
 fill(T* pData, T x, ssize size)
 {
@@ -243,5 +250,4 @@ reverse(auto* a)
     reverse(a->data(), a->getSize());
 }
 
-} /* namespace utils */
-} /* namespace adt */
+} /* namespace adt::utils */

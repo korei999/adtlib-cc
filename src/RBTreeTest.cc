@@ -7,6 +7,10 @@
 
 using namespace adt;
 
+struct Empty
+{
+};
+
 int
 main()
 {
@@ -34,4 +38,6 @@ main()
     LOG_GOOD("root: {}\n", *tree.getRoot());
 
     RBPrintNodes(&arena, tree.getRoot(), stdout);
+
+    LOG("sizeof(RBNode<Empty>): {}\n", sizeof(RBNode<Empty>));
 }

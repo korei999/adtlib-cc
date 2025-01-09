@@ -65,13 +65,17 @@ main()
     {
         auto vec1 = vec.clone(&aArenas[0]);
         sort::quick<VecBase, f64, utils::compareRev<f64>>(&vec1.base);
-        COUT("vec1: {}\n", vec1);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
+
+        COUT("vec1(sorted):           {}\n", vec1);
+        vec1.removeAndShift(2);
+        COUT("vec1(removeAndShift(2): {}\n", vec1);
 
         COUT("vec1(rev): ");
         for (auto e : ReverseIt(vec1))
             COUT("{}, ", e);
         COUT("\n");
+
     }
 
 

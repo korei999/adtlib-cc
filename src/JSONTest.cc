@@ -65,7 +65,7 @@ main(int argc, char* argv[])
         /*p.destroy();*/
         /*_FreeListPrintTree(&al, &arena.base);*/
     }
-    catch (AllocException& ex)
+    catch (IException& ex)
     {
         ex.logErrorMsg();
     }
