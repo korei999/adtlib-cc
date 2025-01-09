@@ -220,6 +220,9 @@ Arena::shrinkToFirstBlock() noexcept
 
     while (it->pNext)
     {
+#if defined ADT_DBG_MEMORY
+        fprintf(stderr, "[Arena]: shrinking %llu sized block\n", it->size);
+#endif
         auto* next = it->pNext;
         m_pBackAlloc->free(it);
         it = next;
