@@ -13,6 +13,12 @@ enum CONSTEXPR_HASH : usize
     EXPR = hash::func("EXPR"),
 };
 
+static usize
+memeHash(const int& x)
+{
+    return usize(x);
+}
+
 int
 main()
 {
@@ -61,7 +67,7 @@ main()
         COUT("['{}', {}], ", k, v);
     COUT("\n");
 
-    Map<int, int> map2(&arena);
+    Map<int, int, memeHash> map2(&arena);
     map2.insert(12, 1);
     map2.insert(13, 2);
 
