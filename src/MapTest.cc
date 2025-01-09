@@ -85,4 +85,5 @@ main()
     String asdf = "asdf";
     hash::func(asdf);
     hash::func("asdf");
+
 }

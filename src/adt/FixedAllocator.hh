@@ -40,8 +40,8 @@ struct FixedAllocator : public IAllocator
     [[nodiscard]] virtual constexpr void* malloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual constexpr void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual constexpr void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override final;
-    constexpr virtual void free(void* ptr) noexcept override final;
-    constexpr virtual void freeAll() noexcept override final;
+    constexpr virtual void free(void* ptr) noexcept override final; /* noop */
+    constexpr virtual void freeAll() noexcept override final; /* same as reset */
     constexpr void reset() noexcept;
 };
 
