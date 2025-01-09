@@ -330,7 +330,7 @@ inline constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept
 {
     char buff[64] {};
-    char* p = intToBuffer(x, buff, utils::size(buff), fmtArgs);
+    intToBuffer(x, buff, utils::size(buff), fmtArgs);
     if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen < utils::size(buff) - 1)
         buff[fmtArgs.maxLen] = '\0';
 

@@ -17,6 +17,6 @@ main()
 
     print::out("'{:>10}'\n", "10");
 
-    print::out("'{:10}'", 1);
+    print::out("'{:{}}'", 10, 1);
     print::out("single quote should be before the word 'single'\n");
 }
