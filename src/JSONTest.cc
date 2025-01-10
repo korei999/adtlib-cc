@@ -58,11 +58,11 @@ main(int argc, char* argv[])
         json::Parser p {};
         json::STATUS eRes = p.parse(&al, o_sJson.value());
         if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::parse() failed\n");
+        /*defer( p.destroy() );*/
 
         if (argc >= 3 && "-p" == String(argv[2]))
             p.print(stdout);
 
-        /*p.destroy();*/
         /*_FreeListPrintTree(&al, &arena.base);*/
     }
     catch (IException& ex)

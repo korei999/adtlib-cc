@@ -33,7 +33,7 @@ struct IAllocSTD
     }
 
     void
-    deallocate(T* p, std::size_t size) noexcept
+    deallocate(T*, std::size_t) noexcept
     {
         //
     }
