@@ -171,7 +171,7 @@ STATUS
 Parser::parseObject(Object* pNode)
 {
     pNode->tagVal.eTag = TAG::OBJECT;
-    pNode->tagVal.val.o = VecBase<Object>(m_pAlloc, 2);
+    pNode->tagVal.val.o = VecBase<Object>(m_pAlloc);
     auto& aObjs = getObject(pNode);
 
     while (m_tCurr.eType != TOKEN_TYPE::R_BRACE)
@@ -210,7 +210,7 @@ STATUS
 Parser::parseArray(Object* pNode)
 {
     pNode->tagVal.eTag = TAG::ARRAY;
-    pNode->tagVal.val.a = VecBase<Object>(m_pAlloc, 2);
+    pNode->tagVal.val.a = VecBase<Object>(m_pAlloc);
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
