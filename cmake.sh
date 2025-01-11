@@ -39,6 +39,16 @@ default()
     fi
 }
 
+defaultGCC()
+{
+    _clean
+
+    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
 debug()
 {
     _clean
