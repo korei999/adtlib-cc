@@ -16,14 +16,17 @@ throws()
     defer( osAl.free(ptr) );
 }
 
-template<typename T, typename ALLOC_T>
-struct IAllocSTD
+template<typename T>
+struct ArenaSTD
 {
     using value_type = T;
 
-    ALLOC_T* m_pArena {};
+    Arena* m_pArena {};
 
-    explicit IAllocSTD(ALLOC_T* pArena) noexcept
+    template<class U>
+    constexpr ArenaSTD(const ArenaSTD<U>& arena) noexcept {}
+
+    ArenaSTD(Arena* pArena) noexcept
         : m_pArena(pArena) {}
 
     T*
@@ -38,6 +41,12 @@ struct IAllocSTD
         //
     }
 };
+
+template<class T, class U>
+bool operator==(const ArenaSTD<T>&, const ArenaSTD<U>&) { return true; }
+
+template<class T, class U>
+bool operator!=(const ArenaSTD<T>&, const ArenaSTD<U>&) { return false; }
 
 int
 main()
@@ -55,15 +64,15 @@ main()
     /*FreeList arena(SIZE_1K);*/
     defer( arena.freeAll() );
 
-    IAllocSTD<int, decltype(arena)> stdArena(&arena);
+    ArenaSTD<int> stdArena(&arena);
 
-    std::vector<int, IAllocSTD<int, decltype(arena)>> vecArena(stdArena);
+    /*std::vector<int, ArenaSTD<int>> vecArena(stdArena);*/
     std::vector<int> vecStd {};
 
     std::vector<int> vecStdWarmup {};
 
     {
-        [[maybe_unused]] auto w0 = sizeof(vecArena);
+        /*[[maybe_unused]] auto w0 = sizeof(vecArena);*/
         [[maybe_unused]] auto w1 = sizeof(vecStd);
     }
 
@@ -83,14 +92,14 @@ main()
         LOG("vecStd: {}\n", t1);
     }
 
-    {
-        f64 t0 = utils::timeNowMS();
-        for (int i = 0; i < big; ++i)
-            vecArena.push_back(i);
-        f64 t1 = utils::timeNowMS() - t0;
+    // {
+    //    f64 t0 = utils::timeNowMS();
+    //     for (int i = 0; i < big; ++i)
+    //         vecArena.push_back(i);
+    //     f64 t1 = utils::timeNowMS() - t0;
 
-        LOG("vecArena: {}\n", t1);
-    }
+    //     LOG("vecArena: {}\n", t1);
+    // }
 
     LOG("{}, {}\n", (int)std::numeric_limits<char>::min(), (int)std::numeric_limits<char>::max());
 }

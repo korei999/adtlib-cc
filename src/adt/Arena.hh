@@ -94,6 +94,7 @@ Arena::findFittingBlock(usize size)
 inline ArenaBlock*
 Arena::allocBlock(usize size)
 {
+    /* NOTE: m_pBackAlloc can throw here */
     ArenaBlock* pBlock = static_cast<ArenaBlock*>(m_pBackAlloc->zalloc(1, size + sizeof(ArenaBlock)));
 
 #if defined ADT_DBG_MEMORY

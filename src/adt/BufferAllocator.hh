@@ -38,15 +38,15 @@ struct BufferAllocator : public IAllocator
 
     /* */
 
-    [[nodiscard]] virtual constexpr void* malloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual constexpr void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual constexpr void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override final;
+    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
+    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
+    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override final;
     constexpr virtual void free(void* ptr) noexcept override final; /* noop */
     constexpr virtual void freeAll() noexcept override final; /* same as reset */
     constexpr void reset() noexcept;
 };
 
-constexpr void*
+inline void*
 BufferAllocator::malloc(usize mCount, usize mSize)
 {
     usize realSize = align8(mCount * mSize);
@@ -62,7 +62,7 @@ BufferAllocator::malloc(usize mCount, usize mSize)
     return ret;
 }
 
-constexpr void*
+inline void*
 BufferAllocator::zalloc(usize mCount, usize mSize)
 {
     auto* p = malloc(mCount, mSize);
@@ -70,7 +70,7 @@ BufferAllocator::zalloc(usize mCount, usize mSize)
     return p;
 }
 
-constexpr void*
+inline void*
 BufferAllocator::realloc(void* p, usize mCount, usize mSize)
 {
     if (!p) return malloc(mCount, mSize);

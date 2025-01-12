@@ -9,8 +9,8 @@ using namespace adt;
 
 enum CONSTEXPR_HASH : usize
 {
-    CONST = hash::func("CONST"),
-    EXPR = hash::func("EXPR"),
+    CONST_ = hash::func("CONST"),
+    EXPR_ = hash::func("EXPR"),
 };
 
 static usize
