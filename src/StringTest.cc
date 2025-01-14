@@ -43,6 +43,7 @@ main()
     {
         const String s = "私は日本語を話せません";
         assert(s.endsWith("せません"));
+        COUT("s: '{}'\n", s);
 
         for (auto wc : StringGlyphIt(s))
             COUT("{}", wc);

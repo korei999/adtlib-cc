@@ -173,7 +173,7 @@ struct StringWordIt
 
         /* */
 
-        constexpr It(String s, ssize pos, char sep)
+        It(String s, ssize pos, char sep)
             : m_str(s), m_i(pos), m_sep(sep)
         {
             if (pos != NPOS)
@@ -182,10 +182,10 @@ struct StringWordIt
 
         /* */
 
-        constexpr String& operator*() { return m_sCurrWord; }
-        constexpr String* operator->() { return &m_sCurrWord; }
+        String& operator*() { return m_sCurrWord; }
+        String* operator->() { return &m_sCurrWord; }
 
-        constexpr It&
+        It&
         operator++()
         {
             if (m_i >= m_str.getSize())
@@ -206,8 +206,8 @@ struct StringWordIt
             return *this;
         }
 
-        constexpr friend bool operator==(const It& l, const It& r) { return l.m_i == r.m_i; }
-        constexpr friend bool operator!=(const It& l, const It& r) { return l.m_i != r.m_i; }
+        friend bool operator==(const It& l, const It& r) { return l.m_i == r.m_i; }
+        friend bool operator!=(const It& l, const It& r) { return l.m_i != r.m_i; }
     };
 
     It begin() { return {m_s, 0, m_delimiter}; }

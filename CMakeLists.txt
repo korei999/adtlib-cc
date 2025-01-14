@@ -81,11 +81,6 @@ message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 # )
 
 add_executable(
-    adt-modules
-    src/moduleTest.cc
-)
-
-add_executable(
     adt-alloc
     src/allocTest.cc
 )
