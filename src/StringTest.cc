@@ -48,4 +48,12 @@ main()
             COUT("{}", wc);
         COUT("\n");
     }
+
+    {
+        constexpr String s = "word0 word1 word2 word3";
+        for (const auto& sWord : StringWordIt(s))
+        {
+            COUT("'{}'\n", sWord);
+        }
+    }
 }
