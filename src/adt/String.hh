@@ -221,6 +221,9 @@ struct StringWordIt
 
     It begin() { return {m_s, 0, m_delimiter}; }
     It end() { return {m_s, NPOS, m_delimiter}; }
+
+    const It begin() const { return {m_s, 0, m_delimiter}; }
+    const It end() const { return {m_s, NPOS, m_delimiter}; }
 };
 
 inline bool
