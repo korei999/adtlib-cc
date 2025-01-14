@@ -56,4 +56,12 @@ main()
             COUT("'{}'\n", sWord);
         }
     }
+
+    {
+        constexpr String s = "comma0,comma1,comma2,comma3";
+        for (const auto& sWord : StringWordIt(s, ','))
+        {
+            COUT("'{}'\n", sWord);
+        }
+    }
 }
