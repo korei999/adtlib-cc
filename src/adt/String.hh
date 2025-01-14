@@ -182,17 +182,8 @@ struct StringWordIt
 
         /* */
 
-        constexpr String&
-        operator*()
-        {
-            return m_sCurrWord;
-        }
-
-        constexpr String*
-        operator->()
-        {
-            return &m_sCurrWord;
-        }
+        constexpr String& operator*() { return m_sCurrWord; }
+        constexpr String* operator->() { return &m_sCurrWord; }
 
         constexpr It&
         operator++()
