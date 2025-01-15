@@ -21,7 +21,7 @@ main()
     list.pushBack(0);
 
     list.sort<utils::compareRev<long>>();
-    LOG("list: {}\n", list);
+    LOG("list: [{}]\n", list);
     list.base.sort();
-    LOG("list: {}\n", list);
+    LOG("list: [ {:>5} ]\n", list);
 }

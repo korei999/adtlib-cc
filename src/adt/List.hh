@@ -371,11 +371,19 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const ListBase
         return printArgs(ctx, "(empty)");
     }
 
+    char aFmtBuff[64] {};
+    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+
+    String sFmtArg = aFmtBuff;
+    aFmtBuff[nFmtRead++] = ',';
+    aFmtBuff[nFmtRead++] = ' ';
+    String sFmtArgComma(aFmtBuff);
+
     char aBuff[1024] {};
     ssize nRead = 0;
     ADT_LIST_FOREACH(&x, it)
     {
-        const char* fmt = it == x.m_pLast ? "{}" : "{}, ";
+        const String fmt = it == x.m_pLast ? sFmtArg : sFmtArgComma;
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it->data);
     }
 

@@ -535,4 +535,55 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N])
     return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
+inline ssize
+FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt)
+{
+    ssize i = 0;
+    auto push = [&](char c) -> bool
+    {
+        if (i < spFmt.getSize())
+        {
+            spFmt[i++] = c;
+
+            return true;
+        }
+
+        return false;
+    };
+
+    if (!push('{')) return i;
+
+    if (fmtArgs.maxLen != NPOS16 || fmtArgs.maxFloatLen != NPOS8)
+    {
+        if (!push(':')) return i;
+
+        if (fmtArgs.eFmtFlags & FMT_FLAGS::JUSTIFY_RIGHT)
+            if (!push('>')) return i;
+
+        if (fmtArgs.maxFloatLen != NPOS8)
+            if (!push('.')) return i;
+
+        if (fmtArgs.eFmtFlags & FMT_FLAGS::ARG_IS_FMT)
+        {
+            if (!push('{')) return i;
+            if (!push('}')) return i;
+        }
+        else
+        {
+            char aBuff[64] {};
+            if (fmtArgs.maxFloatLen != NPOS8)
+                intToBuffer(fmtArgs.maxFloatLen, {aBuff}, {});
+            else
+                intToBuffer(fmtArgs.maxLen, {aBuff}, {});
+
+            for (ssize j = 0; j < utils::size(aBuff) && aBuff[j]; ++j)
+                if (!push(aBuff[j])) return i;
+        }
+    }
+
+    if (!push('}')) return i;
+
+    return i;
+}
+
 } /* namespace adt::print */

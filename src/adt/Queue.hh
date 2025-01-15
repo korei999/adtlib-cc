@@ -242,12 +242,19 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const QueueBas
         return printArgs(ctx, "(empty)");
     }
 
+    char aFmtBuff[64] {};
+    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+
+    String sFmtArg = aFmtBuff;
+    aFmtBuff[nFmtRead++] = ',';
+    aFmtBuff[nFmtRead++] = ' ';
+    String sFmtArgComma(aFmtBuff);
+
     char aBuff[1024] {};
     ssize nRead = 0;
     for (const auto& it : x)
     {
-        const char* fmt = (x.idx(&it) == x.m_last - 1U ? "{}" : "{}, ");
-
+        const String fmt = (x.idx(&it) == x.m_last - 1U ? sFmtArg : sFmtArgComma);
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it);
     }
 
