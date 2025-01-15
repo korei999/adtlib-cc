@@ -176,17 +176,17 @@ parseFormatArg(FormatArgs* pArgs, const String fmt, ssize fmtIdx) noexcept
 }
 
 template<typename INT_T> requires std::is_integral_v<INT_T>
-inline constexpr char*
-intToBuffer(INT_T x, char* pDst, ssize dstSize, FormatArgs fmtArgs) noexcept
+inline constexpr void
+intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
 {
     bool bNegative = false;
 
     ssize i = 0;
     auto push = [&](char c) -> bool
     {
-        if (i < dstSize)
+        if (i < spBuff.getSize())
         {
-            pDst[i++] = c;
+            spBuff[i++] = c;
             return true;
         }
 
@@ -196,7 +196,7 @@ intToBuffer(INT_T x, char* pDst, ssize dstSize, FormatArgs fmtArgs) noexcept
     if (x == 0)
     {
         push('0');
-        return pDst;
+        return;
     }
  
     if (x < 0 && int(fmtArgs.eBase) != 10)
@@ -224,7 +224,9 @@ intToBuffer(INT_T x, char* pDst, ssize dstSize, FormatArgs fmtArgs) noexcept
         else push('+');
     }
     else if (bNegative)
+    {
         push('-');
+    }
 
     if (fmtArgs.eFmtFlags & FMT_FLAGS::HASH)
     {
@@ -240,13 +242,11 @@ intToBuffer(INT_T x, char* pDst, ssize dstSize, FormatArgs fmtArgs) noexcept
         }
     }
 
-    utils::reverse(pDst, i);
- 
-    return pDst;
+    utils::reverse(spBuff.data(), i);
 }
 
 inline ssize
-copyBackToBuffer(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept
+copyBackToCtxBuffer(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept
 {
     ssize i = 0;
 
@@ -289,7 +289,7 @@ copyBackToBuffer(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexce
 inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const String& str) noexcept
 {
-    return copyBackToBuffer(ctx, fmtArgs, {const_cast<char*>(str.data()), str.getSize()});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {const_cast<char*>(str.data()), str.getSize()});
 }
 
 inline ssize
@@ -315,11 +315,11 @@ inline constexpr ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept
 {
     char buff[64] {};
-    intToBuffer(x, buff, utils::size(buff), fmtArgs);
+    intToBuffer(x, {buff}, fmtArgs);
     if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen < utils::size(buff) - 1)
         buff[fmtArgs.maxLen] = '\0';
 
-    return copyBackToBuffer(ctx, fmtArgs, {buff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {buff});
 }
 
 inline ssize
@@ -328,9 +328,10 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x) noexcept
     char aBuff[64] {};
     if (fmtArgs.maxFloatLen == NPOS8)
         snprintf(aBuff, utils::size(aBuff), "%g", x);
-    else snprintf(aBuff, utils::size(aBuff), "%.*f", fmtArgs.maxFloatLen, x);
+    else
+        snprintf(aBuff, utils::size(aBuff), "%.*f", fmtArgs.maxFloatLen, x);
 
-    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -339,9 +340,10 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x) noexcept
     char aBuff[128] {};
     if (fmtArgs.maxFloatLen == NPOS8)
         snprintf(aBuff, utils::size(aBuff), "%g", x);
-    else snprintf(aBuff, utils::size(aBuff), "%.*lf", fmtArgs.maxFloatLen, x);
+    else
+        snprintf(aBuff, utils::size(aBuff), "%.*lf", fmtArgs.maxFloatLen, x);
 
-    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -354,7 +356,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const wchar_t x) noexcept
     snprintf(aBuff, utils::size(aBuff), "%lc", x);
 #endif
 
-    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -364,7 +366,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const char32_t x) noexcept
     mbstate_t ps {};
     c32rtomb(aBuff, x, &ps);
 
-    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -373,7 +375,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const char x) noexcept
     char aBuff[4] {};
     snprintf(aBuff, utils::size(aBuff), "%c", x);
 
-    return copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 inline ssize
@@ -530,7 +532,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N])
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, a[i]);
     }
 
-    return print::copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 } /* namespace adt::print */

@@ -379,7 +379,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const ListBase
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it->data);
     }
 
-    return print::copyBackToBuffer(ctx, fmtArgs, {aBuff});
+    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 template<typename T>
