@@ -45,7 +45,7 @@ public:
 
     [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual void* realloc(void* ptr, usize mCount, usize mSize) noexcept(false) override final;
+    [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     virtual void free(void* ptr) noexcept override final; /* noop */
     virtual void freeAll() noexcept override final;
     void reset() noexcept;
@@ -149,7 +149,7 @@ Arena::zalloc(usize mCount, usize mSize)
 }
 
 inline void*
-Arena::realloc(void* ptr, usize mCount, usize mSize)
+Arena::realloc(void* ptr, usize oldCount, usize mCount, usize mSize)
 {
     if (!ptr) return malloc(mCount, mSize);
 
@@ -171,10 +171,7 @@ Arena::realloc(void* ptr, usize mCount, usize mSize)
     else
     {
         auto* pRet = malloc(mCount, mSize);
-        usize nBytesUntilEndOfBlock = &pBlock->pMem[pBlock->size] - (u8*)ptr;
-        usize nBytesToCopy = utils::min(requested, nBytesUntilEndOfBlock); /* out of range memcpy */
-        nBytesToCopy = utils::min(nBytesToCopy, usize((u8*)pRet - (u8*)ptr)); /* overlap memcpy */
-        memcpy(pRet, ptr, nBytesToCopy);
+        memcpy(pRet, ptr, oldCount * mSize);
 
         return pRet;
     }
