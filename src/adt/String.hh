@@ -49,6 +49,10 @@ struct String
 
     constexpr String() = default;
 
+    template<ssize N>
+    constexpr String(const char (&aChars)[N])
+        : m_pData(const_cast<char*>(aChars)), m_size(N) {}
+
     constexpr String(char* sNullTerminated)
         : m_pData(sNullTerminated), m_size(nullTermStringSize(sNullTerminated)) {}
 

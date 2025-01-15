@@ -18,5 +18,9 @@ main()
     print::out("'{:>10}'\n", "10");
 
     print::out("'{:{}}'", 10, 1);
-    print::out("single quote should be before the word 'single'\n");
+    print::out("there must be single quote before the word 'there'\n");
+
+    print::out("dec: {}, hex: {:#x}, bin: {:#b}\n", 13, 13, 13);
+
+    print::out("precision: {}, float: {}, {:.10}\n", 10, M_PI, M_PI);
 }
