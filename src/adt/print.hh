@@ -13,6 +13,7 @@
 #include <cuchar>
 
 #include <type_traits>
+#include <atomic>
 
 namespace adt::print
 {
@@ -645,6 +646,13 @@ inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept
 {
     return formatToContext(ctx, fmtArgs, Span(a, N));
+}
+
+template<typename T>
+inline ssize
+formatToContext(Context ctx, FormatArgs fmtArgs, const std::atomic<T>& x) noexcept
+{
+    return formatToContext(ctx, fmtArgs, x.load(std::memory_order_relaxed));
 }
 
 } /* namespace adt::print */
