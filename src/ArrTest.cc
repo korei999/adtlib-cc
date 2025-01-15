@@ -14,5 +14,5 @@ main()
     arr.push(4);
     arr.push(5);
 
-    LOG("arr: {}\n", arr);
+    COUT("arr: {}\n", arr);
 }

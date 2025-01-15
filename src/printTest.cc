@@ -33,4 +33,7 @@ main()
 
     Arr<f64, 32> arr {1.1, 2.2, 3.3, 4.4, 5.5};
     print::out("arr: [{:.5}]\n", arr);
+
+    Span<f64> spArr(arr.data(), arr.getSize());
+    print::out("spArr: [{:.4}]\n", spArr);
 }

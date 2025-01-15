@@ -1,3 +1,4 @@
+#include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/Pool.hh"
@@ -21,7 +22,11 @@ main()
     p.giveBack(h32);
     p.giveBack(h3);
 
-    for (const auto& h : p)
+    for (auto& h : p)
+    {
         LOG("h: {}\n", h);
+        /*h = 0;*/
+    }
 
+    COUT("p: [{}]\n", p);
 }

@@ -58,7 +58,7 @@ main()
         auto vec0 = vec.clone(&aArenas[0]);
         sort::quick(&vec0);
         /*sort::insertion(vec0.data(), 0, vec0.getSize() - 1);*/
-        COUT("vec0: {}\n", vec0);
+        print::out("vec0: {}\n", vec0);
         assert(sort::sorted(vec0.base));
     }
 
@@ -67,14 +67,14 @@ main()
         sort::quick<VecBase, f64, utils::compareRev<f64>>(&vec1.base);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
 
-        COUT("vec1(sorted):           {}\n", vec1);
+        print::out("vec1(sorted):           {}\n", vec1);
         vec1.removeAndShift(2);
-        COUT("vec1(removeAndShift(2): {}\n", vec1);
+        print::out("vec1(removeAndShift(2): {}\n", vec1);
 
-        COUT("vec1(rev): ");
+        print::out("vec1(rev): ");
         for (auto e : ReverseIt(vec1))
-            COUT("{}, ", e);
-        COUT("\n");
+            print::out("{}, ", e);
+        print::out("\n");
 
     }
 

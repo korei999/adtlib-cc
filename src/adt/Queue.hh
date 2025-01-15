@@ -1,7 +1,6 @@
 #pragma once
 
 #include "IAllocator.hh"
-#include "print.hh"
 
 #include <cassert>
 #include <new> /* IWYU pragma: keep */
@@ -48,6 +47,7 @@ struct QueueBase
     T* popFront();
     T* popBack();
     ssize idx(const T* pItem) const;
+    ssize getSize() const { return m_size; }
 
     /* */
 
@@ -214,6 +214,7 @@ struct Queue
     T* popFront() { return base.popFront(); }
     T* popBack() { return base.popBack(); }
     ssize idx(const T* pItem) { return base.idx(pItem); }
+    ssize getSize() const { return base.getSize(); }
 
     /* */
 
@@ -227,47 +228,5 @@ struct Queue
     const typename QueueBase<T>::It rbegin() const { return base.rbegin(); }
     const typename QueueBase<T>::It rend() const { return base.rend(); }
 };
-
-namespace print
-{
-
-template<typename T>
-inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const QueueBase<T>& x)
-{
-    if (x.empty())
-    {
-        ctx.fmt = "{}";
-        ctx.fmtIdx = 0;
-        return printArgs(ctx, "(empty)");
-    }
-
-    char aFmtBuff[64] {};
-    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
-
-    String sFmtArg = aFmtBuff;
-    aFmtBuff[nFmtRead++] = ',';
-    aFmtBuff[nFmtRead++] = ' ';
-    String sFmtArgComma(aFmtBuff);
-
-    char aBuff[1024] {};
-    ssize nRead = 0;
-    for (const auto& it : x)
-    {
-        const String fmt = (x.idx(&it) == x.m_last - 1U ? sFmtArg : sFmtArgComma);
-        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, it);
-    }
-
-    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
-}
-
-template<typename T>
-inline ssize
-formatToContext(Context ctx, FormatArgs fmtArgs, const Queue<T>& x)
-{
-    return formatToContext(ctx, fmtArgs, x.base);
-}
-
-} /* namespace print */
 
 } /* namespace adt */

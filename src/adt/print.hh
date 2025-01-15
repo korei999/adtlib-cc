@@ -476,7 +476,7 @@ template<ssize SIZE = 512, typename ...ARGS_T>
 inline ssize
 toFILE(FILE* fp, const String fmt, const ARGS_T&... tArgs) noexcept
 {
-    /* TODO: allow allocation? */
+    /* TODO: allow allocation? Nah... */
     char aBuff[SIZE] {};
     Context ctx {fmt, aBuff, utils::size(aBuff) - 1};
     auto r = printArgs(ctx, tArgs...);
@@ -488,6 +488,9 @@ template<typename ...ARGS_T>
 inline constexpr ssize
 toBuffer(char* pBuff, ssize buffSize, const String fmt, const ARGS_T&... tArgs) noexcept
 {
+    if (!pBuff || buffSize <= 0)
+        return 0;
+
     Context ctx {fmt, pBuff, buffSize};
     return printArgs(ctx, tArgs...);
 }
@@ -513,30 +516,8 @@ err(const String fmt, const ARGS_T&... tArgs) noexcept
     return toFILE(stderr, fmt, tArgs...);
 }
 
-template<typename T, ssize N>
 inline ssize
-formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N])
-{
-    if (N <= 0)
-    {
-        ctx.fmt = "{}";
-        ctx.fmtIdx = 0;
-        return printArgs(ctx, "(empty)");
-    }
-
-    char aBuff[1024] {};
-    ssize nRead = 0;
-    for (ssize i = 0; i < N; ++i)
-    {
-        const char* fmt = i == N - 1 ? "{}" : "{}, ";
-        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, a[i]);
-    }
-
-    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
-}
-
-inline ssize
-FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt)
+FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt) noexcept
 {
     ssize i = 0;
     auto push = [&](char c) -> bool
@@ -584,6 +565,86 @@ FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt)
     if (!push('}')) return i;
 
     return i;
+}
+
+template<template<typename> typename CON_T, typename T>
+inline ssize
+formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const ssize contSize) noexcept
+{
+    if (contSize <= 0)
+    {
+        ctx.fmt = "{}";
+        ctx.fmtIdx = 0;
+        return printArgs(ctx, "(empty)");
+    }
+
+    char aFmtBuff[64] {};
+    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+
+    String sFmtArg = aFmtBuff;
+    aFmtBuff[nFmtRead++] = ',';
+    aFmtBuff[nFmtRead++] = ' ';
+    String sFmtArgComma(aFmtBuff);
+
+    char aBuff[1024] {};
+    ssize nRead = 0;
+    ssize i = 0;
+
+    for (const auto& e : x)
+    {
+        const String fmt = i == contSize - 1 ? sFmtArg : sFmtArgComma;
+        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, e);
+        ++i;
+    }
+
+    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
+}
+
+template<template<typename, ssize> typename CON_T, typename T, ssize SIZE>
+inline ssize
+formatToContextTemplSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& x, const ssize contSize) noexcept
+{
+    if (contSize <= 0)
+    {
+        ctx.fmt = "{}";
+        ctx.fmtIdx = 0;
+        return printArgs(ctx, "(empty)");
+    }
+
+    char aFmtBuff[64] {};
+    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+
+    String sFmtArg = aFmtBuff;
+    aFmtBuff[nFmtRead++] = ',';
+    aFmtBuff[nFmtRead++] = ' ';
+    String sFmtArgComma(aFmtBuff);
+
+    char aBuff[1024] {};
+    ssize nRead = 0;
+    ssize i = 0;
+
+    for (const auto& e : x)
+    {
+        const String fmt = i == contSize - 1 ? sFmtArg : sFmtArgComma;
+        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, e);
+        ++i;
+    }
+
+    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
+}
+
+template<template<typename> typename CON_T, typename T>
+inline ssize
+formatToContext(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept
+{
+    return formatToContextExpSize(ctx, fmtArgs, x, x.getSize());
+}
+
+template<typename T, ssize N>
+inline ssize
+formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept
+{
+    return formatToContext(ctx, fmtArgs, Span(a, N));
 }
 
 } /* namespace adt::print */

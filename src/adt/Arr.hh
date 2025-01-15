@@ -220,33 +220,9 @@ namespace print
 
 template<typename T, ssize CAP>
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const Arr<T, CAP>& x)
+formatToContext(Context ctx, FormatArgs fmtArgs, const Arr<T, CAP>& x)
 {
-    if (x.empty())
-    {
-        ctx.fmt = "{}";
-        ctx.fmtIdx = 0;
-        return printArgs(ctx, "(empty)");
-    }
-
-    /* NOTE: quick hacks are great */
-    char aFmtBuff[64] {};
-    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
-
-    String sFmtArg = aFmtBuff;
-    aFmtBuff[nFmtRead++] = ',';
-    aFmtBuff[nFmtRead++] = ' ';
-    String sFmtArgComma(aFmtBuff);
-
-    char aBuff[1024] {};
-    ssize nRead = 0;
-    for (ssize i = 0; i < x.getSize(); ++i)
-    {
-        const String sFmt = i == x.m_size - 1 ? sFmtArg : sFmtArgComma;
-        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, sFmt, x[i]);
-    }
-
-    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
+    return print::formatToContext(ctx, fmtArgs, Span(x.data(), x.getSize()));
 }
 
 } /* namespace print */

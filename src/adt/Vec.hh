@@ -2,7 +2,6 @@
 
 #include "IAllocator.hh"
 #include "utils.hh"
-#include "print.hh"
 
 #include <cassert>
 #include <new> /* IWYU pragma: keep */
@@ -396,48 +395,5 @@ struct Vec
     const typename VecBase<T>::It rbegin() const noexcept { return base.rbegin(); }
     const typename VecBase<T>::It rend()   const noexcept { return base.rend(); }
 };
-
-namespace print
-{
-
-template<typename T>
-inline ssize
-formatToContext(Context ctx, FormatArgs fmtArgs, const VecBase<T>& x)
-{
-    if (x.empty())
-    {
-        ctx.fmt = "{}";
-        ctx.fmtIdx = 0;
-        return printArgs(ctx, "(empty)");
-    }
-
-    char aBuff[1024] {};
-    ssize nRead = 0;
-
-    char aFmtBuff[64] {};
-    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
-
-    String sFmtArg = aFmtBuff;
-    aFmtBuff[nFmtRead++] = ',';
-    aFmtBuff[nFmtRead++] = ' ';
-    String sFmtArgComma(aFmtBuff);
-
-    for (ssize i = 0; i < x.m_size; ++i)
-    {
-        const String sFmt = i == x.m_size - 1 ? sFmtArg : sFmtArgComma;
-        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, sFmt, x[i]);
-    }
-
-    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
-}
-
-template<typename T>
-inline ssize
-formatToContext(Context ctx, FormatArgs fmtArgs, const Vec<T>& x)
-{
-    return formatToContext(ctx, fmtArgs, x.base);
-}
-
-} /* namespace print */
 
 } /* namespace adt */
