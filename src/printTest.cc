@@ -6,6 +6,9 @@
 #include "adt/List.hh" /* IWYU pragma: keep */
 #include "adt/String.hh"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 using namespace adt;
 
 int
