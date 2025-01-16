@@ -49,8 +49,8 @@ main(int argc, char* argv[])
         /*FreeList al(SIZE_1G);*/
         /*OsAllocator al;*/
         /*MiMalloc al;*/
-        MiHeap al(0);
         /*Arena al(SIZE_8M);*/
+        MiHeap al(0);
         defer( al.freeAll() );
 
         Opt<String> o_sJson = file::load(&al, argv[1]);
