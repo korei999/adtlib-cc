@@ -17,7 +17,6 @@ option(OPT_SSE4_2 "" OFF)
 option(OPT_MARCH_NATIVE "" OFF)
 
 include_directories(BEFORE "src")
-include_directories(BEFORE "mimalloc/include")
 
 add_definitions("-DADT_LOGS")
 add_definitions("-DADT_DEFER_LESS_TYPING")
@@ -40,7 +39,7 @@ else()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options(-Wno-class-memaccess)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-class-memaccess")
 endif()
 
 if (OPT_SSE4_2)
@@ -62,6 +61,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")
     add_compile_options(-O0 -g3 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address)
     add_link_options(-fsanitize=undefined -fsanitize=address)
+
     add_definitions("-DMI_TRACK_ASAN=ON")
     add_definitions("-DMI_TRACK_VALGRIND=ON")
 endif()
@@ -91,84 +91,91 @@ message(STATUS "OS_NAME: '${OS_NAME}'")
 message(STATUS "CMAKE_CXX_COMPILER_ID: '${CMAKE_CXX_COMPILER_ID}'")
 message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(LINUX_PKGS REQUIRED mimalloc)
-# include_directories(BEFORE ${LINUX_PKGS_INCLUDE_DIRS})
-# target_link_libraries(
-#     adt-vec PRIVATE
-#     ${LINUX_PKGS_LIBRARIES}
-# )
+include(FetchContent)
+
+FetchContent_Declare(
+    MIMALLOC
+    GIT_REPOSITORY https://github.com/microsoft/mimalloc.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(MIMALLOC)
+FetchContent_GetProperties(MIMALLOC
+    SOURCE_DIR MIMALLOC_SOURCE_DIR
+)
+
+include_directories(${MIMALLOC_SOURCE_DIR}/include)
+message(STATUS "MIMALLOC_SOURCE_DIR: '${MIMALLOC_SOURCE_DIR}'")
 
 add_executable(
     adt-alloc
     src/allocTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-print
     src/printTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-vec
     src/VecTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-heap
     src/HeapTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-string
     src/StringTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-pool
     src/PoolTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-map
     src/MapTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-threadpool
     src/ThreadPoolTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-queue
     src/QueueTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-list
     src/ListTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-rbtree
     src/RBTreeTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-arr
     src/ArrTest.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
@@ -176,5 +183,5 @@ add_executable(
     src/JSONTest.cc
     src/json/Parser.cc
     src/json/Lexer.cc
-    mimalloc/src/static.c
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
