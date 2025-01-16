@@ -22,7 +22,7 @@ main()
     p.giveBack(h32);
     p.giveBack(h3);
 
-    for (auto& h : p)
+    for (const auto& h : p)
     {
         LOG("h: {}\n", h);
         /*h = 0;*/

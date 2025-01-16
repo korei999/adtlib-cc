@@ -10,14 +10,14 @@
 namespace adt
 {
 
-/* Thread local general purpose allocator, freeAll() is supported */
+/* Thread local general purpose allocator. */
 struct MiMalloc : IAllocator
 {
     [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     void virtual free(void* ptr) noexcept override final;
-    void virtual freeAll() noexcept override final;
+    void virtual freeAll() noexcept override final; /* assert(false) */
 };
 
 inline MiMalloc*
@@ -63,6 +63,7 @@ MiMalloc::freeAll() noexcept
     assert(false && "[MiMalloc]: no 'freeAll()' method");
 }
 
+/* very fast general purpose, non thread safe, allocator. freeAll() is supported. */
 struct MiHeap : IAllocator
 {
     mi_heap_t* m_pHeap {};

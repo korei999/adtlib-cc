@@ -65,8 +65,6 @@ main(int argc, char* argv[])
 
         if (argc >= 3 && "-p" == String(argv[2]))
             p.print(stdout);
-
-        /*_FreeListPrintTree(&al, &arena.base);*/
     }
     catch (IException& ex)
     {
