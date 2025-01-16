@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.27)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -9,11 +11,13 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-project(adtlib-test VERSION 0.4 LANGUAGES CXX)
+project(adtlib-test VERSION 0.4 LANGUAGES CXX C)
 
-option(OPT_SSE4_2 "compile with SSE4_2 support" ON)
+option(OPT_SSE4_2 "" OFF)
+option(OPT_MARCH_NATIVE "" OFF)
 
 include_directories(BEFORE "src")
+include_directories(BEFORE "mimalloc/include")
 
 add_definitions("-DADT_LOGS")
 add_definitions("-DADT_DEFER_LESS_TYPING")
@@ -49,10 +53,17 @@ if (OPT_SSE4_2)
     endif()
 endif()
 
+if (OPT_MARCH_NATIVE)
+    add_definitions("-DADT_MARCH_NATIVE")
+    add_compile_options(-march=native)
+endif()
+
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")
     add_compile_options(-O0 -g3 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address)
     add_link_options(-fsanitize=undefined -fsanitize=address)
+    add_definitions("-DMI_TRACK_ASAN=ON")
+    add_definitions("-DMI_TRACK_VALGRIND=ON")
 endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -70,6 +81,8 @@ else()
         add_link_options(-flto)
     else()
     endif()
+
+    add_definitions("-DADT_USE_MIMALLOC")
 endif()
 
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
@@ -89,61 +102,73 @@ message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 add_executable(
     adt-alloc
     src/allocTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-print
     src/printTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-vec
     src/VecTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-heap
     src/HeapTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-string
     src/StringTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-pool
     src/PoolTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-map
     src/MapTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-threadpool
     src/ThreadPoolTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-queue
     src/QueueTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-list
     src/ListTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-rbtree
     src/RBTreeTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
     adt-arr
     src/ArrTest.cc
+    mimalloc/src/static.c
 )
 
 add_executable(
@@ -151,4 +176,5 @@ add_executable(
     src/JSONTest.cc
     src/json/Parser.cc
     src/json/Lexer.cc
+    mimalloc/src/static.c
 )

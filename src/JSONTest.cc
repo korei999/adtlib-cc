@@ -1,6 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
+#include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
@@ -45,15 +46,17 @@ main(int argc, char* argv[])
     try
     {
         /*FixedAllocator al(s_aMem);*/
-        Arena al(SIZE_8M);
         /*FreeList al(SIZE_1G);*/
         /*OsAllocator al;*/
+        /*MiMalloc al;*/
+        MiHeap al(0);
+        /*Arena al(SIZE_8M);*/
         defer( al.freeAll() );
 
         Opt<String> o_sJson = file::load(&al, argv[1]);
 
         if (!o_sJson) return 1;
-        /*defer( o_sJson.value().destroy(OsAllocatorGet()) );*/
+        /*defer( o_sJson.value().destroy(&al) );*/
 
         json::Parser p {};
         json::STATUS eRes = p.parse(&al, o_sJson.value());
