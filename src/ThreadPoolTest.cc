@@ -2,12 +2,16 @@
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/BufferAllocator.hh"
+#include "adt/Arena.hh"
 
 using namespace adt;
+
+thread_local static Arena tls_Arena(SIZE_1K);
 
 static int
 task(void* pArg)
 {
+    char* pBuff = (char*)tls_Arena.malloc(1, 500);
     utils::sleepMS(*(f64*)pArg);
 
     LOG("done waiting for {}\n", *(f64*)pArg);
@@ -38,6 +42,22 @@ main()
     ThreadPoolLock lock(INIT);
     defer( lock.destroy() );
 
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
+    tp.submit(task, &ms);
     tp.submit(task, &ms);
     tp.submit(task, &ms);
     tp.submitSignal(signaled, {}, &lock);
