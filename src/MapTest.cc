@@ -138,7 +138,7 @@ main()
     }
 
     int buff[123] {};
-    Span sp(buff, sizeof(buff));
+    Span sp(buff);
     hash::func(sp);
 
     hash::func(String("asdf"));
