@@ -8,6 +8,7 @@
 namespace adt
 {
 
+/* each getMem invalidates previous getMem span */
 struct ScratchBuffer
 {
     Span<u8> m_sp {};
