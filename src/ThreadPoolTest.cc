@@ -24,7 +24,7 @@ task(void* pArg)
 }
 
 static int
-signaled(void* pArg)
+signaled(void*)
 {
     LOG("signaled\n");
 

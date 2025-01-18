@@ -8,7 +8,7 @@
 namespace adt
 {
 
-/* each getMem invalidates previous getMem span */
+/* Each getMem invalidates previous getMem span. */
 struct ScratchBuffer
 {
     Span<u8> m_sp {};
@@ -19,11 +19,11 @@ struct ScratchBuffer
     ScratchBuffer() = default;
 
     template<typename T>
-    ScratchBuffer(Span<T> sp)
+    ScratchBuffer(Span<T> sp) noexcept
         : m_sp((u8*)sp.data(), sp.getSize() * sizeof(T)) {}
 
     template<typename T, usize SIZE>
-    ScratchBuffer(T (&aBuff)[SIZE])
+    ScratchBuffer(T (&aBuff)[SIZE]) noexcept
         : m_sp((u8*)aBuff, SIZE * sizeof(T)) {}
 
     /* */

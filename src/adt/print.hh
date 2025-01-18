@@ -504,6 +504,13 @@ toString(String* pDest, const String fmt, const ARGS_T&... tArgs) noexcept
 }
 
 template<typename ...ARGS_T>
+inline constexpr ssize
+toSpan(Span<char>* sp, const String fmt, const ARGS_T&... tArgs) noexcept
+{
+    return toBuffer(sp->data(), sp->getSize(), fmt, tArgs...);
+}
+
+template<typename ...ARGS_T>
 inline ssize
 out(const String fmt, const ARGS_T&... tArgs) noexcept
 {
