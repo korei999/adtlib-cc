@@ -25,8 +25,12 @@ struct Arr
 
     /* */
 
-    constexpr T& operator[](ssize i)             { assert(i >= 0 && i < m_size && "[Arr]: out of size access"); return m_aData[i]; }
-    constexpr const T& operator[](ssize i) const { assert(i >= 0 && i < m_size && "[Arr]: out of size access"); return m_aData[i]; }
+#define ADT_RANGE_CHECK ADT_ASSERT(i >= 0 && i < m_size, "i: %lld, m_size: %lld", i, m_size);
+
+    constexpr T& operator[](ssize i)             { ADT_RANGE_CHECK; return m_aData[i]; }
+    constexpr const T& operator[](ssize i) const { ADT_RANGE_CHECK; return m_aData[i]; }
+
+#undef ADT_RANGE_CHECK
 
     /* */
 
