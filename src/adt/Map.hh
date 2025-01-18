@@ -50,7 +50,7 @@ struct MapResult
     const KeyVal<K, V>&
     data() const
     {
-        assert(eStatus != MAP_RESULT_STATUS::NOT_FOUND && "[Map]: not found");
+        ADT_ASSERT(eStatus != MAP_RESULT_STATUS::NOT_FOUND, "not found");
         return *(KeyVal<K, V>*)pData;
     }
 };
@@ -148,8 +148,8 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline ssize
 MapBase<K, V, FN_HASH>::idx(const KeyVal<K, V>* p) const
 {
-    auto r = (MapBucket<K, V>*)p - &m_aBuckets[0];
-    assert(r >= 0 && r < m_aBuckets.getCap() && "[Map]: out of range");
+    ssize r = (MapBucket<K, V>*)p - &m_aBuckets[0];
+    ADT_ASSERT(r >= 0 && r < m_aBuckets.getCap(), "out of range, r: %lld, cap: %lld", r, m_aBuckets.getCap());
     return r;
 }
 
@@ -157,8 +157,8 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline ssize
 MapBase<K, V, FN_HASH>::idx(const MapResult<K, V> res) const
 {
-    auto idx = res.pData - &m_aBuckets[0];
-    assert(idx >= 0 && idx < m_aBuckets.getCap() && "[Map]: out of range");
+    ssize idx = res.pData - &m_aBuckets[0];
+    ADT_ASSERT(idx >= 0 && idx < m_aBuckets.getCap(), "out of range, r: %lld, cap: %lld", idx, m_aBuckets.getCap());
     return idx;
 }
 
@@ -274,7 +274,7 @@ inline void
 MapBase<K, V, FN_HASH>::remove(const K& key)
 {
     auto f = search(key);
-    assert(f && "[Map]: not found");
+    ADT_ASSERT(f, "not found");
     remove(idx(f));
 }
 
@@ -491,7 +491,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, MAP_RESULT_STA
     };
 
     auto statusIdx = std::underlying_type_t<MAP_RESULT_STATUS>(eStatus);
-    assert(statusIdx >= 0 && statusIdx < utils::size(map) && "out of range enum");
+    ADT_ASSERT(statusIdx >= 0 && statusIdx < utils::size(map), "out of range enum");
     return printArgs(ctx, map[statusIdx]);
 }
 
