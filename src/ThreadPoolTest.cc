@@ -13,7 +13,7 @@ static int
 task(void* pArg)
 {
     int size = 2048 / 4;
-    auto spBuff = tls_Scratch.getZMem<char>(size);
+    auto spBuff = tls_Scratch.nextMemZero<char>(size);
     print::toBuffer(spBuff.data(), spBuff.getSize() - 1, "must not corrupt this string");
     utils::sleepMS(*(f64*)pArg);
 

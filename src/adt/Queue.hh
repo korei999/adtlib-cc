@@ -106,6 +106,7 @@ inline void
 QueueBase<T>::destroy(IAllocator* p)
 {
     p->free(m_pData);
+    *this = {};
 }
 
 template<typename T>

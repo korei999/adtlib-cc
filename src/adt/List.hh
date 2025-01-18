@@ -100,8 +100,7 @@ ListBase<T>::destroy(IAllocator* pA)
     ADT_LIST_FOREACH_SAFE(this, it, tmp)
         pA->free(it);
 
-    m_pFirst = m_pLast = nullptr;
-    m_size = 0;
+    *this = {};
 }
 
 template<typename T>

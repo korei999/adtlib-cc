@@ -45,9 +45,10 @@ main()
         assert(s.endsWith("せません"));
         COUT("s: '{}'\n", s);
 
+        COUT("'");
         for (auto wc : StringGlyphIt(s))
-            COUT("{}", wc);
-        COUT("\n");
+            COUT("'{}'", wc);
+        COUT("'\n");
     }
 
     {

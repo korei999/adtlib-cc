@@ -246,6 +246,7 @@ inline void
 VecBase<T>::destroy(IAllocator* p) noexcept
 {
     p->free(m_pData);
+    *this = {};
 }
 
 template<typename T>

@@ -507,7 +507,8 @@ template<typename ...ARGS_T>
 inline constexpr ssize
 toSpan(Span<char> sp, const String fmt, const ARGS_T&... tArgs) noexcept
 {
-    return toBuffer(sp.data(), sp.getSize(), fmt, tArgs...);
+    /* leave 1 byte for '\0' */
+    return toBuffer(sp.data(), sp.getSize() - 1, fmt, tArgs...);
 }
 
 template<typename ...ARGS_T>
