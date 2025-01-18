@@ -15,4 +15,6 @@ main()
     arr.push(5);
 
     COUT("arr: {}\n", arr);
+
+    int i = 10;
 }

@@ -31,8 +31,12 @@ struct VecBase
 
     /* */
 
-    T& operator[](ssize i)             noexcept { assert(i >= 0 && i < m_size && "[Vec] out of size"); return m_pData[i]; }
-    const T& operator[](ssize i) const noexcept { assert(i >= 0 && i < m_size && "[Vec] out of size"); return m_pData[i]; }
+#define ADT_VEC_RANGE_CHECK ADT_ASSERT(i >= 0 && i < m_size, "i: %lld, m_size: %lld", i, m_size);
+
+    T& operator[](ssize i)             noexcept { ADT_VEC_RANGE_CHECK; return m_pData[i]; }
+    const T& operator[](ssize i) const noexcept { ADT_VEC_RANGE_CHECK; return m_pData[i]; }
+
+#undef ADT_VEC_RANGE_CHECK
 
     [[nodiscard]] bool empty() const noexcept { return m_size == 0; }
 

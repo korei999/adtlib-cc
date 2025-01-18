@@ -19,8 +19,8 @@ option(OPT_MARCH_NATIVE "" OFF)
 include_directories(BEFORE "src")
 
 add_definitions("-DADT_LOGS")
-add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGS_LESS_TYPING")
+add_definitions("-DADT_DEFER_LESS_TYPING")
 # add_definitions("-DADT_STD_TYPES")
 
 add_definitions("-D_DEFAULT_SOURCE")
@@ -183,5 +183,11 @@ add_executable(
     src/JSONTest.cc
     src/json/Parser.cc
     src/json/Lexer.cc
+    ${MIMALLOC_SOURCE_DIR}/src/static.c
+)
+
+add_executable(
+    adt-assert
+    src/AssertTest.cc
     ${MIMALLOC_SOURCE_DIR}/src/static.c
 )

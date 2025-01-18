@@ -587,7 +587,7 @@ formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const
     }
 
     char aFmtBuff[64] {};
-    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+    ssize nFmtRead = FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
 
     String sFmtArg = aFmtBuff;
     aFmtBuff[nFmtRead++] = ',';
@@ -605,7 +605,7 @@ formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const
         ++i;
     }
 
-    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 template<template<typename, ssize> typename CON_T, typename T, ssize SIZE>
@@ -620,7 +620,7 @@ formatToContextTemplSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& 
     }
 
     char aFmtBuff[64] {};
-    ssize nFmtRead = print::FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+    ssize nFmtRead = FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
 
     String sFmtArg = aFmtBuff;
     aFmtBuff[nFmtRead++] = ',';
@@ -638,7 +638,7 @@ formatToContextTemplSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& 
         ++i;
     }
 
-    return print::copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
+    return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
 template<template<typename> typename CON_T, typename T>
