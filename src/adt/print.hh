@@ -350,11 +350,11 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x) noexcept
 inline ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const wchar_t x) noexcept
 {
-    char aBuff[4] {};
+    char aBuff[8] {};
 #ifdef _WIN32
-    snprintf(aBuff, utils::size(aBuff), "%lc", (wint_t)x);
+    snprintf(aBuff, utils::size(aBuff) - 1, "%lc", (wint_t)x);
 #else
-    snprintf(aBuff, utils::size(aBuff), "%lc", x);
+    snprintf(aBuff, utils::size(aBuff) - 1, "%lc", x);
 #endif
 
     return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
