@@ -190,3 +190,9 @@ add_executable(
     src/AssertTest.cc
     # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
+
+add_executable(
+    adt-threads
+    src/threadsTest.cc
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
+)
