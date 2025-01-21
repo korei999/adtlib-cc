@@ -35,7 +35,7 @@ endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/utf-8)
 else()
-    add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough)
+    add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough -Wno-cast-function-type-mismatch)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

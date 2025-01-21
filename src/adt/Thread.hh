@@ -45,7 +45,7 @@ inline
 Thread::Thread(THREAD_STATUS (*pfn)(void*), void* pFnArg)
 {
 #ifdef ADT_USE_PTHREAD
-    pthread_create(&m_thread, {}, pfn, pFnArg);
+    pthread_create(&m_thread, {}, (void* (*)(void*))pfn, pFnArg);
 #elif defined ADT_USE_WIN32THREAD
     m_thread = CreateThread(nullptr, 0, (DWORD (*)(void*))pfn, pFnArg, 0, &m_id);
 #endif
