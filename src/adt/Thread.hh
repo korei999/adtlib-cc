@@ -19,6 +19,8 @@
 namespace adt
 {
 
+constexpr ssize THREAD_WAIT_INFINITE = 0xffffffff;
+
 using THREAD_STATUS = usize;
 using ThreadFn = THREAD_STATUS (*)(void*);
 
@@ -118,7 +120,7 @@ Thread::pthreadDetach()
 inline THREAD_STATUS
 Thread::win32Join()
 {
-    return WaitForSingleObject(m_thread, INFINITE);
+    return WaitForSingleObject(m_thread, THREAD_WAIT_INFINITE);
 }
 
 inline THREAD_STATUS
@@ -245,8 +247,6 @@ Mutex::destroy()
 #endif
 }
 
-constexpr ssize CND_INFINITE = 0xffffffff;
-
 struct CndVar
 {
 #ifdef ADT_USE_PTHREAD
@@ -269,8 +269,8 @@ struct CndVar
     void destroy();
     void wait(Mutex* pMtx);
     void timedWait(Mutex* pMtx, ssize ms);
-    void notifyOne();
-    void notifyAll();
+    void signal();
+    void broadcast();
 };
 
 inline
@@ -310,7 +310,7 @@ CndVar::wait(Mutex* pMtx)
 
 #elif defined ADT_USE_WIN32THREAD
 
-    SleepConditionVariableCS(&m_cnd, &pMtx->m_mtx, INFINITE);
+    SleepConditionVariableCS(&m_cnd, &pMtx->m_mtx, THREAD_WAIT_INFINITE);
 
 #endif
 }
@@ -334,7 +334,7 @@ CndVar::timedWait(Mutex* pMtx, ssize ms)
 }
 
 inline void
-CndVar::notifyOne()
+CndVar::signal()
 {
 #ifdef ADT_USE_PTHREAD
 
@@ -348,7 +348,7 @@ CndVar::notifyOne()
 }
 
 inline void
-CndVar::notifyAll()
+CndVar::broadcast()
 {
 #ifdef ADT_USE_PTHREAD
 

@@ -195,11 +195,11 @@ _ThreadPoolLoop(void* p)
         {
             /* keep signaling until it's truly awakened */
             while (task.pLock->m_bSignaled.load(std::memory_order_relaxed) == false)
-                task.pLock->m_cnd.notifyOne();
+                task.pLock->m_cnd.signal();
         }
 
         if (!s->busy())
-            s->m_cndWait.notifyOne();
+            s->m_cndWait.signal();
     }
 
     return {};
@@ -239,7 +239,7 @@ ThreadPool::submit(ThreadTask task)
         m_qTasks.pushBack(m_pAlloc, task);
     }
 
-    m_cndQ.notifyOne();
+    m_cndQ.signal();
 }
 
 inline void
@@ -285,7 +285,7 @@ _ThreadPoolStop(ThreadPool* s)
 
     /* some threads might not cnd_wait() in time, so keep signaling untill all return from the loop */
     while (s->m_nActiveThreadsInLoop.load(std::memory_order_relaxed) > 0)
-        s->m_cndQ.notifyAll();
+        s->m_cndQ.broadcast();
 
     for (auto& thread : s->m_aThreads)
         thread.join();
