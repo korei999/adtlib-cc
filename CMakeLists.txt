@@ -37,6 +37,8 @@ if (CMAKE_BUILD_TYPE MATCHES "DebugMingw" OR CMAKE_BUILD_TYPE MATCHES "ReleaseMi
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
     set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
+    set(CMAKE_SYSTEM_NAME "Windows")
+
     if (CMAKE_BUILD_TYPE MATCHES "DebugMingw")
         set(CMAKE_BUILD_TYPE "Debug")
     else()
@@ -57,7 +59,7 @@ else()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-class-memaccess")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-class-memaccess -Wno-cast-function-type")
 endif()
 
 if (OPT_SSE4_2)

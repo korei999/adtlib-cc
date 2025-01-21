@@ -65,7 +65,7 @@ microBench()
 
         for (ssize i = 0; i < BIG; ++i)
         {
-            auto f = map.search(vStrings[i]);
+            [[maybe_unused]] auto f = map.search(vStrings[i]);
         }
 
         f64 t1 = utils::timeNowMS() - t0;
