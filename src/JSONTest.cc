@@ -1,7 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
-#include "adt/MiMalloc.hh" /* IWYU pragma: keep */
+// #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
@@ -49,8 +49,8 @@ main(int argc, char* argv[])
         /*FreeList al(SIZE_1G);*/
         /*OsAllocator al;*/
         /*MiMalloc al;*/
-        /*Arena al(SIZE_8M);*/
-        MiHeap al(0);
+        Arena al(SIZE_8M);
+        /*MiHeap al(0);*/
         defer( al.freeAll() );
 
         Opt<String> o_sJson = file::load(&al, argv[1]);

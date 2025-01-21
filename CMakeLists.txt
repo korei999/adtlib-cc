@@ -67,7 +67,6 @@ if (CMAKE_BUILD_TYPE MATCHES "Asan")
 endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    add_compile_definitions("-DDEBUG")
     add_compile_definitions("-DADT_DBG_MEMORY")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -82,7 +81,7 @@ else()
     else()
     endif()
 
-    add_definitions("-DADT_USE_MIMALLOC")
+    # add_definitions("-DADT_USE_MIMALLOC")
 endif()
 
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
@@ -91,91 +90,91 @@ message(STATUS "OS_NAME: '${OS_NAME}'")
 message(STATUS "CMAKE_CXX_COMPILER_ID: '${CMAKE_CXX_COMPILER_ID}'")
 message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
-include(FetchContent)
-
-FetchContent_Declare(
-    MIMALLOC
-    GIT_REPOSITORY https://github.com/microsoft/mimalloc.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(MIMALLOC)
-FetchContent_GetProperties(MIMALLOC
-    SOURCE_DIR MIMALLOC_SOURCE_DIR
-)
-
-include_directories(${MIMALLOC_SOURCE_DIR}/include)
-message(STATUS "MIMALLOC_SOURCE_DIR: '${MIMALLOC_SOURCE_DIR}'")
+# include(FetchContent)
+# 
+# FetchContent_Declare(
+#     MIMALLOC
+#     GIT_REPOSITORY https://github.com/microsoft/mimalloc.git
+#     GIT_TAG master
+# )
+# FetchContent_MakeAvailable(MIMALLOC)
+# FetchContent_GetProperties(MIMALLOC
+#     SOURCE_DIR MIMALLOC_SOURCE_DIR
+# )
+# 
+# include_directories(${MIMALLOC_SOURCE_DIR}/include)
+# message(STATUS "MIMALLOC_SOURCE_DIR: '${MIMALLOC_SOURCE_DIR}'")
 
 add_executable(
     adt-alloc
     src/allocTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-print
     src/printTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-vec
     src/VecTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-heap
     src/HeapTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-string
     src/StringTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-pool
     src/PoolTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-map
     src/MapTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-threadpool
     src/ThreadPoolTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-queue
     src/QueueTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-list
     src/ListTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-rbtree
     src/RBTreeTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-arr
     src/ArrTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
@@ -183,11 +182,11 @@ add_executable(
     src/JSONTest.cc
     src/json/Parser.cc
     src/json/Lexer.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
 
 add_executable(
     adt-assert
     src/AssertTest.cc
-    ${MIMALLOC_SOURCE_DIR}/src/static.c
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
