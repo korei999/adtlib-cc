@@ -106,6 +106,26 @@ run()
     fi
 }
 
+debugMINGW()
+{
+    _clean
+
+    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=DebugMingw "$@"
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
+releaseMINGW()
+{
+    _clean
+
+    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=ReleaseMingw "$@"
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
 _install()
 {
     cmake --install build/
@@ -134,6 +154,8 @@ case "$1" in
     releaseGCC) releaseGCC "${@:2}";;
     install) _install ;;
     uninstall) _uninstall ;;
+    debugMingw) debugMINGW ;;
+    releaseMingw) releaseMINGW ;;
     clean) _clean ;;
     test) _test ;;
     *) build ;;

@@ -9,7 +9,7 @@ using namespace adt;
 thread_local static u8 tls_aBuff[2048] {};
 thread_local static ScratchBuffer tls_Scratch(Span{tls_aBuff});
 
-static int
+static THREAD_STATUS
 task(void* pArg)
 {
     int size = 2048 / 4;
@@ -20,15 +20,15 @@ task(void* pArg)
     assert(String(spBuff.data()) == "must not corrupt this string");
 
     LOG("done waiting for {}\n", *(f64*)pArg);
-    return thrd_success;
+    return {};
 }
 
-static int
+static THREAD_STATUS
 signaled(void*)
 {
     LOG("signaled\n");
 
-    return thrd_success;
+    return {};
 }
 
 static u8 s_aBuff[100000] {};

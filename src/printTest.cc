@@ -5,6 +5,7 @@
 #include "adt/Vec.hh" /* IWYU pragma: keep */
 #include "adt/List.hh" /* IWYU pragma: keep */
 #include "adt/String.hh"
+#include "adt/math.hh"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -26,7 +27,7 @@ main()
 
     print::out("dec: {}, hex: {:#x}, bin: {:#b}\n", 13, 13, 13);
 
-    print::out("precision: {}, float: {}, {:.10}\n", 10, M_PI, M_PI);
+    print::out("precision: {}, float: {}, {:.10}\n", 10, math::PI64, math::PI64);
 
     print::out("{}\n", 10);
 

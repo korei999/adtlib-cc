@@ -27,9 +27,27 @@ add_definitions("-D_DEFAULT_SOURCE")
 add_definitions("-DADTLIB_CC_VERSION=${CMAKE_PROJECT_VERSION}")
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 
+if (CMAKE_BUILD_TYPE MATCHES "DebugMingw" OR CMAKE_BUILD_TYPE MATCHES "ReleaseMingw")
+    set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
+    set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
+    set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
+
+    set(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+    if (CMAKE_BUILD_TYPE MATCHES "DebugMingw")
+        set(CMAKE_BUILD_TYPE "Debug")
+    else()
+        set(CMAKE_BUILD_TYPE "Release")
+    endif()
+endif()
+
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     add_definitions("-D_CRT_SECURE_NO_WARNINGS")
     add_definitions("-DADT_STD_TYPES")
+    add_definitions("-D_USE_MATH_DEFINES")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
