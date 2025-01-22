@@ -374,7 +374,10 @@ FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
     const usize requested = align8(newCount * mSize);
 
     if (requested == 0)
+    {
         free(ptr);
+        return nullptr;
+    }
 
     auto* pNode = _FreeListNodeFromPtr(ptr);
     ssize nodeSize = (ssize)pNode->m_data.getSize() - (ssize)sizeof(FreeList::Node);
