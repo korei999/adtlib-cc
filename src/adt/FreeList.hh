@@ -418,7 +418,7 @@ FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
     }
 
     auto* pRet = malloc(newCount, mSize);
-    memcpy(pRet, ptr, oldCount * mSize);
+    memcpy(pRet, ptr, utils::min(oldCount, newCount) * mSize);
     free(ptr);
 
     return pRet;
