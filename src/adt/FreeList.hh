@@ -368,19 +368,25 @@ FreeList::free(void* ptr) noexcept
 inline void*
 FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
 {
-    if (!ptr) return malloc(newCount, mSize);
+    if (!ptr)
+        return malloc(newCount, mSize);
+
+    const usize requested = align8(newCount * mSize);
+
+    if (requested == 0)
+        free(ptr);
 
     auto* pNode = _FreeListNodeFromPtr(ptr);
     ssize nodeSize = (ssize)pNode->m_data.getSize() - (ssize)sizeof(FreeList::Node);
     assert(nodeSize > 0 && "[FreeList]: 0 or negative size allocation (corruption)");
 
-    if ((ssize)newCount*(ssize)mSize <= nodeSize) return ptr;
+    if ((ssize)newCount*(ssize)mSize <= nodeSize)
+        return ptr;
 
     assert(!pNode->m_data.isFree() && "[FreeList]: trying to realloc non free node");
 
     /* try to bump if next is free and can fit */
     {
-        usize requested = align8(newCount * mSize);
         usize realSize = requested + sizeof(FreeList::Node);
         auto* pNext = pNode->m_data.m_pNext;
 
