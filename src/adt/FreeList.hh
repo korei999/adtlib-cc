@@ -280,7 +280,9 @@ inline void*
 FreeList::malloc(usize nMembers, usize mSize)
 {
     usize requested = align8(nMembers * mSize);
-    if (requested == 0) return nullptr;
+    if (requested == 0)
+        return nullptr;
+
     usize realSize = requested + sizeof(FreeList::Node);
 
     /* find block that fits */
