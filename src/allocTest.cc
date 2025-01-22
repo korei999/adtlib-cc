@@ -16,6 +16,17 @@ throws()
     defer( osAl.free(ptr) );
 }
 
+static void
+reallocZero()
+{
+    OsAllocator os {};
+
+    errno = {};
+    auto* what = os.realloc((void*)0, 0, 0, 0);
+    os.free(what);
+    LOG_ERR("what: {}\n", what);
+}
+
 template<typename T>
 struct ArenaSTD
 {
@@ -53,6 +64,7 @@ main()
 {
     try
     {
+        reallocZero();
         throws();
     }
     catch (IException& pEx)
