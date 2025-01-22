@@ -64,7 +64,7 @@ main()
 
     {
         auto vec1 = vec.clone(&aArenas[0]);
-        sort::quick<VecBase, f64, utils::compareRev<f64>>(&vec1.base);
+        sort::quick<VecBase, f64, utils::compareRev>(&vec1.base);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
 
         print::out("vec1(sorted):           {}\n", vec1);
