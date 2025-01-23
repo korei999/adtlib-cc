@@ -164,7 +164,7 @@ getArray(Object* obj)
     return obj->tagVal.val.a;
 }
 
-[[nodiscard]] inline long
+[[nodiscard]] inline adt::s64
 getLong(Object* obj)
 {
     assert(obj->tagVal.eTag == TAG::LONG);

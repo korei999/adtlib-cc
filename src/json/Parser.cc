@@ -452,22 +452,25 @@ traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
         break;
     }
 
-    if (pfn(pNode, pArgs)) return;
+    if (pfn(pNode, pArgs))
+        return;
 }
 
 VecBase<Object>&
 Parser::getRoot()
 {
-    assert(m_aObjects.getSize() > 0 && "[Parser]: this json is empty");
+    ADT_ASSERT(m_aObjects.getSize() > 0, "empty");
 
-    if (m_aObjects.getSize() == 1) return getObject(&m_aObjects.first());
+    if (m_aObjects.getSize() == 1)
+        return getObject(&m_aObjects.first());
     else return m_aObjects;
 }
 
 void
 Parser::traverse(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 {
-    for (auto& obj : m_aObjects) traverseNode(&obj, pfn, pArgs);
+    for (auto& obj : m_aObjects)
+        traverseNode(&obj, pfn, pArgs);
 }
 
 } /* namespace json */
