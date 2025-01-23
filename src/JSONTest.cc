@@ -55,7 +55,8 @@ main(int argc, char* argv[])
 
         Opt<String> o_sJson = file::load(&al, argv[1]);
 
-        if (!o_sJson) return 1;
+        if (!o_sJson)
+            return 1;
         /*defer( o_sJson.value().destroy(&al) );*/
 
         json::Parser p {};

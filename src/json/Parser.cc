@@ -265,12 +265,12 @@ Parser::destroy()
         auto* pAlloc = (IAllocator*)a;
 
         if (p->tagVal.eTag == TAG::ARRAY || p->tagVal.eTag == TAG::OBJECT)
-            pAlloc->free(p->tagVal.val.a.m_pData);
+            p->freeData(pAlloc);
 
         return false;
     };
 
-    traverse(fn, m_pAlloc);
+    traverse(fn, m_pAlloc, TRAVERSAL_ORDER::POST);
     m_aObjects.destroy(m_pAlloc);
 }
 
@@ -426,8 +426,38 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
     }
 }
 
-void
-traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+static void
+traverseNodePRE(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+{
+    if (pfn(pNode, pArgs))
+        return;
+
+    switch (pNode->tagVal.eTag)
+    {
+        default: break;
+
+        case TAG::ARRAY:
+        {
+            auto& obj = getArray(pNode);
+
+            for (ssize i = 0; i < obj.getSize(); i++)
+                traverseNodePRE(&obj[i], pfn, pArgs);
+        }
+        break;
+
+        case TAG::OBJECT:
+        {
+            auto& obj = getObject(pNode);
+
+            for (ssize i = 0; i < obj.getSize(); i++)
+                traverseNodePRE(&obj[i], pfn, pArgs);
+        }
+        break;
+    }
+}
+
+static void
+traverseNodePOST(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
 {
     switch (pNode->tagVal.eTag)
     {
@@ -437,8 +467,8 @@ traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
         {
             auto& obj = getArray(pNode);
 
-            for (u32 i = 0; i < obj.getSize(); i++)
-                traverseNode(&obj[i], pfn, pArgs);
+            for (ssize i = 0; i < obj.getSize(); i++)
+                traverseNodePOST(&obj[i], pfn, pArgs);
         }
         break;
 
@@ -446,14 +476,29 @@ traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
         {
             auto& obj = getObject(pNode);
 
-            for (u32 i = 0; i < obj.getSize(); i++)
-                traverseNode(&obj[i], pfn, pArgs);
+            for (ssize i = 0; i < obj.getSize(); i++)
+                traverseNodePOST(&obj[i], pfn, pArgs);
         }
         break;
     }
 
     if (pfn(pNode, pArgs))
         return;
+}
+
+void
+traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder)
+{
+    switch (eOrder)
+    {
+        case TRAVERSAL_ORDER::PRE:
+        traverseNodePRE(pNode, pfn, pArgs);
+        break;
+
+        case TRAVERSAL_ORDER::POST:
+        traverseNodePOST(pNode, pfn, pArgs);
+        break;
+    }
 }
 
 VecBase<Object>&
@@ -467,10 +512,20 @@ Parser::getRoot()
 }
 
 void
-Parser::traverse(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+Parser::traverse(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder)
 {
-    for (auto& obj : m_aObjects)
-        traverseNode(&obj, pfn, pArgs);
+    switch (eOrder)
+    {
+        case TRAVERSAL_ORDER::PRE:
+        for (auto& obj : m_aObjects)
+            traverseNodePRE(&obj, pfn, pArgs);
+        break;
+
+        case TRAVERSAL_ORDER::POST:
+        for (auto& obj : m_aObjects)
+            traverseNodePOST(&obj, pfn, pArgs);
+        break;
+    }
 }
 
 } /* namespace json */
