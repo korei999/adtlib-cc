@@ -1,26 +1,32 @@
 #include "adt/print.hh"
 #include "adt/Thread.hh"
+#include "adt/defer.hh"
 
 using namespace adt;
 
-static usize
+static THREAD_STATUS
 thread(void* pArg)
 {
     if (pArg)
+    {
         print::out("pArg: {}\n", *(int*)pArg);
+        return *(THREAD_STATUS*)pArg;
+    }
     else
+    {
         print::out("pArg: {}\n", nullptr);
-
-    return 0;
+        return 0;
+    }
 }
 
 int
 main()
 {
     int one = 1;
+
     Thread thrd1(thread, &one);
-    thrd1.join();
+    defer( thrd1.join() );
 
     Thread thrd2(thread, {});
-    thrd2.join();
+    defer( thrd2.join() );
 }
