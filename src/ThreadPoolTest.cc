@@ -1,3 +1,4 @@
+#include "adt/OsAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
@@ -6,55 +7,34 @@
 
 using namespace adt;
 
-thread_local static u8 tls_aBuff[2048] {};
-thread_local static ScratchBuffer tls_Scratch(Span{tls_aBuff});
-
-static THREAD_STATUS
-task(void* pArg)
-{
-    int size = 2048 / 4;
-    auto spBuff = tls_Scratch.nextMemZero<char>(size);
-    print::toBuffer(spBuff.data(), spBuff.getSize() - 1, "must not corrupt this string");
-    utils::sleepMS(*(f64*)pArg);
-
-    assert(String(spBuff.data()) == "must not corrupt this string");
-
-    LOG("done waiting for {}\n", *(f64*)pArg);
-    return {};
-}
-
-static THREAD_STATUS
-signaled(void*)
-{
-    LOG("signaled\n");
-
-    return {};
-}
-
-static u8 s_aBuff[100000] {};
+static std::atomic<int> i = 0;
 
 int
 main()
 {
-    BufferAllocator fixed(s_aBuff, sizeof(s_aBuff));
+    ThreadPool tp(OsAllocatorGet(), 100);
 
-    ThreadPool tp(&fixed);
-    defer( tp.destroy() );
-    tp.start();
+    auto inc = [&] {
+        i.fetch_add(1, std::memory_order_relaxed);
+    };
 
-    f64 ms = 500.0;
+    const int NTASKS = 100;
+    for (int i = 0; i < NTASKS; ++i)
+        tp.add(inc);
 
-    ThreadPoolLock lock(INIT);
-    defer( lock.destroy() );
-
-    tp.submit(task, &ms);
-    tp.submitSignal(signaled, {}, &lock);
-    tp.submit(task, &ms);
-
-    for (ssize i = 0; i < 100; ++i)
-        tp.submit(task, &ms);
+    tp.add([&]{ LOG("HWAT: {}\n", NTASKS); });
 
     tp.wait();
 
-    lock.wait();
+    tp.add(inc);
+    tp.add(inc);
+    tp.add(inc);
+    tp.add(inc);
+
+    tp.destroy();
+
+    LOG("destroyed: i: {}\n", i.load());
+    ADT_ASSERT(i.load(std::memory_order_relaxed) == NTASKS + 4, " ");
+
+    CERR("\n\n\n\n");
 }

@@ -69,6 +69,6 @@ main(int argc, char* argv[])
     }
     catch (IException& ex)
     {
-        ex.logErrorMsg(stderr);
+        ex.printErrorMsg(stderr);
     }
 }

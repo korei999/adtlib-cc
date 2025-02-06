@@ -75,7 +75,7 @@ main()
     }
     catch (IException& pEx)
     {
-        pEx.logErrorMsg(stderr);
+        pEx.printErrorMsg(stderr);
     }
 
     Arena arena(SIZE_1K);

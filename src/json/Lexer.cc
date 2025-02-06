@@ -151,14 +151,21 @@ Lexer::nextStringNoQuotes()
 Token
 Lexer::nextNumber()
 {
-    ADT_ASSERT(std::isdigit(m_sJson[m_pos]), " ");
+    /* allow '.' for floats */
+    ADT_ASSERT(
+        m_sJson[m_pos] == '.' ||
+        m_sJson[m_pos] == '-' ||
+        m_sJson[m_pos] == '+' ||
+        isxdigit(m_sJson[m_pos]),
+        "'%.*s'", 1, &m_sJson[m_pos]
+    );
 
     auto fPos = m_pos;
     TOKEN_TYPE eType = TOKEN_TYPE::NUMBER;
 
     while (
         m_pos < m_sJson.getSize() &&
-        (isdigit(m_sJson[m_pos])  ||
+        (isxdigit(m_sJson[m_pos])  ||
             m_sJson[m_pos] == '.' ||
             m_sJson[m_pos] == '+' ||
             m_sJson[m_pos] == '-'

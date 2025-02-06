@@ -26,7 +26,7 @@ struct String;
 [[nodiscard]] inline bool operator==(const String& l, const String& r);
 [[nodiscard]] inline bool operator==(const String& l, const char* r);
 [[nodiscard]] inline bool operator!=(const String& l, const String& r);
-[[nodiscard]] inline s64 operator-(const String& l, const String& r);
+[[nodiscard]] inline i64 operator-(const String& l, const String& r);
 
 /* StringAlloc() inserts '\0' char */
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const char* str, ssize size);
@@ -35,8 +35,6 @@ struct String;
 [[nodiscard]] inline String StringAlloc(IAllocator* p, const String s);
 
 [[nodiscard]] inline String StringCat(IAllocator* p, const String l, const String r);
-
-[[nodiscard]] inline ssize nGlyphs(const String str);
 
 /* just pointer + size, no allocations */
 struct String
@@ -81,6 +79,10 @@ struct String
     [[nodiscard]] const char& first() const;
     [[nodiscard]] char& last();
     [[nodiscard]] const char& last() const;
+    [[nodiscard]] ssize nGlyphs() const;
+
+    template<typename T>
+    [[nodiscard]] T reinterpret(ssize at) const;
 
     /* */
 
@@ -368,16 +370,20 @@ StringCmpAVX2(const String& l, const String& r)
     String nl(const_cast<char*>(&l[i*32]), leftOver);
     String nr(const_cast<char*>(&r[i*32]), leftOver);
 
-    return StringCmpFast(nl, nr);
+    return StringCmpSSE(nl, nr);
 }
 #endif
 
 inline bool
 operator==(const String& l, const String& r)
 {
-    if (l.m_size != r.m_size) return false;
-    if (l.data() == r.data()) return true; /* if points to itself */
-    return strncmp(l.m_pData, r.m_pData, l.m_size) == 0; /* strncmp is pretty fast actually */
+    if (l.data() == r.data())
+        return true;
+
+    if (l.getSize() != r.getSize())
+        return false;
+
+    return strncmp(l.data(), r.data(), l.getSize()) == 0; /* strncmp is as fast as AVX2 version (on my 8700k) */
 }
 
 inline bool
@@ -393,13 +399,13 @@ operator!=(const String& l, const String& r)
     return !(l == r);
 }
 
-inline s64
+inline i64
 operator-(const String& l, const String& r)
 {
     if (l.m_size < r.m_size) return -1;
     else if (l.m_size > r.m_size) return 1;
 
-    s64 sum = 0;
+    i64 sum = 0;
     for (ssize i = 0; i < l.m_size; i++)
         sum += (l[i] - r[i]);
 
@@ -525,7 +531,8 @@ String::contains(const String r) const
     for (ssize i = 0; i < m_size - r.m_size + 1; ++i)
     {
         const String sSub {const_cast<char*>(&(*this)[i]), r.m_size};
-        if (sSub == r) return true;
+        if (sSub == r)
+            return true;
     }
 
     return false;
@@ -562,16 +569,23 @@ String::last() const
 }
 
 inline ssize
-nGlyphs(const String str)
+String::nGlyphs() const
 {
     ssize n = 0;
-    for (ssize i = 0; i < str.m_size; )
+    for (ssize i = 0; i < m_size; )
     {
-        i+= mblen(&str[i], str.m_size - i);
+        i+= mblen(&operator[](i), getSize() - i);
         ++n;
     }
 
     return n;
+}
+
+template<typename T>
+ADT_NO_UB inline T
+String::reinterpret(ssize at) const
+{
+    return *(T*)(&operator[](at));
 }
 
 template<>
@@ -580,16 +594,5 @@ hash::func(const String& str)
 {
     return hash::func(str.m_pData, str.getSize());
 }
-
-namespace utils
-{
-
-[[nodiscard]] constexpr bool
-empty(const String* s)
-{
-    return s->m_size == 0;
-}
-
-} /* namespace utils */
 
 } /* namespace adt */

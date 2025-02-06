@@ -1,9 +1,8 @@
 #pragma once
 
 #include "Lexer.hh"
-#include  "adt/Vec.hh"
 
-#include <cassert>
+#include  "adt/Vec.hh"
 
 namespace json
 {
@@ -35,7 +34,7 @@ union Val
 {
     adt::null n;
     adt::String s;
-    adt::s64 l;
+    adt::i64 l;
     adt::f64 d;
     adt::VecBase<Object> a;
     adt::VecBase<Object> o;
@@ -165,42 +164,42 @@ searchObject(adt::VecBase<Object>& aObj, adt::String sKey)
 [[nodiscard]] inline adt::VecBase<Object>&
 getObject(Object* obj)
 {
-    assert(obj->tagVal.eTag == TAG::OBJECT);
+    ADT_ASSERT(obj->tagVal.eTag == TAG::OBJECT, " ");
     return obj->tagVal.val.o;
 }
 
 [[nodiscard]] inline adt::VecBase<Object>&
 getArray(Object* obj)
 {
-    assert(obj->tagVal.eTag == TAG::ARRAY);
+    ADT_ASSERT(obj->tagVal.eTag == TAG::ARRAY, " ");
     return obj->tagVal.val.a;
 }
 
-[[nodiscard]] inline adt::s64
+[[nodiscard]] inline adt::i64
 getLong(Object* obj)
 {
-    assert(obj->tagVal.eTag == TAG::LONG);
+    ADT_ASSERT(obj->tagVal.eTag == TAG::LONG, " ");
     return obj->tagVal.val.l;
 }
 
 [[nodiscard]] inline double
 getDouble(Object* obj)
 {
-    assert(obj->tagVal.eTag == TAG::DOUBLE);
+    ADT_ASSERT(obj->tagVal.eTag == TAG::DOUBLE, " ");
     return obj->tagVal.val.d;
 }
 
 [[nodiscard]] inline adt::String
 getString(Object* obj)
 {
-    assert(obj->tagVal.eTag == TAG::STRING);
+    ADT_ASSERT(obj->tagVal.eTag == TAG::STRING, " ");
     return obj->tagVal.val.s;
 }
 
 [[nodiscard]] inline bool
 getBool(Object* obj)
 {
-    assert(obj->tagVal.eTag == TAG::BOOL);
+    ADT_ASSERT(obj->tagVal.eTag == TAG::BOOL, " ");
     return obj->tagVal.val.b;
 }
 
@@ -223,7 +222,7 @@ makeArray(adt::IAllocator* pAlloc, adt::String key)
 }
 
 [[nodiscard]] inline Object
-makeNumber(adt::String key, adt::s64 l)
+makeNumber(adt::String key, adt::i64 l)
 {
     return {
         .sKey = key,
