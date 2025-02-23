@@ -2,6 +2,8 @@
 
 #include "adt/types.hh"
 
+#include <type_traits>
+
 #if __has_include(<windows.h>)
     #define ADT_USE_WIN32THREAD
 #elif __has_include(<pthread.h>)
@@ -81,7 +83,10 @@ struct Thread
 
     Thread() = default;
     Thread(THREAD_STATUS (*pfn)(void*), void* pFnArg);
-    template<typename LAMBDA> Thread(LAMBDA l);
+    template<typename LAMBDA> Thread(LAMBDA& l);
+
+    template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
+    [[deprecated("rvalue lambdas cause use after free")]] Thread(LAMBDA&& l) = delete;
 
     /* */
 
@@ -128,7 +133,7 @@ Thread::Thread(THREAD_STATUS (*pfn)(void*), void* pFnArg)
 
 template<typename LAMBDA>
 inline
-Thread::Thread(LAMBDA l)
+Thread::Thread(LAMBDA& l)
 {
 #ifdef ADT_USE_PTHREAD
 
@@ -138,17 +143,17 @@ Thread::Thread(LAMBDA l)
         return nullptr;
     };
 
-    pthread_create(&m_thread, {}, stub, &l);
+    pthread_create(&m_thread, {}, stub, reinterpret_cast<void*>(&l));
 
 #elif defined ADT_USE_WIN32THREAD
 
     auto stub = +[](void* pArg) -> THREAD_STATUS
     {
-        (*reinterpret_cast<decltype(l)*>(pArg))();
+        (*reinterpret_cast<LAMBDA*>(pArg))();
         return 0;
     };
 
-    m_thread = CreateThread(nullptr, 0, stub, &l, 0, &m_id);
+    m_thread = CreateThread(nullptr, 0, stub, reinterpret_cast<void*>(&l), 0, &m_id);
 
 #endif
 }

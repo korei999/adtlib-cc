@@ -20,16 +20,17 @@ main()
 
     const int NTASKS = 100;
     for (int i = 0; i < NTASKS; ++i)
-        tp.add(inc);
+        tp.addLambda(inc);
 
-    tp.add([&]{ LOG("HWAT: {}\n", NTASKS); });
+    auto log = [&] { LOG("HWAT: {}\n", NTASKS); };
+    tp.addLambda(log);
 
     tp.wait();
 
-    tp.add(inc);
-    tp.add(inc);
-    tp.add(inc);
-    tp.add(inc);
+    tp.addLambda(inc);
+    tp.addLambda(inc);
+    tp.addLambda(inc);
+    tp.addLambda(inc);
 
     tp.destroy();
 

@@ -1,3 +1,4 @@
+#include "adt/logs.hh"
 #include "adt/print.hh"
 #include "adt/Thread.hh"
 #include "adt/defer.hh"
@@ -24,9 +25,13 @@ main()
 {
     int one = 1;
 
-    Thread thrd1(thread, &one);
-    defer( thrd1.join() );
+    {
+        Thread thrd1(thread, &one);
+        defer( thrd1.join() );
 
-    Thread thrd2(thread, {});
-    defer( thrd2.join() );
+        Thread thrd2(thread, {});
+        defer( thrd2.join() );
+    }
+
+    LOG("one: {}\n", one);
 }
