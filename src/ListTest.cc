@@ -8,7 +8,7 @@ using namespace adt;
 int
 main()
 {
-    List<long> list(OsAllocatorGet());
+    ListManaged<long> list(OsAllocatorGet());
     defer( list.destroy() );
 
     list.pushBack(1);

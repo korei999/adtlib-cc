@@ -7,10 +7,10 @@ using namespace adt;
 namespace json
 {
 
-#define OK_OR_RET(RES) if (RES == STATUS::FAIL) return STATUS::FAIL;
+#define OK_OR_RET(RES) if (!RES) return false;
 
-STATUS
-Parser::parse(IAllocator* pAlloc, String sJson)
+bool
+Parser::parse(IAllocator* pAlloc, StringView sJson)
 {
     m_pAlloc = pAlloc;
     m_lex = Lexer(sJson);
@@ -21,31 +21,31 @@ Parser::parse(IAllocator* pAlloc, String sJson)
     if ((m_tCurr.eType != TOKEN_TYPE::L_BRACE) && (m_tCurr.eType != TOKEN_TYPE::L_BRACKET))
     {
         CERR("wrong first token\n");
-        return STATUS::FAIL;
+        return false;
     }
 
     do
     {
         m_aObjects.push(m_pAlloc, {});
-        if (parseNode(&m_aObjects.last()) == STATUS::FAIL)
+        if (!parseNode(&m_aObjects.last()))
         {
             LOG_WARN("parseNode() failed\n");
-            return STATUS::FAIL;
+            return false;
         }
     }
     while (m_tCurr.eType == TOKEN_TYPE::L_BRACE); /* some json files have multiple root objects */
 
-    return STATUS::OK;
+    return true;
 }
 
-STATUS
+bool
 Parser::printNodeError()
 {
     const auto& tok = m_tCurr;
     CERR("({}, {}): unexpected token: '{}'\n",
         tok.row, tok.column, m_tCurr.eType
     );
-    return STATUS::FAIL;
+    return false;
 }
 
 void
@@ -55,44 +55,42 @@ Parser::next()
     m_tNext = m_lex.next();
 }
 
-STATUS
+bool
 Parser::expect(TOKEN_TYPE t)
 {
     const auto& tok = m_tCurr;
 
-    if (u32(tok.eType & t) > 0u)
+    if (!!(tok.eType & t))
     {
-        return STATUS::OK;
+        return true;
     }
     else
     {
         CERR("({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
              tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
         );
-        return STATUS::FAIL;
+        return false;
     }
 }
 
-STATUS
+bool
 Parser::expectNot(TOKEN_TYPE t)
 {
     const auto& tok = m_tCurr;
 
-    if (u32(tok.eType & t) > 0u)
+    if (!!(tok.eType & t))
     {
         CERR("({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
              tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
         );
-        return STATUS::FAIL;
+        return false;
     }
-    else return STATUS::OK;
+    else return true;
 }
 
-STATUS
-Parser::parseNode(Object* pNode)
+bool
+Parser::parseNode(Node* pNode)
 {
-    /*LOG_WARN("({}, {}): '{}': '{}'\n", m_tCurr.row, m_tCurr.column, m_tCurr.eType, m_tCurr.sLiteral);*/
-
     switch (m_tCurr.eType)
     {
         default:
@@ -126,7 +124,7 @@ Parser::parseNode(Object* pNode)
         break;
     }
 
-    return STATUS::OK;
+    return true;
 }
 
 void
@@ -167,11 +165,11 @@ Parser::parseFloat(TagVal* pTV)
     next();
 }
 
-STATUS
-Parser::parseObject(Object* pNode)
+bool
+Parser::parseObject(Node* pNode)
 {
     pNode->tagVal.eTag = TAG::OBJECT;
-    pNode->tagVal.val.o = VecBase<Object>(m_pAlloc);
+    pNode->tagVal.val.o = Vec<Node>(m_pAlloc);
     auto& aObjs = getObject(pNode);
 
     while (m_tCurr.eType != TOKEN_TYPE::R_BRACE)
@@ -179,7 +177,7 @@ Parser::parseObject(Object* pNode)
         /* make sure key is quoted */
         OK_OR_RET(expect(TOKEN_TYPE::QUOTED_STRING));
 
-        aObjs.push(m_pAlloc, {.sKey = m_tCurr.sLiteral, .tagVal = {}});
+        aObjs.push(m_pAlloc, {.svKey = m_tCurr.sLiteral, .tagVal = {}});
 
         /* skip identifier and ':' */
         next();
@@ -201,16 +199,17 @@ Parser::parseObject(Object* pNode)
         }
     }
 
-    if (aObjs.getSize() == 0) next();
+    if (aObjs.empty())
+        next();
 
-    return STATUS::OK;
+    return true;
 }
 
-STATUS
-Parser::parseArray(Object* pNode)
+bool
+Parser::parseArray(Node* pNode)
 {
     pNode->tagVal.eTag = TAG::ARRAY;
-    pNode->tagVal.val.a = VecBase<Object>(m_pAlloc);
+    pNode->tagVal.val.a = Vec<Node>(m_pAlloc);
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
@@ -253,15 +252,16 @@ Parser::parseArray(Object* pNode)
         }
     }
 
-    if (aTVs.getSize() == 0) next();
+    if (aTVs.empty())
+        next();
 
-    return STATUS::OK;
+    return true;
 }
 
 void
 Parser::destroy()
 {
-    auto fn = +[](Object* p, void* a) -> bool {
+    auto fn = +[](Node* p, void* a) -> bool {
         auto* pAlloc = (IAllocator*)a;
 
         if (p->tagVal.eTag == TAG::ARRAY || p->tagVal.eTag == TAG::OBJECT)
@@ -285,9 +285,9 @@ Parser::print(FILE* fp)
 }
 
 void
-printNode(FILE* fp, Object* pNode, String sEnd, int depth)
+printNode(FILE* fp, Node* pNode, StringView sEnd, int depth)
 {
-    String key = pNode->sKey;
+    StringView key = pNode->svKey;
 
     switch (pNode->tagVal.eTag)
     {
@@ -296,7 +296,7 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
         case TAG::OBJECT:
         {
             auto& obj = getObject(pNode);
-            String q0, q1, objName0, objName1;
+            StringView q0, q1, objName0, objName1;
 
             if (key.getSize() == 0)
             {
@@ -312,7 +312,7 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
             print::toFILE(fp, "{:{}}{}{}{}{}{\n", depth, "", q0, objName0, q1, objName1);
             for (u32 i = 0; i < obj.getSize(); i++)
             {
-                String slE = (i == obj.getSize() - 1) ? "\n" : ",\n";
+                StringView slE = (i == obj.getSize() - 1) ? "\n" : ",\n";
                 printNode(fp, &obj[i], slE, depth + 2);
             }
             print::toFILE(fp, "{:{}}}{}", depth, "", sEnd);
@@ -322,7 +322,7 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
         case TAG::ARRAY:
         {
             auto& arr = getArray(pNode);
-            String q0, q1, arrName0, arrName1;
+            StringView q0, q1, arrName0, arrName1;
 
             if (key.getSize() == 0)
             {
@@ -346,14 +346,14 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
             print::toFILE(fp, "{}{}{}{}[\n", q0, arrName0, q1, arrName1);
             for (u32 i = 0; i < arr.getSize(); i++)
             {
-                String slE = (i == arr.getSize() - 1) ? "\n" : ",\n";
+                StringView slE = (i == arr.getSize() - 1) ? "\n" : ",\n";
 
                 switch (arr[i].tagVal.eTag)
                 {
                     default:
                     case TAG::STRING:
                     {
-                        String sl = getString(&arr[i]);
+                        StringView sl = getString(&arr[i]);
                         print::toFILE(fp, "{:{}}\"{}\"{}", depth + 2, "", sl, slE);
                     }
                     break;
@@ -412,7 +412,7 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
 
         case TAG::STRING:
         {
-            String sl = getString(pNode);
+            StringView sl = getString(pNode);
             print::toFILE(fp, "{:{}}\"{}\": \"{}\"{}", depth, "", key, sl, sEnd);
         }
         break;
@@ -427,7 +427,7 @@ printNode(FILE* fp, Object* pNode, String sEnd, int depth)
 }
 
 static void
-traverseNodePRE(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+traverseNodePRE(Node* pNode, bool (*pfn)(Node* p, void* pFnArgs), void* pArgs)
 {
     if (pfn(pNode, pArgs))
         return;
@@ -457,7 +457,7 @@ traverseNodePRE(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArg
 }
 
 static void
-traverseNodePOST(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs)
+traverseNodePOST(Node* pNode, bool (*pfn)(Node* p, void* pFnArgs), void* pArgs)
 {
     switch (pNode->tagVal.eTag)
     {
@@ -487,7 +487,7 @@ traverseNodePOST(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pAr
 }
 
 void
-traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder)
+traverseNode(Node* pNode, bool (*pfn)(Node* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder)
 {
     switch (eOrder)
     {
@@ -501,7 +501,7 @@ traverseNode(Object* pNode, bool (*pfn)(Object* p, void* pFnArgs), void* pArgs, 
     }
 }
 
-VecBase<Object>&
+Vec<Node>&
 Parser::getRoot()
 {
     ADT_ASSERT(m_aObjects.getSize() > 0, "empty");
@@ -511,8 +511,18 @@ Parser::getRoot()
     else return m_aObjects;
 }
 
+const Vec<Node>&
+Parser::getRoot() const
+{
+    ADT_ASSERT(m_aObjects.getSize() > 0, "empty");
+
+    if (m_aObjects.getSize() == 1)
+        return getObject(&m_aObjects.first());
+    else return m_aObjects;
+}
+
 void
-Parser::traverse(bool (*pfn)(Object* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder)
+Parser::traverse(bool (*pfn)(Node* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder)
 {
     switch (eOrder)
     {

@@ -40,7 +40,7 @@ enum _ADT_LOG_SEV
     _ADT_LOG_SEV_ENUM_SIZE,
 };
 
-constexpr adt::String _ADT_LOG_SEV_STR[] = {
+constexpr adt::StringView _ADT_LOG_SEV_STR[] = {
     "",
     ADT_LOGS_COL_GREEN "GOOD: " ADT_LOGS_COL_NORM,
     ADT_LOGS_COL_CYAN "NOTIFY: " ADT_LOGS_COL_NORM,
@@ -57,7 +57,7 @@ constexpr adt::String _ADT_LOG_SEV_STR[] = {
         do                                                                                                             \
         {                                                                                                              \
             assert(SEV >= 0 && SEV < _ADT_LOG_SEV_ENUM_SIZE && "wrong _ADT_LOG_SEV*");                                 \
-            ADT_CERR("({}{}, {}): ", _ADT_LOG_SEV_STR[SEV], ADT_LOGS_FILE, __LINE__);                                  \
+            ADT_CERR("({}{}, {}(), {}): ", _ADT_LOG_SEV_STR[SEV], ADT_LOGS_FILE, __FUNCTION__, __LINE__);                \
             ADT_CERR(__VA_ARGS__);                                                                                     \
             switch (SEV)                                                                                               \
             {                                                                                                          \

@@ -16,7 +16,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    String sHello = StringAlloc(&arena, "What is this");
+    String sHello = String(&arena, "What is this");
 
     bool bNull = sHello.contains("");
 
@@ -34,14 +34,14 @@ main()
     sHello.destroy(&arena);
 
     {
-        String s0 = "HELLO BIDEN";
+        StringView s0 = "HELLO BIDEN";
         for (auto ch : ReverseIt(s0))
             putchar(ch);
         putchar('\n');
     }
 
     {
-        const String s = "私は日本語を話せません";
+        const StringView s = "私は日本語を話せません";
         assert(s.endsWith("せません"));
         COUT("s: '{}'\n", s);
 
@@ -52,7 +52,7 @@ main()
     }
 
     {
-        constexpr String s = "word0 word1 word2 word3";
+        constexpr StringView s = "word0 word1 word2 word3";
         for (const auto& sWord : StringWordIt(s))
         {
             COUT("'{}'\n", sWord);
@@ -60,8 +60,8 @@ main()
     }
 
     {
-        constexpr String s = "comma0,comma1,comma2,comma3";
-        for (const auto& sWord : StringWordIt(s, ','))
+        constexpr StringView s = "comma0,comma1,comma2,comma3";
+        for (const auto& sWord : StringWordIt(s, ","))
         {
             COUT("'{}'\n", sWord);
         }

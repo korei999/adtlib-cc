@@ -9,7 +9,6 @@ int
 main()
 {
     Pool<long, 32> p(INIT);
-    defer( p.destroy() );
 
     [[maybe_unused]] auto h32 = p.push(32L);
     [[maybe_unused]] auto h15 = p.push(15L);

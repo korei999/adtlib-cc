@@ -3,13 +3,6 @@
 #include "adt/types.hh"
 
 #if __has_include(<windows.h>)
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN 1
-    #endif
-    #ifndef NOMINMAX
-        #define NOMINMAX
-    #endif
-    #include <windows.h>
     #define ADT_USE_WIN32THREAD
 #elif __has_include(<pthread.h>)
     #include <pthread.h>
@@ -21,20 +14,6 @@
 
     #define ADT_GET_NPROCS() get_nprocs()
 #elif _WIN32
-    #define WIN32_LEAN_AND_MEAN 1
-    #include <windows.h>
-    #ifdef min
-        #undef min
-    #endif
-    #ifdef max
-        #undef max
-    #endif
-    #ifdef near
-        #undef near
-    #endif
-    #ifdef far
-        #undef far
-    #endif
     #include <sysinfoapi.h>
 
 inline DWORD
@@ -165,7 +144,7 @@ Thread::Thread(LAMBDA l)
 
     auto stub = +[](void* pArg) -> THREAD_STATUS
     {
-        (*reinterpret_cast<LABMDA*>(pArg))();
+        (*reinterpret_cast<decltype(l)*>(pArg))();
         return 0;
     };
 
@@ -235,15 +214,14 @@ Thread::win32Detach()
 }
 
 #endif
-
-enum MUTEX_TYPE : u8
-{
-    PLAIN = 0,
-    RECURSIVE = 1,
-};
-
 struct Mutex
 {
+    enum TYPE : u8
+    {
+        PLAIN = 0,
+        RECURSIVE = 1,
+    };
+
 #ifdef ADT_USE_PTHREAD
 
     pthread_mutex_t m_mtx {};
@@ -258,7 +236,7 @@ struct Mutex
     /* */
 
     Mutex() = default;
-    Mutex(MUTEX_TYPE eType);
+    explicit Mutex(TYPE eType);
 
     /* */
 
@@ -270,7 +248,7 @@ struct Mutex
 private:
 #ifdef ADT_USE_PTHREAD
 
-    int pthreadAttrType(MUTEX_TYPE eType) { return (int)eType; }
+    int pthreadAttrType(TYPE eType) { return (int)eType; }
 
 #elif defined ADT_USE_WIN32THREAD
 
@@ -278,7 +256,7 @@ private:
 };
 
 inline
-Mutex::Mutex(MUTEX_TYPE eType)
+Mutex::Mutex([[maybe_unused]] TYPE eType)
 {
 #ifdef ADT_USE_PTHREAD
 
@@ -367,7 +345,7 @@ struct CndVar
     /* */
 
     CndVar() = default;
-    CndVar(INIT_FLAG);
+    explicit CndVar(InitFlag);
 
     /* */
 
@@ -379,7 +357,7 @@ struct CndVar
 };
 
 inline
-CndVar::CndVar(INIT_FLAG)
+CndVar::CndVar(InitFlag)
 {
 #ifdef ADT_USE_PTHREAD
 
@@ -489,7 +467,7 @@ struct CallOnce
     /* */
 
     CallOnce() = default;
-    CallOnce(INIT_FLAG);
+    explicit CallOnce(InitFlag);
 
     /* */
 
@@ -497,7 +475,7 @@ struct CallOnce
 };
 
 inline
-CallOnce::CallOnce(INIT_FLAG)
+CallOnce::CallOnce(InitFlag)
 {
 #ifdef ADT_USE_PTHREAD
 
@@ -519,14 +497,13 @@ CallOnce::exec(void (*pfn)())
 
 #elif defined ADT_USE_WIN32THREAD
 
-    auto stub = +[](PINIT_ONCE InitOnce, PVOID Parameter, PVOID *lpContext) -> BOOL
+    auto stub = +[](PINIT_ONCE, PVOID Parameter, [[maybe_unused]] PVOID *lpContext) -> BOOL
     {
-        auto pfnStub = reinterpret_cast<void(*)()>(Parameter);
-        pfnStub();
+        (reinterpret_cast<void(*)()>(Parameter))();
         return TRUE;
     };
 
-    InitOnceExecuteOnce(&m_initOnce, stub, pfn, nullptr);
+    return InitOnceExecuteOnce(&m_onceCtrl, stub, reinterpret_cast<void*>(pfn), nullptr);
 
 #endif
 }

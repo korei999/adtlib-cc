@@ -93,7 +93,7 @@ union IV2
     }
 };
 
-constexpr inline 
+constexpr inline
 V2::operator IV2() const
 {
     return {
@@ -128,16 +128,20 @@ union V4
     struct { f32 x, y, z, w; };
     struct { f32 r, g, b, a; };
 
+    /* */
+
     constexpr explicit operator IV4() const;
 };
 
 union IV4
 {
-    int e[4];
-    struct { IV3 xyz; int _v3pad; };
+    i32 e[4];
+    struct { IV3 xyz; i32 _v3pad; };
     struct { IV2 xy; IV2 zw; };
-    struct { int x, y, z, w; };
-    struct { int r, g, b, a; };
+    struct { i32 x, y, z, w; };
+    struct { i32 r, g, b, a; };
+
+    /* */
 
     constexpr explicit operator V4() const
     {
@@ -150,14 +154,70 @@ union IV4
     }
 };
 
+union IV4u8
+{
+    u8 e[4];
+    struct { u8 x, y, z, w; };
+
+    /* */
+
+    constexpr explicit operator IV4() const
+    {
+        return {
+            static_cast<i32>(x),
+            static_cast<i32>(y),
+            static_cast<i32>(z),
+            static_cast<i32>(w)
+        };
+    }
+
+    constexpr explicit operator V4() const
+    {
+        return {
+            static_cast<f32>(x),
+            static_cast<f32>(y),
+            static_cast<f32>(z),
+            static_cast<f32>(w)
+        };
+    }
+};
+
+union IV4u16
+{
+    u16 e[4];
+    struct { u16 x, y, z, w; };
+
+    /* */
+
+    constexpr explicit operator IV4() const
+    {
+        return {
+            static_cast<i32>(x),
+            static_cast<i32>(y),
+            static_cast<i32>(z),
+            static_cast<i32>(w)
+        };
+    }
+
+    constexpr explicit operator V4() const
+    {
+        return {
+            static_cast<f32>(x),
+            static_cast<f32>(y),
+            static_cast<f32>(z),
+            static_cast<f32>(w)
+        };
+    }
+};
+
 constexpr inline
 V4::operator IV4() const
 {
     return {
-        static_cast<int>(x),
-        static_cast<int>(y),
-        static_cast<int>(z),
-        static_cast<int>(w),
+        static_cast<i32>(x),
+        static_cast<i32>(y),
+        static_cast<i32>(z),
+        static_cast<i32>(w),
     };
 }
 
@@ -168,11 +228,17 @@ union M2
     V2 v[2];
 };
 
+union M4;
+
 union M3
 {
     f32 d[9];
     f32 e[3][3];
     V3 v[3];
+
+    /* */
+
+    constexpr explicit operator M4() const;
 };
 
 union M4
@@ -196,7 +262,27 @@ union Qt
     V4 base;
     f32 e[4];
     struct { f32 x, y, z, w; };
+
+    /* */
+
+    Qt
+    getSwapped()
+    {
+        Qt ret {.x = w, .y = z, .z = y, .w = x};
+        return ret;
+    }
 };
+
+constexpr
+M3::operator M4() const
+{
+    return {
+        e[0][0], e[0][1], e[0][2], 0,
+        e[1][0], e[1][1], e[1][2], 0,
+        e[2][0], e[2][1], e[2][2], 0,
+        0,       0,       0,       0
+    };
+}
 
 constexpr V2
 V2From(const f32 x, const f32 y)
@@ -220,6 +306,18 @@ constexpr V3
 V3From(f32 x, f32 y, f32 z)
 {
     return {x, y, z};
+}
+
+constexpr V3
+V3From(const V3& v)
+{
+    return v;
+}
+
+constexpr V3
+V3From(const V4& v)
+{
+    return {v.x, v.y, v.z};
 }
 
 constexpr V4
@@ -429,6 +527,21 @@ operator/(const V3& v, f32 s)
     };
 }
 
+inline V3
+operator+(V3 a, f32 b)
+{
+    a.x += b;
+    a.y += b;
+    a.z += b;
+    return a;
+}
+
+inline V3&
+operator+=(V3& a, f32 b)
+{
+    return a = a + b;
+}
+
 inline V3&
 operator+=(V3& l, const V3& r)
 {
@@ -462,6 +575,17 @@ operator+(const V4& l, const V4& r)
         .z = l.z + r.z,
         .w = l.w + r.w
     };
+}
+
+inline V4
+operator-(const V4& l)
+{
+    V4 res;
+    res.x = -l.x;
+    res.y = -l.y;
+    res.z = -l.z;
+    res.w = -l.w;
+    return res;
 }
 
 inline V4
@@ -674,10 +798,10 @@ M4Cofactors(const M4& s)
     M4 m = M4Minors(s);
     auto& e = m.e;
 
-    e[0][0] *= +1.0f, e[0][1] *= -1, e[0][2] *= +1, e[0][3] *= -1;
-    e[1][0] *= -1.0f, e[1][1] *= +1, e[1][2] *= -1, e[1][3] *= +1;
-    e[2][0] *= +1.0f, e[2][1] *= -1, e[2][2] *= +1, e[2][3] *= -1;
-    e[3][0] *= -1.0f, e[3][1] *= +1, e[3][2] *= -1, e[3][3] *= +1;
+    e[0][0] *= +1, e[0][1] *= -1, e[0][2] *= +1, e[0][3] *= -1;
+    e[1][0] *= -1, e[1][1] *= +1, e[1][2] *= -1, e[1][3] *= +1;
+    e[2][0] *= +1, e[2][1] *= -1, e[2][2] *= +1, e[2][3] *= -1;
+    e[3][0] *= -1, e[3][1] *= +1, e[3][2] *= -1, e[3][3] *= +1;
 
     return m;
 }
@@ -739,6 +863,13 @@ operator*(const M4& l, const f32 r)
     return m;
 }
 
+inline M4
+operator*(const M4& a, bool)
+{
+    ADT_ASSERT(false, "mul with bool is no good");
+    return a;
+}
+
 inline M3&
 operator*=(M3& l, const f32 r)
 {
@@ -755,6 +886,13 @@ operator*=(M4& l, const f32 r)
         l.d[i] *= r;
 
     return l;
+}
+
+inline M4&
+operator*=(M4& a, bool)
+{
+    ADT_ASSERT(false, "mul with bool is no good");
+    return a;
 }
 
 inline M3
@@ -1230,12 +1368,12 @@ QtRot(const Qt& q)
     auto& x = q.x;
     auto& y = q.y;
     auto& z = q.z;
-    auto& s = q.w;
+    auto& w = q.w;
 
     return {
-        1 - 2*y*y - 2*z*z, 2*x*y - 2*s*z,     2*x*z + 2*s*y,     0,
-        2*x*y + 2*s*z,     1 - 2*x*x - 2*z*z, 2*y*z - 2*s*x,     0,
-        2*x*z - 2*s*y,     2*y*z + 2*s*x,     1 - 2*x*x - 2*y*y, 0,
+        1 - 2*y*y - 2*z*z, 2*x*y - 2*w*z,     2*x*z + 2*w*y,     0,
+        2*x*y + 2*w*z,     1 - 2*x*x - 2*z*z, 2*y*z - 2*w*x,     0,
+        2*x*z - 2*w*y,     2*y*z + 2*w*x,     1 - 2*x*x - 2*y*y, 0,
         0,                 0,                 0,                 1
     };
 }
@@ -1244,6 +1382,14 @@ inline Qt
 QtConj(const Qt& q)
 {
     return {-q.x, -q.y, -q.z, q.w};
+}
+
+inline Qt
+operator-(const Qt& l)
+{
+    Qt res;
+    res.base = -l.base;
+    return res;
 }
 
 inline Qt
@@ -1260,12 +1406,7 @@ operator*(const Qt& l, const Qt& r)
 inline Qt
 operator*(const Qt& l, const V4& r)
 {
-    return {
-        l.w*r.x + l.x*r.w + l.y*r.z - l.z*r.y,
-        l.w*r.y - l.x*r.z + l.y*r.w + l.z*r.x,
-        l.w*r.z + l.x*r.y - l.y*r.x + l.z*r.w,
-        l.w*r.w - l.x*r.x - l.y*r.y - l.z*r.z,
-    };
+    return l * (*(Qt*)&r);
 }
 
 inline Qt
@@ -1278,6 +1419,19 @@ inline Qt
 operator*=(Qt& l, const V4& r)
 {
     return l = l * r;
+}
+
+inline bool
+operator==(const Qt& a, const Qt& b)
+{
+    return a.base == b.base;
+}
+
+inline Qt
+QtNorm(Qt a)
+{
+    f32 mag = std::sqrt(a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z);
+    return {a.x / mag, a.y / mag, a.z / mag, a.w / mag};
 }
 
 inline V2
@@ -1299,9 +1453,48 @@ normalize(const V4& v)
 }
 
 constexpr inline auto
-lerp(auto& l, auto& r, auto& t)
+lerp(auto& a, auto& b, auto& t)
 {
-    return l + (r - l)*t;
+    return (1.0 - t) * a + t * b;
+}
+
+inline Qt
+slerp(const Qt& q1, const Qt& q2, f32 t)
+{
+    auto dot = V4Dot(q1.base, q2.base);
+
+    Qt q2b = q2;
+    if (dot < 0.0f)
+    {
+        q2b = -q2b;
+        dot = -dot;
+    }
+
+    if (dot > 0.9995f)
+    {
+        Qt res;
+        res.x = q1.x + t * (q2b.x - q1.x);
+        res.y = q1.y + t * (q2b.y - q1.y);
+        res.z = q1.z + t * (q2b.z - q1.z);
+        res.w = q1.w + t * (q2b.w - q1.w);
+        return QtNorm(res);
+    }
+
+    f32 theta0 = std::acos(dot);
+    f32 theta = theta0 * t;
+
+    f32 sinTheta0 = std::sin(theta0);
+    f32 sinTheta = std::sin(theta);
+
+    f32 s1 = std::cos(theta) - dot * (sinTheta / sinTheta0);
+    f32 s2 = sinTheta / sinTheta0;
+
+    Qt res;
+    res.x = (s1 * q1.x) + (s2 * q2b.x);
+    res.y = (s1 * q1.y) + (s2 * q2b.y);
+    res.z = (s1 * q1.z) + (s2 * q2b.z);
+    res.w = (s1 * q1.w) + (s2 * q2b.w);
+    return res;
 }
 
 template<typename T>
@@ -1333,31 +1526,51 @@ namespace adt::print
 {
 
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::V2& x)
+formatToContext(Context ctx, FormatArgs, const math::V2& x)
 {
-    ctx.fmt = "[{:.3}, {:.3}]";
+    ctx.fmt = "{:.3}, {:.3}";
     ctx.fmtIdx = 0;
     return printArgs(ctx, x.x, x.y);
 }
 
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::V3& x)
+formatToContext(Context ctx, FormatArgs, const math::V3& x)
 {
-    ctx.fmt = "[{:.3}, {:.3}, {:.3}]";
+    ctx.fmt = "{:.3}, {:.3}, {:.3}";
     ctx.fmtIdx = 0;
     return printArgs(ctx, x.x, x.y, x.z);
 }
 
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::V4& x)
+formatToContext(Context ctx, FormatArgs, const math::V4& x)
 {
-    ctx.fmt = "[{:.3}, {:.3}, {:.3}, {:.3}]";
+    ctx.fmt = "{:.3}, {:.3}, {:.3}, {:.3}";
     ctx.fmtIdx = 0;
     return printArgs(ctx, x.x, x.y, x.z, x.w);
 }
 
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::M2& x)
+formatToContext(Context ctx, FormatArgs fmtArgs, const math::IV4& x)
+{
+    i32 aBuff[4] {x.x, x.y, x.z, x.w};
+    return formatToContext(ctx, fmtArgs, aBuff);
+}
+
+inline ssize
+formatToContext(Context ctx, FormatArgs fmtArgs, const math::IV4u16& x)
+{
+    u16 aBuff[4] {x.x, x.y, x.z, x.w};
+    return formatToContext(ctx, fmtArgs, aBuff);
+}
+
+inline ssize
+formatToContext(Context ctx, FormatArgs fmtArgs, const math::Qt& x)
+{
+    return formatToContext(ctx, fmtArgs, x.base);
+}
+
+inline ssize
+formatToContext(Context ctx, FormatArgs, const math::M2& x)
 {
     ctx.fmt = "\n\t[{:.3}, {:.3}"
               "\n\t {:.3}, {:.3}]";
@@ -1366,7 +1579,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::M2
 }
 
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::M3& x)
+formatToContext(Context ctx, FormatArgs, const math::M3& x)
 {
     ctx.fmt = "\n\t[{:.3}, {:.3}, {:.3}"
               "\n\t {:.3}, {:.3}, {:.3}"
@@ -1380,7 +1593,7 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::M3
 }
 
 inline ssize
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const math::M4& x)
+formatToContext(Context ctx, FormatArgs, const math::M4& x)
 {
     ctx.fmt = "\n\t[{:.3}, {:.3}, {:.3}, {:.3}"
               "\n\t {:.3}, {:.3}, {:.3}, {:.3}"

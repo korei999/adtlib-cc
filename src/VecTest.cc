@@ -26,18 +26,18 @@ main()
         Arena arena(SIZE_1K);
         defer( arena.freeAll() );
 
-        Vec<int> vec(&arena);
+        VecManaged<int> vec(&arena);
         for (int i = 0; i < 100000; ++i)
             vec.push(i);
     }
 
-    VecBase<Arena> aArenas(OsAllocatorGet(), 1);
+    Vec<Arena> aArenas(OsAllocatorGet(), 1);
     defer( aArenas.destroy(OsAllocatorGet()) );
 
     aArenas.push(OsAllocatorGet(), {SIZE_1M});
     defer( aArenas[0].freeAll() );
 
-    Vec<f64> vec(&aArenas[0]);
+    VecManaged<f64> vec(&aArenas[0]);
 
     for (auto what : vec)
         LOG("asdf {}\n", what);
@@ -64,7 +64,7 @@ main()
 
     {
         auto vec1 = vec.clone(&aArenas[0]);
-        sort::quick<VecBase, f64, utils::compareRev>(&vec1.base);
+        sort::quick<Vec, f64, utils::compareRev>(&vec1.base);
         assert(sort::sorted(vec1.base, sort::ORDER::DEC));
 
         print::out("vec1(sorted):           {}\n", vec1);
@@ -98,7 +98,7 @@ main()
 
     {
         Arena a(sizeof(u32) * BIG);
-        Vec<B> vec(&a, 77);
+        VecManaged<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
             vec.push({(int)i, 0});
         a.freeAll();
@@ -113,7 +113,7 @@ main()
         OsAllocator a;
         /*Arena a(nextPowerOf2(sizeof(u32) * big));*/
 
-        Vec<B> vec(&a);
+        VecManaged<B> vec(&a);
         for (u32 i = 0; i < BIG; ++i)
             vec.emplace(i, i);
 

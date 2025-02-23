@@ -6,10 +6,11 @@
       "title": "Directly delete a repository from Android/data/me.scheimi/files/repo but that repository still shows in the user interface of SGit",
       "user": {
         "login": "s3408669",
-        "site_admin": false,
+        "site_admin": false
       },
       "labels": [],
-      "body": "Steps to reproduce:\r\n- Go to Android\r\n\"Repositoy not found)."
+      "body": "Steps t
+      o \"reproduce:\r\n- Go to Android\r\n\"Repositoy not found)."
     }
   },
   "public": true

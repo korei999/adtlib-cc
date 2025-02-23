@@ -26,7 +26,8 @@ genRandomString(IAllocator* pAlloc)
     ssize len = strlen(ntsChars);
 
     ssize size = (rand() % (len-2)) + 2;
-    auto s = StringAlloc(pAlloc, size);
+    auto pMem = pAlloc->zallocV<char>(size);
+    auto s = String(pAlloc, pMem, size);
 
     for (auto& ch : s)
         ch = ntsChars[ rand() % len ];
@@ -42,13 +43,13 @@ microBench()
 
     constexpr ssize BIG = 1000000;
 
-    Vec<String> vStrings(&arena, BIG);
+    VecManaged<String> vStrings(&arena, BIG);
     vStrings.setSize(BIG);
 
     for (ssize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
 
-    Map<String, int> map(&arena);
+    MapManaged<String, int> map(&arena);
 
     {
         f64 t0 = utils::timeNowMS();
@@ -79,7 +80,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    Map<String, u32> map(&arena);
+    MapManaged<StringView, u32> map(&arena);
 
     map.insert("ThirdyTwo", 32);
     map.insert("Sixteen", 16);
@@ -102,12 +103,12 @@ main()
     }
     {
         auto fSeventeen = map.search("Seventeen");
-        assert(fSeventeen == false);
+        assert(fSeventeen.eStatus == MAP_RESULT_STATUS::NOT_FOUND);
         if (fSeventeen) LOG("found: {}\n", fSeventeen.data());
     }
     {
         auto fFiftyFive = map.search("FiftyFive");
-        assert(fFiftyFive == false);
+        assert(fFiftyFive.eStatus == MAP_RESULT_STATUS::NOT_FOUND);
         if (fFiftyFive) LOG("found: {}\n", fFiftyFive.data());
     }
     {
@@ -121,7 +122,7 @@ main()
         COUT("['{}', {}], ", k, v);
     COUT("\n");
 
-    Map<int, int, memeHash> map2(&arena);
+    MapManaged<int, int, memeHash> map2(&arena);
     map2.insert(12, 1);
     map2.insert(13, 2);
 
@@ -141,8 +142,8 @@ main()
     Span sp(buff);
     hash::func(sp);
 
-    hash::func(String("asdf"));
-    String asdf = "asdf";
+    hash::func(StringView("asdf"));
+    StringView asdf = "asdf";
     hash::func(asdf);
     hash::func("asdf");
 

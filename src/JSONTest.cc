@@ -1,7 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
-// #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
+#include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/OsAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
@@ -23,7 +23,7 @@ main(int argc, char* argv[])
         return 0;
     }
 
-    if (argc >= 1 && String(argv[1]) == "-e")
+    if (argc >= 1 && StringView(argv[1]) == "-e")
     {
         Arena al(SIZE_1K);
         defer( al.freeAll() );
@@ -49,22 +49,22 @@ main(int argc, char* argv[])
         /*FreeList al(SIZE_1G);*/
         /*OsAllocator al;*/
         /*MiMalloc al;*/
-        Arena al(SIZE_8M);
-        /*MiHeap al(0);*/
+        /*Arena al(SIZE_8M);*/
+        MiHeap al(0);
         defer( al.freeAll() );
 
-        Opt<String> o_sJson = file::load(&al, argv[1]);
+        String o_sJson = file::load(&al, argv[1]);
 
         if (!o_sJson)
             return 1;
-        /*defer( o_sJson.value().destroy(&al) );*/
+        /*defer( o_sJson.destroy(&al) );*/
 
         json::Parser p {};
-        json::STATUS eRes = p.parse(&al, o_sJson.value());
-        if (eRes == json::STATUS::FAIL) LOG_WARN("json::Parser::parse() failed\n");
+        bool eRes = p.parse(&al, o_sJson);
+        if (!eRes) LOG_WARN("json::Parser::parse() failed\n");
         /*defer( p.destroy() );*/
 
-        if (argc >= 3 && "-p" == String(argv[2]))
+        if (argc >= 3 && "-p" == StringView(argv[2]))
             p.print(stdout);
     }
     catch (IException& ex)

@@ -20,7 +20,7 @@ main()
     ChunkAllocator al(sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
-    RBTree<long> tree(&al);
+    RBTreeManaged<long> tree(&al);
     defer( tree.destroy() );
 
     tree.emplace(false, 1L);
