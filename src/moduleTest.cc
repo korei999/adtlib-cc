@@ -16,4 +16,7 @@ main()
 
     for (int e : vec)
         adt::print::out("e: {}\n", e);
+
+    for (int e : adt::Span<int>(vec))
+        adt::print::out("e: {}\n", e);
 }
