@@ -1,29 +1,32 @@
-#pragma once
+module;
 
 #include "types.hh"
-#include "IException.hh"
 
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <utility>
 
+export module adt.IAllocator;
+
+export import adt.IException;
+
 namespace adt
 {
 
-inline constexpr usize align(usize x, usize to) { return ((x) + to - 1) & (~(to - 1)); }
-inline constexpr usize align8(usize x) { return align(x, 8); }
-inline constexpr bool isPowerOf2(usize x) { return (x & (x - 1)) == 0; }
+export inline constexpr usize align(usize x, usize to) { return ((x) + to - 1) & (~(to - 1)); }
+export inline constexpr usize align8(usize x) { return align(x, 8); }
+export inline constexpr bool isPowerOf2(usize x) { return (x & (x - 1)) == 0; }
 
-constexpr ssize SIZE_MIN = 2;
-constexpr ssize SIZE_1K = 1024;
-constexpr ssize SIZE_8K = SIZE_1K * 8;
-constexpr ssize SIZE_1M = SIZE_1K * SIZE_1K;
-constexpr ssize SIZE_8M = SIZE_1M * 8;
-constexpr ssize SIZE_1G = SIZE_1M * SIZE_1K;
-constexpr ssize SIZE_8G = SIZE_1G * 8;
+export constexpr ssize SIZE_MIN = 2;
+export constexpr ssize SIZE_1K = 1024;
+export constexpr ssize SIZE_8K = SIZE_1K * 8;
+export constexpr ssize SIZE_1M = SIZE_1K * SIZE_1K;
+export constexpr ssize SIZE_8M = SIZE_1M * 8;
+export constexpr ssize SIZE_1G = SIZE_1M * SIZE_1K;
+export constexpr ssize SIZE_8G = SIZE_1G * 8;
 
-struct IAllocator
+export struct IAllocator
 {
     template<typename T, typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     [[nodiscard]] constexpr T*
@@ -66,7 +69,7 @@ struct IAllocator
 /* NOTE: allocator can throw on malloc/zalloc/realloc */
 /* TODO: get rid of exceptions in favor of nullptr.
  * Other classes can receive nullptr and preserve their state or replace their state with statically allocated stub. */
-struct AllocException : public IException
+export struct AllocException : public IException
 {
     const char* m_ntsMsg {};
 

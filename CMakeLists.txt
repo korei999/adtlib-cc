@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.29)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -126,100 +126,126 @@ add_link_options(-lmimalloc)
 # include_directories(${MIMALLOC_SOURCE_DIR}/include)
 # message(STATUS "MIMALLOC_SOURCE_DIR: '${MIMALLOC_SOURCE_DIR}'")
 
+# add_executable(
+#     adt-alloc
+#     src/allocTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-print
+#     src/printTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-vec
+#     src/VecTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-heap
+#     src/HeapTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-string
+#     src/StringTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-pool
+#     src/PoolTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-map
+#     src/MapTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-threadpool
+#     src/ThreadPoolTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-queue
+#     src/QueueTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-list
+#     src/ListTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-rbtree
+#     src/RBTreeTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-arr
+#     src/ArrTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-json
+#     src/JSONTest.cc
+#     src/json/Parser.cc
+#     src/json/Lexer.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-assert
+#     src/AssertTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-threads
+#     src/threadsTest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# add_executable(
+#     adt-soa
+#     src/SOATest.cc
+#     # ${MIMALLOC_SOURCE_DIR}/src/static.c
+# )
+# 
+# # add_library(foo MODULE src/Module.ixx)
+# 
 add_executable(
-    adt-alloc
-    src/allocTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
+    adt-module
+    src/moduleTest.cc
 )
 
-add_executable(
-    adt-print
-    src/printTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
+target_sources(adt-module
+    PUBLIC
+
+    FILE_SET CXX_MODULES
+
+    FILES
+    src/modules/Vec.ixx
+    src/modules/IAllocator.ixx
+    src/modules/IException.ixx
+    src/modules/Malloc.ixx
+    src/modules/utils.ixx
+    src/modules/Span.ixx
+    src/modules/String.ixx
+    src/modules/print.ixx
+    src/modules/hash.ixx
 )
 
-add_executable(
-    adt-vec
-    src/VecTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-heap
-    src/HeapTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-string
-    src/StringTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-pool
-    src/PoolTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-map
-    src/MapTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-threadpool
-    src/ThreadPoolTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-queue
-    src/QueueTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-list
-    src/ListTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-rbtree
-    src/RBTreeTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-arr
-    src/ArrTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-json
-    src/JSONTest.cc
-    src/json/Parser.cc
-    src/json/Lexer.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-assert
-    src/AssertTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-threads
-    src/threadsTest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
-
-add_executable(
-    adt-soa
-    src/SOATest.cc
-    # ${MIMALLOC_SOURCE_DIR}/src/static.c
-)
+# target_link_libraries(adt-module PRIVATE foo)
