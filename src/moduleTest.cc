@@ -4,8 +4,6 @@ import adt.Vec;
 
 #include "adt/defer.hh"
 
-#include <cstdio>
-
 int
 main()
 {
