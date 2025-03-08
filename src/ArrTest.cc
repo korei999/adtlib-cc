@@ -1,4 +1,4 @@
-#include "adt/Arr.hh"
+#include "adt/Array.hh"
 #include "adt/logs.hh"
 
 using namespace adt;
@@ -6,7 +6,7 @@ using namespace adt;
 int
 main()
 {
-    Arr<long, 32> arr;
+    Array<long, 32> arr;
 
     arr.push(1);
     arr.push(2);

@@ -23,17 +23,20 @@ struct Span2D
 
     /* */
 
+    constexpr operator bool() const { return m_pData != nullptr; }
+
+    /* */
+
     constexpr T& operator()(int x, int y) { return at(x, y); }
     constexpr const T& operator()(int x, int y) const { return at(x, y); }
-
-    constexpr operator bool() const { return m_pData != nullptr; }
 
     constexpr T* data() { return m_pData; }
     constexpr const T* data() const { return m_pData; }
 
-    constexpr int getWidth() const { return m_width; }
-    constexpr int getHeight() const { return m_height; }
-    constexpr int getStride() const { return m_stride; }
+    constexpr int width() const { return m_width; }
+    constexpr int height() const { return m_height; }
+    constexpr int stride() const { return m_stride; }
+    constexpr bool empty() const { return m_width <= 0 || m_height <= 0 || m_stride <= 0; }
 
     /* */
 

@@ -1,5 +1,5 @@
 #include "adt/Arena.hh" /* IWYU pragma: keep */
-#include "adt/Arr.hh"
+#include "adt/Array.hh"
 #include "adt/defer.hh" /* IWYU pragma: keep */
 #include "adt/logs.hh" /* IWYU pragma: keep */
 #include "adt/Vec.hh" /* IWYU pragma: keep */
@@ -29,9 +29,9 @@ main()
     print::out("{}\n", 10);
 
 
-    Arr<f64, 32> arr {1.1, 2.2, 3.3, 4.4, 5.5};
+    Array<f64, 32> arr {1.1, 2.2, 3.3, 4.4, 5.5};
     print::out("arr: [{:.5}]\n", arr);
 
-    Span<f64> spArr(arr.data(), arr.getSize());
+    Span<f64> spArr(arr.data(), arr.size());
     print::out("spArr: [{:.4}]\n", spArr);
 }

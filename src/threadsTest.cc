@@ -33,5 +33,15 @@ main()
         defer( thrd2.join() );
     }
 
+    auto what = [] {
+        LOG("what\n");
+    };
+
+    Thread thrd(what, Thread::ATTR::DETACHED);
+    auto err = thrd.detach();
+    LOG("err: {}\n", err);
+
+    utils::sleepMS(100.0);
+
     LOG("one: {}\n", one);
 }

@@ -23,6 +23,6 @@ main()
 
     LOG("h: [{}]\n", h.m_vec);
 
-    while (h.m_vec.getSize() > 0)
+    while (h.m_vec.size() > 0)
         LOG("max: {}\n", h.maxExtract());
 }

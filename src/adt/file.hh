@@ -28,7 +28,7 @@ load(IAllocator* pAlloc, StringView svPath)
 
     ret.m_pData = reinterpret_cast<char*>(pAlloc->malloc(size, sizeof(char)));
     ret.m_size = size - 1;
-    fread(ret.data(), 1, ret.getSize(), pf);
+    fread(ret.data(), 1, ret.size(), pf);
     ret.m_pData[ret.m_size] = '\0';
 
     return ret;
@@ -40,7 +40,7 @@ getPathEnding(StringView svPath)
 {
     ssize lastSlash = svPath.lastOf('/');
 
-    if (lastSlash == NPOS || (lastSlash + 1) == svPath.getSize()) /* nothing after slash */
+    if (lastSlash == NPOS || (lastSlash + 1) == svPath.size()) /* nothing after slash */
         return svPath;
 
     return StringView(&svPath[lastSlash + 1], &svPath[svPath.m_size - 1] - &svPath[lastSlash]);
@@ -59,14 +59,14 @@ replacePathEnding(IAllocator* pAlloc, StringView svPath, StringView svEnding)
 }
 
 inline void
-replacePathEnding(Span<char> spBuff, StringView svPath, StringView svEnding)
+replacePathEnding(Span<char>* spBuff, StringView svPath, StringView svEnding)
 {
     ADT_ASSERT(spBuff != nullptr, " ");
 
     ssize lastSlash = svPath.lastOf('/');
     StringView sNoEnding = {&svPath[0], lastSlash + 1};
-    ssize n = print::toSpan(spBuff, "{}{}", sNoEnding, svEnding);
-    spBuff.m_size = n;
+    ssize n = print::toSpan(*spBuff, "{}{}", sNoEnding, svEnding);
+    spBuff->m_size = n;
 }
 
 } /* namespace file */

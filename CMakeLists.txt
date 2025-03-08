@@ -217,3 +217,9 @@ add_executable(
     src/threadsTest.cc
     # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
+
+add_executable(
+    adt-soa
+    src/SOATest.cc
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
+)
