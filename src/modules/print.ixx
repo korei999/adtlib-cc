@@ -58,7 +58,7 @@ export struct Context
 export template<typename ...ARGS_T> inline ssize out(const StringView fmt, const ARGS_T&... tArgs) noexcept;
 export template<typename ...ARGS_T> inline ssize err(const StringView fmt, const ARGS_T&... tArgs) noexcept;
 
-export inline ssize
+export ssize
 printArgs(Context ctx) noexcept
 {
     ssize nRead = 0;
@@ -71,7 +71,7 @@ printArgs(Context ctx) noexcept
     return nRead;
 }
 
-inline constexpr bool
+constexpr bool
 oneOfChars(const char x, const StringView chars) noexcept
 {
     for (auto ch : chars)
@@ -80,7 +80,7 @@ oneOfChars(const char x, const StringView chars) noexcept
     return false;
 }
 
-export inline ssize
+export ssize
 parseFormatArg(FormatArgs* pArgs, const StringView fmt, ssize fmtIdx) noexcept
 {
     ssize nRead = 1;
@@ -251,7 +251,7 @@ intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
     utils::reverse(spBuff.data(), i);
 }
 
-export inline ssize
+export ssize
 copyBackToCtxBuffer(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept
 {
     ssize i = 0;
@@ -292,25 +292,25 @@ copyBackToCtxBuffer(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noe
     return i;
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const StringView& str) noexcept
 {
     return copyBackToCtxBuffer(ctx, fmtArgs, {const_cast<char*>(str.data()), str.size()});
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const char* str) noexcept
 {
     return formatToContext(ctx, fmtArgs, StringView(str));
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, char* const& pNullTerm) noexcept
 {
     return formatToContext(ctx, fmtArgs, StringView(pNullTerm));
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, bool b) noexcept
 {
     return formatToContext(ctx, fmtArgs, b ? "true" : "false");
@@ -328,7 +328,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept
     return copyBackToCtxBuffer(ctx, fmtArgs, {buff});
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x) noexcept
 {
     char aBuff[64] {};
@@ -340,7 +340,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x) noexcept
     return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x) noexcept
 {
     char aBuff[128] {};
@@ -352,7 +352,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x) noexcept
     return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const wchar_t x) noexcept
 {
     char aBuff[8] {};
@@ -365,13 +365,13 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const wchar_t x) noexcept
     return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const char32_t x) noexcept
 {
     return formatToContext(ctx, fmtArgs, (wchar_t)x);
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, const char x) noexcept
 {
     char aBuff[4] {};
@@ -380,7 +380,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const char x) noexcept
     return copyBackToCtxBuffer(ctx, fmtArgs, {aBuff});
 }
 
-export inline ssize
+export ssize
 formatToContext(Context ctx, FormatArgs fmtArgs, null) noexcept
 {
     return formatToContext(ctx, fmtArgs, StringView("nullptr"));
@@ -526,7 +526,7 @@ err(const StringView fmt, const ARGS_T&... tArgs) noexcept
     return toFILE(stderr, fmt, tArgs...);
 }
 
-export inline ssize
+export ssize
 FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt) noexcept
 {
     ssize i = 0;

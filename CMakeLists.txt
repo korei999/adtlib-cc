@@ -246,6 +246,12 @@ target_sources(adt-module
     src/modules/String.ixx
     src/modules/print.ixx
     src/modules/hash.ixx
+    src/modules/Arena.ixx
+    src/modules/Array.ixx
+    src/modules/sort.ixx
+    src/modules/Map.ixx
+    src/modules/PoolSOA.ixx
+    src/modules/ScratchBuffer.ixx
 )
 
 # target_link_libraries(adt-module PRIVATE foo)

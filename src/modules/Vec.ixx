@@ -2,6 +2,7 @@ module;
 
 #include "types.hh"
 
+#include <cstring>
 #include <new> /* IWYU pragma: keep */
 #include <utility>
 
