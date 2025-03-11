@@ -3,7 +3,7 @@
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
-#include "adt/OsAllocator.hh" /* IWYU pragma: keep */
+#include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/file.hh"
@@ -47,7 +47,7 @@ main(int argc, char* argv[])
     {
         /*FixedAllocator al(s_aMem);*/
         /*FreeList al(SIZE_1G);*/
-        /*OsAllocator al;*/
+        /*StdAllocator al;*/
         /*MiMalloc al;*/
         /*Arena al(SIZE_8M);*/
         MiHeap al(0);

@@ -1559,6 +1559,12 @@ bezier(
     return cube(1-t)*p0 + 3*sq(1-t)*t*p1 + 3*(1-t)*sq(t)*p2 + cube(t)*p3;
 }
 
+inline M4
+transformation(const V3& translation, const Qt& rot, const V3& scale)
+{
+    return M4TranslationFrom(translation) * QtRot(rot) * M4ScaleFrom(scale);
+}
+
 } /* namespace adt::math */
 
 namespace adt::print

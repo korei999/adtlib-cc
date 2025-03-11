@@ -21,6 +21,7 @@ include_directories(BEFORE "src")
 add_definitions("-DADT_LOGS")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 add_definitions("-DADT_DEFER_LESS_TYPING")
+add_definitions("-DADT_JSON_USE_PRINTF")
 # add_definitions("-DADT_STD_TYPES")
 
 add_definitions("-D_DEFAULT_SOURCE")

@@ -3,7 +3,7 @@
 #include "adt/Arena.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
-#include "adt/OsAllocator.hh"
+#include "adt/StdAllocator.hh"
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/ReverseIt.hh"
@@ -31,10 +31,10 @@ main()
             vec.push(i);
     }
 
-    Vec<Arena> aArenas(OsAllocatorGet(), 1);
-    defer( aArenas.destroy(OsAllocatorGet()) );
+    Vec<Arena> aArenas(StdAllocator::inst(), 1);
+    defer( aArenas.destroy(StdAllocator::inst()) );
 
-    aArenas.push(OsAllocatorGet(), {SIZE_1M});
+    aArenas.push(StdAllocator::inst(), {SIZE_1M});
     defer( aArenas[0].freeAll() );
 
     VecManaged<f64> vec(&aArenas[0]);
@@ -110,7 +110,7 @@ main()
         /* why arena is slower??? */
         /*FreeList a(sizeof(u32) * BIG);*/
         /*FixedAllocator a(s_bigMem, sizeof(s_bigMem));*/
-        OsAllocator a;
+        StdAllocator a;
         /*Arena a(nextPowerOf2(sizeof(u32) * big));*/
 
         VecManaged<B> vec(&a);

@@ -1,4 +1,4 @@
-#include "adt/OsAllocator.hh"
+#include "adt/StdAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
@@ -12,7 +12,7 @@ static std::atomic<int> i = 0;
 int
 main()
 {
-    ThreadPool tp(OsAllocatorGet(), 100);
+    ThreadPool tp(StdAllocator::inst(), 100);
 
     auto inc = [&] {
         i.fetch_add(1, std::memory_order_relaxed);

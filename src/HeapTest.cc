@@ -1,5 +1,5 @@
 #include "adt/Arena.hh"
-#include "adt/OsAllocator.hh" /* IWYU pragma: keep */
+#include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/Heap.hh"

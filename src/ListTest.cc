@@ -1,14 +1,14 @@
 #include "adt/logs.hh"
 #include "adt/List.hh"
 #include "adt/defer.hh"
-#include "adt/OsAllocator.hh"
+#include "adt/StdAllocator.hh"
 
 using namespace adt;
 
 int
 main()
 {
-    ListManaged<long> list(OsAllocatorGet());
+    ListManaged<long> list(StdAllocator::inst());
     defer( list.destroy() );
 
     list.pushBack(1);

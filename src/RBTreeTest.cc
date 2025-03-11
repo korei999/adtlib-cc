@@ -1,7 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/ChunkAllocator.hh"
 #include "adt/RBTree.hh"
-#include "adt/OsAllocator.hh"
+#include "adt/StdAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 

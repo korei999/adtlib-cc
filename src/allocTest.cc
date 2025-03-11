@@ -2,7 +2,7 @@
 #include "adt/Arena.hh"
 #include "adt/FreeList.hh"
 #include "adt/defer.hh"
-#include "adt/OsAllocator.hh"
+#include "adt/StdAllocator.hh"
 
 #include <vector>
 
@@ -11,7 +11,7 @@ using namespace adt;
 void
 throws()
 {
-    OsAllocator osAl {};
+    StdAllocator osAl {};
     auto* ptr = osAl.zalloc(1, SIZE_8G * 1024);
     defer( osAl.free(ptr) );
 }
@@ -19,7 +19,7 @@ throws()
 static void
 reallocZero()
 {
-    OsAllocator os {};
+    StdAllocator os {};
     FreeList fl(500);;
 
     errno = {};
