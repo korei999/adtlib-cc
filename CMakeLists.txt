@@ -56,7 +56,7 @@ endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/utf-8)
 else()
-    add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough -Wno-cast-function-type-mismatch)
+    add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough -Wno-cast-function-type-mismatch -Wno-missing-braces)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -222,5 +222,11 @@ add_executable(
 add_executable(
     adt-soa
     src/SOATest.cc
+    # ${MIMALLOC_SOURCE_DIR}/src/static.c
+)
+
+add_executable(
+    adt-soa2
+    src/SOATest2.cc
     # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )

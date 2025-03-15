@@ -95,6 +95,7 @@ struct StringView
     constexpr char* data() { return m_pData; }
     constexpr ssize size() const { return m_size; }
     constexpr bool empty() const { return size() == 0; }
+    constexpr ssize idx(const char* const pChar) const;
     [[nodiscard]] bool beginsWith(const StringView r) const;
     [[nodiscard]] bool endsWith(const StringView r) const;
     [[nodiscard]] ssize lastOf(char c) const;
@@ -280,6 +281,15 @@ struct StringWordIt
     const It begin() const { return {m_sv, 0, m_svDelimiters, true}; }
     const It end() const { return It(NPOS); }
 };
+
+constexpr inline ssize
+StringView::idx(const char* const p) const
+{
+    ssize i = p - m_pData;
+    ADT_ASSERT(i >= 0 && i < size(), "out of range: idx: %lld: size: %lld", i, size());
+
+    return i;
+}
 
 inline bool
 StringView::beginsWith(const StringView r) const
@@ -472,7 +482,7 @@ String::String(IAllocator* pAlloc, const char* pChars, ssize size)
         return;
 
     char* pNewData = pAlloc->mallocV<char>(size + 1);
-    strncpy(pNewData, pChars, size);
+    memcpy(pNewData, pChars, size);
     pNewData[size] = '\0';
 
     m_pData = pNewData;
@@ -506,7 +516,10 @@ struct StringFixed
     /* */
 
     StringFixed() = default;
+
     StringFixed(const StringView svName);
+
+    StringFixed(const char* nts) : StringFixed(StringView(nts)) {}
 
     /* */
 
@@ -528,9 +541,9 @@ template<int SIZE> requires(SIZE > 1)
 inline
 StringFixed<SIZE>::StringFixed(const StringView svName)
 {
-    strncpy(m_aBuff,
+    memcpy(m_aBuff,
         svName.data(),
-        utils::min(svName.size(), static_cast<ssize>(sizeof(m_aBuff) - 1))
+        utils::min(svName.size(), static_cast<ssize>(sizeof(m_aBuff)))
     );
 }
 
@@ -538,7 +551,7 @@ template<int SIZE> requires(SIZE > 1)
 inline bool
 StringFixed<SIZE>::operator==(const StringFixed<SIZE>& other) const
 {
-    return strncmp(m_aBuff, other.m_aBuff, SIZE - 1) == 0;
+    return memcmp(m_aBuff, other.m_aBuff, SIZE) == 0;
 }
 
 template<int SIZE> requires(SIZE > 1)

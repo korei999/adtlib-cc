@@ -1,8 +1,6 @@
 #include "adt/logs.hh"
 #include "adt/math.hh"
 
-#include <type_traits>
-
 using namespace adt;
 
 /* Example struct. */

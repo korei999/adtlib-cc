@@ -15,8 +15,7 @@ Parser::parse(IAllocator* pAlloc, StringView svJson)
     m_pAlloc = pAlloc;
     m_lex = Lexer(svJson);
 
-    m_tCurr = m_lex.next();
-    m_tNext = m_lex.next();
+    m_token = m_lex.next();
 
     if (!expect(TOKEN_TYPE::L_BRACE | TOKEN_TYPE::L_BRACKET))
         return false;
@@ -30,7 +29,7 @@ Parser::parse(IAllocator* pAlloc, StringView svJson)
             return false;
         }
     }
-    while (m_tCurr.eType == TOKEN_TYPE::L_BRACE); /* some json files have multiple root objects */
+    while (m_token.eType == TOKEN_TYPE::L_BRACE); /* some json files have multiple root objects */
 
     return true;
 }
@@ -38,33 +37,26 @@ Parser::parse(IAllocator* pAlloc, StringView svJson)
 bool
 Parser::printNodeError()
 {
-    const auto& tok = m_tCurr;
+    const auto& tok = m_token;
     CERR("({}, {}): unexpected token: '{}'\n",
-        tok.row, tok.column, m_tCurr.eType
+        tok.row, tok.column, m_token.eType
     );
     return false;
-}
-
-void
-Parser::next()
-{
-    m_tCurr = m_tNext;
-    m_tNext = m_lex.next();
 }
 
 bool
 Parser::expect(TOKEN_TYPE t)
 {
-    const auto& tok = m_tCurr;
+    const auto& tok = m_token;
 
-    if (!!(tok.eType & t))
+    if (bool(tok.eType & t))
     {
         return true;
     }
     else
     {
         CERR("({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
-             tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+             tok.row, tok.column, t, m_token.eType, m_token.sLiteral
         );
         return false;
     }
@@ -73,12 +65,12 @@ Parser::expect(TOKEN_TYPE t)
 bool
 Parser::expectNot(TOKEN_TYPE t)
 {
-    const auto& tok = m_tCurr;
+    const auto& tok = m_token;
 
-    if (!!(tok.eType & t))
+    if (bool(tok.eType & t))
     {
         CERR("({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
-             tok.row, tok.column, t, m_tCurr.eType, m_tCurr.sLiteral
+             tok.row, tok.column, t, m_token.eType, m_token.sLiteral
         );
         return false;
     }
@@ -88,7 +80,7 @@ Parser::expectNot(TOKEN_TYPE t)
 bool
 Parser::parseNode(Node* pNode)
 {
-    switch (m_tCurr.eType)
+    switch (m_token.eType)
     {
         default:
         return printNodeError();
@@ -127,7 +119,7 @@ Parser::parseNode(Node* pNode)
 void
 Parser::parseString(TagVal* pTV)
 {
-    const auto& sLit = m_tCurr.sLiteral;
+    const auto& sLit = m_token.sLiteral;
 
     if (sLit == "null")
         *pTV = {.eTag = TAG::NULL_, .val = {nullptr}};
@@ -136,7 +128,7 @@ Parser::parseString(TagVal* pTV)
     else if (sLit == "false")
         *pTV = {.eTag = TAG::BOOL, .val = {.b = false}};
     else
-        *pTV = {.eTag = TAG::STRING, .val {.s = m_tCurr.sLiteral}};
+        *pTV = {.eTag = TAG::STRING, .val {.s = m_token.sLiteral}};
 
     next();
 }
@@ -144,21 +136,21 @@ Parser::parseString(TagVal* pTV)
 void
 Parser::parseIdent(TagVal* pTV)
 {
-    *pTV = {.eTag = TAG::STRING, .val {.s = m_tCurr.sLiteral}};
+    *pTV = {.eTag = TAG::STRING, .val {.s = m_token.sLiteral}};
     next();
 }
 
 void
 Parser::parseNumber(TagVal* pTV)
 {
-    *pTV = {.eTag = TAG::LONG, .val = {.l = atoll(m_tCurr.sLiteral.m_pData)}};
+    *pTV = {.eTag = TAG::LONG, .val = {.l = atoll(m_token.sLiteral.m_pData)}};
     next();
 }
 
 void
 Parser::parseFloat(TagVal* pTV)
 {
-    *pTV = {.eTag = TAG::DOUBLE, .val = {.d = atof(m_tCurr.sLiteral.m_pData)}};
+    *pTV = {.eTag = TAG::DOUBLE, .val = {.d = atof(m_token.sLiteral.m_pData)}};
     next();
 }
 
@@ -169,12 +161,12 @@ Parser::parseObject(Node* pNode)
     pNode->tagVal.val.o = Vec<Node>(m_pAlloc);
     auto& aObjs = getObject(pNode);
 
-    while (m_tCurr.eType != TOKEN_TYPE::R_BRACE)
+    while (m_token.eType != TOKEN_TYPE::R_BRACE)
     {
         /* make sure key is quoted */
         OK_OR_RET(expect(TOKEN_TYPE::QUOTED_STRING));
 
-        aObjs.push(m_pAlloc, {.svKey = m_tCurr.sLiteral, .tagVal = {}});
+        aObjs.push(m_pAlloc, {.svKey = m_token.sLiteral, .tagVal = {}});
 
         /* skip identifier and ':' */
         next();
@@ -183,7 +175,7 @@ Parser::parseObject(Node* pNode)
 
         OK_OR_RET(parseNode(&aObjs.last()));
 
-        if (m_tCurr.eType != TOKEN_TYPE::COMMA)
+        if (m_token.eType != TOKEN_TYPE::COMMA)
         {
             OK_OR_RET(expect(TOKEN_TYPE::R_BRACE));
             next();
@@ -210,11 +202,11 @@ Parser::parseArray(Node* pNode)
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
-    while (m_tCurr.eType != TOKEN_TYPE::R_BRACKET)
+    while (m_token.eType != TOKEN_TYPE::R_BRACKET)
     {
         aTVs.push(m_pAlloc, {});
 
-        switch (m_tCurr.eType)
+        switch (m_token.eType)
         {
             default:
             case TOKEN_TYPE::QUOTED_STRING:
@@ -236,7 +228,7 @@ Parser::parseArray(Node* pNode)
             break;
         }
 
-        if (m_tCurr.eType != TOKEN_TYPE::COMMA)
+        if (m_token.eType != TOKEN_TYPE::COMMA)
         {
             OK_OR_RET(expect(TOKEN_TYPE::R_BRACKET));
             next();
@@ -393,7 +385,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
                     case TAG::LONG:
                     {
-                        i64 num = getLong(&arr[i]);
+                        i64 num = getInteger(&arr[i]);
                         fprintf(fp, "%*s" "%lld" "%.*s",
                             depth + 2, "",
                             num,
@@ -404,7 +396,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
                     case TAG::DOUBLE:
                     {
-                        f64 dnum = getDouble(&arr[i]);
+                        f64 dnum = getFloat(&arr[i]);
                         fprintf(fp, "%*s" "%lf" "%.*s",
                             depth + 2, "",
                             dnum,
@@ -439,7 +431,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
         case TAG::DOUBLE:
         {
-            f64 f = getDouble(pNode);
+            f64 f = getFloat(pNode);
             fprintf(fp, "%*s" "\"" "%.*s\": " "%lf" "%.*s",
                 depth, "",
                 int(key.size()), key.data(),
@@ -451,7 +443,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
         case TAG::LONG:
         {
-            i64 i = getLong(pNode);
+            i64 i = getInteger(pNode);
             fprintf(fp, "%*s" "\"" "%.*s\": " "%lld" "%.*s",
                 depth, "",
                 int(key.size()), key.data(),
