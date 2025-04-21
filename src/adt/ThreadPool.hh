@@ -1,11 +1,9 @@
 #pragma once
 
 #include "Thread.hh"
-#include "Queue.hh"
-#include "Span.hh"
-#include "guard.hh"
-
-#include <atomic>
+#include "defer.hh"
+#include "atomic.hh"
+#include "QueueArray.hh"
 
 namespace adt
 {
@@ -16,46 +14,139 @@ struct ThreadPoolTask
     void* pArg {};
 };
 
+template<ssize QUEUE_SIZE>
 struct ThreadPool
 {
     IAllocator* m_pAlloc {}; /* managed by default */
-    Queue<ThreadPoolTask> m_qTasks {};
+    QueueArray<ThreadPoolTask, QUEUE_SIZE> m_qTasks {};
     Span<Thread> m_spThreads {};
     Mutex m_mtxQ {};
     CndVar m_cndQ {};
     CndVar m_cndWait {};
-    std::atomic<int> m_nActiveTasks {};
-    std::atomic<bool> m_bDone {};
+    void (*m_pfnLoopStart)(void*) {};
+    void* m_pLoopStartArg {};
+    void (*m_pfnLoopEnd)(void*) {};
+    void* m_pLoopEndArg {};
+    atomic::Int m_atom_nActiveTasks {};
+    atomic::Int m_atom_bDone {};
 
     /* */
 
     ThreadPool() = default;
+
     ThreadPool(IAllocator* pAlloc, int nThreads = ADT_GET_NPROCS());
+
+    ThreadPool(
+        IAllocator* pAlloc,
+        void (*pfnLoopStart)(void*), /* call on entering the loop */ 
+        void* pLoopStartArg,
+        void (*pfnLoopEnd)(void*), /* call on exiting the loop */
+        void* pLoopEndArg,
+        int nThreads = ADT_GET_NPROCS()
+    );
 
     /* */
 
     void wait();
+
     void destroy();
-    void add(ThreadPoolTask task);
-    void add(ThreadFn pfn, void* pArg);
-    template<typename LAMBDA> void addLambda(LAMBDA& t);
+
+    bool add(ThreadPoolTask task);
+
+    bool add(ThreadFn pfn, void* pArg);
+
+    template<typename LAMBDA> bool addLambda(LAMBDA& t);
 
     template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
-    [[deprecated("rvalue lambdas cause use after free")]] void addLambda(LAMBDA&& t) = delete;
+    [[deprecated("rvalue lambdas cause use after free")]] bool addLambda(LAMBDA&& t) = delete;
 
-private:
+    void addRetry(ThreadPoolTask task) { while (!add(task)); }
+
+    void addRetry(ThreadFn pfn, void* pArg) { while (!add(pfn, pArg)); }
+
+    template<typename LAMBDA> void addLambdaRetry(LAMBDA&& t) { while (!addLambda(std::forward<LAMBDA>(t))); }
+
+protected:
     THREAD_STATUS loop();
+    void spawnThreads();
 };
 
+template<ssize QUEUE_SIZE>
 inline
-ThreadPool::ThreadPool(IAllocator* pAlloc, int nThreads)
+ThreadPool<QUEUE_SIZE>::ThreadPool(IAllocator* pAlloc, int nThreads)
     : m_pAlloc(pAlloc),
-      m_qTasks(pAlloc, nThreads * 2),
       m_spThreads(pAlloc->zallocV<Thread>(nThreads), nThreads),
       m_mtxQ(Mutex::TYPE::PLAIN),
       m_cndQ(INIT),
       m_cndWait(INIT),
-      m_bDone(false)
+      m_atom_bDone(false)
+{
+    spawnThreads();
+}
+
+template<ssize QUEUE_SIZE>
+inline
+ThreadPool<QUEUE_SIZE>::ThreadPool(
+    IAllocator* pAlloc,
+    void (*pfnLoopStart)(void*), void* pLoopStartArg,
+    void (*pfnLoopEnd)(void*), void* pLoopEndArg,
+    int nThreads
+)
+    : m_pAlloc(pAlloc),
+      m_spThreads(pAlloc->zallocV<Thread>(nThreads), nThreads),
+      m_mtxQ(Mutex::TYPE::PLAIN),
+      m_cndQ(INIT),
+      m_cndWait(INIT),
+      m_pfnLoopStart(pfnLoopStart),
+      m_pLoopStartArg(pLoopStartArg),
+      m_pfnLoopEnd(pfnLoopEnd),
+      m_pLoopEndArg(pLoopEndArg),
+      m_atom_bDone(false)
+{
+    spawnThreads();
+}
+
+template<ssize QUEUE_SIZE>
+inline THREAD_STATUS
+ThreadPool<QUEUE_SIZE>::loop()
+{
+    if (m_pfnLoopStart) m_pfnLoopStart(m_pLoopStartArg);
+    ADT_DEFER( if (m_pfnLoopEnd) m_pfnLoopEnd(m_pLoopEndArg) );
+
+    while (true)
+    {
+        ThreadPoolTask task {};
+
+        {
+            MutexGuard qLock(&m_mtxQ);
+
+            while (m_qTasks.empty() && !m_atom_bDone.load(atomic::ORDER::RELAXED))
+                m_cndQ.wait(&m_mtxQ);
+
+            if (m_atom_bDone.load(atomic::ORDER::RELAXED))
+                return 0;
+
+            task = *m_qTasks.popFront();
+            m_atom_nActiveTasks.fetchAdd(1, atomic::ORDER::SEQ_CST);
+        }
+
+        task.pfn(task.pArg);
+        m_atom_nActiveTasks.fetchSub(1, atomic::ORDER::SEQ_CST);
+
+        {
+            MutexGuard qLock(&m_mtxQ);
+
+            if (m_qTasks.empty() && m_atom_nActiveTasks.load(atomic::ORDER::ACQUIRE) == 0)
+                m_cndWait.signal();
+        }
+    }
+
+    return 0;
+}
+
+template<ssize QUEUE_SIZE>
+inline void
+ThreadPool<QUEUE_SIZE>::spawnThreads()
 {
     for (auto& thread : m_spThreads)
     {
@@ -66,61 +157,29 @@ ThreadPool::ThreadPool(IAllocator* pAlloc, int nThreads)
     }
 
 #ifndef NDEBUG
-    fprintf(stderr, "ThreadPool: new pool with %d threads\n", nThreads);
+    print::err("ThreadPool: new pool with {} threads\n", m_spThreads.size());
 #endif
 }
 
-inline THREAD_STATUS
-ThreadPool::loop()
-{
-    while (true)
-    {
-        ThreadPoolTask task {};
-
-        {
-            guard::Mtx qLock(&m_mtxQ);
-
-            while (m_qTasks.empty() && !m_bDone.load(std::memory_order_relaxed))
-                m_cndQ.wait(&m_mtxQ);
-
-            if (m_bDone.load(std::memory_order_relaxed))
-                return 0;
-
-            task = *m_qTasks.popFront();
-            m_nActiveTasks.fetch_add(1, std::memory_order_seq_cst);
-        }
-
-        task.pfn(task.pArg);
-        m_nActiveTasks.fetch_sub(1,std::memory_order_seq_cst);
-
-        {
-            guard::Mtx qLock(&m_mtxQ);
-
-            if (m_qTasks.empty() && m_nActiveTasks.load(std::memory_order_acquire) == 0)
-                m_cndWait.signal();
-        }
-    }
-
-    return 0;
-}
-
+template<ssize QUEUE_SIZE>
 inline void
-ThreadPool::wait()
+ThreadPool<QUEUE_SIZE>::wait()
 {
-    guard::Mtx qLock(&m_mtxQ);
+    MutexGuard qLock(&m_mtxQ);
 
-    while (!m_qTasks.empty() || m_nActiveTasks.load(std::memory_order_relaxed) != 0)
+    while (!m_qTasks.empty() || m_atom_nActiveTasks.load(atomic::ORDER::RELAXED) != 0)
         m_cndWait.wait(&m_mtxQ);
 }
 
+template<ssize QUEUE_SIZE>
 inline void
-ThreadPool::destroy()
+ThreadPool<QUEUE_SIZE>::destroy()
 {
     wait();
 
     {
-        guard::Mtx qLock(&m_mtxQ);
-        m_bDone.store(true, std::memory_order_relaxed);
+        MutexGuard qLock(&m_mtxQ);
+        m_atom_bDone.store(1, atomic::ORDER::RELAXED);
     }
 
     m_cndQ.broadcast();
@@ -129,7 +188,6 @@ ThreadPool::destroy()
         thread.join();
 
     {
-        m_qTasks.destroy(m_pAlloc);
         m_pAlloc->free(m_spThreads.data());
         m_mtxQ.destroy();
         m_cndQ.destroy();
@@ -137,26 +195,31 @@ ThreadPool::destroy()
     }
 }
 
-inline void
-ThreadPool::add(ThreadPoolTask task)
+template<ssize QUEUE_SIZE>
+inline bool
+ThreadPool<QUEUE_SIZE>::add(ThreadPoolTask task)
 {
-    guard::Mtx lock(&m_mtxQ);
+    MutexGuard lock(&m_mtxQ);
 
-    m_qTasks.pushBack(m_pAlloc, task);
+    ssize i = m_qTasks.pushBack(task);
     m_cndQ.signal();
+
+    return i;
 }
 
-inline void
-ThreadPool::add(ThreadFn pfn, void* pArg)
+template<ssize QUEUE_SIZE>
+inline bool
+ThreadPool<QUEUE_SIZE>::add(ThreadFn pfn, void* pArg)
 {
-    add({pfn, pArg});
+    return add({pfn, pArg});
 }
 
+template<ssize QUEUE_SIZE>
 template<typename LAMBDA>
-inline void
-ThreadPool::addLambda(LAMBDA& t)
+inline bool
+ThreadPool<QUEUE_SIZE>::addLambda(LAMBDA& t)
 {
-    add(+[](void* pArg) -> THREAD_STATUS
+    return add(+[](void* pArg) -> THREAD_STATUS
         {
             reinterpret_cast<LAMBDA*>(pArg)->operator()();
             return 0;

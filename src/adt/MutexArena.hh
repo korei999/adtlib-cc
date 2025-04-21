@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Arena.hh"
-#include "guard.hh"
+#include "Thread.hh"
 
 namespace adt
 {
@@ -32,7 +32,7 @@ MutexArena::malloc(usize mCount, usize mSize)
 {
     void* r {};
     {
-        guard::Mtx lock(&m_mtx);
+        MutexGuard lock(&m_mtx);
         r = m_arena.malloc(mCount, mSize);
     }
 
@@ -44,10 +44,12 @@ MutexArena::zalloc(usize mCount, usize mSize)
 {
     void* r {};
     {
-        guard::Mtx lock(&m_mtx);
+        MutexGuard lock(&m_mtx);
         r = m_arena.malloc(mCount, mSize);
+
     }
 
+    memset(r, 0, mCount * mSize);
     return r;
 }
 
@@ -56,7 +58,7 @@ MutexArena::realloc(void* p, usize oldCount, usize newCount, usize mSize)
 {
     void* r {};
     {
-        guard::Mtx lock(&m_mtx);
+        MutexGuard lock(&m_mtx);
         r = m_arena.realloc(p, oldCount, newCount, mSize);
     }
 

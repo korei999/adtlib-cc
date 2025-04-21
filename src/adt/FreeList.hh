@@ -59,7 +59,7 @@ struct FreeList : public IAllocator
     FreeList() = default;
 
     FreeList(usize _blockSize, IAllocator* pBackAlloc = StdAllocator::inst()) noexcept(false)
-        : m_blockSize(align8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
+        : m_blockSize(alignUp8(_blockSize + sizeof(FreeListBlock) + sizeof(FreeList::Node))),
           m_pBackAlloc(pBackAlloc),
           m_pBlocks(allocBlock(m_blockSize)) {}
 
@@ -78,7 +78,7 @@ struct FreeList : public IAllocator
 
     /* */
 
-private:
+protected:
     [[nodiscard]] FreeListBlock* allocBlock(usize size);
     [[nodiscard]] FreeListBlock* blockPrepend(usize size);
     [[nodiscard]] FreeListBlock* blockFromNode(FreeList::Node* pNode);
@@ -122,6 +122,8 @@ FreeList::blockFromNode(FreeList::Node* pNode)
 inline FreeListBlock*
 FreeList::allocBlock(usize size)
 {
+    ADT_ASSERT(m_pBackAlloc, "uninitialized: m_pBackAlloc == nullptr");
+
     FreeListBlock* pBlock = (FreeListBlock*)m_pBackAlloc->zalloc(1, size);
     pBlock->size = size;
 
@@ -184,7 +186,7 @@ FreeList::findFittingNode(const usize size)
     FreeList::Node* pLastFitting {};
     while (it)
     {
-        assert(it->m_data.isFree() && "[FreeList]: non free node in the free list");
+        ADT_ASSERT(it->m_data.isFree(), "non free node in the free list");
 
         ssize nodeSize = it->m_data.size();
 
@@ -231,7 +233,7 @@ FreeList::verify()
             if (pListNode->m_pPrev)
             {
                 bool bPrevAdjecent = ((u8*)pListNode->m_pPrev + pListNode->m_pPrev->size()) == ((u8*)pListNode);
-                assert(bPrevAdjecent);
+                ADT_ASSERT(bPrevAdjecent, " ");
             }
 
             pPrev = pListNode;
@@ -249,9 +251,9 @@ FreeList::splitNode(FreeList::Node* pNode, usize realSize)
 {
     ssize splitSize = ssize(pNode->m_data.size()) - ssize(realSize);
 
-    assert(splitSize >= 0);
+    ADT_ASSERT(splitSize >= 0, " ");
 
-    assert(pNode->m_data.isFree() && "splitting non free node (corruption)");
+    ADT_ASSERT(pNode->m_data.isFree(), "splitting non free node (corruption)");
     m_tree.remove(pNode);
 
     if (splitSize <= (ssize)sizeof(FreeList::Node))
@@ -277,7 +279,7 @@ FreeList::splitNode(FreeList::Node* pNode, usize realSize)
 inline void*
 FreeList::malloc(usize nMembers, usize mSize)
 {
-    usize requested = align8(nMembers * mSize);
+    usize requested = alignUp8(nMembers * mSize);
     if (requested == 0)
         return nullptr;
 
@@ -329,7 +331,7 @@ FreeList::free(void* ptr) noexcept
     if (ptr == nullptr) return;
 
     auto* pNode = _FreeListNodeFromPtr(ptr);
-    assert(!pNode->m_data.isFree() && "[FreeList]: double free");
+    ADT_ASSERT(!pNode->m_data.isFree(), "double free");
 
     auto* pBlock = blockFromNode(pNode);
 
@@ -371,7 +373,7 @@ FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
     if (!ptr)
         return malloc(newCount, mSize);
 
-    const usize requested = align8(newCount * mSize);
+    const usize requested = alignUp8(newCount * mSize);
 
     if (requested == 0)
     {
@@ -381,12 +383,12 @@ FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
 
     auto* pNode = _FreeListNodeFromPtr(ptr);
     ssize nodeSize = (ssize)pNode->m_data.size() - (ssize)sizeof(FreeList::Node);
-    assert(nodeSize > 0 && "[FreeList]: 0 or negative size allocation (corruption)");
+    ADT_ASSERT(nodeSize > 0, "0 or negative size allocation (corruption), nodeSize: {}", nodeSize);
 
     if ((ssize)newCount*(ssize)mSize <= nodeSize)
         return ptr;
 
-    assert(!pNode->m_data.isFree() && "[FreeList]: trying to realloc non free node");
+    ADT_ASSERT(!pNode->m_data.isFree(), "trying to realloc non free node");
 
     /* try to bump if next is free and can fit */
     {
@@ -396,7 +398,7 @@ FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
         if (pNext && pNext->isFree() && pNode->m_data.size() + pNext->size() >= realSize)
         {
             auto* pBlock = blockFromNode(pNode);
-            assert(pBlock && "[FreeList]: failed to find the block");
+            ADT_ASSERT(pBlock, "failed to find the block");
 
             pBlock->nBytesOccupied += realSize - pNode->m_data.size();
             m_totalAllocated += realSize - pNode->m_data.size();
@@ -415,7 +417,7 @@ FreeList::realloc(void* ptr, usize oldCount, usize newCount, usize mSize)
 
             splitNode(pNode, realSize);
 
-            assert(ptr == pNode->m_data.m_pMem);
+            ADT_ASSERT(ptr == pNode->m_data.m_pMem, " ");
             return ptr;
         }
     }

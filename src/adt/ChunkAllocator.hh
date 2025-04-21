@@ -1,8 +1,8 @@
 #pragma once
 
 #include "StdAllocator.hh"
+#include "print.hh" /* IWYU pragma: keep */
 
-#include <cassert>
 #include <cstdlib>
 #include <cstring>
 
@@ -35,10 +35,10 @@ struct ChunkAllocator : public IAllocator
 
     ChunkAllocator() = default;
     ChunkAllocator(usize chunkSize, usize blockSize, IAllocator* pBackAlloc = StdAllocator::inst()) noexcept(false)
-        : m_blockCap {align(blockSize, chunkSize + sizeof(ChunkAllocatorNode))},
+        : m_blockCap {alignUp(blockSize, chunkSize + sizeof(ChunkAllocatorNode))},
           m_chunkSize {chunkSize + sizeof(ChunkAllocatorNode)},
           m_pBackAlloc(pBackAlloc),
-          m_pBlocks {newBlock()} {}
+          m_pBlocks {allocBlock()} {}
 
     /* */
 
@@ -52,15 +52,19 @@ struct ChunkAllocator : public IAllocator
 
     template<typename T> ADT_WARN_IMPOSSIBLE_OPERATION constexpr T*
     reallocV(T* ptr, ssize oldCount, ssize newCount)
-    { ADT_ASSERT_ALWAYS(false, "can't realloc"); return nullptr; };
+    {
+        ADT_ASSERT_ALWAYS(false, "can't realloc"); return nullptr;
+    };
 
 private:
-    [[nodiscard]] ChunkAllocatorBlock* newBlock();
+    [[nodiscard]] ChunkAllocatorBlock* allocBlock();
 };
 
 inline ChunkAllocatorBlock*
-ChunkAllocator::newBlock()
+ChunkAllocator::allocBlock()
 {
+    ADT_ASSERT(m_pBackAlloc, "uninitialized: m_pBackAlloc == nullptr");
+
     usize total = m_blockCap + sizeof(ChunkAllocatorBlock);
     auto* r = (ChunkAllocatorBlock*)m_pBackAlloc->zalloc(1, total);
 
@@ -97,7 +101,7 @@ ChunkAllocator::malloc(usize, usize)
 
     if (!pBlock)
     {
-        pPrev->next = newBlock();
+        pPrev->next = allocBlock();
         pBlock = pPrev->next;
     }
 
@@ -139,7 +143,7 @@ ChunkAllocator::free(void* p) noexcept
         pBlock = pBlock->next;
     }
 
-    assert(pBlock && "bad pointer?");
+    ADT_ASSERT(pBlock, "bad pointer?");
     
     node->next = pBlock->head;
     pBlock->head = node;

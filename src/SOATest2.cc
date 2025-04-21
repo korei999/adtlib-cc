@@ -1,6 +1,7 @@
-#include "adt/math.hh"
 #include "adt/Arena.hh"
+#include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
+#include "adt/math.hh"
 
 #include "adt/VecSOA.hh"
 
@@ -38,41 +39,37 @@ main()
     Entity en3 {.pos = {-3.0f, -3.0f, -3.0f}, .scale = {3.0f, 3.0f, 3.0f}, .assetI = 33};
 
     vec.push(&arena, en0);
-    vec.push(&arena, en0);
+    vec.push(&arena, en1);
     vec.push(&arena, en2);
     vec.push(&arena, en3);
     vec.push(&arena, en0);
-    vec.push(&arena, en0);
+    vec.push(&arena, en1);
+    vec.push(&arena, en2);
+    vec.push(&arena, en3);
     vec.push(&arena, en0);
     vec.push(&arena, en1);
-    vec.push(&arena, en0);
-    vec.push(&arena, en0);
-    vec.push(&arena, en0);
-    vec.push(&arena, en0);
+    vec.push(&arena, en2);
+    vec.push(&arena, en3);
 
-    auto* pos = ((math::V3*)vec.m_pData);
-    auto* scale = (math::V3*)(pos + vec.m_cap);
-    auto* assetI = (int*)(scale + vec.m_cap);
+    int i = 0;
+    for (auto bind : vec)
+    {
+        print::out("i: {}\n", i);
+        print::out("pos: {}\n", bind.pos);
+        print::out("scale: {}\n", bind.scale);
+        print::out("assetI: {}\n\n", bind.assetI);
 
-    print::out("pos: {}\n", *pos);
-    print::out("scale: {}\n", *scale);
-    print::out("assetI: {}\n", *assetI);
+        ++i;
+    }
 
-    print::out("\n");
+    i = 0;
+    for (auto bind : ReverseIt(vec))
+    {
+        print::out("i: {}\n", i);
+        print::out("pos: {}\n", bind.pos);
+        print::out("scale: {}\n", bind.scale);
+        print::out("assetI: {}\n\n", bind.assetI);
 
-    auto b3 = vec[7];
-
-    auto* pos3 = ((math::V3*)vec.m_pData + 3);
-    auto* scale3 = (math::V3*)(pos + vec.m_cap + 3);
-    auto* assetI3 = ((int*)(scale + vec.m_cap) + 3);
-
-    print::out("pos: {}\n", *pos3);
-    print::out("scale: {}\n", *scale3);
-    print::out("assetI: {}\n", *assetI3);
-
-    print::out("\n");
-
-    print::out("pos: {}\n", b3.pos);
-    print::out("scale: {}\n", b3.scale);
-    print::out("assetI: {}\n", b3.assetI);
+        ++i;
+    }
 }

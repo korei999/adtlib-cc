@@ -93,27 +93,27 @@ main()
 
     {
         auto fSixteen = map.search("Sixteen");
-        assert(fSixteen);
+        ADT_ASSERT(fSixteen, "");
         if (fSixteen) LOG("found: {}\n", fSixteen.data());
     }
     {
         auto fThirdyTwo = map.search("ThirdyTwo");
-        assert(fThirdyTwo);
+        ADT_ASSERT(fThirdyTwo, "");
         if (fThirdyTwo) LOG("found: {}\n", fThirdyTwo.data());
     }
     {
         auto fSeventeen = map.search("Seventeen");
-        assert(fSeventeen.eStatus == MAP_RESULT_STATUS::NOT_FOUND);
+        ADT_ASSERT(fSeventeen.eStatus == MAP_RESULT_STATUS::NOT_FOUND, "");
         if (fSeventeen) LOG("found: {}\n", fSeventeen.data());
     }
     {
         auto fFiftyFive = map.search("FiftyFive");
-        assert(fFiftyFive.eStatus == MAP_RESULT_STATUS::NOT_FOUND);
+        ADT_ASSERT(fFiftyFive.eStatus == MAP_RESULT_STATUS::NOT_FOUND, "");
         if (fFiftyFive) LOG("found: {}\n", fFiftyFive.data());
     }
     {
         auto fNineHundredNinetyNine = map.search("NineHundredNinetyNine");
-        assert(fNineHundredNinetyNine);
+        ADT_ASSERT(fNineHundredNinetyNine, "");
         if (fNineHundredNinetyNine) LOG("found: {}\n", fNineHundredNinetyNine.data());
     }
 
@@ -128,13 +128,13 @@ main()
 
     {
         auto one = map2.search(12);
-        assert(one);
+        ADT_ASSERT(one, "");
         LOG("one: {}\n", one.data());
     }
 
     {
         auto two = map2.search(13);
-        assert(two);
+        ADT_ASSERT(two, "");
         LOG("two: {}\n", two.data());
     }
 

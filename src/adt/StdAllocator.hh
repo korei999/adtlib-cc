@@ -1,8 +1,9 @@
 #pragma once
 
 #include "IAllocator.hh"
+#include "assert.hh"
+#include "print.hh" /* IWYU pragma: keep */
 
-#include <cassert>
 #include <cstdlib>
 
 #ifdef ADT_USE_MIMALLOC

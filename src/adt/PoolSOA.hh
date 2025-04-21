@@ -41,8 +41,8 @@ struct PoolSOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
     void
     set(PoolSOAHandle<STRUCT> h, const STRUCT& x)
     {
-        /* for each Member, assign .*Member to the corresponding struct element. */
-        ((static_cast<SOAArrayHolder<STRUCT, CAP, MEMBERS>&>(*this).m_arrays[h.i] = x.*MEMBERS), ...);
+        (new(&static_cast<SOAArrayHolder<STRUCT, CAP, MEMBERS>&>(*this).m_arrays[h.i])
+          SOAArrayHolder<STRUCT, CAP, MEMBERS>::MemberType(x.*MEMBERS), ...);
     }
 
     BIND operator[](PoolSOAHandle<STRUCT> idx) { return BIND {bindMember<MEMBERS>(idx)...}; }
@@ -63,7 +63,7 @@ struct PoolSOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
             if (m_size == CAP)
             {
 #if !defined NDEBUG
-                fprintf(stderr, "PoolSOA::make(): out of size, returning -1\n");
+                print::err("PoolSOA::make(): out of size, returning -1\n");
 #endif
                 return {.i = -1};
             }
@@ -86,8 +86,8 @@ struct PoolSOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
     decltype(auto)
     bindMember(PoolSOAHandle<STRUCT> h)
     {
-        ADT_ASSERT(h.i >= 0 && h.i < CAP, "out of range: h: %d, CAP: %d", h.i, CAP);
-        ADT_ASSERT(m_aOccupiedIdxs[h.i], "handle '%d' is free", h.i);
+        ADT_ASSERT(h.i >= 0 && h.i < CAP, "out of range: h: {}, CAP: {}", h.i, CAP);
+        ADT_ASSERT(m_aOccupiedIdxs[h.i], "handle '{}' is free", h.i);
         return static_cast<SOAArrayHolder<STRUCT, CAP, MEMBER>&>(*this).m_arrays[h.i];
     }
 
@@ -95,10 +95,13 @@ struct PoolSOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
     decltype(auto)
     bindMember(PoolSOAHandle<STRUCT> h) const
     {
-        ADT_ASSERT(h.i >= 0 && h.i < CAP, "out of range: h: %d, CAP: %d", h.i, CAP);
-        ADT_ASSERT(m_aOccupiedIdxs[h.i], "handle '%d' is free", h.i);
+        ADT_ASSERT(h.i >= 0 && h.i < CAP, "out of range: h: {}, CAP: {}", h.i, CAP);
+        ADT_ASSERT(m_aOccupiedIdxs[h.i], "handle '{}' is free", h.i);
         return static_cast<const SOAArrayHolder<STRUCT, CAP, MEMBER>&>(*this).m_arrays[h.i];
     }
+
+    ssize size() const { return static_cast<ssize>(m_size); }
+    ssize cap() const { return static_cast<ssize>(CAP); }
 
     int
     firstI() const
@@ -139,6 +142,61 @@ struct PoolSOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
 
         return i;
     }
+
+    /* */
+
+    struct It
+    {
+        PoolSOA* s {};
+        int i {};
+
+        /* */
+
+        It(const PoolSOA* _s, int _i) : s(const_cast<PoolSOA*>(_s)), i(_i) {}
+
+        /* */
+
+        auto operator*() { return s->operator[]({i}); }
+
+        friend bool operator==(const It& l, const It& r) { return l.i == r.i; }
+        friend bool operator!=(const It& l, const It& r) { return l.i != r.i; }
+
+        It
+        operator++()
+        {
+            i = s->nextI(i);
+            return {s, i};
+        }
+
+        It
+        operator++(int)
+        {
+            ssize tmp = i;
+            i = s->nextI(i);
+            return {s, tmp};
+        }
+
+        It
+        operator--()
+        {
+            i = s->prevI(i);
+            return {s, i};
+        }
+
+        It
+        operator--(int)
+        {
+            ssize tmp = i;
+            i = s->prevI(i);
+            return {s, tmp};
+        }
+    };
+
+    It begin() { return {this, firstI()}; }
+    It end() { return {this, size() == 0 ? -1 : lastI() + 1}; }
+
+    const It begin() const { return {this, firstI()}; }
+    const It end() const { return {this, size() == 0 ? -1 : lastI() + 1}; }
 };
 
 } /* namespace adt */

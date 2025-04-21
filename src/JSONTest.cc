@@ -46,23 +46,24 @@ main(int argc, char* argv[])
     try
     {
         /*FixedAllocator al(s_aMem);*/
-        /*FreeList al(SIZE_1G);*/
-        /*StdAllocator al;*/
-        /*MiMalloc al;*/
-        /*Arena al(SIZE_8M);*/
-        MiHeap al(0);
-        defer( al.freeAll() );
+        // FreeList al(SIZE_1G);
+        // StdAllocator al;
+        MiMalloc al;
+        // Arena al(SIZE_8M);
+        // MiHeap al(0);
+        // defer( al.freeAll() );
 
-        String o_sJson = file::load(&al, argv[1]);
+        String sJson = file::load(&al, argv[1]);
 
-        if (!o_sJson)
+        if (!sJson)
             return 1;
-        /*defer( o_sJson.destroy(&al) );*/
+
+        defer( sJson.destroy(&al) );
 
         json::Parser p {};
-        bool eRes = p.parse(&al, o_sJson);
+        bool eRes = p.parse(&al, sJson);
         if (!eRes) LOG_WARN("json::Parser::parse() failed\n");
-        /*defer( p.destroy() );*/
+        defer( p.destroy() );
 
         if (argc >= 3 && "-p" == StringView(argv[2]))
             p.print(stdout);

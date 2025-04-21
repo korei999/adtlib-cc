@@ -20,7 +20,7 @@ int
 main()
 {
     {
-        auto a = align8(123);
+        auto a = alignUp8(123);
         LOG("a: {}\n", a);
 
         Arena arena(SIZE_1K);

@@ -5,6 +5,8 @@
 #include "adt/BufferAllocator.hh"
 #include "adt/ScratchBuffer.hh"
 
+#include <atomic>
+
 using namespace adt;
 
 static std::atomic<int> i = 0;
@@ -12,7 +14,7 @@ static std::atomic<int> i = 0;
 int
 main()
 {
-    ThreadPool tp(StdAllocator::inst(), 100);
+    ThreadPool<512> tp(StdAllocator::inst(), 100);
 
     auto inc = [&] {
         i.fetch_add(1, std::memory_order_relaxed);

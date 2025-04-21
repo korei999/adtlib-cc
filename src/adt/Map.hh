@@ -42,31 +42,33 @@ struct MapResult
     usize hash {};
     MAP_RESULT_STATUS eStatus {};
 
-    explicit constexpr operator bool() const
+    /* */
+
+    explicit constexpr operator bool() const { return pData != nullptr; }
+
+    /* */
+
+    [[nodiscard]] KeyVal<K, V>&
+    data()
     {
-        return pData != nullptr;
+        ADT_ASSERT(eStatus != MAP_RESULT_STATUS::NOT_FOUND, "not found");
+        return *(KeyVal<K, V>*)pData;
     }
 
-    [[nodiscard]] constexpr const KeyVal<K, V>&
+    [[nodiscard]] const KeyVal<K, V>&
     data() const
     {
         ADT_ASSERT(eStatus != MAP_RESULT_STATUS::NOT_FOUND, "not found");
         return *(KeyVal<K, V>*)pData;
     }
 
-    [[nodiscard]] constexpr const K&
-    key() const
-    {
-        return data().key;
-    }
+    [[nodiscard]] K& key() { return data().key; }
+    [[nodiscard]] const K& key() const { return data().key; }
 
-    [[nodiscard]] constexpr const V&
-    value() const
-    {
-        return data().val;
-    }
+    [[nodiscard]] V& value() { return data().val; }
+    [[nodiscard]] const V& value() const { return data().val; }
 
-    [[nodiscard]] constexpr const V&
+    [[nodiscard]] const V
     valueOr(V&& v) const
     {
         if (eStatus != MAP_RESULT_STATUS::NOT_FOUND)
@@ -79,8 +81,8 @@ template<typename K, typename V, usize (*FN_HASH)(const K&) = hash::func<K>>
 struct Map
 {
     Vec<MapBucket<K, V>> m_vBuckets {};
-    f32 m_maxLoadFactor {};
     ssize m_nOccupied {};
+    f32 m_maxLoadFactor {};
 
     /* */
 
@@ -135,8 +137,6 @@ struct Map
 
 protected:
     ssize getInsertionIdx(usize hash, const K& key) const;
-    bool* ptrToOccupied() const; /* occupied second after buckets */
-    bool* ptrToDeleted() const; /* deleted after occupied */
 
     /* */
 
@@ -174,7 +174,7 @@ inline ssize
 Map<K, V, FN_HASH>::idx(const KeyVal<K, V>* p) const
 {
     ssize r = (MapBucket<K, V>*)p - &m_vBuckets[0];
-    ADT_ASSERT(r >= 0 && r < m_vBuckets.cap(), "out of range, r: %lld, cap: %lld", r, m_vBuckets.cap());
+    ADT_ASSERT(r >= 0 && r < m_vBuckets.cap(), "out of range, r: {}, cap: {}", r, m_vBuckets.cap());
     return r;
 }
 
@@ -183,7 +183,7 @@ inline ssize
 Map<K, V, FN_HASH>::idx(const MapResult<K, V> res) const
 {
     ssize idx = res.pData - &m_vBuckets[0];
-    ADT_ASSERT(idx >= 0 && idx < m_vBuckets.cap(), "out of range, r: %lld, cap: %lld", idx, m_vBuckets.cap());
+    ADT_ASSERT(idx >= 0 && idx < m_vBuckets.cap(), "out of range, r: {}, cap: {}", idx, m_vBuckets.cap());
     return idx;
 }
 
@@ -382,7 +382,7 @@ Map<K, V, FN_HASH>::insertHashed(const K& key, const V& val, usize keyHash)
 
     new(&bucket.val) V(val);
 
-    defer(
+    ADT_DEFER(
         bucket.bOccupied = true;
         bucket.bDeleted = false;
     );
@@ -466,20 +466,6 @@ Map<K, V, FN_HASH>::getInsertionIdx(usize hash, const K& key) const
     }
 
     return idx;
-}
-
-template<typename K, typename V, usize (*FN_HASH)(const K&)>
-inline bool*
-Map<K, V, FN_HASH>::ptrToOccupied() const
-{
-    return const_cast<bool*>(m_vBuckets.data() + m_vBuckets.cap());
-}
-
-template<typename K, typename V, usize (*FN_HASH)(const K&)>
-inline bool*
-Map<K, V, FN_HASH>::ptrToDeleted() const
-{
-    return const_cast<bool*>(ptrToOccupied() + m_vBuckets.cap());
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>

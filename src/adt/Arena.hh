@@ -2,40 +2,41 @@
 
 #include "StdAllocator.hh"
 #include "utils.hh"
+#include "print.hh"
 
-#include <cstdlib>
 #include <cstring>
 
 #if defined ADT_DBG_MEMORY
-    #include <cstdio>
 #endif
 
 namespace adt
 {
 
-struct ArenaBlock
-{
-    ArenaBlock* pNext {};
-    usize size {}; /* excluding sizeof(ArenaBlock) */
-    usize nBytesOccupied {};
-    u8* pLastAlloc {};
-    usize lastAllocSize {};
-    u8 pMem[];
-};
-
 /* fast region based allocator, only freeAll() free's memory, free() does nothing */
 struct Arena : public IAllocator
 {
+    struct Block
+    {
+        Block* pNext {};
+        usize size {}; /* excluding sizeof(ArenaBlock) */
+        usize nBytesOccupied {};
+        u8* pLastAlloc {};
+        usize lastAllocSize {};
+        u8 pMem[];
+    };
+
+    /* */
+
     usize m_defaultCapacity {};
     IAllocator* m_pBackAlloc {};
-    ArenaBlock* m_pBlocks {};
+    Block* m_pBlocks {};
 
     /* */
 
     Arena() = default;
 
     Arena(usize capacity, IAllocator* pBackingAlloc = StdAllocator::inst()) noexcept(false)
-        : m_defaultCapacity(align8(capacity)),
+        : m_defaultCapacity(alignUp8(capacity)),
           m_pBackAlloc(pBackingAlloc),
           m_pBlocks(allocBlock(m_defaultCapacity)) {}
 
@@ -44,7 +45,7 @@ struct Arena : public IAllocator
     [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
-    [[deprecated("Noop")]] virtual void free(void* ptr) noexcept override final; /* noop */
+    virtual void free(void* ptr) noexcept override final;
     virtual void freeAll() noexcept override final;
     void reset() noexcept;
 
@@ -52,14 +53,14 @@ struct Arena : public IAllocator
 
     /* */
 
-private:
-    [[nodiscard]] inline ArenaBlock* allocBlock(usize size);
-    [[nodiscard]] inline ArenaBlock* prependBlock(usize size);
-    [[nodiscard]] inline ArenaBlock* findFittingBlock(usize size);
-    [[nodiscard]] inline ArenaBlock* findBlockFromPtr(u8* ptr);
+protected:
+    [[nodiscard]] inline Block* allocBlock(usize size);
+    [[nodiscard]] inline Block* prependBlock(usize size);
+    [[nodiscard]] inline Block* findFittingBlock(usize size);
+    [[nodiscard]] inline Block* findBlockFromPtr(u8* ptr);
 };
 
-inline ArenaBlock*
+inline Arena::Block*
 Arena::findBlockFromPtr(u8* ptr)
 {
     auto* it = m_pBlocks;
@@ -74,7 +75,7 @@ Arena::findBlockFromPtr(u8* ptr)
     return nullptr;
 }
 
-inline ArenaBlock*
+inline Arena::Block*
 Arena::findFittingBlock(usize size)
 {
     auto* it = m_pBlocks;
@@ -89,14 +90,16 @@ Arena::findFittingBlock(usize size)
     return nullptr;
 }
 
-inline ArenaBlock*
+inline Arena::Block*
 Arena::allocBlock(usize size)
 {
+    ADT_ASSERT(m_pBackAlloc, "uninitialized: m_pBackAlloc == nullptr");
+
     /* NOTE: m_pBackAlloc can throw here */
-    ArenaBlock* pBlock = static_cast<ArenaBlock*>(m_pBackAlloc->zalloc(1, size + sizeof(ArenaBlock)));
+    Block* pBlock = static_cast<Block*>(m_pBackAlloc->zalloc(1, size + sizeof(*pBlock)));
 
 #if defined ADT_DBG_MEMORY
-    fprintf(stderr, "[Arena]: new block of size: %llu\n", size);
+    print::err("[Arena]: new block of size: {}\n", size);
 #endif
 
     pBlock->size = size;
@@ -105,7 +108,7 @@ Arena::allocBlock(usize size)
     return pBlock;
 }
 
-inline ArenaBlock*
+inline Arena::Block*
 Arena::prependBlock(usize size)
 {
     auto* pNew = allocBlock(size);
@@ -118,15 +121,15 @@ Arena::prependBlock(usize size)
 inline void*
 Arena::malloc(usize mCount, usize mSize)
 {
-    usize realSize = align8(mCount * mSize);
+    usize realSize = alignUp8(mCount * mSize);
     auto* pBlock = findFittingBlock(realSize);
 
 #if defined ADT_DBG_MEMORY
     if (m_defaultCapacity <= realSize)
-        fprintf(stderr, "[Arena]: allocating more than defaultCapacity (%llu, %llu)\n", m_defaultCapacity, realSize);
+        print::err("[Arena]: allocating more than defaultCapacity ({}, {})\n", m_defaultCapacity, realSize);
 #endif
 
-    if (!pBlock) pBlock = prependBlock(utils::max(m_defaultCapacity, realSize*2));
+    if (!pBlock) pBlock = prependBlock(utils::max(m_defaultCapacity, usize(realSize*1.3)));
 
     auto* pRet = pBlock->pMem + pBlock->nBytesOccupied;
     ADT_ASSERT(pRet == pBlock->pLastAlloc + pBlock->lastAllocSize, " ");
@@ -142,24 +145,22 @@ inline void*
 Arena::zalloc(usize mCount, usize mSize)
 {
     auto* p = malloc(mCount, mSize);
-    memset(p, 0, align8(mCount * mSize));
+    memset(p, 0, alignUp8(mCount * mSize));
     return p;
 }
 
 inline void*
 Arena::realloc(void* ptr, usize oldCount, usize mCount, usize mSize)
 {
-    if (!ptr)
-        return malloc(mCount, mSize);
+    if (!ptr) return malloc(mCount, mSize);
 
-    if (mCount <= oldCount)
-        return ptr;
+    if (mCount <= oldCount) return ptr;
 
-    usize requested = mSize * mCount;
-    usize realSize = align8(requested);
+    const usize requested = mSize * mCount;
+    const usize realSize = alignUp8(requested);
 
     auto* pBlock = findBlockFromPtr(static_cast<u8*>(ptr));
-    ADT_ASSERT(pBlock, "pointer doesn't belong to this arena");
+    if (!pBlock) throw AllocException("pointer doesn't belong to this arena");
 
     if (ptr == pBlock->pLastAlloc &&
         pBlock->pLastAlloc + realSize < pBlock->pMem + pBlock->size) /* bump case */
@@ -221,7 +222,7 @@ Arena::shrinkToFirstBlock() noexcept
     while (it->pNext)
     {
 #if defined ADT_DBG_MEMORY
-        fprintf(stderr, "[Arena]: shrinking %llu sized block\n", it->size);
+        print::err("[Arena]: shrinking {} sized block\n", it->size);
 #endif
         auto* next = it->pNext;
         m_pBackAlloc->free(it);

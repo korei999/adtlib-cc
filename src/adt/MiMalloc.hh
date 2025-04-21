@@ -1,11 +1,8 @@
-
 #pragma once
 
 #include "IAllocator.hh"
 #include "mimalloc.h"
-
-#include <cassert>
-#include <cstdlib>
+#include "assert.hh"
 
 namespace adt
 {

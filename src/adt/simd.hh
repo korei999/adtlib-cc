@@ -13,10 +13,14 @@
 
 #pragma once
 
-#include "adt/Span.hh"
-#include "adt/math.hh"
+#include "Span.hh" /* IWYU pragma: keep */
+#include "mathDecl.hh"
 
 #include <nmmintrin.h>
+
+#if defined ADT_AVX2
+    #include <immintrin.h>
+#endif
 
 namespace adt::simd
 {
@@ -73,6 +77,10 @@ struct f32x4
     /* */
 
     explicit operator __m128() const { return pack; }
+
+    explicit operator math::V4() const { return *reinterpret_cast<const math::V4*>(this); }
+
+    explicit operator math::Qt() const { return reinterpret_cast<const math::Qt&>(*this); }
 
     explicit operator i32x4() const { return _mm_cvtps_epi32(pack); }
 };
@@ -567,8 +575,6 @@ f32Fillx4(Span<f32> src, const f32 x)
 
 #if defined ADT_AVX2
 
-#include <immintrin.h>
-
 struct f32x8;
 
 struct i32x8
@@ -597,8 +603,8 @@ struct i32x8
     i32* data() { return reinterpret_cast<i32*>(this); }
     const i32* data() const { return (i32*)(this); }
 
-    i32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8)"); return data()[i]; }
-    const i32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8)"); return data()[i]; }
+    i32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
+    const i32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
 };
 
 struct f32x8
@@ -1115,6 +1121,12 @@ f32Fillx8(Span<f32> src, const f32 x)
 
     for (; i < src.size(); ++i)
         src[i] = x;
+}
+
+inline f32x4
+fma(const f32x4& a, f32 b, const f32x4& c)
+{
+    return _mm_fmadd_ps(a.pack, f32x4(b).pack, c.pack);
 }
 
 #endif /* ADT_AVX2 */

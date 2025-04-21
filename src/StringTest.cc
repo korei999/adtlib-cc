@@ -42,7 +42,7 @@ main()
 
     {
         const StringView s = "私は日本語を話せません";
-        assert(s.endsWith("せません"));
+        ADT_ASSERT(s.endsWith("せません"), "");
         COUT("s: '{}'\n", s);
 
         COUT("'");

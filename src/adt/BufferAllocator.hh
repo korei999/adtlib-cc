@@ -1,15 +1,15 @@
 #pragma once
 
 #include "IAllocator.hh"
-#include "Span.hh"
+#include "Span.hh" /* IWYU pragma: keep */
+#include "print.hh" /* IWYU pragma: keep */
 
 #include <cstring>
-#include <cassert>
 
 namespace adt
 {
 
-/* Bump allocator, using fixed size buffer memory */
+/* Bump allocator, using fixed size memory buffer. */
 struct BufferAllocator : public IAllocator
 {
     u8* m_pMemBuffer = nullptr;
@@ -48,7 +48,7 @@ struct BufferAllocator : public IAllocator
 inline void*
 BufferAllocator::malloc(usize mCount, usize mSize)
 {
-    usize realSize = align8(mCount * mSize);
+    usize realSize = alignUp8(mCount * mSize);
 
     if (m_size + realSize > m_cap)
         throw AllocException("FixedAllocator::malloc(): out of memory");
@@ -65,7 +65,7 @@ inline void*
 BufferAllocator::zalloc(usize mCount, usize mSize)
 {
     auto* p = malloc(mCount, mSize);
-    memset(p, 0, align8(mCount * mSize));
+    memset(p, 0, alignUp8(mCount * mSize));
     return p;
 }
 
@@ -74,9 +74,9 @@ BufferAllocator::realloc(void* p, usize oldCount, usize newCount, usize mSize)
 {
     if (!p) return malloc(newCount, mSize);
 
-    assert(p >= m_pMemBuffer && p < m_pMemBuffer + m_cap && "[FixedAllocator]: invalid pointer");
+    ADT_ASSERT(p >= m_pMemBuffer && p < m_pMemBuffer + m_cap, "invalid pointer");
 
-    usize realSize = align8(newCount * mSize);
+    usize realSize = alignUp8(newCount * mSize);
 
     if ((m_size + realSize - m_lastAllocSize) > m_cap)
         throw AllocException("FixedAllocator::realloc(): out of memory");
