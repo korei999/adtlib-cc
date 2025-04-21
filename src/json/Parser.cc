@@ -572,14 +572,14 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
                     case TAG::LONG:
                     {
-                        i64 num = getLong(&arr[i]);
+                        i64 num = getInteger(&arr[i]);
                         print::toFILE(fp, "{:{}}{}{}", depth + 2, "", num, svE);
                     }
                     break;
 
                     case TAG::DOUBLE:
                     {
-                        f64 dnum = getDouble(&arr[i]);
+                        f64 dnum = getFloat(&arr[i]);
                         print::toFILE(fp, "{:{}}{}{}", depth + 2, "", dnum, svE);
                     }
                     break;
@@ -602,14 +602,14 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
         case TAG::DOUBLE:
         {
-            f64 f = getDouble(pNode);
+            f64 f = getFloat(pNode);
             print::toFILE(fp, "{:{}}\"{}\": {}{}", depth, "", key, f, svEnd);
         }
         break;
 
         case TAG::LONG:
         {
-            i64 i = getLong(pNode);
+            i64 i = getInteger(pNode);
             print::toFILE(fp, "{:{}}\"{}\": {}{}", depth, "", key, i, svEnd);
         }
         break;

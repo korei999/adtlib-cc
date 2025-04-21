@@ -4,8 +4,8 @@
 #include "adt/logs.hh" /* IWYU pragma: keep */
 #include "adt/Vec.hh" /* IWYU pragma: keep */
 #include "adt/List.hh" /* IWYU pragma: keep */
-#include "adt/String.hh"
-#include "adt/math.hh"
+#include "adt/String.hh" /* IWYU pragma: keep */
+#include "adt/math.hh" /* IWYU pragma: keep */
 
 using namespace adt;
 
@@ -17,7 +17,7 @@ main()
     print::out("{:{}}", nSpaces, "");
     print::out("there must be {} spaces before this string\n", nSpaces);
 
-    print::out("'{:>10}'\n", "10");
+    print::out("'{:>10}'{}\n", "10", 10);
 
     print::out("'{:{}}'", 10, 1);
     print::out("there must be single quote before the word 'there'\n");
