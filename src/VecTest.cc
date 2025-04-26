@@ -107,11 +107,7 @@ main()
     {
         f64 t0 = utils::timeNowMS();
 
-        /* why arena is slower??? */
-        /*FreeList a(sizeof(u32) * BIG);*/
-        /*FixedAllocator a(s_bigMem, sizeof(s_bigMem));*/
         StdAllocator a;
-        /*Arena a(nextPowerOf2(sizeof(u32) * big));*/
 
         VecManaged<B> vec(&a);
         for (u32 i = 0; i < BIG; ++i)
