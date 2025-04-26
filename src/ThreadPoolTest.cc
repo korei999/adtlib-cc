@@ -34,7 +34,7 @@ main()
     tp.addLambda(inc);
     tp.addLambda(inc);
 
-    tp.destroy();
+    tp.destroy(StdAllocator::inst());
 
     LOG("destroyed: i: {}\n", i.load());
     ADT_ASSERT(i.load(std::memory_order_relaxed) == NTASKS + 4, " ");

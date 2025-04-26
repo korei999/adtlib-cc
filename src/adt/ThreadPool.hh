@@ -8,15 +8,17 @@
 namespace adt
 {
 
-struct ThreadPoolTask
-{
-    ThreadFn pfn {};
-    void* pArg {};
-};
-
 template<ssize QUEUE_SIZE>
 struct ThreadPool
 {
+    struct Task
+    {
+        ThreadFn pfn {};
+        void* pArg {};
+    };
+
+    /* */
+
     Span<Thread> m_spThreads {};
     Mutex m_mtxQ {};
     CndVar m_cndQ {};
@@ -28,7 +30,7 @@ struct ThreadPool
     atomic::Int m_atomNActiveTasks {};
     atomic::Int m_atomBDone {};
     atomic::Int m_atomIdCounter {};
-    QueueArray<ThreadPoolTask, QUEUE_SIZE> m_qTasks {};
+    QueueArray<Task, QUEUE_SIZE> m_qTasks {};
 
     /* */
 
@@ -42,9 +44,9 @@ struct ThreadPool
 
     ThreadPool(
         IAllocator* pAlloc,
-        void (*pfnLoopStart)(void*), /* call on entering the loop */ 
+        void (*pfnOnLoopStart)(void*),
         void* pLoopStartArg,
-        void (*pfnLoopEnd)(void*), /* call on exiting the loop */
+        void (*pfnOnLoopEnd)(void*),
         void* pLoopEndArg,
         int nThreads = ADT_GET_NPROCS()
     );
@@ -55,7 +57,7 @@ struct ThreadPool
 
     void destroy(IAllocator* pAlloc);
 
-    bool add(ThreadPoolTask task);
+    bool add(Task task);
 
     bool add(ThreadFn pfn, void* pArg);
 
@@ -64,11 +66,12 @@ struct ThreadPool
     template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
     [[deprecated("rvalue lambdas cause use after free")]] bool addLambda(LAMBDA&& t) = delete;
 
-    void addRetry(ThreadPoolTask task) { while (!add(task)); }
+    void addRetry(Task task) { while (!add(task)); }
 
     void addRetry(ThreadFn pfn, void* pArg) { while (!add(pfn, pArg)); }
 
-    template<typename LAMBDA> void addLambdaRetry(LAMBDA&& t) { while (!addLambda(std::forward<LAMBDA>(t))); }
+    template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
+    [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetry(LAMBDA&& t) = delete;
 
 protected:
     THREAD_STATUS loop();
@@ -91,17 +94,17 @@ template<ssize QUEUE_SIZE>
 inline
 ThreadPool<QUEUE_SIZE>::ThreadPool(
     IAllocator* pAlloc,
-    void (*pfnLoopStart)(void*), void* pLoopStartArg,
-    void (*pfnLoopEnd)(void*), void* pLoopEndArg,
+    void (*pfnOnLoopStart)(void*), void* pLoopStartArg,
+    void (*pfnOnLoopEnd)(void*), void* pLoopEndArg,
     int nThreads
 )
     : m_spThreads(pAlloc->zallocV<Thread>(nThreads), nThreads),
       m_mtxQ(Mutex::TYPE::PLAIN),
       m_cndQ(INIT),
       m_cndWait(INIT),
-      m_pfnLoopStart(pfnLoopStart),
+      m_pfnLoopStart(pfnOnLoopStart),
       m_pLoopStartArg(pLoopStartArg),
-      m_pfnLoopEnd(pfnLoopEnd),
+      m_pfnLoopEnd(pfnOnLoopEnd),
       m_pLoopEndArg(pLoopEndArg),
       m_atomBDone(false)
 {
@@ -119,10 +122,10 @@ ThreadPool<QUEUE_SIZE>::loop()
 
     while (true)
     {
-        ThreadPoolTask task {};
+        Task task {};
 
         {
-            MutexGuard qLock(&m_mtxQ);
+            LockGuard qLock {&m_mtxQ};
 
             while (m_qTasks.empty() && !m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 m_cndQ.wait(&m_mtxQ);
@@ -134,11 +137,12 @@ ThreadPool<QUEUE_SIZE>::loop()
             m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::SEQ_CST);
         }
 
+        ADT_ASSERT(task.pfn, "pfn: '{}'", task.pfn);
         task.pfn(task.pArg);
         m_atomNActiveTasks.fetchSub(1, atomic::ORDER::SEQ_CST);
 
         {
-            MutexGuard qLock(&m_mtxQ);
+            LockGuard qLock {&m_mtxQ};
 
             if (m_qTasks.empty() && m_atomNActiveTasks.load(atomic::ORDER::ACQUIRE) == 0)
                 m_cndWait.signal();
@@ -169,7 +173,7 @@ template<ssize QUEUE_SIZE>
 inline void
 ThreadPool<QUEUE_SIZE>::wait()
 {
-    MutexGuard qLock(&m_mtxQ);
+    LockGuard qLock {&m_mtxQ};
 
     while (!m_qTasks.empty() || m_atomNActiveTasks.load(atomic::ORDER::RELAXED) != 0)
         m_cndWait.wait(&m_mtxQ);
@@ -182,7 +186,7 @@ ThreadPool<QUEUE_SIZE>::destroy(IAllocator* pAlloc)
     wait();
 
     {
-        MutexGuard qLock(&m_mtxQ);
+        LockGuard qLock {&m_mtxQ};
         m_atomBDone.store(true, atomic::ORDER::RELEASE);
     }
 
@@ -201,12 +205,12 @@ ThreadPool<QUEUE_SIZE>::destroy(IAllocator* pAlloc)
 
 template<ssize QUEUE_SIZE>
 inline bool
-ThreadPool<QUEUE_SIZE>::add(ThreadPoolTask task)
+ThreadPool<QUEUE_SIZE>::add(Task task)
 {
     ssize i;
 
     {
-        MutexGuard lock(&m_mtxQ);
+        LockGuard lock {&m_mtxQ};
         i = m_qTasks.pushBack(task);
     }
     if (i != -1)
