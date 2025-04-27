@@ -228,13 +228,13 @@ Queue<T>::grow(IAllocator* pAlloc)
         m_tailI = 0;
     );
 
-    if (m_headI < m_tailI)
+    if (m_headI < m_tailI) /* sequential case */
     {
         utils::memCopy(m_pData + m_cap, m_pData + m_headI, m_cap);
 
         return;
     }
-    else if (m_headI == m_tailI)
+    else /* `m_headI == m_tailI` case */
     {
         const ssize headToEndSize = m_size - m_headI;
         /* 1st: from head to the end of the buffer */
