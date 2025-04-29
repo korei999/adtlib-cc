@@ -230,3 +230,13 @@ add_executable(
     src/SOATest2.cc
     # ${MIMALLOC_SOURCE_DIR}/src/static.c
 )
+
+add_executable(
+    QueueSPSC
+    src/QueueSPSCTest.cc
+)
+
+add_executable(
+    BinarySearch
+    src/BinarySearch.cc
+)

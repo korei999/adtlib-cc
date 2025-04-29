@@ -45,10 +45,10 @@ main()
         ADT_ASSERT(s.endsWith("せません"), "");
         COUT("s: '{}'\n", s);
 
-        COUT("'");
+        COUT("\"");
         for (auto wc : StringGlyphIt(s))
             COUT("'{}'", wc);
-        COUT("'\n");
+        COUT("\"\n");
     }
 
     {
@@ -64,6 +64,14 @@ main()
         for (const auto& sWord : StringWordIt(s, ","))
         {
             COUT("'{}'\n", sWord);
+        }
+    }
+
+    {
+        constexpr StringView s = "STR0 | STR1 | STR2";
+        for (const auto& svWord : StringWordIt(s, " |"))
+        {
+            COUT("'{}'\n", svWord);
         }
     }
 }

@@ -5,6 +5,7 @@
 #include "adt/StdAllocator.hh"
 
 #include <vector>
+#include <limits>
 
 using namespace adt;
 
