@@ -8,8 +8,6 @@
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/ReverseIt.hh"
 
-#include <cassert>
-
 #include <vector>
 
 using namespace adt;
@@ -59,13 +57,13 @@ main()
         sort::quick(&vec0);
         /*sort::insertion(vec0.data(), 0, vec0.getSize() - 1);*/
         print::out("vec0: {}\n", vec0);
-        assert(sort::sorted(vec0.base));
+        ADT_ASSERT_ALWAYS(sort::sorted(vec0.base), "");
     }
 
     {
         auto vec1 = vec.clone(&aArenas[0]);
         sort::quick<Vec, f64, utils::compareRev>(&vec1.base);
-        assert(sort::sorted(vec1.base, sort::ORDER::DEC));
+        ADT_ASSERT_ALWAYS(sort::sorted(vec1.base, sort::ORDER::DEC), "");
 
         print::out("vec1(sorted):           {}\n", vec1);
         vec1.removeAndShift(2);
