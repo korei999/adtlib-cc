@@ -30,7 +30,12 @@ struct ThreadPool
     atomic::Int m_atomNActiveTasks {};
     atomic::Int m_atomBDone {};
     atomic::Int m_atomIdCounter {};
+    bool m_bStarted {};
     QueueArray<Task, QUEUE_SIZE> m_qTasks {};
+
+#ifndef NDEBUG
+    ThreadPool** m_ppDebugSelf {};
+#endif
 
     /* */
 
@@ -74,8 +79,8 @@ struct ThreadPool
     [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetry(LAMBDA&& t) = delete;
 
 protected:
+    void start();
     THREAD_STATUS loop();
-    void spawnThreads();
 };
 
 template<ssize QUEUE_SIZE>
@@ -87,7 +92,7 @@ ThreadPool<QUEUE_SIZE>::ThreadPool(IAllocator* pAlloc, int nThreads)
       m_cndWait(INIT),
       m_atomBDone(false)
 {
-    spawnThreads();
+    start();
 }
 
 template<ssize QUEUE_SIZE>
@@ -108,7 +113,7 @@ ThreadPool<QUEUE_SIZE>::ThreadPool(
       m_pLoopEndArg(pLoopEndArg),
       m_atomBDone(false)
 {
-    spawnThreads();
+    start();
 }
 
 template<ssize QUEUE_SIZE>
@@ -154,7 +159,7 @@ ThreadPool<QUEUE_SIZE>::loop()
 
 template<ssize QUEUE_SIZE>
 inline void
-ThreadPool<QUEUE_SIZE>::spawnThreads()
+ThreadPool<QUEUE_SIZE>::start()
 {
     for (auto& thread : m_spThreads)
     {
@@ -163,6 +168,8 @@ ThreadPool<QUEUE_SIZE>::spawnThreads()
             this
         );
     }
+
+    m_bStarted = true;
 
 #ifndef NDEBUG
     print::err("ThreadPool: new pool with {} threads\n", m_spThreads.size());
@@ -207,6 +214,8 @@ template<ssize QUEUE_SIZE>
 inline bool
 ThreadPool<QUEUE_SIZE>::add(Task task)
 {
+    ADT_ASSERT(m_bStarted, "forgot to `start()` this ThreadPool: (m_bStarted: '{}')", m_bStarted);
+
     ssize i;
 
     {

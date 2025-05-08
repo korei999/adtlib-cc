@@ -639,8 +639,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 static void
 traverseNodePRE(Node* pNode, bool (*pfn)(Node* p, void* pFnArgs), void* pArgs)
 {
-    if (pfn(pNode, pArgs))
-        return;
+    if (pfn(pNode, pArgs)) return;
 
     switch (pNode->tagVal.eTag)
     {

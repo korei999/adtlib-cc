@@ -5,11 +5,9 @@
 #include "adt/BufferAllocator.hh"
 #include "adt/ScratchBuffer.hh"
 
-#include <atomic>
-
 using namespace adt;
 
-static std::atomic<int> i = 0;
+static atomic::Int i {};
 
 int
 main()
@@ -17,7 +15,7 @@ main()
     ThreadPool<512> tp(StdAllocator::inst(), 100);
 
     auto inc = [&] {
-        i.fetch_add(1, std::memory_order_relaxed);
+        i.fetchAdd(1, atomic::ORDER::RELAXED);
     };
 
     const int NTASKS = 100;
@@ -25,6 +23,7 @@ main()
         tp.addLambda(inc);
 
     auto log = [&] { LOG("HWAT: {}\n", NTASKS); };
+    tp.addLambda(log);
     tp.addLambda(log);
 
     tp.wait();
@@ -36,8 +35,8 @@ main()
 
     tp.destroy(StdAllocator::inst());
 
-    LOG("destroyed: i: {}\n", i.load());
-    ADT_ASSERT(i.load(std::memory_order_relaxed) == NTASKS + 4, " ");
+    LOG("destroyed: i: {}\n", i.load(atomic::ORDER::RELAXED));
+    ADT_ASSERT(i.load(atomic::ORDER::RELAXED) == NTASKS + 4, " ");
 
     CERR("\n\n\n\n");
 }

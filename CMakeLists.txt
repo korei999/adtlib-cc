@@ -240,3 +240,8 @@ add_executable(
     BinarySearch
     src/BinarySearch.cc
 )
+
+add_executable(
+    SList
+    src/SList.cc
+)
