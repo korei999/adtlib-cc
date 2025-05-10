@@ -43,7 +43,7 @@ microBench()
 
     constexpr ssize BIG = 1000000;
 
-    VecManaged<String> vStrings(&arena, BIG);
+    VecManaged<String> vStrings {&arena, BIG};
     vStrings.setSize(BIG);
 
     for (ssize i = 0; i < BIG; ++i)

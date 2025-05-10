@@ -24,7 +24,7 @@ main()
         Arena arena(SIZE_1K);
         defer( arena.freeAll() );
 
-        VecManaged<int> vec(&arena);
+        VecManaged<int> vec {&arena};
         for (int i = 0; i < 100000; ++i)
             vec.push(i);
     }
@@ -57,13 +57,13 @@ main()
         sort::quick(&vec0);
         /*sort::insertion(vec0.data(), 0, vec0.getSize() - 1);*/
         print::out("vec0: {}\n", vec0);
-        ADT_ASSERT_ALWAYS(sort::sorted(vec0.base), "");
+        ADT_ASSERT_ALWAYS(sort::sorted(vec0), "");
     }
 
     {
         auto vec1 = vec.clone(&aArenas[0]);
-        sort::quick<Vec, f64, utils::compareRev>(&vec1.base);
-        ADT_ASSERT_ALWAYS(sort::sorted(vec1.base, sort::ORDER::DEC), "");
+        sort::quick<Vec, f64, utils::compareRev>(&vec1);
+        ADT_ASSERT_ALWAYS(sort::sorted(vec1, sort::ORDER::DEC), "");
 
         print::out("vec1(sorted):           {}\n", vec1);
         vec1.removeAndShift(2);
