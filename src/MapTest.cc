@@ -23,9 +23,9 @@ static String
 genRandomString(IAllocator* pAlloc)
 {
     const char* ntsChars = "1234567890-=qwertyuiop[]asdfghjklQWERTASDVZXCVKLJ:H";
-    ssize len = strlen(ntsChars);
+    isize len = strlen(ntsChars);
 
-    ssize size = (rand() % (len-2)) + 2;
+    isize size = (rand() % (len-2)) + 2;
     auto pMem = pAlloc->zallocV<char>(size);
     auto s = String(pAlloc, pMem, size);
 
@@ -41,12 +41,12 @@ microBench()
     Arena arena(SIZE_8M * 10);
     defer( arena.freeAll() );
 
-    constexpr ssize BIG = 1000000;
+    constexpr isize BIG = 1000000;
 
     VecManaged<String> vStrings {&arena, BIG};
     vStrings.setSize(BIG);
 
-    for (ssize i = 0; i < BIG; ++i)
+    for (isize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
 
     MapManaged<String, int> map(&arena);
@@ -54,7 +54,7 @@ microBench()
     {
         f64 t0 = utils::timeNowMS();
 
-        for (ssize i = 0; i < BIG; ++i)
+        for (isize i = 0; i < BIG; ++i)
             map.tryInsert(vStrings[i], i);
 
         f64 t1 = utils::timeNowMS() - t0;
@@ -64,7 +64,7 @@ microBench()
     {
         f64 t0 = utils::timeNowMS();
 
-        for (ssize i = 0; i < BIG; ++i)
+        for (isize i = 0; i < BIG; ++i)
         {
             [[maybe_unused]] auto f = map.search(vStrings[i]);
         }

@@ -12,7 +12,7 @@
 
 using namespace adt;
 
-const ssize BIG = 10000000;
+const isize BIG = 10000000;
 
 int
 main()

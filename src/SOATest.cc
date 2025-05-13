@@ -28,7 +28,7 @@ struct EntityBind
 namespace adt::print
 {
 
-inline ssize
+inline isize
 formatToContext(Context ctx, FormatArgs, const EntityBind& x)
 {
     ctx.fmt = "[{}], [{}], [{}], {}";
@@ -42,7 +42,7 @@ formatToContext(Context ctx, FormatArgs, const EntityBind& x)
  * T: the full type (e.g. Entity)
  * CAP: capacity
  * Member: a pointer-to-bindMember (e.g. &Entity::pos) */
-template<typename T, ssize CAP, auto MEMBER>
+template<typename T, isize CAP, auto MEMBER>
 struct SOAArrayHolder
 {
     /* Deduce the type of the bindMember. */
@@ -54,12 +54,12 @@ struct SOAArrayHolder
 };
 
 /* The main SOA container, which inherits from a SOA_ArrayHolder for each bindMember. */
-template<typename STRUCT, typename BIND, ssize CAP, auto ...MEMBERS>
+template<typename STRUCT, typename BIND, isize CAP, auto ...MEMBERS>
 struct SOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
 {
     /* Set the element at index 'idx' from a full object. */
     void
-    set(ssize idx, const STRUCT& value)
+    set(isize idx, const STRUCT& value)
     {
         /* Expand the pack: for each Member, assign value.*Member to the corresponding array element. */
         ((static_cast<SOAArrayHolder<STRUCT, CAP, MEMBERS>&>(*this).m_arrays[idx] = value.*MEMBERS), ...);
@@ -68,14 +68,14 @@ struct SOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
     /* Helper: get a reference for a specific member. */
     template<auto MEMBER>
     decltype(auto)
-    bindMember(ssize idx)
+    bindMember(isize idx)
     {
         return static_cast<SOAArrayHolder<STRUCT, CAP, MEMBER>&>(*this).m_arrays[idx];
     }
 
     template<auto MEMBER>
     decltype(auto)
-    bindMember(ssize idx) const
+    bindMember(isize idx) const
     {
         return static_cast<const SOAArrayHolder<STRUCT, CAP, MEMBER>&>(*this).m_arrays[idx];
     }
@@ -83,13 +83,13 @@ struct SOA : public SOAArrayHolder<STRUCT, CAP, MEMBERS>...
     /* bind returns a Bind struct (e.g. EntityBind) composed of references to the underlying arrays.
      * Bind must be aggregate initializable from the members in the same order as Members. */
     BIND
-    bind(ssize idx)
+    bind(isize idx)
     {
         return BIND {bindMember<MEMBERS>(idx)...};
     }
 
-    BIND operator[](ssize idx) { return bind(idx); }
-    const BIND operator[](ssize idx) const { return bind(idx); }
+    BIND operator[](isize idx) { return bind(idx); }
+    const BIND operator[](isize idx) const { return bind(idx); }
 };
 
 static void what();
