@@ -517,7 +517,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
 
             print::toFILE(fp, "{:{}}{}{}{}{}{\n", depth, "", q0, objName0, q1, objName1);
 
-            for (ssize i = 0; i < obj.size(); ++i)
+            for (isize i = 0; i < obj.size(); ++i)
             {
                 StringView svE = (i == obj.size() - 1) ? "\n" : ",\n";
                 printNode(fp, &obj[i], svE, depth + 2);
@@ -552,7 +552,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth)
             }
 
             print::toFILE(fp, "{}{}{}{}[\n", q0, arrName0, q1, arrName1);
-            for (ssize i = 0; i < arr.size(); ++i)
+            for (isize i = 0; i < arr.size(); ++i)
             {
                 StringView svE = (i == arr.size() - 1) ? "\n" : ",\n";
 
