@@ -245,3 +245,8 @@ add_executable(
     SList
     src/SList.cc
 )
+
+add_executable(
+    StringFixed
+    src/StringFixed.cc
+)
