@@ -19,6 +19,10 @@
 
     #define ADT_GET_NPROCS() get_nprocs()
 
+#elif defined __APPLE__
+
+    #define ADT_GET_NPROCS() static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN))
+
 #elif defined _WIN32
 
     #include <sysinfoapi.h>
@@ -32,10 +36,6 @@ getLogicalCoresCountWIN32()
 }
 
     #define ADT_GET_NPROCS() getLogicalCoresCountWIN32()
-#elif defined __APPLE__
-
-    #define ADT_GET_NPROCS() sysconf(_SC_NPROCESSORS_ONLN)
-
 #else
     #define ADT_GET_NPROCS() 4
 #endif
@@ -45,6 +45,8 @@ getNCores()
 {
 #ifdef __linux__
     return get_nprocs();
+#elif __APPLE__
+    return ADT_GET_NPROCS();
 #elif _WIN32
     SYSTEM_INFO info;
     GetSystemInfo(&info);
