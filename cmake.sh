@@ -145,6 +145,7 @@ cd $(dirname $0)
 
 case "$1" in
     default) default "${@:2}" ;;
+    defaultGCC) defaultGCC "${@:2}" ;;
     run) run "${@:2}" ;;
     debug) debug "${@:2}" ;;
     debugGCC) debugGCC "${@:2}" ;;
