@@ -88,7 +88,7 @@ main()
         COUT("graphemes...\n");
         for (const StringView sv : StringGraphemeIt(s))
         {
-            COUT("grapheme #{}: '{}'\n", i++, sv);
+            COUT("grapheme #{}: '{}' (size: {})\n", i++, sv, sv.size());
         }
     }
 }
