@@ -74,4 +74,21 @@ main()
             COUT("'{}'\n", svWord);
         }
     }
+
+    {
+        constexpr StringView s = "🇺🇦КВИТКИ";
+        int i = 0;
+        COUT("glyphs...\n");
+        for (const wchar_t& g : StringGlyphIt(s))
+        {
+            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcwidth(g));
+        }
+
+        i = 0;
+        COUT("graphemes...\n");
+        for (const StringView sv : StringGraphemeIt(s))
+        {
+            COUT("grapheme #{}: '{}'\n", i++, sv);
+        }
+    }
 }
