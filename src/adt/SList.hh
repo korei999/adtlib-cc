@@ -28,16 +28,16 @@ struct SList
     Node* insert(Node* pNode); /* prepend */
 
     void remove(Node* pNode); /* O(n) */
+    void remove(IAllocator* pAlloc, Node* pNode); /* O(n) */
+    void remove(Node* pPrev, Node* pNode); /* O(1) */
+    void remove(IAllocator* pAlloc, Node* pPrev, Node* pNode); /* O(1); free(pNode) */
 
-    void remove(IAllocator* pAlloc, Node* pNode);
-
-    void remove(Node* pPrev, Node* pNode);
+    void destroy(IAllocator* pAlloc);
 
     /* */
 
     struct It
     {
-        Node* m_prev {};
         Node* m_current {};
 
         It() = default;
@@ -46,13 +46,10 @@ struct SList
         T& operator*() noexcept { return m_current->data; }
         T* operator->() noexcept { return &m_current->data; }
 
-        It operator++() noexcept { m_prev = m_current; return m_current = m_current->pNext; }
+        It operator++() noexcept { return m_current = m_current->pNext; }
 
         Node* current() noexcept { return m_current; }
         const Node* current() const noexcept { return m_current; }
-
-        Node* prev() noexcept { return m_prev; }
-        const Node* prev() const noexcept { return m_prev; }
 
         friend constexpr bool operator==(const It& l, const It& r) noexcept { return l.m_current == r.m_current; }
         friend constexpr bool operator!=(const It& l, const It& r) noexcept { return l.m_current != r.m_current; }
@@ -106,12 +103,12 @@ template<typename T>
 inline void
 SList<T>::remove(Node* pNode)
 {
-    for (auto it = begin(); it != end(); ++it)
+    for (Node* curr = m_pHead, * prev = nullptr; curr; prev = curr, curr = curr->pNext)
     {
-        if (it.current() == pNode)
+        if (curr == pNode)
         {
-            if (it.prev()) it.prev()->pNext = it.current()->pNext;
-            else m_pHead = it.current()->pNext;
+            if (prev) prev->pNext = curr->pNext;
+            else m_pHead = curr->pNext;
 
             break;
         }
@@ -139,6 +136,30 @@ SList<T>::remove(Node* pPrev, Node* pNode)
         ADT_ASSERT(pPrev != nullptr, "");
         pPrev->pNext = pNode->pNext;
     }
+}
+
+template<typename T>
+inline void
+SList<T>::remove(IAllocator* pAlloc, Node* pPrev, Node* pNode)
+{
+    remove(pPrev, pNode);
+    pAlloc->free(pNode);
+}
+
+template<typename T>
+inline void
+SList<T>::destroy(IAllocator* pAlloc)
+{
+    for (
+        Node* curr = m_pHead, * tmp = nullptr;
+        curr && (tmp = curr->pNext, true);
+        curr = tmp
+    )
+    {
+        pAlloc->free(curr);
+    }
+
+    *this = {};
 }
 
 } /* namespace adt */
