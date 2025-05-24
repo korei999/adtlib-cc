@@ -17,4 +17,18 @@ main()
     COUT("arr: {}\n", arr);
 
     int i = 10;
+
+    {
+        Array<int, 16> a {};
+
+        a.pushSorted(sort::ORDER::INC, 5);
+        a.pushSorted(sort::ORDER::INC, 4);
+        a.pushSorted(sort::ORDER::INC, 10);
+        a.pushSorted(sort::ORDER::INC, 2);
+        a.pushSorted(sort::ORDER::INC, -1);
+        a.pushSorted(sort::ORDER::INC, 50);
+        a.pushSorted(sort::ORDER::INC, -240);
+
+        LOG("sorted inc: [{}]\n", a);
+    }
 }
