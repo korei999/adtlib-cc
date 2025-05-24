@@ -1,6 +1,6 @@
 #pragma once
 
-#include "adt/IAllocator.hh"
+#include "IAllocator.hh"
 
 namespace adt
 {
