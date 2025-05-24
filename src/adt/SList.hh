@@ -25,10 +25,11 @@ struct SList
     /* */
 
     Node* insert(IAllocator* pAlloc, const T& x); /* prepend */
+    Node* insert(Node* pNode); /* prepend */
 
     void remove(Node* pNode); /* O(n) */
 
-    void removeFree(IAllocator* pAlloc, Node* pNode);
+    void remove(IAllocator* pAlloc, Node* pNode);
 
     void remove(Node* pPrev, Node* pNode);
 
@@ -62,6 +63,10 @@ struct SList
 
     const It begin() const noexcept { return {m_pHead}; }
     const It end() const  noexcept { return {}; }
+
+    /* */
+protected:
+    Node* insertNode(Node* pNew); /* prepend */
 };
 
 template<typename T>
@@ -77,12 +82,24 @@ template<typename T>
 inline SList<T>::Node*
 SList<T>::insert(IAllocator* pAlloc, const T& x)
 {
-    Node* pNew = Node::alloc(pAlloc, x);
+    return insertNode(Node::alloc(pAlloc, x));
+}
 
+template<typename T>
+inline SList<T>::Node*
+SList<T>::insertNode(Node* pNew)
+{
     pNew->pNext = m_pHead;
     m_pHead = pNew;
 
     return pNew;
+}
+
+template<typename T>
+inline SList<T>::Node*
+SList<T>::insert(Node* pNode)
+{
+    insertNode(pNode);
 }
 
 template<typename T>
@@ -103,7 +120,7 @@ SList<T>::remove(Node* pNode)
 
 template<typename T>
 inline void
-SList<T>::removeFree(IAllocator* pAlloc, Node* pNode)
+SList<T>::remove(IAllocator* pAlloc, Node* pNode)
 {
     remove(pNode);
     pAlloc->free(pNode);

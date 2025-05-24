@@ -18,10 +18,10 @@ main()
     auto* pThree = list.insert(&alloc, 3);
     auto* pFour = list.insert(&alloc, 4);
 
-    list.removeFree(&alloc, pOne);
-    list.removeFree(&alloc, pFour);
-    list.removeFree(&alloc, pThree);
-    list.removeFree(&alloc, pTwo);
+    list.remove(&alloc, pOne);
+    list.remove(&alloc, pFour);
+    list.remove(&alloc, pThree);
+    list.remove(&alloc, pTwo);
 
     list.insert(&alloc, 5);
     list.insert(&alloc, 6);
