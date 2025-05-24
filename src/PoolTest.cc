@@ -8,24 +8,21 @@ using namespace adt;
 int
 main()
 {
-    Pool<long, 32> p;
+    Pool<int, 16> p {INIT};
 
-    [[maybe_unused]] auto h32 = p.make(32L);
-    [[maybe_unused]] auto h15 = p.make(15L);
+    [[maybe_unused]] auto h32 = p.insert(32);
+    [[maybe_unused]] auto h15 = p.insert(15);
 
-    [[maybe_unused]] auto h1 = p.make(1L);
-    [[maybe_unused]] auto h2 = p.make(2L);
-    [[maybe_unused]] auto h3 = p.make(3L);
-    [[maybe_unused]] auto h4 = p.emplace(4L);
+    [[maybe_unused]] auto h1 = p.insert(1);
+    [[maybe_unused]] auto h2 = p.insert(2);
+    [[maybe_unused]] auto h3 = p.insert(3);
+    [[maybe_unused]] auto h4 = p.emplace(4);
 
-    p.giveBack(h32);
-    p.giveBack(h3);
+    p.remove(h32);
+    p.remove(h3);
 
     for (const auto& h : p)
     {
-        LOG("h: {}\n", h);
-        /*h = 0;*/
+        LOG("#{}: h: {}\n", p.idx(&h), h);
     }
-
-    COUT("p: [{}]\n", p);
 }
