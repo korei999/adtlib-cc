@@ -6,9 +6,6 @@
 namespace adt
 {
 
-#define ADT_VEC_FOREACH_I(A, I) for (isize I = 0; I < (A)->size; ++I)
-#define ADT_VEC_FOREACH_I_REV(A, I) for (isize I = (A)->size - 1; I != -1U ; --I)
-
 /* TODO: overflow checks are pretty naive */
 
 /* Dynamic array (aka Vector) */
