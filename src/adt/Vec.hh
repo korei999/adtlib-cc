@@ -3,9 +3,6 @@
 #include "IAllocator.hh"
 #include "utils.hh"
 
-#include <new> /* IWYU pragma: keep */
-#include <utility>
-
 namespace adt
 {
 
