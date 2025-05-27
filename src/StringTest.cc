@@ -41,8 +41,6 @@ main()
         ADT_ASSERT_ALWAYS(sTest.contains("String"), "");
         ADT_ASSERT_ALWAYS(sTest.contains("Strin"), "");
         ADT_ASSERT_ALWAYS(!sTest.contains("Strig"), "");
-
-        print::out("nullptr: '{}'\n", sTest.contains(nullptr));
     }
 
     {
@@ -65,25 +63,40 @@ main()
 
     {
         constexpr StringView s = "word0 word1 word2 word3";
-        for (const auto& sWord : StringWordIt(s))
+        constexpr StringView aWords[] {
+            "word0", "word1", "word2", "word3",
+        };
+        int i = 0;
+        for (const auto& svWord : StringWordIt(s))
         {
-            COUT("'{}'\n", sWord);
+            ADT_ASSERT_ALWAYS(aWords[i] == svWord, "exp: '{}', got: '{}'", aWords[i], svWord);
+            ++i;
         }
     }
 
     {
         constexpr StringView s = "comma0,comma1,comma2,comma3";
-        for (const auto& sWord : StringWordIt(s, ","))
+        constexpr StringView aWords[] {
+            "comma0", "comma1", "comma2", "comma3"
+        };
+        int i = 0;
+        for (const auto& svWord : StringWordIt(s, ","))
         {
-            COUT("'{}'\n", sWord);
+            ADT_ASSERT_ALWAYS(aWords[i] == svWord, "exp: '{}', got: '{}'", aWords[i], svWord);
+            ++i;
         }
     }
 
     {
         constexpr StringView s = "STR0 | STR1 | STR2";
+        constexpr StringView aWords[] {
+            "STR0", "STR1", "STR2"
+        };
+        int i = 0;
         for (const auto& svWord : StringWordIt(s, " |"))
         {
-            COUT("'{}'\n", svWord);
+            ADT_ASSERT_ALWAYS(aWords[i] == svWord, "exp: '{}', got: '{}'", aWords[i], svWord);
+            ++i;
         }
     }
 
@@ -103,4 +116,6 @@ main()
             COUT("grapheme #{}: '{}' (size: {})\n", i++, sv, sv.size());
         }
     }
+
+    COUT("StringTest: PASSED\n");
 }
