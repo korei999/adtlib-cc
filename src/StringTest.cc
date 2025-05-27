@@ -34,6 +34,18 @@ main()
     sHello.destroy(&arena);
 
     {
+        String sTest = String(&arena, "Test Of This String");
+        ADT_ASSERT_ALWAYS(sTest.contains("Test"), "");
+        ADT_ASSERT_ALWAYS(sTest.contains("Of"), "");
+        ADT_ASSERT_ALWAYS(sTest.contains("This"), "");
+        ADT_ASSERT_ALWAYS(sTest.contains("String"), "");
+        ADT_ASSERT_ALWAYS(sTest.contains("Strin"), "");
+        ADT_ASSERT_ALWAYS(!sTest.contains("Strig"), "");
+
+        print::out("nullptr: '{}'\n", sTest.contains(nullptr));
+    }
+
+    {
         StringView s0 = "HELLO BIDEN";
         for (auto ch : ReverseIt(s0))
             putchar(ch);
