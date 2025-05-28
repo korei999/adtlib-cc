@@ -185,7 +185,7 @@ ThreadPool<QUEUE_SIZE>::start()
     for (auto& thread : m_spThreads)
     {
         thread = Thread(
-            reinterpret_cast<ThreadFn>(methodPointer(&ThreadPool::loop)),
+            reinterpret_cast<ThreadFn>(methodPointerNonVirtual(&ThreadPool::loop)),
             this
         );
     }
