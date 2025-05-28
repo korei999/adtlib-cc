@@ -26,8 +26,7 @@ main()
     list.insert(&alloc, 5);
     list.insert(&alloc, 6);
 
-    for (auto& e : list)
-        CERR("e: {}\n", e);
+    CERR("list: [{}]\n", list);
 
     list.destroy(&alloc);
 }

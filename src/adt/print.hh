@@ -608,6 +608,37 @@ formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const
     return copyBackToContext(ctx, fmtArgs, {aBuff});
 }
 
+template<template<typename> typename CON_T, typename T>
+inline isize
+formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept
+{
+    if (!x.data())
+    {
+        ctx.fmt = "{}";
+        ctx.fmtIdx = 0;
+        return printArgs(ctx, "(empty)");
+    }
+
+    char aFmtBuff[64] {};
+    isize nFmtRead = FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
+
+    StringView sFmtArg = aFmtBuff;
+    aFmtBuff[nFmtRead++] = ',';
+    aFmtBuff[nFmtRead++] = ' ';
+    StringView sFmtArgComma(aFmtBuff);
+
+    char aBuff[1024] {};
+    isize nRead = 0;
+
+    for (auto it = x.begin(); it != x.end(); ++it)
+    {
+        const StringView fmt = !it.next() ? sFmtArg : sFmtArgComma;
+        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, *it);
+    }
+
+    return copyBackToContext(ctx, fmtArgs, {aBuff});
+}
+
 template<template<typename, isize> typename CON_T, typename T, isize SIZE>
 inline isize
 formatToContextTemplateSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& x, const isize contSize) noexcept

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IAllocator.hh"
+#include "print.hh"
 
 namespace adt
 {
@@ -23,6 +24,9 @@ struct SList
     Node* m_pHead {};
 
     /* */
+
+    Node* data() { return m_pHead; }
+    const Node* data() const { return m_pHead; }
 
     Node* insert(IAllocator* pAlloc, const T& x); /* prepend */
     Node* insert(Node* pNode); /* prepend */
@@ -50,6 +54,9 @@ struct SList
 
         Node* current() noexcept { return m_current; }
         const Node* current() const noexcept { return m_current; }
+
+        Node* next() noexcept { return m_current->pNext; }
+        const Node* next() const noexcept { return m_current->pNext; }
 
         friend constexpr bool operator==(const It& l, const It& r) noexcept { return l.m_current == r.m_current; }
         friend constexpr bool operator!=(const It& l, const It& r) noexcept { return l.m_current != r.m_current; }
@@ -161,5 +168,17 @@ SList<T>::destroy(IAllocator* pAlloc)
 
     *this = {};
 }
+
+namespace print
+{
+
+template<typename T>
+inline isize
+formatToContext(Context ctx, FormatArgs fmtArgs, const SList<T>& x)
+{
+    return print::formatToContextUntilEnd(ctx, fmtArgs, x);
+}
+
+} /* namespace print */
 
 } /* namespace adt */

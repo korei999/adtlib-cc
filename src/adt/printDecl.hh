@@ -83,6 +83,9 @@ inline isize FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt) noexcep
 template<template<typename> typename CON_T, typename T>
 inline isize formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const isize contSize) noexcept;
 
+template<template<typename> typename CON_T, typename T>
+inline isize formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept;
+
 template<template<typename, isize> typename CON_T, typename T, isize SIZE>
 inline isize formatToContextTemplateSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& x, const isize contSize) noexcept;
 
