@@ -16,11 +16,18 @@ main()
     {
         Set<int> s {&arena};
 
-        auto sr4 = s.insert(&arena, 4);
+        s.insert(&arena, 4);
         s.insert(&arena, 5);
         s.insert(&arena, 1);
         s.insert(&arena, 1);
         s.insert(&arena, -666);
+
+        s.emplace(&arena, 2);
+
+        {
+            auto f5 = s.search(5);
+            ADT_ASSERT_ALWAYS(f5, "");
+        }
 
         for (auto& key : s)
         {

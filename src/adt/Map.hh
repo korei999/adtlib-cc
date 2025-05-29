@@ -275,8 +275,7 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 [[nodiscard]] inline MapResult<K, V>
 Map<K, V, FN_HASH>::search(const K& key)
 {
-    usize keyHash = FN_HASH(key);
-    return searchHashed(key, keyHash);
+    return searchHashed(key, FN_HASH(key));
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
@@ -331,11 +330,7 @@ inline MapResult<K, V>
 Map<K, V, FN_HASH>::tryInsert(IAllocator* p, const K& key, const V& val)
 {
     auto f = search(key);
-    if (f)
-    {
-        f.eStatus = MAP_RESULT_STATUS::FOUND;
-        return f;
-    }
+    if (f) return f;
     else return insert(p, key, val);
 }
 

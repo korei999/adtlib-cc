@@ -12,6 +12,15 @@ struct SetResult : public MapResult<T, Empty>
 
     /* */
 
+    SetResult() = default;
+
+    SetResult(const Base& res) : Base::MapResult(res) {}
+
+    SetResult(MapBucket<T, Empty>* _pBucket, usize _hash, MAP_RESULT_STATUS _eStatus)
+        : Base::MapResult {_pBucket, _hash, _eStatus} {}
+
+    /* */
+
     T&
     data()
     {
@@ -52,7 +61,16 @@ struct Set : public Map<T, Empty, FN_HASH>
     /* */
 
     SetResult<T> insert(IAllocator* p, const T& x);
+    auto tryInsert() = delete;
     SetResult<T> insertHashed(const T& x, usize hash);
+
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+    SetResult<T> emplace(IAllocator* p, ARGS&&... args) { return insert(p, {std::forward<T>(args)...}); }
+
+    [[nodiscard]] SetResult<T> search(const T& key);
+    [[nodiscard]] const SetResult<T> search(const T& key) const;
+
+    [[nodiscard]] SetResult<T> searchHashed(const T& key, usize keyHash) const { return Base::searchHashed(key, keyHash); }
 
     void rehash(IAllocator* p, isize size);
 
@@ -111,9 +129,9 @@ Set<T, FN_HASH>::insertHashed(const T& x, const usize hash)
     rBucket.bOccupied = true;
     rBucket.bDeleted = false;
 
-    SetResult<T> res;
-    res.pData = &rBucket;
-    res.hash = hash;
+    SetResult<T> res {
+        &rBucket, hash, MAP_RESULT_STATUS::INSERTED
+    };
 
     if (rBucket.key == x)
     {
@@ -121,11 +139,24 @@ Set<T, FN_HASH>::insertHashed(const T& x, const usize hash)
         return res;
     }
 
-    res.eStatus = MAP_RESULT_STATUS::INSERTED;
     new(&rBucket.key) T(x);
     ++Base::m_nOccupied;
 
     return res;
+}
+
+template<typename T, usize (*FN_HASH)(const T&)>
+inline SetResult<T>
+Set<T, FN_HASH>::search(const T& key)
+{
+    return Base::searchHashed(key, FN_HASH(key));
+}
+
+template<typename T, usize (*FN_HASH)(const T&)>
+inline const SetResult<T>
+Set<T, FN_HASH>::search(const T& key) const
+{
+    return Base::searchHashed(key, FN_HASH(key));
 }
 
 template<typename T, usize (*FN_HASH)(const T&)>
