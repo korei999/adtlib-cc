@@ -288,8 +288,7 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 [[nodiscard]] inline const MapResult<K, V>
 Map<K, V, FN_HASH>::search(const K& key) const
 {
-    usize keyHash = FN_HASH(key);
-    return searchHashed(key, keyHash);
+    return searchHashed(key, FN_HASH(key));
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
@@ -378,12 +377,19 @@ Map<K, V, FN_HASH>::insertHashed(const K& key, const V& val, usize keyHash)
     const isize idx = insertionIdx(keyHash, key);
     auto& bucket = m_vBuckets[idx];
 
-    new(&bucket.val) V(val);
-
-    ADT_DEFER( bucket.eFlags = MAP_BUCKET_FLAGS::OCCUPIED );
+    ADT_DEFER(
+        new(&bucket.val) V(val);
+        bucket.eFlags = MAP_BUCKET_FLAGS::OCCUPIED;
+    );
 
     if (bucket.key == key)
     {
+#ifndef NDEBUG
+        print::err("[Map::insertHashed]: updating value for existing key('{}'): old: '{}', new: '{}'\n",
+            key, bucket.val, val
+        );
+#endif
+
         return {
             .pData = &bucket,
             .hash = keyHash,
@@ -411,7 +417,7 @@ Map<K, V, FN_HASH>::searchHashed(const K& key, usize keyHash) const
     if (m_nOccupied == 0)
     {
 #ifndef NDEBUG
-        print::err("Map::search: m_nOccupied: {}\n", m_nOccupied);
+        print::err("[Map::search]: m_nOccupied: {}\n", m_nOccupied);
 #endif
         return res;
     }
@@ -430,9 +436,7 @@ Map<K, V, FN_HASH>::searchHashed(const K& key, usize keyHash) const
             break;
         }
 
-        ++idx;
-        if (idx >= m_vBuckets.cap())
-            idx = 0;
+        if (++idx >= m_vBuckets.cap()) idx = 0;
     }
 
     return res;
@@ -454,8 +458,7 @@ Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
 
     while (bool(m_vBuckets[idx].eFlags & MAP_BUCKET_FLAGS::OCCUPIED))
     {
-        if (m_vBuckets[idx].key == key)
-            break;
+        if (m_vBuckets[idx].key == key) break;
 
         if (++idx >= m_vBuckets.cap()) idx = 0;
     }

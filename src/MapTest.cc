@@ -4,6 +4,7 @@
 #include "adt/Arena.hh"
 #include "adt/Map.hh"
 #include "adt/Span.hh"
+#include "adt/rng.hh"
 
 using namespace adt;
 
@@ -19,18 +20,20 @@ memeHash(const int& x)
     return usize(x);
 }
 
+static rng::PCG32 s_rng {usize(utils::timeNowUS())};
+
 static String
 genRandomString(IAllocator* pAlloc)
 {
     const char* ntsChars = "1234567890-=qwertyuiop[]asdfghjklQWERTASDVZXCVKLJ:H";
     isize len = strlen(ntsChars);
 
-    isize size = (rand() % (len-2)) + 2;
+    isize size = (s_rng.next() % (len-2)) + 2;
     auto pMem = pAlloc->zallocV<char>(size);
     auto s = String(pAlloc, pMem, size);
 
     for (auto& ch : s)
-        ch = ntsChars[ rand() % len ];
+        ch = ntsChars[ s_rng.next() % len ];
 
     return s;
 }
@@ -49,13 +52,21 @@ microBench()
     for (isize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
 
-    MapManaged<String, int> map(&arena);
+    MapManaged<StringView, int> map(&arena);
+    VecManaged<StringView> vNotFoundStrings {StdAllocator::inst()};
+    defer( vNotFoundStrings.destroy() );
 
     {
         f64 t0 = utils::timeNowMS();
 
         for (isize i = 0; i < BIG; ++i)
-            map.tryInsert(vStrings[i], i);
+        {
+            auto res = map.tryInsert(vStrings[i], i);
+            if (res.eStatus == MAP_RESULT_STATUS::FOUND)
+            {
+                vNotFoundStrings.push(vStrings[i]);
+            }
+        }
 
         f64 t1 = utils::timeNowMS() - t0;
         LOG("tryInsert {} items in {} ms\n", BIG, t1);
@@ -67,6 +78,26 @@ microBench()
         for (isize i = 0; i < BIG; ++i)
         {
             [[maybe_unused]] auto f = map.search(vStrings[i]);
+            if (!f)
+            {
+                auto onceMore = map.search(vStrings[i]);
+
+                bool bFound = false;
+                for (auto& bucket : map.m_vBuckets)
+                {
+                    if (bucket.key == vStrings[i])
+                    {
+                        bFound = true;
+                        break;
+                    }
+                }
+                LOG_WARN("bFound: {}, '{}': str: '{}', onceMore: {}\n", bFound, f.eStatus, vStrings[i], onceMore.eStatus);
+            }
+        }
+
+        for (auto& sv : vNotFoundStrings)
+        {
+            ADT_ASSERT_ALWAYS(map.search(sv), "failed to find: '{}'", sv);
         }
 
         f64 t1 = utils::timeNowMS() - t0;
@@ -79,6 +110,19 @@ main()
 {
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
+
+    ADT_ASSERT_ALWAYS(hash::func("]e") == hash::func(StringView("]e")), "");
+
+    {
+        MapManaged<StringView, int> map {&arena};
+        map.insert("OneTwoThree", 123);
+        map.insert("OneTwoThree", 1234);
+
+        for (auto& kv : map)
+        {
+            CERR("kv: {}\n", kv);
+        }
+    }
 
     MapManaged<StringView, u32> map(&arena);
 
