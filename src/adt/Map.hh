@@ -5,9 +5,9 @@
 #pragma once
 
 #include "Vec.hh"
+#include "defer.hh"
 #include "hash.hh"
 #include "print.hh"
-#include "defer.hh"
 
 namespace adt
 {
@@ -21,14 +21,14 @@ template<typename K, typename V>
 struct KeyVal
 {
     K key {};
-    V val {};
+    ADT_NO_UNIQUE_ADDRESS V val {}; /* ADT_NO_UNIQUE_ADDRESS for empty values */
 };
 
 template<typename K, typename V>
 struct MapBucket
 {
     K key {};
-    V val {};
+    ADT_NO_UNIQUE_ADDRESS V val {}; /* ADT_NO_UNIQUE_ADDRESS for empty values */
     bool bOccupied = false;
     bool bDeleted = false;
     /* keep this order for iterators */
@@ -91,6 +91,9 @@ struct Map
 
     /* */
 
+    auto& data() { return m_vBuckets.data(); }
+    const auto& data() const { return m_vBuckets.data(); }
+
     [[nodiscard]] bool empty() const { return m_nOccupied <= 0; }
 
     [[nodiscard]] isize idx(const KeyVal<K, V>* p) const;
@@ -101,7 +104,7 @@ struct Map
 
     [[nodiscard]] isize nextI(isize i) const;
 
-    [[nodiscard]] f32 getLoadFactor() const;
+    [[nodiscard]] f32 loadFactor() const;
 
     MapResult<K, V> insert(IAllocator* p, const K& key, const V& val);
 
@@ -133,10 +136,7 @@ struct Map
 
     void zeroOut();
 
-    /* */
-
-protected:
-    isize getInsertionIdx(usize hash, const K& key) const;
+    isize insertionIdx(usize hash, const K& key) const;
 
     /* */
 
@@ -214,8 +214,9 @@ Map<K, V, FN_HASH>::nextI(isize i) const
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline f32
-Map<K, V, FN_HASH>::getLoadFactor() const
+Map<K, V, FN_HASH>::loadFactor() const
 {
+    ADT_ASSERT(m_vBuckets.cap() > 0, "cap: {}", m_vBuckets.cap());
     return f32(m_nOccupied) / f32(m_vBuckets.cap());
 }
 
@@ -223,14 +224,12 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline MapResult<K, V>
 Map<K, V, FN_HASH>::insert(IAllocator* p, const K& key, const V& val)
 {
-    if (m_vBuckets.cap() == 0)
+    if (m_vBuckets.cap() <= 0)
         *this = {p};
-    else if (getLoadFactor() >= m_maxLoadFactor)
+    else if (loadFactor() >= m_maxLoadFactor)
         rehash(p, m_vBuckets.cap() * 2);
 
-    usize keyHash = FN_HASH(key);
-
-    return insertHashed(key, val, keyHash);
+    return insertHashed(key, val, FN_HASH(key));
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
@@ -238,18 +237,17 @@ template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>)
 inline MapResult<K, V>
 Map<K, V, FN_HASH>::emplace(IAllocator* p, const K& key, ARGS&&... args)
 {
-    if (m_vBuckets.cap() == 0)
+    if (m_vBuckets.cap() <= 0)
         *this = {p};
-    else if (getLoadFactor() >= m_maxLoadFactor)
+    else if (loadFactor() >= m_maxLoadFactor)
         rehash(p, m_vBuckets.cap() * 2);
 
     usize keyHash = FN_HASH(key);
-    isize idx = getInsertionIdx(keyHash, key);
+    isize idx = insertionIdx(keyHash, key);
     auto& bucket = m_vBuckets[idx];
 
     new(&bucket.val) V(std::forward<ARGS>(args)...);
 
-    /* replace same key */
     if (bucket.key == key)
     {
         return {
@@ -364,7 +362,7 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline void
 Map<K, V, FN_HASH>::rehash(IAllocator* p, isize size)
 {
-    auto mNew = Map<K, V, FN_HASH>(p, size);
+    auto mNew = Map(p, size);
 
     for (const auto& [key, val] : *this)
         mNew.insert(p, key, val);
@@ -377,7 +375,7 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline MapResult<K, V>
 Map<K, V, FN_HASH>::insertHashed(const K& key, const V& val, usize keyHash)
 {
-    const isize idx = getInsertionIdx(keyHash, key);
+    const isize idx = insertionIdx(keyHash, key);
     auto& bucket = m_vBuckets[idx];
 
     new(&bucket.val) V(val);
@@ -451,7 +449,7 @@ Map<K, V, FN_HASH>::zeroOut()
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline isize
-Map<K, V, FN_HASH>::getInsertionIdx(usize hash, const K& key) const
+Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
 {
     isize idx = isize(hash % m_vBuckets.cap());
 
@@ -460,9 +458,7 @@ Map<K, V, FN_HASH>::getInsertionIdx(usize hash, const K& key) const
         if (m_vBuckets[idx].key == key)
             break;
 
-        ++idx;
-        if (idx >= m_vBuckets.cap())
-            idx = 0;
+        if (++idx >= m_vBuckets.cap()) idx = 0;
     }
 
     return idx;

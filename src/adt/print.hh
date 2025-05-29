@@ -377,6 +377,12 @@ formatToContext(Context ctx, FormatArgs fmtArgs, null) noexcept
     return formatToContext(ctx, fmtArgs, StringView("nullptr"));
 }
 
+inline isize
+formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept
+{
+    return formatToContext(ctx, fmtArgs, StringView("Empty"));
+}
+
 template<typename PTR_T> requires std::is_pointer_v<PTR_T>
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, PTR_T p) noexcept
@@ -575,9 +581,8 @@ FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt) noexcept
     return i;
 }
 
-template<template<typename> typename CON_T, typename T>
 inline isize
-formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const isize contSize) noexcept
+formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const auto& x, const isize contSize) noexcept
 {
     if (contSize <= 0)
     {
@@ -608,9 +613,8 @@ formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x, const
     return copyBackToContext(ctx, fmtArgs, {aBuff});
 }
 
-template<template<typename> typename CON_T, typename T>
 inline isize
-formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept
+formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept
 {
     if (!x.data())
     {

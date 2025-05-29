@@ -7,10 +7,6 @@
 
 using namespace adt;
 
-struct Empty
-{
-};
-
 int
 main()
 {

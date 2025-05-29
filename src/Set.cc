@@ -14,6 +14,17 @@ main()
     defer( arena.freeAll() );
 
     {
-        Set<int> s(&arena);
+        Set<int> s {&arena};
+
+        auto sr4 = s.insert(&arena, 4);
+        s.insert(&arena, 5);
+        s.insert(&arena, 1);
+        s.insert(&arena, 1);
+        s.insert(&arena, -666);
+
+        for (auto& key : s)
+        {
+            CERR("key: {}, idx: {}\n", key, s.idx(&key));
+        }
     }
 }
