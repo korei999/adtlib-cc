@@ -436,7 +436,7 @@ Map<K, V, FN_HASH>::searchHashed(const K& key, usize keyHash) const
             break;
         }
 
-        if (++idx >= m_vBuckets.cap()) idx = 0;
+        idx = utils::cycleForwardPowerOf2(idx, m_vBuckets.size());
     }
 
     return res;
@@ -460,7 +460,7 @@ Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
     {
         if (m_vBuckets[idx].key == key) break;
 
-        if (++idx >= m_vBuckets.cap()) idx = 0;
+        idx = utils::cycleForwardPowerOf2(idx, m_vBuckets.size());
     }
 
     return idx;
@@ -468,11 +468,11 @@ Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
 Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc)
-    : m_vBuckets(pAllocator, prealloc * MAP_DEFAULT_LOAD_FACTOR_INV),
+    : m_vBuckets(pAllocator, nextPowerOf2(isize(prealloc * MAP_DEFAULT_LOAD_FACTOR_INV))),
       m_maxLoadFactor(MAP_DEFAULT_LOAD_FACTOR)
 {
-    m_vBuckets.setSize(pAllocator, prealloc * MAP_DEFAULT_LOAD_FACTOR_INV);
-    m_vBuckets.zeroOut();
+    ADT_ASSERT(isPowerOf2(m_vBuckets.cap()), "");
+    m_vBuckets.setSize(pAllocator, m_vBuckets.cap());
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&) = hash::func<K>>

@@ -95,13 +95,13 @@ microBench()
             }
         }
 
+        f64 t1 = utils::timeNowMS() - t0;
+        LOG("search {} items in {} ms\n", BIG, t1);
+
         for (auto& sv : vNotFoundStrings)
         {
             ADT_ASSERT_ALWAYS(map.search(sv), "failed to find: '{}'", sv);
         }
-
-        f64 t1 = utils::timeNowMS() - t0;
-        LOG("search {} items in {} ms\n", BIG, t1);
     }
 }
 
