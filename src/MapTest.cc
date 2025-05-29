@@ -93,27 +93,27 @@ main()
 
     {
         auto fSixteen = map.search("Sixteen");
-        ADT_ASSERT(fSixteen, "");
+        ADT_ASSERT_ALWAYS(fSixteen, "");
         if (fSixteen) LOG("found: {}\n", fSixteen.data());
     }
     {
         auto fThirdyTwo = map.search("ThirdyTwo");
-        ADT_ASSERT(fThirdyTwo, "");
+        ADT_ASSERT_ALWAYS(fThirdyTwo, "");
         if (fThirdyTwo) LOG("found: {}\n", fThirdyTwo.data());
     }
     {
         auto fSeventeen = map.search("Seventeen");
-        ADT_ASSERT(fSeventeen.eStatus == MAP_RESULT_STATUS::NOT_FOUND, "");
+        ADT_ASSERT_ALWAYS(fSeventeen.eStatus == MAP_RESULT_STATUS::NOT_FOUND, "");
         if (fSeventeen) LOG("found: {}\n", fSeventeen.data());
     }
     {
         auto fFiftyFive = map.search("FiftyFive");
-        ADT_ASSERT(fFiftyFive.eStatus == MAP_RESULT_STATUS::NOT_FOUND, "");
+        ADT_ASSERT_ALWAYS(fFiftyFive.eStatus == MAP_RESULT_STATUS::NOT_FOUND, "");
         if (fFiftyFive) LOG("found: {}\n", fFiftyFive.data());
     }
     {
         auto fNineHundredNinetyNine = map.search("NineHundredNinetyNine");
-        ADT_ASSERT(fNineHundredNinetyNine, "");
+        ADT_ASSERT_ALWAYS(fNineHundredNinetyNine, "");
         if (fNineHundredNinetyNine) LOG("found: {}\n", fNineHundredNinetyNine.data());
     }
 
@@ -128,13 +128,13 @@ main()
 
     {
         auto one = map2.search(12);
-        ADT_ASSERT(one, "");
+        ADT_ASSERT_ALWAYS(one, "");
         LOG("one: {}\n", one.data());
     }
 
     {
         auto two = map2.search(13);
-        ADT_ASSERT(two, "");
+        ADT_ASSERT_ALWAYS(two, "");
         LOG("two: {}\n", two.data());
     }
 

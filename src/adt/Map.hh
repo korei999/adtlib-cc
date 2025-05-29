@@ -17,6 +17,14 @@ constexpr f32 MAP_DEFAULT_LOAD_FACTOR_INV = 1.0f / MAP_DEFAULT_LOAD_FACTOR;
 
 enum class MAP_RESULT_STATUS : u8 { NOT_FOUND, FOUND, INSERTED };
 
+enum class MAP_BUCKET_FLAGS : u8
+{
+    NONE = 0,
+    OCCUPIED = 1,
+    DELETED = 1 << 1,
+};
+ADT_ENUM_BITWISE_OPERATORS(MAP_BUCKET_FLAGS);
+
 template<typename K, typename V>
 struct KeyVal
 {
@@ -29,8 +37,7 @@ struct MapBucket
 {
     K key {};
     ADT_NO_UNIQUE_ADDRESS V val {}; /* ADT_NO_UNIQUE_ADDRESS for empty values */
-    bool bOccupied = false;
-    bool bDeleted = false;
+    MAP_BUCKET_FLAGS eFlags {};
     /* keep this order for iterators */
 };
 
@@ -192,7 +199,7 @@ inline isize
 Map<K, V, FN_HASH>::firstI() const
 {
     isize i = 0;
-    while (i < m_vBuckets.cap() && !m_vBuckets[i].bOccupied)
+    while (i < m_vBuckets.cap() && !(m_vBuckets[i].eFlags & MAP_BUCKET_FLAGS::OCCUPIED))
         ++i;
 
     if (i >= m_vBuckets.cap()) i = NPOS;
@@ -205,7 +212,7 @@ inline isize
 Map<K, V, FN_HASH>::nextI(isize i) const
 {
     do ++i;
-    while (i < m_vBuckets.cap() && !m_vBuckets[i].bOccupied);
+    while (i < m_vBuckets.cap() && !(m_vBuckets[i].eFlags & MAP_BUCKET_FLAGS::OCCUPIED));
 
     if (i >= m_vBuckets.cap()) i = NPOS;
 
@@ -259,8 +266,7 @@ Map<K, V, FN_HASH>::emplace(IAllocator* p, const K& key, ARGS&&... args)
 
     new(&bucket.key) K(key);
 
-    bucket.bOccupied = true;
-    bucket.bDeleted = false;
+    bucket.eFlags = MAP_BUCKET_FLAGS::OCCUPIED;
 
     ++m_nOccupied;
 
@@ -294,8 +300,7 @@ Map<K, V, FN_HASH>::remove(isize i)
 
     bucket.key = {};
     bucket.val = {};
-    bucket.bDeleted = true;
-    bucket.bOccupied = false;
+    bucket.eFlags = MAP_BUCKET_FLAGS::DELETED;
 
     --m_nOccupied;
 }
@@ -375,10 +380,7 @@ Map<K, V, FN_HASH>::insertHashed(const K& key, const V& val, usize keyHash)
 
     new(&bucket.val) V(val);
 
-    ADT_DEFER(
-        bucket.bOccupied = true;
-        bucket.bDeleted = false;
-    );
+    ADT_DEFER( bucket.eFlags = MAP_BUCKET_FLAGS::OCCUPIED );
 
     if (bucket.key == key)
     {
@@ -417,9 +419,11 @@ Map<K, V, FN_HASH>::searchHashed(const K& key, usize keyHash) const
     isize idx = isize(keyHash % usize(m_vBuckets.cap()));
     res.hash = keyHash;
 
-    while (m_vBuckets[idx].bOccupied || m_vBuckets[idx].bDeleted)
+    while (int(m_vBuckets[idx].eFlags) > 0) /* deleted or occupied */
     {
-        if (!m_vBuckets[idx].bDeleted && m_vBuckets[idx].key == key)
+        if (!(m_vBuckets[idx].eFlags & MAP_BUCKET_FLAGS::DELETED) &&
+            m_vBuckets[idx].key == key
+        )
         {
             res.pData = const_cast<MapBucket<K, V>*>(&m_vBuckets[idx]);
             res.eStatus = MAP_RESULT_STATUS::FOUND;
@@ -448,7 +452,7 @@ Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
 {
     isize idx = isize(hash % m_vBuckets.cap());
 
-    while (m_vBuckets[idx].bOccupied)
+    while (bool(m_vBuckets[idx].eFlags & MAP_BUCKET_FLAGS::OCCUPIED))
     {
         if (m_vBuckets[idx].key == key)
             break;

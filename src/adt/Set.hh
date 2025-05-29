@@ -126,8 +126,7 @@ Set<T, FN_HASH>::insertHashed(const T& x, const usize hash)
     const isize idx = Base::insertionIdx(hash, x);
     auto& rBucket = Base::m_vBuckets[idx];
 
-    rBucket.bOccupied = true;
-    rBucket.bDeleted = false;
+    rBucket.eFlags = MAP_BUCKET_FLAGS::OCCUPIED;
 
     SetResult<T> res {
         &rBucket, hash, MAP_RESULT_STATUS::INSERTED
