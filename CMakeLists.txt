@@ -250,3 +250,8 @@ add_executable(
     StringFixed
     src/StringFixed.cc
 )
+
+add_executable(
+    Set
+    src/Set.cc
+)

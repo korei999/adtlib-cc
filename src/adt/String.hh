@@ -36,7 +36,7 @@ ntsSize(const char* nts)
     return i;
 }
 
-template <isize SIZE>
+template<isize SIZE>
 [[nodiscard]] constexpr isize
 charBuffStringSize(const char (&aCharBuff)[SIZE])
 {

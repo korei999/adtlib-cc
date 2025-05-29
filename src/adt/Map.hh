@@ -478,9 +478,9 @@ Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc)
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&) = hash::func<K>>
-struct MapManaged
+struct MapManaged : Map<K, V, FN_HASH>
 {
-    Map<K, V, FN_HASH> base {};
+    using Base = Map<K, V, FN_HASH>;
 
     /* */
 
@@ -490,52 +490,18 @@ struct MapManaged
 
     MapManaged() = default;
     MapManaged(IAllocator* _pAlloc, isize prealloc = SIZE_MIN)
-        : base(_pAlloc, prealloc), m_pAlloc(_pAlloc) {}
+        : Base(_pAlloc, prealloc), m_pAlloc(_pAlloc) {}
 
     /* */
 
-    [[nodiscard]] bool empty() const { return base.empty(); }
-
-    [[nodiscard]] isize idx(MapResult<K, V> res) const { return base.idx(res); }
-
-    [[nodiscard]] isize firstI() const { return base.firstI(); }
-
-    [[nodiscard]] isize nextI(isize i) const { return base.nextI(i); }
-
-    [[nodiscard]] f32 getLoadFactor() const { return base.getLoadFactor(); }
-
-    MapResult<K, V> insert(const K& key, const V& val) { return base.insert(m_pAlloc, key, val); }
+    MapResult<K, V> insert(const K& key, const V& val) { return Base::insert(m_pAlloc, key, val); }
 
     template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>) MapResult<K, V> emplace(const K& key, ARGS&&... args)
-    { return base.emplace(m_pAlloc, key, std::forward<ARGS>(args)...); };
+    { return Base::emplace(m_pAlloc, key, std::forward<ARGS>(args)...); };
 
-    [[nodiscard]] MapResult<K, V> search(const K& key) { return base.search(key); }
+    MapResult<K, V> tryInsert(const K& key, const V& val) { return Base::tryInsert(m_pAlloc, key, val); }
 
-    [[nodiscard]] const MapResult<K, V> search(const K& key) const { return base.search(key); }
-
-    void remove(isize i) { base.remove(i); }
-
-    void remove(const K& key) { base.remove(key); }
-
-    bool tryRemove(const K& key) { return base.tryRemove(key); }
-
-    MapResult<K, V> tryInsert(const K& key, const V& val) { return base.tryInsert(m_pAlloc, key, val); }
-
-    void destroy() { base.destroy(m_pAlloc); }
-
-    [[nodiscard]] isize cap() const { return base.cap(); }
-
-    [[nodiscard]] isize size() const { return base.size(); }
-
-    void zeroOut() { base.zeroOut(); }
-
-    /* */
-
-    typename Map<K, V, FN_HASH>::It begin() { return base.begin(); }
-    typename Map<K, V, FN_HASH>::It end() { return base.end(); }
-
-    const typename Map<K, V, FN_HASH>::It begin() const { return base.begin(); }
-    const typename Map<K, V, FN_HASH>::It end() const { return base.end(); }
+    void destroy() { Base::destroy(m_pAlloc); }
 };
 
 namespace print
@@ -547,7 +513,7 @@ formatToContext(Context ctx, FormatArgs, MAP_RESULT_STATUS eStatus)
     ctx.fmt = "{}";
     ctx.fmtIdx = 0;
     constexpr StringView map[] {
-        "FOUND", "NOT_FOUND", "INSERTED"
+        "NOT_FOUND", "FOUND", "INSERTED"
     };
 
     auto statusIdx = std::underlying_type_t<MAP_RESULT_STATUS>(eStatus);
