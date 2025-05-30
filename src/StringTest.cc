@@ -56,7 +56,7 @@ main()
         COUT("s: '{}'\n", s);
 
         COUT("\"");
-        for (auto wc : StringGlyphIt(s))
+        for (auto wc : StringWCharIt(s))
             COUT("'{}'", wc);
         COUT("\"\n");
     }
@@ -104,7 +104,7 @@ main()
         constexpr StringView s = "🇺🇦КВИТКИ";
         int i = 0;
         COUT("glyphs...\n");
-        for (const wchar_t& g : StringGlyphIt(s))
+        for (const wchar_t& g : StringWCharIt(s))
         {
             COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcwidth(g));
         }
