@@ -11,7 +11,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-project(adtlib-test VERSION 0.4 LANGUAGES CXX C)
+project(adtlib-test VERSION 0.5 LANGUAGES CXX C)
 
 option(OPT_SSE4_2 "" OFF)
 option(OPT_MARCH_NATIVE "" OFF)
