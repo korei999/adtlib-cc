@@ -514,7 +514,7 @@ StringView::last() const
 }
 
 inline isize
-StringView::nGlyphs() const
+StringView::multiByteSize() const
 {
     mbstate_t state {};
     isize n = 0;

@@ -59,7 +59,7 @@ struct StringView
     [[nodiscard]] const char& first() const;
     [[nodiscard]] char& last();
     [[nodiscard]] const char& last() const;
-    [[nodiscard]] isize nGlyphs() const;
+    [[nodiscard]] isize multiByteSize() const;
 
     template<typename T>
     T reinterpret(isize at) const;
