@@ -59,14 +59,14 @@ negate(auto* x)
 }
 
 template<typename T>
-[[nodiscard]] inline const T&
+[[nodiscard]] inline constexpr const T&
 max(const T& l, const T& r)
 {
     return l > r ? l : r;
 }
 
 template<typename T>
-[[nodiscard]] inline const T&
+[[nodiscard]] inline constexpr const T&
 min(const T& l, const T& r)
 {
     return l < r ? l : r;
