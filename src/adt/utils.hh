@@ -21,7 +21,7 @@
     #include <sysinfoapi.h>
 #endif
 
-#include "PairDecl.hh"
+#include "Pair.inc"
 #include "assert.hh"
 
 #include <ctime>

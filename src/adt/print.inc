@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StringDecl.hh"
+#include "String.inc"
 
 #include <type_traits>
 

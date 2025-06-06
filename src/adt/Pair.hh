@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PairDecl.hh"
+#include "Pair.inc"
 
 #include "print.hh"
 

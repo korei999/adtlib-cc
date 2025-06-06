@@ -1,12 +1,11 @@
 #pragma once
 
-#include "printDecl.hh"
-#include "String.hh" /* IWYU pragma: keep */
+#include "print.inc"
 
+#include "String.hh" /* IWYU pragma: keep */
 #include "enum.hh"
 
 #include <ctype.h> /* win32 */
-
 #include <cstdio>
 #include <cstdlib>
 #include <cuchar> /* IWYU pragma: keep */

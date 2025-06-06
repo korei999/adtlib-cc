@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.hh"
-#include "printDecl.hh" /* IWYU pragma: keep */
+#include "print.inc" /* IWYU pragma: keep */
 
 #if __has_include(<unistd.h>)
     #include <unistd.h>

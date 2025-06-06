@@ -13,17 +13,17 @@ release()
 {
     _clean
 
-    if CC=clang CXX=clang++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
+    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
     then
         cmake --build build/ -j -v
     fi
 }
 
-releaseGCC()
+releaseCLANG()
 {
     _clean
 
-    if CC=gcc CXX=g++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
+    if CC=clang CXX=clang++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
     then
         cmake --build build/ -j -v
     fi
@@ -33,17 +33,17 @@ default()
 {
     _clean
 
-    if CC=clang CXX=clang++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
+    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
     then
         cmake --build build/ -j -v
     fi
 }
 
-defaultGCC()
+defaultCLANG()
 {
     _clean
 
-    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
+    if CC=clang CXX=clang++ cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
     then
         cmake --build build/ -j -v
     fi
@@ -53,17 +53,17 @@ debug()
 {
     _clean
 
-    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug "$@"
+    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug "$@"
     then
         cmake --build build/ -j -v
     fi
 }
 
-debugGCC()
+debugCLANG()
 {
     _clean
 
-    if CC=gcc CXX=g++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug "$@"
+    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug "$@"
     then
         cmake --build build/ -j -v
     fi
@@ -73,17 +73,17 @@ asan()
 {
     _clean
 
-    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan "$@"
+    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan "$@"
     then
         cmake --build build/ -j -v
     fi
 }
 
-asanGCC()
+asanCLANG()
 {
     _clean
 
-    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan "$@"
+    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan "$@"
     then
         cmake --build build/ -j -v
     fi
@@ -145,14 +145,14 @@ cd $(dirname $0)
 
 case "$1" in
     default) default "${@:2}" ;;
-    defaultGCC) defaultGCC "${@:2}" ;;
+    defaultCLANG) defaultCLANG "${@:2}" ;;
     run) run "${@:2}" ;;
     debug) debug "${@:2}" ;;
-    debugGCC) debugGCC "${@:2}" ;;
+    debugCLANG) debugCLANG "${@:2}" ;;
     asan) asan "${@:2}" ;;
-    asanGCC) asanGCC "${@:2}" ;;
+    asanCLANG) asanCLANG "${@:2}" ;;
     release) release "${@:2}";;
-    releaseGCC) releaseGCC "${@:2}";;
+    releaseCLANG) releaseCLANG "${@:2}";;
     install) _install ;;
     uninstall) _uninstall ;;
     debugMingw) debugMINGW ;;

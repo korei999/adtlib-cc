@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SpanDecl.hh"
+#include "Span.inc"
 #include "it.hh"
 
 #include <cstring> /* IWYU pragma: keep */
