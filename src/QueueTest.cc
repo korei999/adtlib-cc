@@ -8,6 +8,8 @@ using namespace adt;
 int
 main()
 {
+    LOG_NOTIFY("Queue test...\n");
+
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
@@ -24,49 +26,49 @@ main()
         q.pushBack(&arena, 8);
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 1, "expected: 1, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 2, "expected: 2, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 3, "expected: 3, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 4, "expected: 4, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 5, "expected: 5, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 6, "expected: 6, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 7, "expected: 7, got: {}", x);
             LOG("x: {}\n", x);
         }
 
         {
-            int x = *q.popFront();
+            int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 8, "expected: 8, got: {}", x);
             LOG("x: {}\n", x);
         }
@@ -88,7 +90,7 @@ main()
         q.pushBack(4);
 
         {
-            auto x = *q.popFront();
+            auto x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 1, "expected: 1, got: {}", x);
         }
 
@@ -96,12 +98,12 @@ main()
         q.pushBack(6);
 
         {
-            auto x = *q.popFront();
+            auto x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 2, "expected: 2, got: {}", x);
         }
 
         {
-            auto x = *q.popFront();
+            auto x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 3, "expected: 3, got: {}", x);
         }
 
@@ -111,7 +113,7 @@ main()
         q.pushFront(0);
 
         {
-            auto x = *q.popBack();
+            auto x = q.popBack();
             ADT_ASSERT_ALWAYS(x == 8, "expected: 8, got: {}", x);
         }
 
@@ -120,4 +122,6 @@ main()
 
         CERR("\n");
     }
+
+    LOG_GOOD("Queue test passed\n");
 }

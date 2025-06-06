@@ -198,7 +198,7 @@ Heap<T>::maxExtract()
     m_vec.swapWithLast(0);
 
     T max;
-    new(&max) T(*m_vec.pop());
+    new(&max) T(m_vec.pop());
 
     maxBubbleDown(0);
 

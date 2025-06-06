@@ -58,7 +58,7 @@ struct Vec : it::Array<T>
 
     [[nodiscard]] const T& first() const noexcept;
 
-    T* pop() noexcept;
+    T& pop() noexcept;
 
     void setSize(IAllocator* p, isize size);
 
@@ -191,11 +191,11 @@ Vec<T>::first() const noexcept
 }
 
 template<typename T>
-inline T*
+inline T&
 Vec<T>::pop() noexcept
 {
     ADT_ASSERT(m_size > 0, "empty");
-    return &m_pData[--m_size];
+    return m_pData[--m_size];
 }
 
 template<typename T>

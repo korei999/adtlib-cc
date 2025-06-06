@@ -39,9 +39,9 @@ struct QueueArray
     template<typename ...ARGS>
     isize emplaceFront(ARGS&&... args) noexcept;
 
-    T* popFront() noexcept;
+    T& popFront() noexcept;
 
-    T* popBack() noexcept;
+    T& popBack() noexcept;
 
     template<PUSH_WAY E_WAY>
     isize fakePush() noexcept;
@@ -176,26 +176,26 @@ QueueArray<T, CAP>::fakePush() noexcept
 }
 
 template<typename T, isize CAP>
-inline T*
+inline T&
 QueueArray<T, CAP>::popFront() noexcept
 {
-    if (empty()) return nullptr;
+    ADT_ASSERT(!empty(), "");
 
     isize tmp = m_headI;
     m_headI = nextI(m_headI);
 
-    return &m_aData[tmp];
+    return m_aData[tmp];
 }
 
 template<typename T, isize CAP>
-inline T*
+inline T&
 QueueArray<T, CAP>::popBack() noexcept
 {
-    if (empty()) return nullptr;
+    ADT_ASSERT(!empty(), "");
 
     m_tailI = prevI(m_tailI);
 
-    return &m_aData[m_tailI];
+    return m_aData[m_tailI];
 }
 
 template<typename T, isize CAP>
