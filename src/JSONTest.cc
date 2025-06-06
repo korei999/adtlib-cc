@@ -1,7 +1,6 @@
 #include "adt/Arena.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/FreeList.hh" /* IWYU pragma: keep */
-#include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 #include "adt/MutexArena.hh" /* IWYU pragma: keep */
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
@@ -9,6 +8,8 @@
 #include "adt/file.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
+
+// #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
 using namespace adt;
 
@@ -48,8 +49,8 @@ main(int argc, char* argv[])
         /*FixedAllocator al(s_aMem);*/
         // FreeList al(SIZE_1G);
         // StdAllocator al;
-        MiMalloc al;
-        // Arena al(SIZE_8M);
+        // MiMalloc al;
+        Arena al(SIZE_8M);
         // MiHeap al(0);
         // defer( al.freeAll() );
 

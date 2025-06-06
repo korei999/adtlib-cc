@@ -14,6 +14,8 @@ struct String;
 template<isize SIZE>
 [[nodiscard]] constexpr isize charBuffStringSize(const char (&aCharBuff)[SIZE]);
 
+inline constexpr int wcTermWidth(wchar_t wc);
+
 /* Just pointer + size, no allocations, has to be cloned into String to store safely */
 struct StringView : it::Array<char>
 {

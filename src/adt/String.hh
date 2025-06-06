@@ -8,6 +8,7 @@
 #include "hash.hh"
 #include "Span.hh" /* IWYU pragma: keep */
 #include "print.hh" /* IWYU pragma: keep */
+#include "wcwidth.hh"
 
 #include <cwchar>
 
@@ -45,6 +46,12 @@ charBuffStringSize(const char (&aCharBuff)[SIZE])
     while (i < SIZE && aCharBuff[i] != '\0') ++i;
 
     return i;
+}
+
+inline constexpr int
+wcTermWidth(wchar_t wc)
+{
+    return mk_wcwidth(wc);
 }
 
 inline constexpr
@@ -232,7 +239,7 @@ struct StringGraphemeIt
                     break;
                 }
 
-                if (wcwidth(wc2) != 0)
+                if (wcTermWidth(wc2) != 0)
                     break;
                 m_i += nBytesDecoded2;
             }
