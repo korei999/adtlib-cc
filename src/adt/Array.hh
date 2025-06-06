@@ -65,7 +65,7 @@ struct Array : it::Array<T>
     /* */
 
     using it::Array<T>::Array;
-    using It = it::Array<T>::It;
+    using It = typename it::Array<T>::It;
 
     constexpr It begin() { return {&m_aData[0]}; }
     constexpr It end() { return {&m_aData[m_size]}; }

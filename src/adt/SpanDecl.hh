@@ -51,7 +51,7 @@ struct Span : it::Array<T>
     /* */
 
     using it::Array<T>::Array;
-    using It = it::Array<T>::It;
+    using It = typename it::Array<T>::It;
 
     It begin()  noexcept { return {&m_pData[0]}; }
     It end()    noexcept { return {&m_pData[m_size]}; }
