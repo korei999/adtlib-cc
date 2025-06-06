@@ -683,6 +683,13 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept
     return formatToContextExpSize(ctx, fmtArgs, x, x.size());
 }
 
+template<template<typename, typename> typename CON_T, typename T, typename U>
+inline isize
+formatToContext(Context ctx, FormatArgs fmtArgs, const CON_T<T, U>& x) noexcept
+{
+    return formatToContextExpSize(ctx, fmtArgs, x, x.size());
+}
+
 template<typename T, isize N>
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept

@@ -406,4 +406,33 @@ struct VecManaged : Vec<T>
     }
 };
 
+template<typename T, typename ALLOC_T>
+struct VecPmr : Vec<T>
+{
+    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc {};
+
+    /* */
+
+    using Vec<T>::Vec;
+
+    VecPmr() = default;
+    VecPmr(ALLOC_T p, isize prealloc = 1) : Vec<T>(&p, prealloc), m_alloc {p} {}
+    VecPmr(ALLOC_T p, isize preallocSize, const T& fillWith) : Vec<T>(p, preallocSize, fillWith), m_alloc {p} {}
+
+    /* */
+
+    isize push(const T& data) { return Vec<T>::push(&m_alloc, data); }
+
+    void pushSpan(const Span<T> sp) { Vec<T>::pushSpan(&m_alloc, sp); }
+
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+        isize emplace(ARGS&&... args) { return Vec<T>::emplace(&m_alloc, std::forward<ARGS>(args)...); }
+
+    void setSize(isize size) { Vec<T>::setSize(&m_alloc, size); }
+
+    void setCap(isize cap) { Vec<T>::setCap(&m_alloc, cap); }
+
+    void destroy() { Vec<T>::destroy(&m_alloc); }
+};
+
 } /* namespace adt */

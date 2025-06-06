@@ -255,3 +255,8 @@ add_executable(
     Set
     src/Set.cc
 )
+
+add_executable(
+    PmrAllocator
+    src/PmrAllocator.cc
+)
