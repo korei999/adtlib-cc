@@ -11,7 +11,7 @@ namespace adt
 
 /* statically sized array */
 template<typename T, isize CAP> requires(CAP > 0)
-struct Array
+struct Array : it::Array<T>
 {
     T m_aData[CAP] {};
     isize m_size {};
@@ -64,24 +64,8 @@ struct Array
 
     /* */
 
-    struct It
-    {
-        T* s;
-
-        constexpr It(const T* pFirst) : s{const_cast<T*>(pFirst)} {}
-
-        constexpr T& operator*() { return *s; }
-        constexpr T* operator->() { return s; }
-
-        constexpr It operator++() { s++; return *this; }
-        constexpr It operator++(int) { T* tmp = s++; return tmp; }
-
-        constexpr It operator--() { s--; return *this; }
-        constexpr It operator--(int) { T* tmp = s--; return tmp; }
-
-        friend constexpr bool operator==(const It& l, const It& r) { return l.s == r.s; }
-        friend constexpr bool operator!=(const It& l, const It& r) { return l.s != r.s; }
-    };
+    using it::Array<T>::Array;
+    using It = it::Array<T>::It;
 
     constexpr It begin() { return {&m_aData[0]}; }
     constexpr It end() { return {&m_aData[m_size]}; }

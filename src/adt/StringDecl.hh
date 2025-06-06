@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SpanDecl.hh"
+#include "it.hh"
 
 #include <cstring> /* IWYU pragma: keep */
 
@@ -16,7 +17,7 @@ template<isize SIZE>
 [[nodiscard]] constexpr isize charBuffStringSize(const char (&aCharBuff)[SIZE]);
 
 /* Just pointer + size, no allocations, has to be cloned into String to store safely */
-struct StringView
+struct StringView : it::Array<char>
 {
     char* m_pData {};
     isize m_size {};
@@ -66,23 +67,8 @@ struct StringView
 
     /* */
 
-    struct It
-    {
-        char* p;
-
-        constexpr It(const char* pFirst) : p{const_cast<char*>(pFirst)} {}
-
-        constexpr char& operator*() { return *p; }
-        constexpr char* operator->() { return p; }
-
-        constexpr It operator++() { p++; return *this; }
-        constexpr It operator++(int) { char* tmp = p++; return tmp; }
-        constexpr It operator--() { p--; return *this; }
-        constexpr It operator--(int) { char* tmp = p--; return tmp; }
-
-        friend constexpr bool operator==(It l, It r) { return l.p == r.p; }
-        friend constexpr bool operator!=(It l, It r) { return l.p != r.p; }
-    };
+    using it::Array<char>::Array;
+    using It = it::Array<char>::It;
 
     constexpr It begin() { return {&m_pData[0]}; }
     constexpr It end() { return {&m_pData[m_size]}; }

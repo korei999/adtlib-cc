@@ -2,6 +2,7 @@
 
 #include "IAllocator.hh"
 #include "utils.hh"
+#include "it.hh"
 
 namespace adt
 {
@@ -10,7 +11,7 @@ namespace adt
 
 /* Dynamic array (aka Vector) */
 template<typename T>
-struct Vec
+struct Vec : it::Array<T>
 {
     T* m_pData = nullptr;
     isize m_size = 0;
@@ -96,27 +97,12 @@ private:
 
     void growIfNeeded(IAllocator* p);
 
+public:
+
     /* */
 
-public:
-    struct It
-    {
-        T* s;
-
-        It(T* pFirst) : s{pFirst} {}
-
-        T& operator*() noexcept { return *s; }
-        T* operator->() noexcept { return s; }
-
-        It operator++() noexcept { ++s; return *this; }
-        It operator++(int) noexcept { T* tmp = s++; return tmp; }
-
-        It operator--() noexcept { --s; return *this; }
-        It operator--(int) noexcept { T* tmp = s--; return tmp; }
-
-        friend constexpr bool operator==(const It& l, const It& r) noexcept { return l.s == r.s; }
-        friend constexpr bool operator!=(const It& l, const It& r) noexcept { return l.s != r.s; }
-    };
+    using it::Array<T>::Array;
+    using It = it::Array<T>::It;
 
     It begin() noexcept { return {&m_pData[0]}; }
     It end() noexcept { return {&m_pData[m_size]}; }
@@ -216,8 +202,7 @@ template<typename T>
 inline void
 Vec<T>::setSize(IAllocator* p, isize size)
 {
-    if (m_capacity < size)
-        grow(p, size);
+    if (m_capacity < size) grow(p, size);
 
     m_size = size;
 }

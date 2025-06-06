@@ -1,16 +1,38 @@
 #pragma once
 
+namespace adt::it
+{
+
+template<typename T>
+struct Array
+{
+    struct It
+    {
+        T* p;
+
+        constexpr It(const T* pFirst) : p {const_cast<T*>(pFirst)} {}
+
+        constexpr T& operator*() { return *p; }
+        constexpr T* operator->() { return p; }
+
+        constexpr It operator++() { p++; return *this; }
+        constexpr It operator++(int) { T* tmp = p++; return tmp; }
+        constexpr It operator--() { p--; return *this; }
+        constexpr It operator--(int) { T* tmp = p--; return tmp; }
+
+        friend constexpr bool operator==(It l, It r) { return l.p == r.p; }
+        friend constexpr bool operator!=(It l, It r) { return l.p != r.p; }
+    };
+};
+
 #if defined __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnonnull"
 #endif
 
-namespace adt
-{
-
 /* reverse iterator adapter for auto loops */
 template<typename ITERABLE_T>
-struct ReverseIt
+struct Reverse
 {
     using Iter = decltype(((ITERABLE_T*)nullptr)->begin());
 
@@ -20,7 +42,7 @@ struct ReverseIt
 
     /* */
 
-    ReverseIt(const ITERABLE_T& _s) : s(const_cast<ITERABLE_T&>(_s)) {};
+    Reverse(const ITERABLE_T& _s) : s(const_cast<ITERABLE_T&>(_s)) {};
 
     /* */
 
@@ -53,8 +75,8 @@ struct ReverseIt
     constexpr const It rend() const { return s.end(); }
 };
 
-} /* namespace adt */
-
 #if defined __GNUC__
 #pragma GCC diagnostic pop
 #endif
+
+} /* namespace adt::it */

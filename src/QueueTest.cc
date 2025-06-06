@@ -2,7 +2,6 @@
 #include "adt/defer.hh"
 #include "adt/Arena.hh"
 #include "adt/Queue.hh"
-#include "adt/ReverseIt.hh"
 
 using namespace adt;
 

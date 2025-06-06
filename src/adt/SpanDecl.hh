@@ -1,12 +1,13 @@
 #pragma once
 
 #include "types.hh"
+#include "it.hh"
 
 namespace adt
 {
 
 template<typename T>
-struct Span
+struct Span : it::Array<T>
 {
     T* m_pData {};
     isize m_size {};
@@ -49,24 +50,8 @@ struct Span
 
     /* */
 
-    struct It
-    {
-        T* s;
-
-        It(T* pFirst) : s{pFirst} {}
-
-        T& operator*() noexcept { return *s; }
-        T* operator->() noexcept { return s; }
-
-        It operator++() noexcept { ++s; return *this; }
-        It operator++(int) noexcept { T* tmp = s++; return tmp; }
-
-        It operator--() noexcept { --s; return *this; }
-        It operator--(int) noexcept { T* tmp = s--; return tmp; }
-
-        friend constexpr bool operator==(const It& l, const It& r) noexcept { return l.s == r.s; }
-        friend constexpr bool operator!=(const It& l, const It& r) noexcept { return l.s != r.s; }
-    };
+    using it::Array<T>::Array;
+    using It = it::Array<T>::It;
 
     It begin()  noexcept { return {&m_pData[0]}; }
     It end()    noexcept { return {&m_pData[m_size]}; }

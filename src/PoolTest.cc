@@ -1,4 +1,3 @@
-#include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/Pool.hh"

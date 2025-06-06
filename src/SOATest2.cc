@@ -1,5 +1,4 @@
 #include "adt/Arena.hh"
-#include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
 #include "adt/math.hh"
 
@@ -63,7 +62,7 @@ main()
     }
 
     i = 0;
-    for (auto bind : ReverseIt(vec))
+    for (auto bind : it::Reverse(vec))
     {
         print::out("i: {}\n", i);
         print::out("pos: {}\n", bind.pos);

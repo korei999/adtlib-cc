@@ -6,7 +6,6 @@
 #include "adt/StdAllocator.hh"
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
-#include "adt/ReverseIt.hh"
 
 #include <vector>
 
@@ -70,7 +69,7 @@ main()
         print::out("vec1(removeAndShift(2): {}\n", vec1);
 
         print::out("vec1(rev): ");
-        for (auto e : ReverseIt(vec1))
+        for (auto e : it::Reverse(vec1))
             print::out("{}, ", e);
         print::out("\n");
 
