@@ -74,7 +74,7 @@ protected:
 };
 
 template<typename T>
-inline SList<T>::Node*
+inline typename SList<T>::Node*
 SList<T>::Node::alloc(IAllocator* pAlloc, const T& x)
 {
     Node* pNew = static_cast<Node*>(pAlloc->zalloc(1, sizeof(Node)));
@@ -83,14 +83,14 @@ SList<T>::Node::alloc(IAllocator* pAlloc, const T& x)
 }
 
 template<typename T>
-inline SList<T>::Node*
+inline typename SList<T>::Node*
 SList<T>::insert(IAllocator* pAlloc, const T& x)
 {
     return insertNode(Node::alloc(pAlloc, x));
 }
 
 template<typename T>
-inline SList<T>::Node*
+inline typename SList<T>::Node*
 SList<T>::insertNode(Node* pNew)
 {
     pNew->pNext = m_pHead;
@@ -100,7 +100,7 @@ SList<T>::insertNode(Node* pNew)
 }
 
 template<typename T>
-inline SList<T>::Node*
+inline typename SList<T>::Node*
 SList<T>::insert(Node* pNode)
 {
     insertNode(pNode);
