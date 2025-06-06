@@ -9,7 +9,6 @@
 #include "Span.hh" /* IWYU pragma: keep */
 #include "print.hh" /* IWYU pragma: keep */
 
-#include <cstdlib>
 #include <cwchar>
 
 namespace adt

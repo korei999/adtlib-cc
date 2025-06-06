@@ -3,8 +3,6 @@
 #include "Span.inc"
 #include "it.hh"
 
-#include <cstring> /* IWYU pragma: keep */
-
 namespace adt
 {
 
