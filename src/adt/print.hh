@@ -277,14 +277,14 @@ copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexc
 }
 
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const StringView& str) noexcept
+formatToContext(Context ctx, FormatArgs fmtArgs, const StringView str) noexcept
 {
     return copyBackToContext(ctx, fmtArgs, {const_cast<char*>(str.data()), str.size()});
 }
 
 template<int SIZE> requires(SIZE > 1)
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE>& str) noexcept
+formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE> str) noexcept
 {
     return copyBackToContext(ctx, fmtArgs, {const_cast<char*>(str.data()), str.size()});
 }
@@ -385,10 +385,9 @@ formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept
 
 template<typename PTR_T> requires std::is_pointer_v<PTR_T>
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, PTR_T p) noexcept
+formatToContext(Context ctx, FormatArgs fmtArgs, const PTR_T p) noexcept
 {
-    if (p == nullptr)
-        return formatToContext(ctx, fmtArgs, nullptr);
+    if (p == nullptr) return formatToContext(ctx, fmtArgs, nullptr);
 
     fmtArgs.eFmtFlags |= FMT_FLAGS::HASH;
     fmtArgs.eBase = BASE::SIXTEEN;

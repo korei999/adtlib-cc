@@ -28,10 +28,10 @@ inline constexpr void intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs
 
 inline isize copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringView& str) noexcept;
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringView str) noexcept;
 
 template<int SIZE> requires(SIZE > 1)
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE>& str) noexcept;
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE> str) noexcept;
 
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const char* str) noexcept;
 
@@ -57,7 +57,7 @@ inline isize formatToContext(Context ctx, FormatArgs fmtArgs, null) noexcept;
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept;
 
 template<typename PTR_T> requires std::is_pointer_v<PTR_T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, PTR_T p) noexcept;
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const PTR_T p) noexcept;
 
 template<typename T, typename ...ARGS_T>
 inline constexpr isize printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs) noexcept;
