@@ -24,7 +24,6 @@ struct StdAllocator : IAllocator
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     void virtual free(void* ptr) noexcept override final;
-    ADT_WARN_LEAK void virtual freeAll() noexcept override final; /* assert(false) */
     /* virtual end */
 };
 
@@ -85,12 +84,6 @@ StdAllocator::free(void* p) noexcept
 #else
     ::free(p);
 #endif
-}
-
-inline void
-StdAllocator::freeAll() noexcept
-{
-    ADT_ASSERT(false, "no 'freeAll()' method");
 }
 
 } /* namespace adt */

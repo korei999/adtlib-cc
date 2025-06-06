@@ -42,7 +42,7 @@ struct FreeListData
     constexpr void addSize(usize _size) noexcept { setSize(_size + size()); }
 };
 
-struct FreeList : public IAllocator
+struct FreeList : public IArena
 {
     using Node = RBNode<FreeListData>; /* node is the header + the memory chunk */
 

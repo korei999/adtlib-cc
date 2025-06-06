@@ -1,6 +1,6 @@
 #include "adt/logs.hh"
 #include "adt/SList.hh"
-#include "adt/ChunkAllocator.hh"
+#include "adt/PoolAllocator.hh"
 #include "adt/defer.hh"
 
 using namespace adt;
@@ -10,7 +10,7 @@ main()
 {
     SList<i64> list {};
 
-    ChunkAllocator alloc {sizeof(SList<int>::Node), SIZE_1K};
+    PoolAllocator alloc {sizeof(SList<int>::Node), SIZE_1K};
     defer( alloc.freeAll() );
 
     auto* pOne = list.insert(&alloc, 1);

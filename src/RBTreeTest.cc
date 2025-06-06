@@ -1,5 +1,5 @@
 #include "adt/Arena.hh"
-#include "adt/ChunkAllocator.hh"
+#include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/defer.hh"
@@ -13,7 +13,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    ChunkAllocator al(sizeof(RBNode<long>), SIZE_8K);
+    PoolAllocator al(sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
     RBTreeManaged<long> tree(&al);

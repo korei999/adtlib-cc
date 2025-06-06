@@ -6,7 +6,7 @@
 namespace adt
 {
 
-struct MutexArena : IAllocator
+struct MutexArena : IArena
 {
     Arena m_arena {};
     Mutex m_mtx {};
