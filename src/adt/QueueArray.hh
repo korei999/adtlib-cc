@@ -153,7 +153,7 @@ QueueArray<T, CAP>::emplaceFront(ARGS&&... args) noexcept
 }
 
 template<typename T, isize CAP>
-template<QueueArray<T, CAP>::PUSH_WAY E_WAY>
+template<typename QueueArray<T, CAP>::PUSH_WAY E_WAY>
 inline isize
 QueueArray<T, CAP>::fakePush() noexcept
 {
