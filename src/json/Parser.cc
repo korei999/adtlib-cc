@@ -1,6 +1,7 @@
 #include "Parser.hh"
 
 #include "adt/logs.hh"
+#include "adt/defer.hh"
 
 using namespace adt;
 
@@ -279,6 +280,8 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
     const auto& svKey = pNode->svKey;
 
     fprintf(fp, "%*s", depth, "");
+    ADT_DEFER( fprintf(fp, "%.*s", int(svEnd.size()), svEnd.data()) );
+
     if (bPrintKey)
         fprintf(fp, "\"%.*s\": ", int(svKey.size()), svKey.data());
 
@@ -292,7 +295,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
 
             if (obj.empty())
             {
-                fprintf(fp, "{}" "%.*s", int(svEnd.size()), svEnd.data());
+                fprintf(fp, "{}");
                 break;
             }
 
@@ -304,7 +307,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
                 printNode(fp, &obj[i], svE, depth + 2, true);
             }
 
-            fprintf(fp, "%*s}%.*s", depth, "", int(svEnd.size()), svEnd.data());
+            fprintf(fp, "%*s}", depth, "");
         }
         break;
 
@@ -314,7 +317,7 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
 
             if (arr.size() == 0)
             {
-                fprintf(fp, "[]" "%.*s", int(svEnd.size()), svEnd.data());
+                fprintf(fp, "[]");
                 break;
             }
 
@@ -326,41 +329,41 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
                 printNode(fp, &arr[i], svE, depth + 2, false);
             }
 
-            fprintf(fp, "%*s" "]" "%.*s", depth, "", int(svEnd.size()), svEnd.data());
+            fprintf(fp, "%*s" "]", depth, "");
         }
         break;
 
         case TAG::DOUBLE:
         {
             f64 f = getFloat(pNode);
-            fprintf(fp, "%lf" "%.*s", f, int(svEnd.size()), svEnd.data());
+            fprintf(fp, "%lf", f);
         }
         break;
 
         case TAG::LONG:
         {
             i64 i = getInteger(pNode);
-            fprintf(fp, "%lld" "%.*s", i, int(svEnd.size()), svEnd.data());
+            fprintf(fp, "%lld", i);
         }
         break;
 
         case TAG::NULL_:
         {
-            fprintf(fp, "%s" "%.*s", "null", int(svEnd.size()), svEnd.data());
+            fprintf(fp, "null");
         }
         break;
 
         case TAG::STRING:
         {
             StringView sv = getString(pNode);
-            fprintf(fp, "\"%.*s\"" "%.*s", int(sv.size()), sv.data(), int(svEnd.size()), svEnd.data());
+            fprintf(fp, "\"%.*s\"", int(sv.size()), sv.data());
         }
         break;
 
         case TAG::BOOL:
         {
             bool b = getBool(pNode);
-            fprintf(fp, "%s" "%.*s", b ? "true" : "false", int(svEnd.size()), svEnd.data());
+            fprintf(fp, "%s", b ? "true" : "false");
         }
         break;
     }
