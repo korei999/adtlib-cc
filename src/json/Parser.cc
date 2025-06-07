@@ -335,15 +335,13 @@ printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
 
         case TAG::DOUBLE:
         {
-            f64 f = getFloat(pNode);
-            fprintf(fp, "%lf", f);
+            fprintf(fp, "%lf", getFloat(pNode));
         }
         break;
 
         case TAG::LONG:
         {
-            i64 i = getInteger(pNode);
-            fprintf(fp, "%lld", i);
+            fprintf(fp, "%lld", getInteger(pNode));
         }
         break;
 
