@@ -65,31 +65,32 @@
 
 struct interval
 {
-  int first;
-  int last;
+    int first;
+    int last;
 };
 
 /* auxiliary function for binary search in interval table */
 inline constexpr int
-bisearch(wchar_t ucs, const struct interval *table, int max) {
-  int min = 0;
-  int mid;
+bisearch(wchar_t ucs, const struct interval* table, int max)
+{
+    int min = 0;
+    int mid;
 
-  if (ucs < table[0].first || ucs > table[max].last)
+    if (ucs < table[0].first || ucs > table[max].last)
+        return 0;
+
+    while (max >= min)
+    {
+        mid = (min + max) / 2;
+        if (ucs > table[mid].last)
+            min = mid + 1;
+        else if (ucs < table[mid].first)
+            max = mid - 1;
+        else return 1;
+    }
+
     return 0;
-  while (max >= min) {
-    mid = (min + max) / 2;
-    if (ucs > table[mid].last)
-      min = mid + 1;
-    else if (ucs < table[mid].first)
-      max = mid - 1;
-    else
-      return 1;
-  }
-
-  return 0;
 }
-
 
 /* The following two functions define the column width of an ISO 10646
  * character as follows:
@@ -180,15 +181,14 @@ mk_wcwidth(wchar_t ucs)
   };
 
   /* test for 8-bit control characters */
-  if (ucs == 0)
-    return 0;
+  if (ucs == 0) return 0;
+
   if (ucs < 32 || (ucs >= 0x7f && ucs < 0xa0))
-    return -1;
+      return -1;
 
   /* binary search in table of non-spacing characters */
-  if (bisearch(ucs, combining,
-	       sizeof(combining) / sizeof(struct interval) - 1))
-    return 0;
+  if (bisearch(ucs, combining, sizeof(combining) / sizeof(struct interval) - 1))
+      return 0;
 
   /* if we arrive here, ucs is not a combining or C0/C1 control character */
 
@@ -208,21 +208,20 @@ mk_wcwidth(wchar_t ucs)
       (ucs >= 0x30000 && ucs <= 0x3fffd)));
 }
 
-
 inline constexpr int
-mk_wcswidth(const wchar_t *pwcs, size_t n)
+mk_wcswidth(const wchar_t* pwcs, size_t n)
 {
-  int w, width = 0;
+    int w, width = 0;
 
-  for (;*pwcs && n-- > 0; pwcs++)
-    if ((w = mk_wcwidth(*pwcs)) < 0)
-      return -1;
-    else
-      width += w;
+    for (; *pwcs && n-- > 0; pwcs++)
+    {
+        if ((w = mk_wcwidth(*pwcs)) < 0)
+            return -1;
+        else width += w;
+    }
 
-  return width;
+    return width;
 }
-
 
 /*
  * The following functions are the same as mk_wcwidth() and
@@ -293,24 +292,23 @@ inline constexpr int mk_wcwidth_cjk(wchar_t ucs)
   };
 
   /* binary search in table of non-spacing characters */
-  if (bisearch(ucs, ambiguous,
-	       sizeof(ambiguous) / sizeof(struct interval) - 1))
-    return 2;
+  if (bisearch(ucs, ambiguous, sizeof(ambiguous) / sizeof(struct interval) - 1))
+      return 2;
 
   return mk_wcwidth(ucs);
 }
 
-
 inline constexpr int
-mk_wcswidth_cjk(const wchar_t *pwcs, size_t n)
+mk_wcswidth_cjk(const wchar_t* pwcs, size_t n)
 {
-  int w, width = 0;
+    int w, width = 0;
 
-  for (;*pwcs && n-- > 0; pwcs++)
-    if ((w = mk_wcwidth_cjk(*pwcs)) < 0)
-      return -1;
-    else
-      width += w;
+    for (; *pwcs && n-- > 0; pwcs++)
+    {
+        if ((w = mk_wcwidth_cjk(*pwcs)) < 0)
+            return -1;
+        else width += w;
+    }
 
-  return width;
+    return width;
 }
