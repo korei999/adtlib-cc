@@ -9,7 +9,7 @@
 #include "adt/logs.hh"
 #include "json/Parser.hh"
 
-// #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
+#include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
 using namespace adt;
 
@@ -46,25 +46,23 @@ main(int argc, char* argv[])
 
     try
     {
-        /*FixedAllocator al(s_aMem);*/
         // FreeList al(SIZE_1G);
         // StdAllocator al;
         // MiMalloc al;
-        Arena al(SIZE_8M);
-        // MiHeap al(0);
-        // defer( al.freeAll() );
+        // Arena al(SIZE_8M);
+        MiHeap al(0);
+        defer( al.freeAll() );
 
         String sJson = file::load(&al, argv[1]);
 
-        if (!sJson)
-            return 1;
+        if (!sJson) return 1;
 
-        defer( sJson.destroy(&al) );
+        // defer( sJson.destroy(&al) );
 
         json::Parser p {};
         bool eRes = p.parse(&al, sJson);
         if (!eRes) LOG_WARN("json::Parser::parse() failed\n");
-        defer( p.destroy() );
+        // defer( p.destroy() );
 
         if (argc >= 3 && "-p" == StringView(argv[2]))
             p.print(stdout);
