@@ -11,7 +11,7 @@ struct SList
 {
     struct Node
     {
-        ADT_NO_UNIQUE_ADDRESS Node* pNext {};
+        Node* pNext {};
         ADT_NO_UNIQUE_ADDRESS T data {};
 
         /* */
@@ -25,8 +25,8 @@ struct SList
 
     /* */
 
-    Node* data() { return m_pHead; }
-    const Node* data() const { return m_pHead; }
+    Node* data() noexcept { return m_pHead; }
+    const Node* data() const noexcept { return m_pHead; }
 
     Node* insert(IAllocator* pAlloc, const T& x); /* prepend */
     Node* insert(Node* pNode); /* prepend */
@@ -36,7 +36,9 @@ struct SList
     void remove(Node* pPrev, Node* pNode); /* O(1) */
     void remove(IAllocator* pAlloc, Node* pPrev, Node* pNode); /* O(1); free(pNode) */
 
-    void destroy(IAllocator* pAlloc);
+    void destroy(IAllocator* pAlloc) noexcept;
+
+    SList release() noexcept;
 
     /* */
 
@@ -157,7 +159,7 @@ SList<T>::remove(IAllocator* pAlloc, Node* pPrev, Node* pNode)
 
 template<typename T>
 inline void
-SList<T>::destroy(IAllocator* pAlloc)
+SList<T>::destroy(IAllocator* pAlloc) noexcept
 {
     for (
         Node* curr = m_pHead, * tmp = nullptr;
@@ -169,6 +171,13 @@ SList<T>::destroy(IAllocator* pAlloc)
     }
 
     *this = {};
+}
+
+template<typename T>
+inline SList<T>
+SList<T>::release() noexcept
+{
+    return utils::exchange(this, {});
 }
 
 namespace print

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Span.inc"
+#include "hash.hh"
 #include "it.hh"
 
 namespace adt
@@ -88,6 +89,9 @@ struct StringView : it::Array<char>
 
 inline String StringCat(IAllocator* p, const StringView& l, const StringView& r);
 
+template<>
+inline usize hash::func(const StringView& str);
+
 struct String : public StringView
 {
     String() = default;
@@ -98,9 +102,9 @@ struct String : public StringView
 
     /* */
 
-    void destroy(IAllocator* pAlloc);
-    void replaceWith(IAllocator* pAlloc, StringView svWith);
-    [[nodiscard]] String release(); /* return this String resource and set to zero */
+    void destroy(IAllocator* pAlloc) noexcept;
+    void reallocWith(IAllocator* pAlloc, const StringView svWith);
+    [[nodiscard]] String release() noexcept; /* return this String resource and set to zero */
 };
 
 /* Holds SIZE - 1 characters, terminates with '\0'. */
@@ -145,6 +149,7 @@ struct StringFixed
     void destroy();
 };
 
-template<int SIZE_L, int SIZE_R> inline bool operator==(const StringFixed<SIZE_L>& l, const StringFixed<SIZE_R>& r);
+template<int SIZE_L, int SIZE_R>
+inline bool operator==(const StringFixed<SIZE_L>& l, const StringFixed<SIZE_R>& r);
 
 } /* namespace adt */

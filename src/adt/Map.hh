@@ -129,7 +129,9 @@ struct Map
 
     MapResult<K, V> tryInsert(IAllocator* p, const K& key, const V& val);
 
-    void destroy(IAllocator* p);
+    void destroy(IAllocator* p) noexcept;
+
+    [[nodiscard]] Map release() noexcept;
 
     [[nodiscard]] isize cap() const;
 
@@ -340,9 +342,16 @@ Map<K, V, FN_HASH>::tryInsert(IAllocator* p, const K& key, const V& val)
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline void
-Map<K, V, FN_HASH>::destroy(IAllocator* p)
+Map<K, V, FN_HASH>::destroy(IAllocator* p) noexcept
 {
     m_vBuckets.destroy(p);
+}
+
+template<typename K, typename V, usize (*FN_HASH)(const K&)>
+inline Map<K, V, FN_HASH>
+Map<K, V, FN_HASH>::release() noexcept
+{
+    return utils::exchange(this, {});
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
@@ -499,7 +508,9 @@ struct MapManaged : Map<K, V, FN_HASH>
 
     MapResult<K, V> tryInsert(const K& key, const V& val) { return Base::tryInsert(m_pAlloc, key, val); }
 
-    void destroy() { Base::destroy(m_pAlloc); }
+    void destroy() noexcept { Base::destroy(m_pAlloc); m_pAlloc = {}; }
+
+    MapManaged release() noexcept { return utils::exchange(this, {}); }
 };
 
 namespace print

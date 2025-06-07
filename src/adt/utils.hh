@@ -46,6 +46,15 @@ swap(T* l, T* r)
     *l = t;
 }
 
+template<typename T>
+[[nodiscard]] inline constexpr T
+exchange(T* pObj, const T& replaceObjWith)
+{
+    T ret = *pObj;
+    *pObj = replaceObjWith;
+    return ret;
+}
+
 inline constexpr void
 toggle(auto* x)
 {

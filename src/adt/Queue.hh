@@ -47,6 +47,9 @@ struct Queue
     template<typename ...ARGS>
     isize emplaceBack(IAllocator* pAlloc, ARGS&&... args) { return pushBack(pAlloc, T(std::forward<ARGS>(args)...)); }
 
+    void destroy(IAllocator* pAlloc) noexcept;
+    [[nodiscard]] Queue release() noexcept;
+
 protected:
     void grow(IAllocator* pAlloc);
 
@@ -210,6 +213,21 @@ Queue<T>::popBack()
     --m_size;
 
     return m_pData[m_tailI];
+}
+
+template<typename T>
+inline void
+Queue<T>::destroy(IAllocator* pAlloc) noexcept
+{
+    pAlloc->free(m_pData);
+    *this = {};
+}
+
+template<typename T>
+inline Queue<T>
+Queue<T>::release() noexcept
+{
+    return utils::exchange(this, {});
 }
 
 template<typename T>

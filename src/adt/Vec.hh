@@ -36,8 +36,8 @@ struct Vec : it::Array<T>
 
 #define ADT_RANGE_CHECK ADT_ASSERT(i >= 0 && i < m_size, "i: {}, m_size: {}", i, m_size);
 
-    T& operator[](isize i)             noexcept { ADT_RANGE_CHECK; return m_pData[i]; }
-    const T& operator[](isize i) const noexcept { ADT_RANGE_CHECK; return m_pData[i]; }
+    [[nodiscard]] T& operator[](isize i)             noexcept { ADT_RANGE_CHECK; return m_pData[i]; }
+    [[nodiscard]] const T& operator[](isize i) const noexcept { ADT_RANGE_CHECK; return m_pData[i]; }
 
 #undef ADT_RANGE_CHECK
 
@@ -75,6 +75,8 @@ struct Vec : it::Array<T>
     [[nodiscard]] isize lastI() const noexcept;
 
     void destroy(IAllocator* p) noexcept;
+
+    [[nodiscard]] Vec<T> release() noexcept;
 
     [[nodiscard]] isize size() const noexcept;
 
@@ -277,6 +279,13 @@ Vec<T>::destroy(IAllocator* p) noexcept
 }
 
 template<typename T>
+inline Vec<T>
+Vec<T>::release() noexcept
+{
+    return utils::exchange(this, {});
+}
+
+template<typename T>
 inline isize
 Vec<T>::size() const noexcept
 {
@@ -327,8 +336,8 @@ inline bool
 Vec<T>::search(const T& x) const
 {
     for (const auto& el : *this)
-        if (el == x)
-            return true;
+        if (el == x) return true;
+
     return false;
 }
 
@@ -372,13 +381,22 @@ struct VecManaged : Vec<T>
     void pushSpan(const Span<T> sp) { Vec<T>::pushSpan(m_pAlloc, sp); }
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
-        isize emplace(ARGS&&... args) { return Vec<T>::emplace(m_pAlloc, std::forward<ARGS>(args)...); }
+    isize emplace(ARGS&&... args) { return Vec<T>::emplace(m_pAlloc, std::forward<ARGS>(args)...); }
 
     void setSize(isize size) { Vec<T>::setSize(m_pAlloc, size); }
 
     void setCap(isize cap) { Vec<T>::setCap(m_pAlloc, cap); }
 
-    void destroy() { Vec<T>::destroy(m_pAlloc); }
+    void destroy() { Vec<T>::destroy(m_pAlloc); m_pAlloc = {}; }
+
+    [[nodiscard]] VecManaged<T>
+    release()
+    {
+        VecManaged<T> ret = *this;
+        *this = {};
+        *this = {};
+        return ret;
+    }
 
     [[nodiscard]] VecManaged<T>
     clone(IAllocator* pAlloc)

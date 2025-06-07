@@ -5,7 +5,6 @@
 #include "assert.hh"
 #include "IAllocator.hh"
 #include "utils.hh"
-#include "hash.hh"
 #include "Span.hh" /* IWYU pragma: keep */
 #include "print.hh" /* IWYU pragma: keep */
 #include "wcwidth.hh"
@@ -567,14 +566,14 @@ String::String(IAllocator* pAlloc, const StringView sv)
     : String(pAlloc, sv.data(), sv.size()) {}
 
 inline void
-String::destroy(IAllocator* pAlloc)
+String::destroy(IAllocator* pAlloc) noexcept
 {
     pAlloc->free(m_pData);
     *this = {};
 }
 
 inline void
-String::replaceWith(IAllocator* pAlloc, StringView svWith)
+String::reallocWith(IAllocator* pAlloc, const StringView svWith)
 {
     if (svWith.empty())
     {
@@ -591,11 +590,9 @@ String::replaceWith(IAllocator* pAlloc, StringView svWith)
 }
 
 inline String
-String::release()
+String::release() noexcept
 {
-    String sRet = *this;
-    *this = {};
-    return sRet;
+    return utils::exchange(this, {});
 }
 
 template<int SIZE>

@@ -44,6 +44,8 @@ struct List
 
     constexpr void destroy(IAllocator* pA);
 
+    constexpr List release() noexcept;
+
     constexpr ListNode<T>* pushFront(ListNode<T>* pNew);
 
     constexpr ListNode<T>* pushBack(ListNode<T>* pNew);
@@ -105,6 +107,13 @@ List<T>::destroy(IAllocator* pA)
         pA->free(it);
 
     *this = {};
+}
+
+template<typename T>
+constexpr List<T>
+List<T>::release() noexcept
+{
+    return utils::exchange(this, {});
 }
 
 template<typename T>
@@ -358,14 +367,15 @@ struct ListManaged
 
     constexpr void remove(ListNode<T>* p) { base.remove(p); m_pAlloc->free(p); }
 
-    constexpr void destroy() { base.destroy(m_pAlloc); }
+    constexpr void destroy() { base.destroy(m_pAlloc); m_pAlloc = {}; }
+
+    constexpr ListManaged release() noexcept { return utils::exchange(this, {}); }
 
     constexpr void insertAfter(ListNode<T>* pAfter, ListNode<T>* p) { base.insertAfter(pAfter, p); }
 
     constexpr void insertBefore(ListNode<T>* pBefore, ListNode<T>* p) { base.insertBefore(pBefore, p); }
 
     template<auto FN_CMP = utils::compare<T>>
-
     constexpr void sort() { base.template sort<FN_CMP>(); }
 
     /* */
