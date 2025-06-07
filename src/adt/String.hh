@@ -49,7 +49,7 @@ charBuffStringSize(const char (&aCharBuff)[SIZE])
 }
 
 inline constexpr int
-wcTermWidth(wchar_t wc)
+wcWidth(wchar_t wc)
 {
     return mk_wcwidth(wc);
 }
@@ -239,7 +239,7 @@ struct StringGraphemeIt
                     break;
                 }
 
-                if (wcTermWidth(wc2) != 0)
+                if (wcWidth(wc2) != 0)
                     break;
                 m_i += nBytesDecoded2;
             }

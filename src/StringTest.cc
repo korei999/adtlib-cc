@@ -104,7 +104,7 @@ main()
         COUT("glyphs...\n");
         for (const wchar_t& g : StringWCharIt(s))
         {
-            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcTermWidth(g));
+            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
         }
 
         i = 0;
