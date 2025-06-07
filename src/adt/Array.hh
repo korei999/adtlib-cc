@@ -11,21 +11,21 @@ namespace adt
 
 /* statically sized array */
 template<typename T, isize CAP> requires(CAP > 0)
-struct Array : it::Array<T>
+struct Array
 {
-    T m_aData[CAP] {};
-    isize m_size {};
+    T m_aData[CAP];
+    isize m_size;
 
     /* */
 
-    constexpr Array() = default;
+    constexpr Array() : m_aData {}, m_size {} {}
 
     constexpr Array(isize size);
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     constexpr Array(isize size, ARGS&&... args);
 
-    constexpr Array(std::initializer_list<T> list);
+    constexpr Array(const std::initializer_list<T> list);
 
     /* */
 
@@ -64,18 +64,15 @@ struct Array : it::Array<T>
 
     /* */
 
-    using it::Array<T>::Array;
-    using It = typename it::Array<T>::It;
+    constexpr T* begin() { return {&m_aData[0]}; }
+    constexpr T* end() { return {&m_aData[m_size]}; }
+    constexpr T* rbegin() { return {&m_aData[m_size - 1]}; }
+    constexpr T* rend() { return {m_aData - 1}; }
 
-    constexpr It begin() { return {&m_aData[0]}; }
-    constexpr It end() { return {&m_aData[m_size]}; }
-    constexpr It rbegin() { return {&m_aData[m_size - 1]}; }
-    constexpr It rend() { return {m_aData - 1}; }
-
-    constexpr const It begin() const { return {&m_aData[0]}; }
-    constexpr const It end() const { return {&m_aData[m_size]}; }
-    constexpr const It rbegin() const { return {&m_aData[m_size - 1]}; }
-    constexpr const It rend() const { return {m_aData - 1}; }
+    constexpr const T* begin() const { return {&m_aData[0]}; }
+    constexpr const T* end() const { return {&m_aData[m_size]}; }
+    constexpr const T* rbegin() const { return {&m_aData[m_size - 1]}; }
+    constexpr const T* rend() const { return {m_aData - 1}; }
 };
 
 template<typename T, isize CAP> requires(CAP > 0)
@@ -247,7 +244,7 @@ Array<T, CAP>::last() const
 
 template<typename T, isize CAP> requires(CAP > 0)
 inline constexpr
-Array<T, CAP>::Array(isize size) : m_size(size) {}
+Array<T, CAP>::Array(isize size) : m_aData {}, m_size(size) {}
 
 template<typename T, isize CAP> requires(CAP > 0)
 template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
@@ -262,7 +259,7 @@ Array<T, CAP>::Array(isize size, ARGS&&... args)
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
-constexpr Array<T, CAP>::Array(std::initializer_list<T> list)
+constexpr Array<T, CAP>::Array(const std::initializer_list<T> list)
 {
     setSize(list.size());
     for (isize i = 0; i < size(); ++i)

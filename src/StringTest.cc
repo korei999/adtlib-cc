@@ -1,6 +1,7 @@
 #include "adt/Arena.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
+#include "adt/ReverseIt.hh"
 
 #include <clocale>
 
@@ -43,7 +44,7 @@ main()
 
     {
         StringView s0 = "HELLO BIDEN";
-        for (auto ch : it::Reverse(s0))
+        for (auto ch : ReverseIt(s0))
             putchar(ch);
         putchar('\n');
     }

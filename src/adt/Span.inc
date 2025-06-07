@@ -1,13 +1,12 @@
 #pragma once
 
 #include "types.hh"
-#include "it.hh"
 
 namespace adt
 {
 
 template<typename T>
-struct Span : it::Array<T>
+struct Span
 {
     T* m_pData {};
     isize m_size {};
@@ -50,18 +49,15 @@ struct Span : it::Array<T>
 
     /* */
 
-    using it::Array<T>::Array;
-    using It = typename it::Array<T>::It;
+    T* begin()  noexcept { return {&m_pData[0]}; }
+    T* end()    noexcept { return {&m_pData[m_size]}; }
+    T* rbegin() noexcept { return {&m_pData[m_size - 1]}; }
+    T* rend()   noexcept { return {m_pData - 1}; }
 
-    It begin()  noexcept { return {&m_pData[0]}; }
-    It end()    noexcept { return {&m_pData[m_size]}; }
-    It rbegin() noexcept { return {&m_pData[m_size - 1]}; }
-    It rend()   noexcept { return {m_pData - 1}; }
-
-    const It begin() const  noexcept { return {&m_pData[0]}; }
-    const It end() const    noexcept { return {&m_pData[m_size]}; }
-    const It rbegin() const noexcept { return {&m_pData[m_size - 1]}; }
-    const It rend() const   noexcept { return {m_pData - 1}; }
+    const T* begin() const  noexcept { return {&m_pData[0]}; }
+    const T* end() const    noexcept { return {&m_pData[m_size]}; }
+    const T* rbegin() const noexcept { return {&m_pData[m_size - 1]}; }
+    const T* rend() const   noexcept { return {m_pData - 1}; }
 };
 
 } /* namespace adt */

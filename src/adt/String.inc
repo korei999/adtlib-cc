@@ -2,7 +2,6 @@
 
 #include "Span.inc"
 #include "hash.hh"
-#include "it.hh"
 
 namespace adt
 {
@@ -18,7 +17,7 @@ template<isize SIZE>
 inline constexpr int wcWidth(wchar_t wc);
 
 /* Just pointer + size, no allocations, has to be cloned into String to store safely */
-struct StringView : it::Array<char>
+struct StringView
 {
     char* m_pData {};
     isize m_size {};
@@ -68,18 +67,15 @@ struct StringView : it::Array<char>
 
     /* */
 
-    using it::Array<char>::Array;
-    using It = it::Array<char>::It;
+    constexpr char* begin() { return &m_pData[0]; }
+    constexpr char* end() { return &m_pData[m_size]; }
+    constexpr char* rbegin() { return &m_pData[m_size - 1]; }
+    constexpr char* rend() { return m_pData - 1; }
 
-    constexpr It begin() { return {&m_pData[0]}; }
-    constexpr It end() { return {&m_pData[m_size]}; }
-    constexpr It rbegin() { return {&m_pData[m_size - 1]}; }
-    constexpr It rend() { return {m_pData - 1}; }
-
-    constexpr const It begin() const { return {&m_pData[0]}; }
-    constexpr const It end() const { return {&m_pData[m_size]}; }
-    constexpr const It rbegin() const { return {&m_pData[m_size - 1]}; }
-    constexpr const It rend() const { return {m_pData - 1}; }
+    constexpr const char* begin() const { return &m_pData[0]; }
+    constexpr const char* end() const { return &m_pData[m_size]; }
+    constexpr const char* rbegin() const { return &m_pData[m_size - 1]; }
+    constexpr const char* rend() const { return m_pData - 1; }
 };
 
 [[nodiscard]] inline bool operator==(const StringView& l, const StringView& r);

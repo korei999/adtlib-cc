@@ -2,7 +2,6 @@
 
 #include "IAllocator.hh"
 #include "utils.hh"
-#include "it.hh"
 
 namespace adt
 {
@@ -11,7 +10,7 @@ namespace adt
 
 /* Dynamic array (aka Vector) */
 template<typename T>
-struct Vec : it::Array<T>
+struct Vec
 {
     T* m_pData = nullptr;
     isize m_size = 0;
@@ -103,18 +102,15 @@ public:
 
     /* */
 
-    using it::Array<T>::Array;
-    using It = typename it::Array<T>::It;
+    T* begin() noexcept { return {&m_pData[0]}; }
+    T* end() noexcept { return {&m_pData[m_size]}; }
+    T* rbegin() noexcept { return {&m_pData[m_size - 1]}; }
+    T* rend() noexcept { return {m_pData - 1}; }
 
-    It begin() noexcept { return {&m_pData[0]}; }
-    It end() noexcept { return {&m_pData[m_size]}; }
-    It rbegin() noexcept { return {&m_pData[m_size - 1]}; }
-    It rend() noexcept { return {m_pData - 1}; }
-
-    const It begin() const noexcept { return {&m_pData[0]}; }
-    const It end() const noexcept { return {&m_pData[m_size]}; }
-    const It rbegin() const noexcept { return {&m_pData[m_size - 1]}; }
-    const It rend() const noexcept { return {m_pData - 1}; }
+    const T* begin() const noexcept { return {&m_pData[0]}; }
+    const T* end() const noexcept { return {&m_pData[m_size]}; }
+    const T* rbegin() const noexcept { return {&m_pData[m_size - 1]}; }
+    const T* rend() const noexcept { return {m_pData - 1}; }
 };
 
 template<typename T>

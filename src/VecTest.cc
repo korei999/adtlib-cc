@@ -2,6 +2,7 @@
 #include "adt/logs.hh"
 #include "adt/Arena.hh"
 #include "adt/Vec.hh"
+#include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/sort.hh"
@@ -69,7 +70,7 @@ main()
         print::out("vec1(removeAndShift(2): {}\n", vec1);
 
         print::out("vec1(rev): ");
-        for (auto e : it::Reverse(vec1))
+        for (auto e : ReverseIt(vec1))
             print::out("{}, ", e);
         print::out("\n");
 

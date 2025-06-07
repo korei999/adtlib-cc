@@ -1,8 +1,8 @@
 #include "adt/Arena.hh"
+#include "adt/ReverseIt.hh"
+#include "adt/VecSOA.hh"
 #include "adt/defer.hh"
 #include "adt/math.hh"
-
-#include "adt/VecSOA.hh"
 
 using namespace adt;
 
@@ -62,7 +62,7 @@ main()
     }
 
     i = 0;
-    for (auto bind : it::Reverse(vec))
+    for (auto bind : ReverseIt(vec))
     {
         print::out("i: {}\n", i);
         print::out("pos: {}\n", bind.pos);
