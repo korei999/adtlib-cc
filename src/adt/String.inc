@@ -100,7 +100,7 @@ struct String : public StringView
 
     void destroy(IAllocator* pAlloc);
     void replaceWith(IAllocator* pAlloc, StringView svWith);
-    String release(); /* return this String resource and set to zero */
+    [[nodiscard]] String release(); /* return this String resource and set to zero */
 };
 
 /* Holds SIZE - 1 characters, terminates with '\0'. */

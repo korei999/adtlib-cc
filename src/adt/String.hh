@@ -590,6 +590,14 @@ String::replaceWith(IAllocator* pAlloc, StringView svWith)
     data()[size()] = '\0';
 }
 
+inline String
+String::release()
+{
+    String sRet = *this;
+    *this = {};
+    return sRet;
+}
+
 template<int SIZE>
 inline
 StringFixed<SIZE>::StringFixed(const StringView svName)

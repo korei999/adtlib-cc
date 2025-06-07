@@ -275,7 +275,7 @@ Parser::print(FILE* fp)
 }
 
 void
-printNode(FILE* fp, Node* pNode, StringView svEnd, int depth, bool bPrintKey)
+printNode(FILE* fp, const Node* pNode, StringView svEnd, int depth, bool bPrintKey)
 {
     const auto& svKey = pNode->svKey;
 

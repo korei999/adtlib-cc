@@ -115,5 +115,13 @@ main()
         }
     }
 
+    {
+        String s0 = {&arena, "Release"};
+        const String s1 = s0.release();
+        COUT("s0: '{}', s1: '{}'\n", s0, s1);
+        ADT_ASSERT_ALWAYS(s0.empty(), "");
+        ADT_ASSERT_ALWAYS(s1 == "Release", "");
+    }
+
     COUT("StringTest: PASSED\n");
 }
