@@ -50,10 +50,11 @@ struct Array
     isize push(const T& x); /* placement new cannot be constexpr something... */
 
     isize pushSorted(sort::ORDER eOrder, const T& x);
+
     template<sort::ORDER ORDER>
     isize pushSorted(const T& x);
 
-    isize pushAt(isize i, const T& x);
+    void pushAt(isize i, const T& x);
 
     template<typename ...ARGS> requires (std::is_constructible_v<T, ARGS...>)
     constexpr isize emplace(ARGS&&... args);
@@ -108,9 +109,7 @@ Array<T, CAP>::pushSorted(const sort::ORDER eOrder, const T& x)
 {
     ADT_ASSERT(size() < CAP, "pushing over capacity");
 
-    if (eOrder == sort::ORDER::INC)
-        return pushSorted<sort::ORDER::INC>(x);
-    else return pushSorted<sort::ORDER::DEC>(x);
+    return sort::push(eOrder, this, x);
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
@@ -120,46 +119,16 @@ Array<T, CAP>::pushSorted(const T& x)
 {
     ADT_ASSERT(size() < CAP, "pushing over capacity");
 
-    isize res = -1;
-
-    if constexpr (ORDER == sort::ORDER::INC)
-    {
-        for (isize i = 0; i < size(); ++i)
-        {
-            if (utils::compare(x, operator[](i)) <= 0)
-            {
-                res = pushAt(i, x);
-                break;
-            }
-        }
-    }
-    else
-    {
-        for (isize i = 0; i < size(); ++i)
-        {
-            if (utils::compare(x, operator[](i)) >= 0)
-            {
-                res = pushAt(i, x);
-                break;
-            }
-        }
-    }
-
-    /* if failed to pushAt */
-    if (res == -1) return push(x);
-
-    return res;
+    return sort::push<Array<T, CAP>, T, ORDER>(this, x);
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
-inline isize
+inline void
 Array<T, CAP>::pushAt(const isize i, const T& x)
 {
     fakePush();
     utils::memMove(&operator[](i + 1), &operator[](i), size() - 1 - i);
     new(&operator[](i)) T(x);
-
-    return i;
 }
 
 template<typename T, isize CAP> requires(CAP > 0)

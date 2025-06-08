@@ -176,5 +176,107 @@ quick(CON_T<T>* pArrayContainer)
     quick<T, FN_CMP>(pArrayContainer->data(), 0, pArrayContainer->size() - 1);
 }
 
+template<typename ARRAY_T, typename T, ORDER ORDER>
+inline isize
+push(ARRAY_T* p, const T& x)
+{
+    static_assert(std::is_same_v<std::remove_cvref_t<decltype(p->data()[0])>, std::remove_cvref_t<T>>);
+
+    ADT_ASSERT(p != nullptr, "");
+    auto& a = *p;
+
+    isize res = -1;
+
+    if constexpr (ORDER == sort::ORDER::INC)
+    {
+        for (isize i = 0; i < a.size(); ++i)
+        {
+            if (utils::compare(x, a[i]) <= 0)
+            {
+                a.pushAt(i, x);
+                res = i;
+                break;
+            }
+        }
+    }
+    else
+    {
+        for (isize i = 0; i < a.size(); ++i)
+        {
+            if (utils::compare(x, a[i]) >= 0)
+            {
+                a.pushAt(i, x);
+                res = i;
+                break;
+            }
+        }
+    }
+
+    /* if failed to pushAt */
+    if (res == -1) return a.push(x);
+
+    return res;
+}
+
+template<typename ARRAY_T, typename T, ORDER ORDER>
+inline isize
+push(IAllocator* pAlloc, ARRAY_T* p, const T& x)
+{
+    static_assert(std::is_same_v<std::remove_cvref_t<decltype(p->data()[0])>, std::remove_cvref_t<T>>);
+
+    ADT_ASSERT(p != nullptr, "");
+    auto& a = *p;
+
+    isize res = -1;
+
+    if constexpr (ORDER == sort::ORDER::INC)
+    {
+        for (isize i = 0; i < a.size(); ++i)
+        {
+            if (utils::compare(x, a[i]) <= 0)
+            {
+                a.pushAt(pAlloc, i, x);
+                res = i;
+                break;
+            }
+        }
+    }
+    else
+    {
+        for (isize i = 0; i < a.size(); ++i)
+        {
+            if (utils::compare(x, a[i]) >= 0)
+            {
+                a.pushAt(pAlloc, i, x);
+                res = i;
+                break;
+            }
+        }
+    }
+
+    /* if failed to pushAt */
+    if (res == -1) return a.push(pAlloc, x);
+
+    return res;
+}
+
+template<typename ARRAY_T, typename T>
+inline isize
+push(const ORDER eOrder, ARRAY_T* p, const T& x)
+{
+    if (eOrder == ORDER::INC)
+        return push<ARRAY_T, T, ORDER::INC>(p, x);
+    else return push<ARRAY_T, T, ORDER::DEC>(p, x);
+}
+
+template<typename ARRAY_T, typename T>
+inline isize
+push(IAllocator* pAlloc, const ORDER eOrder, ARRAY_T* p, const T& x)
+{
+    if (eOrder == ORDER::INC)
+        return push<ARRAY_T, T, ORDER::INC>(pAlloc, p, x);
+    else return push<ARRAY_T, T, ORDER::DEC>(pAlloc, p, x);
+}
+
 } /* namespace sort */
 } /* namespace adt */

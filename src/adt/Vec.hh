@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IAllocator.hh"
-#include "utils.hh"
+#include "sort.hh"
 
 namespace adt
 {
@@ -57,6 +57,11 @@ struct Vec
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     void emplaceAt(IAllocator* p, const isize atI, ARGS&&... args);
+
+    isize pushSorted(IAllocator* p, const sort::ORDER eOrder, const T& x);
+
+    template<sort::ORDER ORDER>
+    isize pushSorted(IAllocator* p, const T& x);
 
     [[nodiscard]] T& last() noexcept;
 
@@ -208,6 +213,21 @@ Vec<T>::emplaceAt(IAllocator* p, const isize atI, ARGS&&... args)
 
     utils::memMove(m_pData + atI + 1, m_pData + atI, size() - atI);
     new(&operator[](atI)) T(std::forward<ARGS>(args)...);
+}
+
+template<typename T>
+inline isize
+Vec<T>::pushSorted(IAllocator* p, const sort::ORDER eOrder, const T& x)
+{
+    return sort::push(p, eOrder, this, x);
+}
+
+template<typename T>
+template<sort::ORDER ORDER>
+inline isize
+Vec<T>::pushSorted(IAllocator* p, const T& x)
+{
+    return sort::push<Vec<T>, T, ORDER>(p, this, x);
 }
 
 template<typename T>
@@ -452,6 +472,11 @@ struct VecManaged : Vec<T>
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     void emplaceAt(const isize atI, ARGS&&... args) { Vec<T>::emplaceAt(m_pAlloc, atI, std::forward<ARGS>(args)...); }
+
+    isize pushSorted(const sort::ORDER eOrder, const T& x) { return Vec<T>::pushSorted(m_pAlloc, eOrder, x); }
+
+    template<sort::ORDER ORDER>
+    isize pushSorted(const T& x) { return Vec<T>::template pushSorted<ORDER>(m_pAlloc, x); }
 
     void setSize(isize size) { Vec<T>::setSize(m_pAlloc, size); }
 

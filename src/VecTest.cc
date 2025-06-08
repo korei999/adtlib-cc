@@ -131,6 +131,7 @@ main()
 
     {
         VecManaged<int> v {StdAllocator::inst()};
+        defer( v.destroy() );
         v.push(0);
         v.push(1);
         v.push(2);
@@ -157,5 +158,19 @@ main()
         LOG("v: [{}]\n", v);
         v.pushSpanAt(4, aSpan);
         LOG("v: [{}]\n", v);
+    }
+
+    {
+        VecManaged<int> v {StdAllocator::inst()};
+        defer( v.destroy() );
+
+        v.pushSorted<sort::ORDER::INC>(-15);
+        v.pushSorted<sort::ORDER::INC>(23);
+        v.pushSorted<sort::ORDER::INC>(999);
+        v.pushSorted<sort::ORDER::INC>(-666);
+
+        ADT_ASSERT_ALWAYS(sort::sorted(v.data(), v.size(), sort::ORDER::INC), "");
+
+        LOG("sorted: [{}]\n", v);
     }
 }
