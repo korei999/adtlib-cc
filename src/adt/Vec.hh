@@ -42,6 +42,8 @@ struct Vec
 
     [[nodiscard]] bool empty() const noexcept { return m_size <= 0; }
 
+    isize fakePush(IAllocator* p);
+
     isize push(IAllocator* p, const T& data);
 
     void pushAt(IAllocator* p, const isize atI, const T& data);
@@ -52,6 +54,9 @@ struct Vec
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     isize emplace(IAllocator* p, ARGS&&... args);
+
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+    void emplaceAt(IAllocator* p, const isize atI, ARGS&&... args);
 
     [[nodiscard]] T& last() noexcept;
 
@@ -130,6 +135,14 @@ Vec<T>::Vec(IAllocator* p, isize prealloc, const T& defaultVal)
 
 template<typename T>
 inline isize
+Vec<T>::fakePush(IAllocator* p)
+{
+    growIfNeeded(p);
+    return ++m_size - 1;
+}
+
+template<typename T>
+inline isize
 Vec<T>::push(IAllocator* p, const T& data)
 {
     growIfNeeded(p);
@@ -182,6 +195,19 @@ Vec<T>::emplace(IAllocator* p, ARGS&&... args)
     growIfNeeded(p);
     new(m_pData + m_size++) T(std::forward<ARGS>(args)...);
     return m_size - 1;
+}
+
+template<typename T>
+template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+inline void
+Vec<T>::emplaceAt(IAllocator* p, const isize atI, ARGS&&... args)
+{
+    growIfNeeded(p);
+    ++m_size;
+    ADT_ASSERT(atI >= 0 && atI < size(), "atI: {}, size: {}", atI, size());
+
+    utils::memMove(m_pData + atI + 1, m_pData + atI, size() - atI);
+    new(&operator[](atI)) T(std::forward<ARGS>(args)...);
 }
 
 template<typename T>
@@ -411,6 +437,8 @@ struct VecManaged : Vec<T>
 
     /* */
 
+    isize fakePush() { return Vec<T>::fakePush(m_pAlloc); }
+
     isize push(const T& data) { return Vec<T>::push(m_pAlloc, data); }
 
     void pushAt(const isize atI, const T& data) { Vec<T>::pushAt(m_pAlloc, atI,data); }
@@ -421,6 +449,9 @@ struct VecManaged : Vec<T>
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     isize emplace(ARGS&&... args) { return Vec<T>::emplace(m_pAlloc, std::forward<ARGS>(args)...); }
+
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+    void emplaceAt(const isize atI, ARGS&&... args) { Vec<T>::emplaceAt(m_pAlloc, std::forward<ARGS>(args)...); }
 
     void setSize(isize size) { Vec<T>::setSize(m_pAlloc, size); }
 
