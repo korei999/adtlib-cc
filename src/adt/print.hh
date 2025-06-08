@@ -680,7 +680,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 
 #if defined __clang__ || __GNUC__
 
-    const StringView svSub = "[with T = ";
+    const StringView svSub = "T = ";
     const isize atI = sv.subStringAt(svSub);
     const StringView svDemangled {
         const_cast<char*>(sv.data() + atI + svSub.size()),
