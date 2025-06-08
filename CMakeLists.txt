@@ -110,7 +110,7 @@ message(STATUS "OS_NAME: '${OS_NAME}'")
 message(STATUS "CMAKE_CXX_COMPILER_ID: '${CMAKE_CXX_COMPILER_ID}'")
 message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
-add_link_options(-lmimalloc)
+# add_link_options(-lmimalloc)
 # include(FetchContent)
 # 
 # FetchContent_Declare(

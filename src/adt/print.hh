@@ -677,13 +677,26 @@ inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 {
     const StringView sv = typeName<T>();
+
+#if defined __clang__ || __GNUC__
+
     const StringView svSub = "[with T = ";
     const isize atI = sv.subStringAt(svSub);
-
     const StringView svDemangled {
         const_cast<char*>(sv.data() + atI + svSub.size()),
         sv.size() - atI - svSub.size() - 1
     };
+
+#else
+
+    const StringView svSub = "typeName<";
+    const isize atI = sv.subStringAt(svSub);
+    const StringView svDemangled {
+        const_cast<char*>(sv.data() + atI + svSub.size()),
+        sv.size() - atI - svSub.size()
+    };
+
+#endif
 
     return formatToContext(ctx, fmtArgs, svDemangled);
 }

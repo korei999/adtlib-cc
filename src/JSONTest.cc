@@ -9,7 +9,7 @@
 #include "adt/logs.hh"
 #include "json/Parser.hh"
 
-#include "adt/MiMalloc.hh" /* IWYU pragma: keep */
+// #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
 using namespace adt;
 
@@ -49,8 +49,8 @@ main(int argc, char* argv[])
         // FreeList al(SIZE_1G);
         // StdAllocator al;
         // MiMalloc al;
-        // Arena al(SIZE_8M);
-        MiHeap al(0);
+        Arena al(SIZE_8M);
+        // MiHeap al(0);
         defer( al.freeAll() );
 
         String sJson = file::load(&al, argv[1]);
