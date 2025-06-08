@@ -128,4 +128,34 @@ main()
         f64 t1 = utils::timeNowMS();
         LOG("std: {} ms\n", t1 - t0);
     }
+
+    {
+        VecManaged<int> v {StdAllocator::inst()};
+        v.push(0);
+        v.push(1);
+        v.push(2);
+        v.push(3);
+        v.push(4);
+
+        v.pushAt(0, 666);
+        v.pushAt(3, 666);
+        v.pushAt(5, 666);
+        v.pushAt(6, 666);
+
+        ADT_ASSERT_ALWAYS(v[0] == 666, "");
+        ADT_ASSERT_ALWAYS(v[1] == 0, "");
+        ADT_ASSERT_ALWAYS(v[2] == 1, "");
+        ADT_ASSERT_ALWAYS(v[3] == 666, "");
+        ADT_ASSERT_ALWAYS(v[4] == 2, "");
+        ADT_ASSERT_ALWAYS(v[5] == 666, "");
+        ADT_ASSERT_ALWAYS(v[6] == 666, "");
+        ADT_ASSERT_ALWAYS(v[7] == 3, "");
+        ADT_ASSERT_ALWAYS(v[8] == 4, "");
+
+        const int aSpan[] {999, 999, 999};
+
+        LOG("v: [{}]\n", v);
+        v.pushSpanAt(4, aSpan);
+        LOG("v: [{}]\n", v);
+    }
 }

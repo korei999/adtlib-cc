@@ -15,14 +15,16 @@ struct Span
 
     constexpr Span() = default;
 
-    constexpr Span(const T* pData, isize size) noexcept
-        : m_pData(const_cast<T*>(pData)), m_size(size) {}
+    constexpr Span(T* pData, isize size) noexcept
+        : m_pData(pData), m_size(size) {}
 
     template<isize N>
     constexpr Span(T (&aChars)[N]) noexcept
         : m_pData(aChars), m_size(N) {}
 
     /* */
+
+    constexpr operator const Span<const T>() const { return {data(), size()}; }
 
     constexpr bool empty() const { return m_size <= 0; }
 

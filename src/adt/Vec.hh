@@ -44,10 +44,14 @@ struct Vec
 
     isize push(IAllocator* p, const T& data);
 
-    void pushSpan(IAllocator* p, const Span<T> sp);
+    void pushAt(IAllocator* p, const isize atI, const T& data);
+
+    isize pushSpan(IAllocator* p, const Span<const T> sp);
+
+    void pushSpanAt(IAllocator* p, const isize atI, const Span<const T> sp);
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
-        isize emplace(IAllocator* p, ARGS&&... args);
+    isize emplace(IAllocator* p, ARGS&&... args);
 
     [[nodiscard]] T& last() noexcept;
 
@@ -97,6 +101,7 @@ private:
     void grow(IAllocator* p, isize newCapacity);
 
     void growIfNeeded(IAllocator* p);
+    void growOnSpanPush(IAllocator* p, const isize spanSize);
 
 public:
 
@@ -134,20 +139,39 @@ Vec<T>::push(IAllocator* p, const T& data)
 
 template<typename T>
 inline void
-Vec<T>::pushSpan(IAllocator* p, const Span<T> sp)
+Vec<T>::pushAt(IAllocator* p, const isize atI, const T& data)
 {
-    ADT_ASSERT(sp.size() > 0, "pushing empty span");
-    ADT_ASSERT(m_size + sp.size() >= m_size, "overflow");
+    growIfNeeded(p);
+    ++m_size;
+    ADT_ASSERT(atI >= 0 && atI < size(), "atI: {}, size: {}", atI, size());
 
-    if (m_size + sp.size() > m_capacity)
-    {
-        isize newSize = utils::max(static_cast<isize>((sp.size() + m_size)*1.33), m_size*2);
-        ADT_ASSERT(newSize > m_size, "overflow");
-        grow(p, newSize);
-    }
+    utils::memMove(m_pData + atI + 1, m_pData + atI, size() - atI);
+    new(&operator[](atI)) T(data);
+}
 
+template<typename T>
+inline isize
+Vec<T>::pushSpan(IAllocator* p, const Span<const T> sp)
+{
+    growOnSpanPush(p, sp.size());
     utils::memCopy(m_pData + m_size, sp.data(), sp.size());
+
+    const isize ret = m_size;
     m_size += sp.size();
+
+    return ret;
+}
+
+template<typename T>
+inline void
+Vec<T>::pushSpanAt(IAllocator* p, const isize atI, const Span<const T> sp)
+{
+    growOnSpanPush(p, sp.size());
+    m_size += sp.size();
+    ADT_ASSERT(atI >= 0 && atI < size(), "atI: {}, size: {}", atI, size());
+
+    utils::memMove(m_pData + atI + sp.size(), m_pData + atI, size() - atI);
+    utils::memCopy(m_pData + atI, sp.data(), sp.size());
 }
 
 template<typename T>
@@ -358,6 +382,21 @@ Vec<T>::growIfNeeded(IAllocator* p)
 }
 
 template<typename T>
+inline void
+Vec<T>::growOnSpanPush(IAllocator* p, const isize spanSize)
+{
+    ADT_ASSERT(spanSize > 0, "pushing empty span");
+    ADT_ASSERT(m_size + spanSize >= m_size, "overflow");
+
+    if (m_size + spanSize > m_capacity)
+    {
+        const isize newSize = utils::max(static_cast<isize>((spanSize + m_size)*1.33), m_size*2);
+        ADT_ASSERT(newSize > m_size, "overflow");
+        grow(p, newSize);
+    }
+}
+
+template<typename T>
 struct VecManaged : Vec<T>
 {
     IAllocator* m_pAlloc = nullptr;
@@ -374,7 +413,11 @@ struct VecManaged : Vec<T>
 
     isize push(const T& data) { return Vec<T>::push(m_pAlloc, data); }
 
-    void pushSpan(const Span<T> sp) { Vec<T>::pushSpan(m_pAlloc, sp); }
+    void pushAt(const isize atI, const T& data) { Vec<T>::pushAt(m_pAlloc, atI,data); }
+
+    isize pushSpan(const Span<const T> sp) { return Vec<T>::pushSpan(m_pAlloc, sp); }
+
+    void pushSpanAt(const isize atI, const Span<const T> sp) { Vec<T>::pushSpanAt(m_pAlloc, atI, sp); }
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     isize emplace(ARGS&&... args) { return Vec<T>::emplace(m_pAlloc, std::forward<ARGS>(args)...); }

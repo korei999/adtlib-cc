@@ -44,21 +44,37 @@ struct Array
 
     constexpr T* data() { return m_aData; }
     constexpr const T* data() const { return m_aData; }
+
     constexpr bool empty() const { return m_size <= 0; }
+
     isize push(const T& x); /* placement new cannot be constexpr something... */
+
     isize pushSorted(sort::ORDER eOrder, const T& x);
-    template<sort::ORDER ORDER> isize pushSorted(const T& x);
+    template<sort::ORDER ORDER>
+    isize pushSorted(const T& x);
+
     isize pushAt(isize i, const T& x);
-    template<typename ...ARGS> requires (std::is_constructible_v<T, ARGS...>) constexpr isize emplace(ARGS&&... args);
+
+    template<typename ...ARGS> requires (std::is_constructible_v<T, ARGS...>)
+    constexpr isize emplace(ARGS&&... args);
+
     constexpr isize fakePush();
+
     constexpr T* pop();
+
     constexpr void fakePop();
+
     constexpr isize cap() const;
+
     constexpr isize size() const;
+
     constexpr void setSize(isize newSize);
+
     constexpr isize idx(const T* const p) const;
+
     constexpr T& first();
     constexpr const T& first() const;
+
     constexpr T& last();
     constexpr const T& last() const;
 
