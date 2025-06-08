@@ -451,7 +451,7 @@ struct VecManaged : Vec<T>
     isize emplace(ARGS&&... args) { return Vec<T>::emplace(m_pAlloc, std::forward<ARGS>(args)...); }
 
     template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
-    void emplaceAt(const isize atI, ARGS&&... args) { Vec<T>::emplaceAt(m_pAlloc, std::forward<ARGS>(args)...); }
+    void emplaceAt(const isize atI, ARGS&&... args) { Vec<T>::emplaceAt(m_pAlloc, atI, std::forward<ARGS>(args)...); }
 
     void setSize(isize size) { Vec<T>::setSize(m_pAlloc, size); }
 
