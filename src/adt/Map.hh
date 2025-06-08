@@ -486,7 +486,7 @@ Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc)
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&) = hash::func<K>>
-struct MapManaged : Map<K, V, FN_HASH>
+struct MapPmr : Map<K, V, FN_HASH>
 {
     using Base = Map<K, V, FN_HASH>;
 
@@ -496,8 +496,8 @@ struct MapManaged : Map<K, V, FN_HASH>
 
     /* */
 
-    MapManaged() = default;
-    MapManaged(IAllocator* _pAlloc, isize prealloc = SIZE_MIN)
+    MapPmr() = default;
+    MapPmr(IAllocator* _pAlloc, isize prealloc = SIZE_MIN)
         : Base(_pAlloc, prealloc), m_pAlloc(_pAlloc) {}
 
     /* */
@@ -511,7 +511,7 @@ struct MapManaged : Map<K, V, FN_HASH>
 
     void destroy() noexcept { Base::destroy(m_pAlloc); m_pAlloc = {}; }
 
-    MapManaged release() noexcept { return utils::exchange(this, {}); }
+    MapPmr release() noexcept { return utils::exchange(this, {}); }
 };
 
 namespace print

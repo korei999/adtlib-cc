@@ -16,7 +16,7 @@ main()
     PoolAllocator al(sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
-    RBTreeManaged<long> tree(&al);
+    RBTreePmr<long> tree(&al);
     defer( tree.destroy() );
 
     tree.emplace(false, 1L);

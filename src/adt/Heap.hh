@@ -227,7 +227,7 @@ Heap<T>::minSort(IAllocator* pA, Vec<T>* a)
 
 template<typename T>
 inline void
-HeapMaxSort(IAllocator* pA, VecManaged<T>* a)
+HeapMaxSort(IAllocator* pA, VecPmr<T>* a)
 {
     Heap<T> s = HeapMaxFromVec(pA, *a);
 

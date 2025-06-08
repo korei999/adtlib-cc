@@ -282,14 +282,14 @@ Queue<T>::operator[](isize i) const
 }
 
 template<typename T>
-struct QueueManaged : public Queue<T>
+struct QueuePmr : public Queue<T>
 {
     IAllocator* m_pAlloc {};
 
     /* */
 
-    QueueManaged() : Queue<T>::Queue() {}
-    QueueManaged(IAllocator* pAlloc, isize prealloc = SIZE_MIN)
+    QueuePmr() : Queue<T>::Queue() {}
+    QueuePmr(IAllocator* pAlloc, isize prealloc = SIZE_MIN)
         : Queue<T>::Queue(pAlloc, prealloc), m_pAlloc {pAlloc} {}
 
     /* */

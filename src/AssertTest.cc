@@ -13,7 +13,7 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    VecManaged<int> vec {&arena};
+    VecPmr<int> vec {&arena};
     vec.push(1);
     vec.push(2);
 

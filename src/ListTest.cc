@@ -8,7 +8,7 @@ using namespace adt;
 int
 main()
 {
-    ListManaged<long> list(StdAllocator::inst());
+    ListPmr<long> list(StdAllocator::inst());
     defer( list.destroy() );
 
     list.pushBack(1);

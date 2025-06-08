@@ -24,9 +24,42 @@ main()
         Arena arena(SIZE_1K);
         defer( arena.freeAll() );
 
-        VecManaged<int> vec {&arena};
+        VecPmr<int> vec {&arena};
         for (int i = 0; i < 100000; ++i)
             vec.push(i);
+    }
+
+    {
+        VecPmr<int> v {StdAllocator::inst()};
+        defer( v.destroy() );
+        v.push(0);
+        v.push(1);
+        v.push(2);
+        v.push(3);
+        v.push(4);
+
+        v.pushAt(0, 666);
+        v.pushAt(3, 666);
+        v.pushAt(5, 666);
+        v.pushAt(6, 666);
+
+        ADT_ASSERT_ALWAYS(v[0] == 666, "");
+        ADT_ASSERT_ALWAYS(v[1] == 0, "");
+        ADT_ASSERT_ALWAYS(v[2] == 1, "");
+        ADT_ASSERT_ALWAYS(v[3] == 666, "");
+        ADT_ASSERT_ALWAYS(v[4] == 2, "");
+        ADT_ASSERT_ALWAYS(v[5] == 666, "");
+        ADT_ASSERT_ALWAYS(v[6] == 666, "");
+        ADT_ASSERT_ALWAYS(v[7] == 3, "");
+        ADT_ASSERT_ALWAYS(v[8] == 4, "");
+
+        const int aSpan[] {999, 999, 999};
+
+        LOG_WARN("v: [{}]\n", v);
+        v.pushSpanAt(4, aSpan);
+        LOG_GOOD("v: [{}]\n", v);
+        v.pushSpanAt(10, aSpan);
+        LOG_NOTIFY("v: [{}]\n", v);
     }
 
     Vec<Arena> aArenas(StdAllocator::inst(), 1);
@@ -35,7 +68,7 @@ main()
     aArenas.push(StdAllocator::inst(), {SIZE_1M});
     defer( aArenas[0].freeAll() );
 
-    VecManaged<f64> vec(&aArenas[0]);
+    VecPmr<f64> vec(&aArenas[0]);
 
     for (auto what : vec)
         LOG("asdf {}\n", what);
@@ -82,7 +115,7 @@ main()
         int i = 0;
 
         A(int _i) : i(_i) {}
-        virtual  ~A() {};
+        virtual  ~A() {}
 
         virtual void hi() {};
     };
@@ -96,7 +129,7 @@ main()
 
     {
         Arena a(sizeof(u32) * BIG);
-        VecManaged<B> vec(&a, 77);
+        VecPmr<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
             vec.push({(int)i, 0});
         a.freeAll();
@@ -107,7 +140,7 @@ main()
 
         StdAllocator a;
 
-        VecManaged<B> vec(&a);
+        VecPmr<B> vec(&a);
         for (u32 i = 0; i < BIG; ++i)
             vec.emplace(i, i);
 
@@ -130,38 +163,7 @@ main()
     }
 
     {
-        VecManaged<int> v {StdAllocator::inst()};
-        defer( v.destroy() );
-        v.push(0);
-        v.push(1);
-        v.push(2);
-        v.push(3);
-        v.push(4);
-
-        v.pushAt(0, 666);
-        v.pushAt(3, 666);
-        v.pushAt(5, 666);
-        v.pushAt(6, 666);
-
-        ADT_ASSERT_ALWAYS(v[0] == 666, "");
-        ADT_ASSERT_ALWAYS(v[1] == 0, "");
-        ADT_ASSERT_ALWAYS(v[2] == 1, "");
-        ADT_ASSERT_ALWAYS(v[3] == 666, "");
-        ADT_ASSERT_ALWAYS(v[4] == 2, "");
-        ADT_ASSERT_ALWAYS(v[5] == 666, "");
-        ADT_ASSERT_ALWAYS(v[6] == 666, "");
-        ADT_ASSERT_ALWAYS(v[7] == 3, "");
-        ADT_ASSERT_ALWAYS(v[8] == 4, "");
-
-        const int aSpan[] {999, 999, 999};
-
-        LOG("v: [{}]\n", v);
-        v.pushSpanAt(4, aSpan);
-        LOG("v: [{}]\n", v);
-    }
-
-    {
-        VecManaged<int> v {StdAllocator::inst()};
+        VecPmr<int> v {StdAllocator::inst()};
         defer( v.destroy() );
 
         v.pushSorted<sort::ORDER::INC>(-15);
@@ -172,5 +174,14 @@ main()
         ADT_ASSERT_ALWAYS(sort::sorted(v.data(), v.size(), sort::ORDER::INC), "");
 
         LOG("sorted: [{}]\n", v);
+    }
+
+    {
+        VecManaged<int> v {5, 666};
+        defer( v.destroy() );
+        for (int i = 0; i < 5; ++i)
+            v.push(i);
+
+        LOG("managed: [{}]\n", v);
     }
 }

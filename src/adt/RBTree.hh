@@ -673,7 +673,7 @@ RBTree<T>::destroy(IAllocator* pAlloc)
 }
 
 template<typename T>
-struct RBTreeManaged
+struct RBTreePmr
 {
     RBTree<T> base {};
 
@@ -683,8 +683,8 @@ struct RBTreeManaged
 
     /* */
     
-    RBTreeManaged() = default;
-    RBTreeManaged(IAllocator* p) : m_pAlloc(p) {}
+    RBTreePmr() = default;
+    RBTreePmr(IAllocator* p) : m_pAlloc(p) {}
 
     /* */
 

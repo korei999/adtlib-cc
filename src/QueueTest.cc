@@ -82,7 +82,7 @@ main()
     }
 
     {
-        QueueManaged<int> q {&arena, 4};
+        QueuePmr<int> q {&arena, 4};
 
         q.pushBack(1);
         q.pushBack(2);

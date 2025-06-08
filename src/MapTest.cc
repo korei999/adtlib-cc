@@ -46,14 +46,14 @@ microBench()
 
     constexpr isize BIG = 1000000;
 
-    VecManaged<String> vStrings {&arena, BIG};
+    VecPmr<String> vStrings {&arena, BIG};
     vStrings.setSize(BIG);
 
     for (isize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
 
-    MapManaged<StringView, int> map(&arena);
-    VecManaged<StringView> vNotFoundStrings {StdAllocator::inst()};
+    MapPmr<StringView, int> map(&arena);
+    VecPmr<StringView> vNotFoundStrings {StdAllocator::inst()};
     defer( vNotFoundStrings.destroy() );
 
     {
@@ -114,7 +114,7 @@ main()
     ADT_ASSERT_ALWAYS(hash::func("]e") == hash::func(StringView("]e")), "");
 
     {
-        MapManaged<StringView, int> map {&arena};
+        MapPmr<StringView, int> map {&arena};
         map.insert("OneTwoThree", 123);
         map.insert("OneTwoThree", 1234);
 
@@ -124,7 +124,7 @@ main()
         }
     }
 
-    MapManaged<StringView, u32> map(&arena);
+    MapPmr<StringView, u32> map(&arena);
 
     map.insert("ThirdyTwo", 32);
     map.insert("Sixteen", 16);
@@ -166,7 +166,7 @@ main()
         COUT("['{}', {}], ", k, v);
     COUT("\n");
 
-    MapManaged<int, int, memeHash> map2(&arena);
+    MapPmr<int, int, memeHash> map2(&arena);
     map2.insert(12, 1);
     map2.insert(13, 2);
 

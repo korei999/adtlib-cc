@@ -342,7 +342,7 @@ List<T>::sort()
 }
 
 template<typename T>
-struct ListManaged
+struct ListPmr
 {
     List<T> base {};
 
@@ -352,8 +352,8 @@ struct ListManaged
 
     /* */
 
-    ListManaged() = default;
-    ListManaged(IAllocator* pA) : m_pAlloc(pA) {}
+    ListPmr() = default;
+    ListPmr(IAllocator* pA) : m_pAlloc(pA) {}
 
     /* */
 
@@ -369,7 +369,7 @@ struct ListManaged
 
     constexpr void destroy() { base.destroy(m_pAlloc); m_pAlloc = {}; }
 
-    constexpr ListManaged release() noexcept { return utils::exchange(this, {}); }
+    constexpr ListPmr release() noexcept { return utils::exchange(this, {}); }
 
     constexpr void insertAfter(ListNode<T>* pAfter, ListNode<T>* p) { base.insertAfter(pAfter, p); }
 

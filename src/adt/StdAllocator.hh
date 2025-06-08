@@ -27,6 +27,24 @@ struct StdAllocator : IAllocator
     /* virtual end */
 };
 
+/* non virtual */
+struct StdAllocatorNV
+{
+    StdAllocator* operator&() const { return StdAllocator::inst(); }
+
+    [[nodiscard]] static void* malloc(usize mCount, usize mSize) noexcept(false)
+    { return StdAllocator::inst()->malloc(mCount, mSize); }
+
+    [[nodiscard]] static void* zalloc(usize mCount, usize mSize) noexcept(false)
+    { return StdAllocator::inst()->zalloc(mCount, mSize); }
+
+    [[nodiscard]] static void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false)
+    { return StdAllocator::inst()->realloc(ptr, oldCount, newCount, mSize); }
+
+    static void free(void* ptr) noexcept
+    { StdAllocator::inst()->free(ptr); }
+};
+
 inline StdAllocator*
 StdAllocator::inst()
 {
