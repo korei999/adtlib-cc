@@ -14,11 +14,11 @@ template<typename T, isize CAP> requires(CAP > 0)
 struct Array
 {
     T m_aData[CAP];
-    isize m_size;
+    isize m_size {};
 
     /* */
 
-    constexpr Array() : m_aData {}, m_size {} {}
+    constexpr Array() = default;
 
     constexpr Array(isize size);
 

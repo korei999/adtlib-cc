@@ -16,9 +16,13 @@ struct QueueArray
 
     /* */
 
-    T m_aData[CAP] {};
+    T m_aData[CAP];
     isize m_headI {};
     isize m_tailI {};
+
+    /* */
+
+    QueueArray() = default;
 
     /* */
 

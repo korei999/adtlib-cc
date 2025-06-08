@@ -477,8 +477,9 @@ Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
 Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc)
-    : m_vBuckets(pAllocator, nextPowerOf2(isize(prealloc * MAP_DEFAULT_LOAD_FACTOR_INV))),
-      m_maxLoadFactor(MAP_DEFAULT_LOAD_FACTOR)
+    : m_vBuckets {pAllocator, nextPowerOf2(isize(prealloc * MAP_DEFAULT_LOAD_FACTOR_INV))},
+      m_nOccupied {},
+      m_maxLoadFactor {MAP_DEFAULT_LOAD_FACTOR}
 {
     ADT_ASSERT(isPowerOf2(m_vBuckets.cap()), "");
     m_vBuckets.setSize(pAllocator, m_vBuckets.cap());
