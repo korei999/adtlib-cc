@@ -60,7 +60,7 @@ demangle(const char* mangled)
     size_t len = 63;
     int status = 0;
 
-    const char* ret = abi::__cxa_demangle(mangled, sf.data(), &len, &status);
+    abi::__cxa_demangle(mangled, sf.data(), &len, &status);
     return sf;
 }
 
@@ -705,10 +705,8 @@ template<typename T>
 requires (!Printable<T>)
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 {
-    char aBuff[128] {};
     auto sf = demangle(typeid(T).name());
-    const int n = snprintf(aBuff, sizeof(aBuff) - 1, "(%s)", sf.data());
-    return formatToContext(ctx, fmtArgs, StringView {aBuff, n});
+    return formatToContext(ctx, fmtArgs, sf);
 }
 
 } /* namespace adt::print */
