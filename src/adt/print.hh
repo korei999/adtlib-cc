@@ -10,6 +10,12 @@
 #include <cstdlib>
 #include <cuchar> /* IWYU pragma: keep */
 
+#include <typeinfo>
+
+#if defined __GNUG__
+    #include <cxxabi.h>
+#endif
+
 namespace adt::print
 {
 
@@ -669,6 +675,16 @@ inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept
 {
     return formatToContextExpSize(ctx, fmtArgs, a, N);
+}
+
+template<typename T>
+requires (!Printable<T>)
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
+{
+    char aBuff[128] {};
+    const char* nts = typeid(T).name();
+    const int n = snprintf(aBuff, sizeof(aBuff) - 1, "(%s)", nts);
+    return formatToContext(ctx, fmtArgs, StringView {aBuff, n});
 }
 
 } /* namespace adt::print */
