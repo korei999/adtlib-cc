@@ -2,6 +2,7 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/ReverseIt.hh"
+#include "adt/Thread.hh"
 
 #include <clocale>
 
@@ -122,6 +123,16 @@ main()
         COUT("s0: '{}', s1: '{}'\n", s0, s1);
         ADT_ASSERT_ALWAYS(s0.empty(), "");
         ADT_ASSERT_ALWAYS(s1 == "Release", "");
+    }
+
+    {
+        struct DemangleVeryLong { struct IncreadiblyLongName { struct ActuallyWayTooLongNameItsCrazy {}; }; };
+        DemangleVeryLong::IncreadiblyLongName::ActuallyWayTooLongNameItsCrazy demangle;
+        LOG_GOOD("demangled: '{}'\n", demangle);
+
+        LOG("thread: '{}'\n", Thread {});
+        LOG("StdAllocator: '{}'\n", StdAllocator {});
+        LOG("arena: '{}'\n", arena);
     }
 
     COUT("StringTest: PASSED\n");

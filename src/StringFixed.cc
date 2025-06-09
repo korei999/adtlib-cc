@@ -6,12 +6,6 @@ int
 main()
 {
     {
-        struct DemangleVeryLong { struct IncreadiblyLongName { struct ActuallyWayTooLongNameItsCrazy {}; }; };
-        DemangleVeryLong::IncreadiblyLongName::ActuallyWayTooLongNameItsCrazy demangle;
-        LOG_GOOD("demangled: '{}'\n", demangle);
-    }
-
-    {
         const char* nts = "1234567890ABCD";
         StringFixed<10> sf10 {};
         sf10 = nts;
