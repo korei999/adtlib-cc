@@ -53,20 +53,22 @@ struct Context
 
 #ifdef ADT_DEMANGLE_GNU
 
-inline const StringFixed<64>
+inline const StringFixed<128>
 demangle(const char* mangled)
 {
-    StringFixed<64> sf {};
-    size_t len = 63;
-    int status = 0;
+    StringFixed<128> sf {};
 
-    abi::__cxa_demangle(mangled, sf.data(), &len, &status);
+    int status {};
+    char* ntsDemangled = abi::__cxa_demangle(mangled, {}, {}, &status);
+    sf = ntsDemangled;
+
+    ::free(ntsDemangled);
     return sf;
 }
 
 #else
 
-inline const StringFixed<64>
+inline const StringFixed<128>
 demangle(const char* mangled)
 {
     return mangled;

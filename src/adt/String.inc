@@ -164,8 +164,10 @@ struct StringFixed
     auto& data() { return m_aBuff; }
     const auto& data() const { return m_aBuff; }
 
-    isize size() const;
-    void destroy();
+    isize cap() const noexcept { return CAP; }
+
+    isize size() const noexcept;
+    void destroy() noexcept;
 };
 
 template<int SIZE_L, int SIZE_R>

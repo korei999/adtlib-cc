@@ -6,8 +6,8 @@ int
 main()
 {
     {
-        struct Demangle { struct Me {}; };
-        Demangle::Me demangle;
+        struct DemangleVeryLong { struct IncreadiblyLongName { struct ActuallyWayTooLongNameItsCrazy {}; }; };
+        DemangleVeryLong::IncreadiblyLongName::ActuallyWayTooLongNameItsCrazy demangle;
         LOG_GOOD("demangled: '{}'\n", demangle);
     }
 

@@ -619,14 +619,14 @@ StringFixed<SIZE>::StringFixed(const StringFixed<SIZE_B> other)
 
 template<int SIZE>
 inline isize
-StringFixed<SIZE>::size() const
+StringFixed<SIZE>::size() const noexcept
 {
     return strnlen(m_aBuff, SIZE);
 }
 
 template<int SIZE>
 inline void
-StringFixed<SIZE>::destroy()
+StringFixed<SIZE>::destroy() noexcept
 {
     memset(data(), 0, sizeof(m_aBuff));
 }
