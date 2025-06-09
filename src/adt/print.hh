@@ -687,7 +687,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
         sv.size() - atI - svSub.size() - 1
     };
 
-#else
+#elif defined _WIN32
 
     const StringView svSub = "typeName<";
     const isize atI = sv.subStringAt(svSub);
@@ -695,6 +695,10 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
         const_cast<char*>(sv.data() + atI + svSub.size()),
         sv.size() - atI - svSub.size()
     };
+
+#else
+
+    const StringView svDemangled = sv;
 
 #endif
 
