@@ -29,4 +29,14 @@ main()
     CERR("list: [{}]\n", list);
 
     list.destroy(&alloc);
+
+    {
+        SListManaged<int> l {};
+        defer( l.destroy() );
+        l.insert(1);
+        l.insert(2);
+        l.insert(3);
+
+        CERR("l: [{}]\n", l);
+    }
 }

@@ -514,6 +514,33 @@ struct MapPmr : Map<K, V, FN_HASH>
     MapPmr release() noexcept { return utils::exchange(this, {}); }
 };
 
+template<typename K, typename V, typename ALLOC_T, usize (*FN_HASH)(const K&) = hash::func<K>>
+struct MapManaged : Map<K, V, FN_HASH>
+{
+    using Base = Map<K, V, FN_HASH>;
+
+    /* */
+
+    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc {};
+
+    /* */
+
+    MapManaged() = default;
+
+    /* */
+
+    MapResult<K, V> insert(const K& key, const V& val) { return Base::insert(&m_alloc, key, val); }
+
+    template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>) MapResult<K, V> emplace(const K& key, ARGS&&... args)
+    { return Base::emplace(&m_alloc, key, std::forward<ARGS>(args)...); }
+
+    MapResult<K, V> tryInsert(const K& key, const V& val) { return Base::tryInsert(&m_alloc, key, val); }
+
+    void destroy() noexcept { Base::destroy(&m_alloc); }
+
+    MapManaged release() noexcept { return utils::exchange(this, {}); }
+};
+
 namespace print
 {
 

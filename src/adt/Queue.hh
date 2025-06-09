@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IAllocator.hh"
+#include "StdAllocator.hh"
 #include "utils.hh"
 #include "assert.hh"
 #include "defer.hh"
@@ -284,24 +284,55 @@ Queue<T>::operator[](isize i) const
 template<typename T>
 struct QueuePmr : public Queue<T>
 {
+    using Base = Queue<T>;
+    /* */
+
     IAllocator* m_pAlloc {};
 
     /* */
 
-    QueuePmr() : Queue<T>::Queue() {}
+    using Base::Queue;
+
+    QueuePmr() = default;
     QueuePmr(IAllocator* pAlloc, isize prealloc = SIZE_MIN)
-        : Queue<T>::Queue(pAlloc, prealloc), m_pAlloc {pAlloc} {}
+        : Base::Queue(pAlloc, prealloc), m_pAlloc {pAlloc} {}
 
     /* */
 
-    isize pushBack(const T& x) { return Queue<T>::pushBack(m_pAlloc, x); }
-    isize pushFront(const T& x) { return Queue<T>::pushFront(m_pAlloc, x); }
+    isize pushBack(const T& x) { return Base::pushBack(m_pAlloc, x); }
+    isize pushFront(const T& x) { return Base::pushFront(m_pAlloc, x); }
 
     template<typename ...ARGS>
-    isize emplaceFront(ARGS&&... args) { return Queue<T>::pushFront(m_pAlloc, T(std::forward<ARGS>(args)...)); }
+    isize emplaceFront(ARGS&&... args) { return Base::pushFront(m_pAlloc, T(std::forward<ARGS>(args)...)); }
 
     template<typename ...ARGS>
-    isize emplaceBack(ARGS&&... args) { return Queue<T>::pushBack(m_pAlloc, T(std::forward<ARGS>(args)...)); }
+    isize emplaceBack(ARGS&&... args) { return Base::pushBack(m_pAlloc, T(std::forward<ARGS>(args)...)); }
+};
+
+template<typename T, typename ALLOC_T = StdAllocatorNV>
+struct QueueManaged : public Queue<T>
+{
+    using Base = Queue<T>;
+
+    /* */
+
+    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc {};
+
+    /* */
+
+    QueueManaged() = default;
+    QueueManaged(isize prealloc) : Base {&m_alloc, prealloc} {}
+
+    /* */
+
+    isize pushBack(const T& x) { return Base::pushBack(&m_alloc, x); }
+    isize pushFront(const T& x) { return Base::pushFront(&m_alloc, x); }
+
+    template<typename ...ARGS>
+    isize emplaceFront(ARGS&&... args) { return Base::pushFront(&m_alloc, T(std::forward<ARGS>(args)...)); }
+
+    template<typename ...ARGS>
+    isize emplaceBack(ARGS&&... args) { return Base::pushBack(&m_alloc, T(std::forward<ARGS>(args)...)); }
 };
 
 } /* namespace adt */

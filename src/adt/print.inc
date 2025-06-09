@@ -2,6 +2,7 @@
 
 #include "String.inc"
 
+#include <cstdio>
 #include <type_traits>
 
 namespace adt::print
@@ -86,11 +87,13 @@ inline isize formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const auto&
 
 inline isize formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept;
 
-template<template<typename, isize> typename CON_T, typename T, isize SIZE>
-inline isize formatToContextTemplateSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& x, const isize contSize) noexcept;
+template<typename T>
+requires HasSizeMethod<T>
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T& x) noexcept;
 
-template<template<typename> typename CON_T, typename T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept;
+template<typename T>
+requires HasNextIt<T>
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T& x) noexcept;
 
 template<typename T, isize N>
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept;

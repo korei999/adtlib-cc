@@ -1,12 +1,11 @@
 #pragma once
 
-#include "IAllocator.hh"
-#include "print.hh"
+#include "StdAllocator.hh"
 
 namespace adt
 {
 
-template<typename  T>
+template<typename T>
 struct SList
 {
     struct Node
@@ -180,16 +179,30 @@ SList<T>::release() noexcept
     return utils::exchange(this, {});
 }
 
-namespace print
+template<typename T, typename ALLOC_T = StdAllocatorNV>
+struct SListManaged : SList<T>
 {
+    using Base = SList<T>;
+    using Node = Base::Node;
 
-template<typename T>
-inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const SList<T>& x)
-{
-    return print::formatToContextUntilEnd(ctx, fmtArgs, x);
-}
+    /* */
 
-} /* namespace print */
+    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc;
+
+    /* */
+
+    SListManaged() = default;
+
+    /* */
+
+    Node* insert(const T& x) { return Base::insert(&m_alloc, x); }
+
+    void remove(Node* pNode) { Base::remove(&m_alloc, pNode); }
+    void remove(Node* pPrev, Node* pNode) { Base::remove(&m_alloc, pPrev, pNode); }
+
+    void destroy() noexcept { Base::destroy(&m_alloc); }
+
+    SListManaged release() noexcept { return utils::exchange(this, {}); }
+};
 
 } /* namespace adt */

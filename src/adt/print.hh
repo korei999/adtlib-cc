@@ -641,51 +641,25 @@ formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept
     return copyBackToContext(ctx, fmtArgs, {aBuff});
 }
 
-template<template<typename, isize> typename CON_T, typename T, isize SIZE>
-inline isize
-formatToContextTemplateSize(Context ctx, FormatArgs fmtArgs, const CON_T<T, SIZE>& x, const isize contSize) noexcept
-{
-    if (contSize <= 0)
-    {
-        ctx.fmt = "{}";
-        ctx.fmtIdx = 0;
-        return printArgs(ctx, "(empty)");
-    }
-
-    char aFmtBuff[64] {};
-    isize nFmtRead = FormatArgsToFmt(fmtArgs, {aFmtBuff, sizeof(aFmtBuff) - 2});
-
-    StringView sFmtArg = aFmtBuff;
-    aFmtBuff[nFmtRead++] = ',';
-    aFmtBuff[nFmtRead++] = ' ';
-    StringView sFmtArgComma(aFmtBuff);
-
-    char aBuff[1024] {};
-    isize nRead = 0;
-    isize i = 0;
-
-    for (const auto& e : x)
-    {
-        const StringView fmt = i == contSize - 1 ? sFmtArg : sFmtArgComma;
-        nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, e);
-        ++i;
-    }
-
-    return copyBackToContext(ctx, fmtArgs, {aBuff});
-}
-
-template<template<typename> typename CON_T, typename T>
-inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const CON_T<T>& x) noexcept
+template<typename T>
+requires HasSizeMethod<T>
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T& x) noexcept
 {
     return formatToContextExpSize(ctx, fmtArgs, x, x.size());
+}
+
+template<typename T>
+requires HasNextIt<T>
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T& x) noexcept
+{
+    return print::formatToContextUntilEnd(ctx, fmtArgs, x);
 }
 
 template<typename T, isize N>
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept
 {
-    return formatToContext(ctx, fmtArgs, Span(a, N));
+    return formatToContextExpSize(ctx, fmtArgs, a, N);
 }
 
 } /* namespace adt::print */

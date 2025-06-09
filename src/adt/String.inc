@@ -6,6 +6,7 @@
 namespace adt
 {
 
+struct StdAllocatorNV;
 struct IAllocator;
 struct String;
 
@@ -101,6 +102,26 @@ struct String : public StringView
     void destroy(IAllocator* pAlloc) noexcept;
     void reallocWith(IAllocator* pAlloc, const StringView svWith);
     [[nodiscard]] String release() noexcept; /* return this String resource and set to zero */
+};
+
+template<typename ALLOC_T = StdAllocatorNV>
+struct StringManaged : public String
+{
+    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc {};
+
+    /* */
+
+    StringManaged() = default;
+    StringManaged(const char* pChars, isize size) : String {&m_alloc, pChars, size} {}
+    StringManaged(const char* nts) : String {&m_alloc, nts} {}
+    StringManaged(Span<char> spChars) : String {&m_alloc, spChars} {}
+    StringManaged(const StringView sv) : String {&m_alloc, sv} {}
+
+    /* */
+
+    void destroy() noexcept { String::destroy(&m_alloc); }
+    void reallocWith(const StringView svWith) { String::reallocWith(&m_alloc, svWith); }
+    [[nodiscard]] String release() noexcept { String r = *this; *this = {}; return r; }
 };
 
 /* Holds SIZE - 1 characters, terminates with '\0'. */

@@ -5,6 +5,7 @@
 
 #if __has_include(<unistd.h>)
     #include <unistd.h>
+    #include <cstdlib> /* IWYU pragma: keep */
 #endif
 
 namespace adt
