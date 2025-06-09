@@ -128,11 +128,11 @@ main()
     {
         struct DemangleVeryLong { struct IncreadiblyLongName { struct ActuallyWayTooLongNameItsCrazy {}; }; };
         DemangleVeryLong::IncreadiblyLongName::ActuallyWayTooLongNameItsCrazy demangle;
-        LOG_GOOD("demangled: '{}'\n", demangle);
+        COUT("demangled: '{}'\n", demangle);
 
-        LOG("thread: '{}'\n", Thread {});
-        LOG("StdAllocator: '{}'\n", StdAllocator {});
-        LOG("arena: '{}'\n", arena);
+        COUT("thread: '{}'\n", Thread {});
+        COUT("StdAllocator: '{}'\n", StdAllocator {});
+        COUT("arena: '{}'\n", arena);
     }
 
     COUT("StringTest: PASSED\n");

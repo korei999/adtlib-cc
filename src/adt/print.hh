@@ -281,6 +281,12 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const StringView str) noexcept
     return copyBackToContext(ctx, fmtArgs, {const_cast<char*>(str.data()), str.size()});
 }
 
+inline isize
+formatToContext(Context ctx, FormatArgs fmtArgs, const String str) noexcept
+{
+    return copyBackToContext(ctx, fmtArgs, {const_cast<char*>(str.data()), str.size()});
+}
+
 template<int SIZE> requires(SIZE > 1)
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE> str) noexcept

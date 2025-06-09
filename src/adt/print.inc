@@ -47,6 +47,8 @@ inline isize copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char>
 
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringView str) noexcept;
 
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const String str) noexcept;
+
 template<int SIZE> requires(SIZE > 1)
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE> str) noexcept;
 
