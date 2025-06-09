@@ -12,6 +12,11 @@
 
 #include <typeinfo>
 
+#if defined __GNUG__
+    #define ADT_DEMANGLE_GNU
+    #include <cxxabi.h>
+#endif
+
 namespace adt::print
 {
 
@@ -45,6 +50,29 @@ struct Context
     FormatArgs prevFmtArgs {};
     bool bUpdateFmtArgs {};
 };
+
+#ifdef ADT_DEMANGLE_GNU
+
+inline const StringFixed<64>
+demangle(const char* mangled)
+{
+    StringFixed<64> sf {};
+    size_t len = 63;
+    int status = 0;
+
+    const char* ret = abi::__cxa_demangle(mangled, sf.data(), &len, &status);
+    return sf;
+}
+
+#else
+
+inline const StringFixed<64>
+demangle(const char* mangled)
+{
+    return mangled;
+}
+
+#endif
 
 inline isize
 printArgs(Context ctx) noexcept
@@ -678,8 +706,8 @@ requires (!Printable<T>)
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 {
     char aBuff[128] {};
-    const char* nts = typeid(T).name();
-    const int n = snprintf(aBuff, sizeof(aBuff) - 1, "(%s)", nts);
+    auto sf = demangle(typeid(T).name());
+    const int n = snprintf(aBuff, sizeof(aBuff) - 1, "(%s)", sf.data());
     return formatToContext(ctx, fmtArgs, StringView {aBuff, n});
 }
 

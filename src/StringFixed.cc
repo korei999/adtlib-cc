@@ -6,6 +6,12 @@ int
 main()
 {
     {
+        struct Demangle { struct Me {}; };
+        Demangle::Me demangle;
+        LOG_GOOD("demangled: '{}'\n", demangle);
+    }
+
+    {
         const char* nts = "1234567890ABCD";
         StringFixed<10> sf10 {};
         sf10 = nts;

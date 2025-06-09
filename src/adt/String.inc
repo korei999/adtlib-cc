@@ -143,6 +143,8 @@ struct StringFixed
 
     StringFixed(const char* nts) : StringFixed(StringView(nts)) {}
 
+    StringFixed(const char* p, const isize size) : StringFixed(StringView {const_cast<char*>(p), size}) {}
+
     template<int SIZE_B>
     StringFixed(const StringFixed<SIZE_B> other);
 
