@@ -57,6 +57,7 @@ struct StringView
     void trimEnd();
     void removeNLEnd(); /* remove \r\n */
     [[nodiscard]] bool contains(const StringView r) const;
+    [[nodiscard]] isize subStringAt(const StringView r) const noexcept;
     [[nodiscard]] char& first();
     [[nodiscard]] const char& first() const;
     [[nodiscard]] char& last();

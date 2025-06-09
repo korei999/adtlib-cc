@@ -16,6 +16,21 @@ enum class FMT_FLAGS : u8;
 struct FormatArgs;
 struct Context;
 
+template<typename T>
+constexpr const StringView
+typeName()
+{
+#ifdef __clang__
+    return __PRETTY_FUNCTION__;
+#elif defined(__GNUC__)
+    return __PRETTY_FUNCTION__;
+#elif defined(_MSC_VER)
+    return __FUNCSIG__;
+#else
+    return "unsupported compiler";
+#endif
+}
+
 template<typename ...ARGS_T> inline isize out(const StringView fmt, const ARGS_T&... tArgs) noexcept;
 template<typename ...ARGS_T> inline isize err(const StringView fmt, const ARGS_T&... tArgs) noexcept;
 

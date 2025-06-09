@@ -10,13 +10,6 @@
 #include <cstdlib>
 #include <cuchar> /* IWYU pragma: keep */
 
-#include <typeinfo>
-
-#if defined __GNUG__
-    #define ADT_DEMANGLE_GNU
-    #include <cxxabi.h>
-#endif
-
 namespace adt::print
 {
 
@@ -50,31 +43,6 @@ struct Context
     FormatArgs prevFmtArgs {};
     bool bUpdateFmtArgs {};
 };
-
-#ifdef ADT_DEMANGLE_GNU
-
-inline const StringFixed<128>
-demangle(const char* mangled)
-{
-    StringFixed<128> sf {};
-
-    int status {};
-    char* ntsDemangled = abi::__cxa_demangle(mangled, {}, {}, &status);
-    sf = ntsDemangled;
-
-    ::free(ntsDemangled);
-    return sf;
-}
-
-#else
-
-inline const StringFixed<128>
-demangle(const char* mangled)
-{
-    return mangled;
-}
-
-#endif
 
 inline isize
 printArgs(Context ctx) noexcept
@@ -705,10 +673,19 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept
 
 template<typename T>
 requires (!Printable<T>)
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
+inline isize
+formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 {
-    auto sf = demangle(typeid(T).name());
-    return formatToContext(ctx, fmtArgs, sf);
+    const StringView sv = typeName<T>();
+    const StringView svSub = "[with T = ";
+    const isize atI = sv.subStringAt(svSub);
+
+    const StringView svDemangled {
+        const_cast<char*>(sv.data() + atI + svSub.size()),
+        sv.size() - atI - svSub.size() - 1
+    };
+
+    return formatToContext(ctx, fmtArgs, svDemangled);
 }
 
 } /* namespace adt::print */

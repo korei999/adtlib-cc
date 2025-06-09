@@ -494,6 +494,32 @@ StringView::contains(const StringView r) const
 #endif
 }
 
+inline isize
+StringView::subStringAt(const StringView r) const noexcept
+{
+    if (m_size < r.m_size || m_size == 0 || r.m_size == 0)
+        return false;
+
+#if __has_include(<unistd.h>)
+
+    const void* ptr = memmem(data(), size(), r.data(), r.size());
+
+    if (ptr) return idx(static_cast<const char*>(ptr));
+
+#else
+
+    for (isize i = 0; i < m_size - r.m_size + 1; ++i)
+    {
+        const StringView svSub {const_cast<char*>(&(*this)[i]), r.m_size};
+        if (svSub == r)
+            return i;
+    }
+
+#endif
+
+    return -1;
+}
+
 inline char&
 StringView::first()
 {
