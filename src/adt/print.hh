@@ -12,10 +12,6 @@
 
 #include <typeinfo>
 
-#if defined __GNUG__
-    #include <cxxabi.h>
-#endif
-
 namespace adt::print
 {
 
