@@ -545,7 +545,7 @@ namespace print
 {
 
 inline isize
-formatToContext(Context ctx, FormatArgs, MAP_RESULT_STATUS eStatus)
+formatToContext(Context ctx, FormatArgs, const MAP_RESULT_STATUS eStatus)
 {
     ctx.fmt = "{}";
     ctx.fmtIdx = 0;
@@ -574,6 +574,17 @@ formatToContext(Context ctx, FormatArgs, const KeyVal<K, V>& x)
     ctx.fmt = "[{}, {}]";
     ctx.fmtIdx = 0;
     return printArgs(ctx, x.key, x.val);
+}
+
+template<typename K, typename V>
+inline isize
+formatToContext(Context ctx, FormatArgs, const MapResult<K, V>& x)
+{
+    ctx.fmt = "{}, {}, {}";
+    ctx.fmtIdx = 0;
+
+    if (x.pData) return printArgs(ctx, x.data(), x.hash, x.eStatus);
+    return printArgs(ctx, x.pData, x.hash, x.eStatus);
 }
 
 } /* namespace print */

@@ -173,7 +173,7 @@ main()
     {
         auto one = map2.search(12);
         ADT_ASSERT_ALWAYS(one, "");
-        LOG("one: {}\n", one.data());
+        LOG("one: {}\n", one);
     }
 
     {
