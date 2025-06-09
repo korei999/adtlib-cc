@@ -1,6 +1,7 @@
 #pragma once
 
 #include "String.inc"
+#include "Pair.hh"
 
 #include <cstdio>
 #include <type_traits>
@@ -56,6 +57,9 @@ inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const char x) noex
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, null) noexcept;
 
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept;
+
+template<typename A, typename B>
+inline u32 formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const Pair<A, B>& x);
 
 template<typename PTR_T> requires std::is_pointer_v<PTR_T>
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const PTR_T p) noexcept;

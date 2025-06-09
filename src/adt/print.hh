@@ -382,6 +382,15 @@ formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept
     return formatToContext(ctx, fmtArgs, StringView("Empty"));
 }
 
+template<typename A, typename B>
+inline u32
+formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const Pair<A, B>& x)
+{
+    ctx.fmt = "{}, {}";
+    ctx.fmtIdx = 0;
+    return printArgs(ctx, x.first, x.second);
+}
+
 template<typename PTR_T> requires std::is_pointer_v<PTR_T>
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const PTR_T p) noexcept
