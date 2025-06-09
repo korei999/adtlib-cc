@@ -682,19 +682,39 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 
     const StringView svSub = "T = ";
     const isize atI = sv.subStringAt(svSub);
-    const StringView svDemangled {
-        const_cast<char*>(sv.data() + atI + svSub.size()),
-        sv.size() - atI - svSub.size() - 1
-    };
+    const StringView svDemangled = [&]
+    {
+        if (atI != NPOS)
+        {
+            return StringView {
+                const_cast<char*>(sv.data() + atI + svSub.size()),
+                    sv.size() - atI - svSub.size() - 1
+            };
+        }
+        else
+        {
+            return sv;
+        }
+    }();
 
 #elif defined _WIN32
 
     const StringView svSub = "typeName<";
     const isize atI = sv.subStringAt(svSub);
-    const StringView svDemangled {
-        const_cast<char*>(sv.data() + atI + svSub.size()),
-        sv.size() - atI - svSub.size()
-    };
+    const StringView svDemangled = [&]
+    {
+        if (atI != NPOS)
+        {
+            return StringView {
+                const_cast<char*>(sv.data() + atI + svSub.size()),
+                    sv.size() - atI - svSub.size() - 1
+            };
+        }
+        else
+        {
+            return sv;
+        }
+    }();
 
 #else
 
