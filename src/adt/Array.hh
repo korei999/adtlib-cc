@@ -248,7 +248,7 @@ constexpr Array<T, CAP>::Array(const std::initializer_list<T> list)
 {
     setSize(list.size());
     for (isize i = 0; i < size(); ++i)
-        m_aData[i] = *(list.begin() + i);
+        m_aData[i] = list.begin()[i];
 }
 
 namespace sort

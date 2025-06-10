@@ -31,4 +31,12 @@ main()
 
         LOG("sorted inc: [{}]\n", a);
     }
+
+    {
+        constexpr Array<int, 4> a {0, 1, 2, 3};
+        ADT_ASSERT_ALWAYS(a[0] == 0, "");
+        ADT_ASSERT_ALWAYS(a[1] == 1, "");
+        ADT_ASSERT_ALWAYS(a[2] == 2, "");
+        ADT_ASSERT_ALWAYS(a[3] == 3, "");
+    }
 }
