@@ -77,28 +77,37 @@ sorted(const auto& a, const ORDER eOrder = INC)
     return sorted(a.data(), a.size(), eOrder);
 }
 
-template<typename T, isize (*FN_CMP)(const T&, const T&) = utils::compare<T>>
+template<typename CL_CMP>
 inline constexpr void
-insertion(T* p, isize l, isize h)
+insertion(auto* p, isize l, isize h, CL_CMP clCmp)
 {
     for (isize i = l + 1; i < h + 1; ++i)
     {
-        T key = p[i];
+        auto key = p[i];
         isize j = i;
-        for (; j > l && FN_CMP(p[j - 1], key) > 0; --j)
+        for (; j > l && clCmp(p[j - 1], key) > 0; --j)
             p[j] = p[j - 1];
 
         p[j] = key;
     }
 }
 
-template<template<typename> typename CON_T, typename T, isize (*FN_CMP)(const T&, const T&) = utils::compare<T>>
+template<typename T, typename CL_CMP> 
+requires IsIndexable<T>
 inline constexpr void
-insertion(CON_T<T>* a)
+insertion(T* pArray, const CL_CMP clCmp)
 {
-    if (a->size() <= 1) return;
+    if (pArray->size() <= 1) return;
+    insertion(pArray->data(), 0, pArray->size() - 1, clCmp);
+}
 
-    insertion<T, FN_CMP>(a->data(), 0, a->size() - 1);
+template<typename T>
+requires IsIndexable<T>
+inline constexpr void
+insertion(T* pArray)
+{
+    if (pArray->size() <= 1) return;
+    insertion(pArray->data(), 0, pArray->size() - 1, utils::Comparator<decltype(pArray->operator[](0))> {});
 }
 
 inline constexpr void
@@ -117,22 +126,23 @@ heapMax(auto* a, const isize size)
     }
 }
 
-inline constexpr auto
-median3(const auto& x, const auto& y, const auto& z)
+template<typename T>
+inline constexpr T
+median3(const T& x, const T& y, const T& z)
 {
     if ((x < y && y < z) || (z < y && y < x)) return y;
     else if ((y < x && x < z) || (z < x && x < y)) return x;
     else return z;
 }
 
-template<typename T, isize (*FN_CMP)(const T&, const T&) = utils::compare<T>>
+template<typename T, typename CL_CMP>
 inline constexpr isize
-partition(T a[], isize l, isize r, const T& pivot)
+partition(T a[], isize l, isize r, const T& pivot, CL_CMP clCmp)
 {
     while (l <= r)
     {
-        while (FN_CMP(a[l], pivot) < 0) ++l;
-        while (FN_CMP(a[r], pivot) > 0) --r;
+        while (clCmp(a[l], pivot) < 0) ++l;
+        while (clCmp(a[r], pivot) > 0) --r;
 
         if (l <= r) utils::swap(&a[l++], &a[r--]);
     }
@@ -140,40 +150,53 @@ partition(T a[], isize l, isize r, const T& pivot)
     return r;
 }
 
-template<typename T, isize (*FN_CMP)(const T&, const T&) = utils::compare<T>>
+template<typename CL_CMP>
 inline constexpr void
-quick(T a[], isize l, isize r)
+quick(auto a[], isize l, isize r, const CL_CMP clCmp)
 {
     if (l < r)
     {
         if ((r - l + 1) <= 64)
         {
-            insertion<T, FN_CMP>(a, l, r);
+            insertion(a, l, r, clCmp);
             return;
         }
 
-        T pivot = a[ median3(l, (l + r) / 2, r) ];
+        auto pivot = a[ median3(l, (l + r) / 2, r) ];
         isize i = l, j = r;
 
         while (i <= j)
         {
-            while (FN_CMP(a[i], pivot) < 0) ++i;
-            while (FN_CMP(a[j], pivot) > 0) --j;
+            while (clCmp(a[i], pivot) < 0) ++i;
+            while (clCmp(a[j], pivot) > 0) --j;
 
             if (i <= j) utils::swap(&a[i++], &a[j--]);
         }
 
-        if (l < j) quick<T, FN_CMP>(a, l, j);
-        if (i < r) quick<T, FN_CMP>(a, i, r);
+        if (l < j) quick(a, l, j, clCmp);
+        if (i < r) quick(a, i, r, clCmp);
     }
 }
 
-template<template<typename> typename CON_T, typename T, isize (*FN_CMP)(const T&, const T&) = utils::compare<T>>
+template<typename T, typename CL_CMP> 
+requires IsIndexable<T>
 inline constexpr void
-quick(CON_T<T>* pArrayContainer)
+quick(T* pArray, const CL_CMP clCmp)
 {
-    if (pArrayContainer->size() <= 1) return;
-    quick<T, FN_CMP>(pArrayContainer->data(), 0, pArrayContainer->size() - 1);
+    if (pArray->size() <= 1) return;
+    quick(pArray->data(), 0, pArray->size() - 1, clCmp);
+}
+
+template<typename T>
+requires IsIndexable<T>
+inline constexpr void
+quick(T* pArray)
+{
+    if (pArray->size() <= 1) return;
+    quick(
+        pArray->data(), 0, pArray->size() - 1,
+        utils::Comparator<decltype(pArray->operator[](0))> {}
+    );
 }
 
 template<typename ARRAY_T, typename T, ORDER ORDER>

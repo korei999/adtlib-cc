@@ -88,14 +88,13 @@ main()
     {
         auto vec0 = vec.clone(&aArenas[0]);
         sort::quick(&vec0);
-        /*sort::insertion(vec0.data(), 0, vec0.getSize() - 1);*/
         print::out("vec0: {}\n", vec0);
         ADT_ASSERT_ALWAYS(sort::sorted(vec0), "");
     }
 
     {
         auto vec1 = vec.clone(&aArenas[0]);
-        sort::quick<Vec, f64, utils::compareRev>(&vec1);
+        sort::quick(&vec1, utils::ComparatorRev<f64> {});
         ADT_ASSERT_ALWAYS(sort::sorted(vec1, sort::ORDER::DEC), "");
 
         print::out("vec1(sorted):           {}\n", vec1);
@@ -106,9 +105,7 @@ main()
         for (auto e : ReverseIt(vec1))
             print::out("{}, ", e);
         print::out("\n");
-
     }
-
 
     struct A
     {

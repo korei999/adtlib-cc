@@ -196,8 +196,10 @@ concept HasSizeMethod = requires(const T& c)
 
 template<typename T>
 concept HasNextIt = requires(const T& c)
-{
-    c.begin().next();
-};
+{ c.begin().next(); };
+
+template<typename T>
+concept IsIndexable = requires(const T& c)
+{ c[0]; };
 
 } /* namespace adt */

@@ -251,29 +251,6 @@ constexpr Array<T, CAP>::Array(const std::initializer_list<T> list)
         m_aData[i] = list.begin()[i];
 }
 
-namespace sort
-{
-
-template<typename T, isize CAP, auto FN_CMP = utils::compare<T>>
-constexpr void
-quick(Array<T, CAP>* pArr)
-{
-    if (pArr->m_size <= 1) return;
-
-    quick<T, FN_CMP>(pArr->m_aData, 0, pArr->m_size - 1);
-}
-
-template<typename T, isize CAP, auto FN_CMP = utils::compare<T>>
-constexpr void
-insertion(Array<T, CAP>* pArr)
-{
-    if (pArr->m_size <= 1) return;
-
-    insertion<T, FN_CMP>(pArr->m_aData, 0, pArr->m_size - 1);
-}
-
-} /* namespace sort */
-
 namespace print
 {
 

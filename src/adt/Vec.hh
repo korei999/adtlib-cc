@@ -510,8 +510,8 @@ struct VecManaged : Vec<T>
     /* */
 
     VecManaged() = default;
-    VecManaged(const isize prealloc) : Base {&m_alloc, prealloc} {}
-    VecManaged(const isize prealloc, const T& fillWith) : Base {&m_alloc, prealloc, fillWith} {}
+    VecManaged(const isize prealloc) : m_alloc {} { Base {&m_alloc, prealloc}; }
+    VecManaged(const isize prealloc, const T& fillWith) : m_alloc {} { Base {&m_alloc, prealloc, fillWith}; }
 
     /* */
 
