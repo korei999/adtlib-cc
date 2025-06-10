@@ -50,7 +50,7 @@ inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringView s
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const String str) noexcept;
 
 template<int SIZE> requires(SIZE > 1)
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE> str) noexcept;
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE>& str) noexcept;
 
 inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const char* str) noexcept;
 

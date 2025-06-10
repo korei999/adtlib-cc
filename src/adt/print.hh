@@ -289,7 +289,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const String str) noexcept
 
 template<int SIZE> requires(SIZE > 1)
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE> str) noexcept
+formatToContext(Context ctx, FormatArgs fmtArgs, const StringFixed<SIZE>& str) noexcept
 {
     return copyBackToContext(ctx, fmtArgs, {const_cast<char*>(str.data()), str.size()});
 }
