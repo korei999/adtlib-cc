@@ -13,9 +13,9 @@ main()
     Arena arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    VecPmr<int> vec {&arena};
-    vec.push(1);
-    vec.push(2);
+    Vec<int> vec {&arena};
+    vec.push(&arena, 1);
+    vec.push(&arena, 2);
 
     auto debugDeath = vec[2];
 }

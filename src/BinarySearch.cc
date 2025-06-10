@@ -10,7 +10,7 @@ main()
 {
     constexpr isize SIZE = 10000000;
 
-    VecPmr<int> v {StdAllocator::inst(), SIZE};
+    VecManaged<int> v {SIZE};
     v.setSize(v.cap());
     for (isize i = 0; i < SIZE; ++i)
         v[i] = i + 1;

@@ -18,19 +18,22 @@ int
 main()
 {
     {
+    }
+
+    {
         auto a = alignUp8(123);
         LOG("a: {}\n", a);
 
         Arena arena(SIZE_1K);
         defer( arena.freeAll() );
 
-        VecPmr<int> vec {&arena};
+        Vec<int> vec {&arena};
         for (int i = 0; i < 100000; ++i)
-            vec.push(i);
+            vec.push(&arena, i);
     }
 
     {
-        VecPmr<int> v {StdAllocator::inst()};
+        VecManaged<int> v {};
         defer( v.destroy() );
         v.push(0);
         v.push(1);
@@ -68,22 +71,22 @@ main()
     aArenas.push(StdAllocator::inst(), {SIZE_1M});
     defer( aArenas[0].freeAll() );
 
-    VecPmr<f64> vec(&aArenas[0]);
+    Vec<f64> vec(&aArenas[0]);
 
     for (auto what : vec)
         LOG("asdf {}\n", what);
 
-    vec.push(5.123);
-    vec.push(3.234);
-    vec.push(-1.341);
-    vec.push(123.023);
-    vec.push(-999.1023);
-    vec.push(2.123);
-    vec.push(1.31);
-    vec.push(23.987);
-    vec.push(200.123);
-    vec.push(-20.999);
-    vec.emplace(110001.54123);
+    vec.push(&aArenas[0], 5.123);
+    vec.push(&aArenas[0], 3.234);
+    vec.push(&aArenas[0], -1.341);
+    vec.push(&aArenas[0], 123.023);
+    vec.push(&aArenas[0], -999.1023);
+    vec.push(&aArenas[0], 2.123);
+    vec.push(&aArenas[0], 1.31);
+    vec.push(&aArenas[0], 23.987);
+    vec.push(&aArenas[0], 200.123);
+    vec.push(&aArenas[0], -20.999);
+    vec.emplace(&aArenas[0], 110001.54123);
 
     {
         auto vec0 = vec.clone(&aArenas[0]);
@@ -126,9 +129,9 @@ main()
 
     {
         Arena a(sizeof(u32) * BIG);
-        VecPmr<B> vec(&a, 77);
+        Vec<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
-            vec.push({(int)i, 0});
+            vec.push(&a, {(int)i, 0});
         a.freeAll();
     }
 
@@ -137,14 +140,14 @@ main()
 
         StdAllocator a;
 
-        VecPmr<B> vec(&a);
+        Vec<B> vec(&a);
         for (u32 i = 0; i < BIG; ++i)
-            vec.emplace(i, i);
+            vec.emplace(&a, i, i);
 
         f64 t1 = utils::timeNowMS();
         LOG("adt: {} ms\n", t1 - t0);
 
-        vec.destroy();
+        vec.destroy(&a);
     }
 
     {
@@ -160,7 +163,7 @@ main()
     }
 
     {
-        VecPmr<int> v {StdAllocator::inst()};
+        VecManaged<int> v {};
         defer( v.destroy() );
 
         v.pushSorted<sort::ORDER::INC>(-15);

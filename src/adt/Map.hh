@@ -485,35 +485,6 @@ Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc)
     m_vBuckets.setSize(pAllocator, m_vBuckets.cap());
 }
 
-template<typename K, typename V, usize (*FN_HASH)(const K&) = hash::func<K>>
-struct MapPmr : Map<K, V, FN_HASH>
-{
-    using Base = Map<K, V, FN_HASH>;
-
-    /* */
-
-    IAllocator* m_pAlloc {};
-
-    /* */
-
-    MapPmr() = default;
-    MapPmr(IAllocator* _pAlloc, isize prealloc = SIZE_MIN)
-        : Base(_pAlloc, prealloc), m_pAlloc(_pAlloc) {}
-
-    /* */
-
-    MapResult<K, V> insert(const K& key, const V& val) { return Base::insert(m_pAlloc, key, val); }
-
-    template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>) MapResult<K, V> emplace(const K& key, ARGS&&... args)
-    { return Base::emplace(m_pAlloc, key, std::forward<ARGS>(args)...); };
-
-    MapResult<K, V> tryInsert(const K& key, const V& val) { return Base::tryInsert(m_pAlloc, key, val); }
-
-    void destroy() noexcept { Base::destroy(m_pAlloc); m_pAlloc = {}; }
-
-    MapPmr release() noexcept { return utils::exchange(this, {}); }
-};
-
 template<typename K, typename V, typename ALLOC_T, usize (*FN_HASH)(const K&) = hash::func<K>>
 struct MapManaged : Map<K, V, FN_HASH>
 {

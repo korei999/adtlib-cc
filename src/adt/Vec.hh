@@ -443,61 +443,6 @@ Vec<T>::growOnSpanPush(IAllocator* p, const isize spanSize)
     }
 }
 
-template<typename T>
-struct VecPmr : Vec<T>
-{
-    IAllocator* m_pAlloc = nullptr;
-
-    /* */
-
-    using Vec<T>::Vec;
-
-    VecPmr() = default;
-    VecPmr(IAllocator* p, isize prealloc = 1) : Vec<T>(p, prealloc), m_pAlloc(p) {}
-    VecPmr(IAllocator* p, isize preallocSize, const T& fillWith) : Vec<T>(p, preallocSize, fillWith) {}
-
-    /* */
-
-    isize fakePush() { return Vec<T>::fakePush(m_pAlloc); }
-
-    isize push(const T& data) { return Vec<T>::push(m_pAlloc, data); }
-
-    void pushAt(const isize atI, const T& data) { Vec<T>::pushAt(m_pAlloc, atI, data); }
-
-    isize pushSpan(const Span<const T> sp) { return Vec<T>::pushSpan(m_pAlloc, sp); }
-
-    void pushSpanAt(const isize atI, const Span<const T> sp) { Vec<T>::pushSpanAt(m_pAlloc, atI, sp); }
-
-    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
-    isize emplace(ARGS&&... args) { return Vec<T>::emplace(m_pAlloc, std::forward<ARGS>(args)...); }
-
-    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
-    void emplaceAt(const isize atI, ARGS&&... args) { Vec<T>::emplaceAt(m_pAlloc, atI, std::forward<ARGS>(args)...); }
-
-    isize pushSorted(const sort::ORDER eOrder, const T& x) { return Vec<T>::pushSorted(m_pAlloc, eOrder, x); }
-
-    template<sort::ORDER ORDER>
-    isize pushSorted(const T& x) { return Vec<T>::template pushSorted<ORDER>(m_pAlloc, x); }
-
-    void setSize(isize size) { Vec<T>::setSize(m_pAlloc, size); }
-
-    void setCap(isize cap) { Vec<T>::setCap(m_pAlloc, cap); }
-
-    void destroy() { Vec<T>::destroy(m_pAlloc); m_pAlloc = {}; }
-
-    [[nodiscard]] VecPmr<T> release() { return utils::exchange(this, {}); }
-
-    [[nodiscard]] VecPmr<T>
-    clone(IAllocator* pAlloc)
-    {
-        Vec<T> nBase = Vec<T>::clone(pAlloc);
-        VecPmr<T> nVec;
-        new(&nVec) Vec<T> {nBase};
-        nVec.m_pAlloc = pAlloc;
-        return nVec;
-    }
-};
-
 template<typename T, typename ALLOC_T = StdAllocatorNV>
 struct VecManaged : Vec<T>
 {

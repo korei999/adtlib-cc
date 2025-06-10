@@ -341,46 +341,6 @@ List<T>::sort()
     m_pLast = tail;
 }
 
-template<typename T>
-struct ListPmr : List<T>
-{
-    using Base = List<T>;
-
-    /* */
-
-    IAllocator* m_pAlloc {};
-
-    /* */
-
-    using Base::List;
-
-    ListPmr() = default;
-    ListPmr(IAllocator* pA) : m_pAlloc(pA) {}
-
-    /* */
-
-    [[nodiscard]] constexpr isize size() const { return Base::size(); }
-
-    [[nodiscard]] constexpr bool empty() const { return Base::empty(); }
-
-    constexpr ListNode<T>* pushFront(const T& x) { return Base::pushFront(m_pAlloc, x); }
-
-    constexpr ListNode<T>* pushBack(const T& x) { return Base::pushBack(m_pAlloc, x); }
-
-    constexpr void remove(ListNode<T>* p) { Base::remove(p); m_pAlloc->free(p); }
-
-    constexpr void destroy() { Base::destroy(m_pAlloc); m_pAlloc = {}; }
-
-    constexpr ListPmr release() noexcept { return utils::exchange(this, {}); }
-
-    constexpr void insertAfter(ListNode<T>* pAfter, ListNode<T>* p) { Base::insertAfter(pAfter, p); }
-
-    constexpr void insertBefore(ListNode<T>* pBefore, ListNode<T>* p) { Base::insertBefore(pBefore, p); }
-
-    template<auto FN_CMP = utils::compare<T>>
-    constexpr void sort() { Base::template sort<FN_CMP>(); }
-};
-
 template<typename T, typename ALLOC_T = StdAllocatorNV>
 struct ListManaged : List<T>
 {

@@ -281,34 +281,6 @@ Queue<T>::operator[](isize i) const
     return m_pData[i];
 }
 
-template<typename T>
-struct QueuePmr : public Queue<T>
-{
-    using Base = Queue<T>;
-    /* */
-
-    IAllocator* m_pAlloc {};
-
-    /* */
-
-    using Base::Queue;
-
-    QueuePmr() = default;
-    QueuePmr(IAllocator* pAlloc, isize prealloc = SIZE_MIN)
-        : Base::Queue(pAlloc, prealloc), m_pAlloc {pAlloc} {}
-
-    /* */
-
-    isize pushBack(const T& x) { return Base::pushBack(m_pAlloc, x); }
-    isize pushFront(const T& x) { return Base::pushFront(m_pAlloc, x); }
-
-    template<typename ...ARGS>
-    isize emplaceFront(ARGS&&... args) { return Base::pushFront(m_pAlloc, T(std::forward<ARGS>(args)...)); }
-
-    template<typename ...ARGS>
-    isize emplaceBack(ARGS&&... args) { return Base::pushBack(m_pAlloc, T(std::forward<ARGS>(args)...)); }
-};
-
 template<typename T, typename ALLOC_T = StdAllocatorNV>
 struct QueueManaged : public Queue<T>
 {

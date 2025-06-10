@@ -1,4 +1,5 @@
 #include "adt/Arena.hh"
+#include "adt/Map.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/StdAllocator.hh"
@@ -10,30 +11,26 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(SIZE_1K);
-    defer( arena.freeAll() );
-
     PoolAllocator al(sizeof(RBNode<long>), SIZE_8K);
     defer( al.freeAll() );
 
-    RBTreePmr<long> tree(&al);
-    defer( tree.destroy() );
+    RBTree<long> tree;
 
-    tree.emplace(false, 1L);
-    tree.emplace(false, -1L);
-    tree.emplace(false, 2L);
-    tree.emplace(false, -2L);
-    tree.emplace(false, -3L);
-    tree.emplace(false, -6L);
-    tree.emplace(false, 10L);
-    tree.emplace(false, 22L);
+    tree.emplace(&al, false, 1L);
+    tree.emplace(&al, false, -1L);
+    tree.emplace(&al, false, 2L);
+    tree.emplace(&al, false, -2L);
+    tree.emplace(&al, false, -3L);
+    tree.emplace(&al, false, -6L);
+    tree.emplace(&al, false, 10L);
+    tree.emplace(&al, false, 22L);
 
-    tree.removeAndFree(-3L);
-    tree.removeAndFree(-6L);
+    tree.removeAndFree(&al, -3L);
+    tree.removeAndFree(&al, -6L);
 
-    LOG_GOOD("root: {}\n", *tree.getRoot());
+    LOG_GOOD("root: {}\n", *tree.root());
 
-    RBPrintNodes(&arena, tree.getRoot(), stdout);
+    RBPrintNodes(StdAllocator::inst(), tree.root(), stdout);
 
     LOG("sizeof(RBNode<Empty>): {}\n", sizeof(RBNode<Empty>));
 }

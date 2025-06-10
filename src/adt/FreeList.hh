@@ -180,7 +180,7 @@ _FreeListNodeFromPtr(void* p)
 inline FreeList::Node*
 FreeList::findFittingNode(const usize size)
 {
-    auto* it = m_tree.getRoot();
+    auto* it = m_tree.root();
     const isize realSize = size + sizeof(FreeList::Node);
 
     FreeList::Node* pLastFitting {};

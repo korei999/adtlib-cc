@@ -46,14 +46,14 @@ microBench()
 
     constexpr isize BIG = 1000000;
 
-    VecPmr<String> vStrings {&arena, BIG};
-    vStrings.setSize(BIG);
+    Vec<String> vStrings {&arena, BIG};
+    vStrings.setSize(&arena, BIG);
 
     for (isize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
 
-    MapPmr<StringView, int> map(&arena);
-    VecPmr<StringView> vNotFoundStrings {StdAllocator::inst()};
+    Map<StringView, int> map(&arena);
+    VecManaged<StringView> vNotFoundStrings {};
     defer( vNotFoundStrings.destroy() );
 
     {
@@ -61,7 +61,7 @@ microBench()
 
         for (isize i = 0; i < BIG; ++i)
         {
-            auto res = map.tryInsert(vStrings[i], i);
+            auto res = map.tryInsert(&arena, vStrings[i], i);
             if (res.eStatus == MAP_RESULT_STATUS::FOUND)
             {
                 vNotFoundStrings.push(vStrings[i]);
@@ -114,9 +114,9 @@ main()
     ADT_ASSERT_ALWAYS(hash::func("]e") == hash::func(StringView("]e")), "");
 
     {
-        MapPmr<StringView, int> map {&arena};
-        map.insert("OneTwoThree", 123);
-        map.insert("OneTwoThree", 1234);
+        Map<StringView, int> map {&arena};
+        map.insert(&arena, "OneTwoThree", 123);
+        map.insert(&arena, "OneTwoThree", 1234);
 
         for (auto& kv : map)
         {
@@ -124,13 +124,13 @@ main()
         }
     }
 
-    MapPmr<StringView, u32> map(&arena);
+    Map<StringView, u32> map(&arena);
 
-    map.insert("ThirdyTwo", 32);
-    map.insert("Sixteen", 16);
-    map.insert("Seventeen", 17);
-    map.insert("FiftyFive", 55);
-    map.emplace("NineHundredNinetyNine", 999);
+    map.insert(&arena, "ThirdyTwo", 32);
+    map.insert(&arena, "Sixteen", 16);
+    map.insert(&arena, "Seventeen", 17);
+    map.insert(&arena, "FiftyFive", 55);
+    map.emplace(&arena, "NineHundredNinetyNine", 999);
 
     map.remove("Seventeen");
     map.remove("FiftyFive");
@@ -166,9 +166,9 @@ main()
         COUT("['{}', {}], ", k, v);
     COUT("\n");
 
-    MapPmr<int, int, memeHash> map2(&arena);
-    map2.insert(12, 1);
-    map2.insert(13, 2);
+    Map<int, int, memeHash> map2(&arena);
+    map2.insert(&arena, 12, 1);
+    map2.insert(&arena, 13, 2);
 
     {
         auto one = map2.search(12);

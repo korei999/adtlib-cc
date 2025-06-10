@@ -82,20 +82,20 @@ main()
     }
 
     {
-        QueuePmr<int> q {&arena, 4};
+        Queue<int> q {&arena, 4};
 
-        q.pushBack(1);
-        q.pushBack(2);
-        q.pushBack(3);
-        q.pushBack(4);
+        q.pushBack(&arena, 1);
+        q.pushBack(&arena, 2);
+        q.pushBack(&arena, 3);
+        q.pushBack(&arena, 4);
 
         {
             auto x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 1, "expected: 1, got: {}", x);
         }
 
-        q.pushBack(5);
-        q.pushBack(6);
+        q.pushBack(&arena, 5);
+        q.pushBack(&arena, 6);
 
         {
             auto x = q.popFront();
@@ -107,10 +107,10 @@ main()
             ADT_ASSERT_ALWAYS(x == 3, "expected: 3, got: {}", x);
         }
 
-        q.pushBack(7);
-        q.pushBack(8);
+        q.pushBack(&arena, 7);
+        q.pushBack(&arena, 8);
 
-        q.pushFront(0);
+        q.pushFront(&arena, 0);
 
         {
             auto x = q.popBack();
