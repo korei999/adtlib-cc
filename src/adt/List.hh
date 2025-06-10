@@ -58,7 +58,7 @@ struct List
 
     void remove(T* p);
 
-    void removeFree(IAllocator* pAlloc, T* p);
+    void remove(IAllocator* pAlloc, T* p);
 
     constexpr void insertAfter(ListNode<T>* pAfter, ListNode<T>* p);
 
@@ -213,7 +213,7 @@ List<T>::remove(T* p)
 
 template<typename T>
 inline void
-List<T>::removeFree(IAllocator* pAlloc, T* p)
+List<T>::remove(IAllocator* pAlloc, T* p)
 {
     ListNode<T>* pNode = (ListNode<T>*)((u8*)(p) - offsetof(ListNode<T>, data));
     remove(pNode);

@@ -61,35 +61,35 @@ struct Array
 
     constexpr isize fakePush();
 
-    constexpr T* pop();
+    constexpr T& pop() noexcept;
 
-    constexpr void fakePop();
+    constexpr void fakePop() noexcept;
 
-    constexpr isize cap() const;
+    constexpr isize cap() const noexcept;
 
-    constexpr isize size() const;
+    constexpr isize size() const noexcept;
 
     constexpr void setSize(isize newSize);
 
-    constexpr isize idx(const T* const p) const;
+    constexpr isize idx(const T* const p) const noexcept;
 
-    constexpr T& first();
-    constexpr const T& first() const;
+    constexpr T& first() noexcept;
+    constexpr const T& first() const noexcept;
 
-    constexpr T& last();
-    constexpr const T& last() const;
+    constexpr T& last() noexcept;
+    constexpr const T& last() const noexcept;
 
     /* */
 
-    constexpr T* begin() { return {&m_aData[0]}; }
-    constexpr T* end() { return {&m_aData[m_size]}; }
-    constexpr T* rbegin() { return {&m_aData[m_size - 1]}; }
-    constexpr T* rend() { return {m_aData - 1}; }
+    constexpr T* begin() noexcept { return {&m_aData[0]}; }
+    constexpr T* end() noexcept { return {&m_aData[m_size]}; }
+    constexpr T* rbegin() noexcept { return {&m_aData[m_size - 1]}; }
+    constexpr T* rend() noexcept { return {m_aData - 1}; }
 
-    constexpr const T* begin() const { return {&m_aData[0]}; }
-    constexpr const T* end() const { return {&m_aData[m_size]}; }
-    constexpr const T* rbegin() const { return {&m_aData[m_size - 1]}; }
-    constexpr const T* rend() const { return {m_aData - 1}; }
+    constexpr const T* begin() const noexcept { return {&m_aData[0]}; }
+    constexpr const T* end() const noexcept { return {&m_aData[m_size]}; }
+    constexpr const T* rbegin() const noexcept { return {&m_aData[m_size - 1]}; }
+    constexpr const T* rend() const noexcept { return {m_aData - 1}; }
 };
 
 template<typename T, isize CAP> requires(CAP > 0)
@@ -153,16 +153,16 @@ Array<T, CAP>::fakePush()
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
-constexpr T*
-Array<T, CAP>::pop()
+constexpr T&
+Array<T, CAP>::pop() noexcept
 {
     ADT_ASSERT(m_size > 0, "empty");
-    return &m_aData[--m_size];
+    return m_aData[--m_size];
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr void
-Array<T, CAP>::fakePop()
+Array<T, CAP>::fakePop() noexcept
 {
     ADT_ASSERT(m_size > 0, "empty");
     --m_size;
@@ -170,14 +170,14 @@ Array<T, CAP>::fakePop()
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr isize
-Array<T, CAP>::cap() const
+Array<T, CAP>::cap() const noexcept
 {
     return CAP;
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr isize
-Array<T, CAP>::size() const
+Array<T, CAP>::size() const noexcept
 {
     return m_size;
 }
@@ -192,7 +192,7 @@ Array<T, CAP>::setSize(isize newSize)
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr isize
-Array<T, CAP>::idx(const T* const p) const
+Array<T, CAP>::idx(const T* const p) const noexcept
 {
     isize r = isize(p - m_aData);
     ADT_ASSERT(r >= 0 && r < size(), "out of range, r: {}, size: {}", r, size());
@@ -201,28 +201,28 @@ Array<T, CAP>::idx(const T* const p) const
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr T&
-Array<T, CAP>::first()
+Array<T, CAP>::first() noexcept
 {
     return operator[](0);
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr const T&
-Array<T, CAP>::first() const
+Array<T, CAP>::first() const noexcept
 {
     return operator[](0);
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr T&
-Array<T, CAP>::last()
+Array<T, CAP>::last() noexcept
 {
     return operator[](m_size - 1);
 }
 
 template<typename T, isize CAP> requires(CAP > 0)
 constexpr const T&
-Array<T, CAP>::last() const
+Array<T, CAP>::last() const noexcept
 {
     return operator[](m_size - 1);
 }

@@ -196,7 +196,7 @@ Pool<T, CAP>::insert()
         return ret;
     }
 
-    ret = *m_aFreeSlots.pop();
+    ret = m_aFreeSlots.pop();
     m_aOccupied[ret.i] = true;
     ++m_nOccupied;
 
