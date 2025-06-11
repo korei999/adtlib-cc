@@ -250,6 +250,9 @@ Thread::start(void* (*pfn)(void*), void* pFnArg, ATTR eAttr)
     [[maybe_unused]] int err {};
     pthread_attr_t attr {};
 
+    err = pthread_attr_init(&attr);
+    ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
+
     switch (eAttr)
     {
         case ATTR::JOINABLE:
@@ -263,8 +266,6 @@ Thread::start(void* (*pfn)(void*), void* pFnArg, ATTR eAttr)
         break;
     }
 
-    err = pthread_attr_init(&attr);
-    ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
     err = pthread_create(&m_thread, &attr, (void* (*)(void*))pfn, pFnArg);
     ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
     err = pthread_attr_destroy(&attr);
@@ -312,7 +313,8 @@ struct Mutex
     /* */
 
     Mutex() = default;
-    explicit Mutex(TYPE eType);
+    explicit Mutex(InitFlag) noexcept;
+    explicit Mutex(TYPE eType) noexcept;
 
     /* */
 
@@ -332,12 +334,37 @@ private:
 };
 
 inline
-Mutex::Mutex([[maybe_unused]] TYPE eType)
+Mutex::Mutex(InitFlag) noexcept
 {
 #ifdef ADT_USE_PTHREAD
 
     [[maybe_unused]] int err {};
     pthread_mutexattr_t attr {};
+
+    err = pthread_mutexattr_init(&attr);
+    ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
+    err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+    ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
+    err = pthread_mutex_init(&m_mtx, &attr);
+    ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
+    err = pthread_mutexattr_destroy(&attr);
+    ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
+
+#elif defined ADT_USE_WIN32THREAD
+
+    InitializeCriticalSection(&m_mtx);
+
+#endif
+}
+
+inline
+Mutex::Mutex([[maybe_unused]] TYPE eType) noexcept
+{
+#ifdef ADT_USE_PTHREAD
+
+    [[maybe_unused]] int err {};
+    pthread_mutexattr_t attr {};
+
     err = pthread_mutexattr_init(&attr);
     ADT_ASSERT(err == 0, "err: {}, ({})", err, strerror(err));
     err = pthread_mutexattr_settype(&attr, pthreadAttrType(eType));
