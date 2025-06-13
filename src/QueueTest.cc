@@ -123,5 +123,11 @@ main()
         CERR("\n");
     }
 
+    {
+        QueueManaged<int> qq {10};
+        auto qq2 = qq.release();
+        defer( qq2.destroy() );
+    }
+
     LOG_GOOD("Queue test passed\n");
 }

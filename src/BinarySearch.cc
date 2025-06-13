@@ -1,4 +1,5 @@
 #include "adt/Vec.hh"
+#include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Array.hh"
@@ -11,7 +12,9 @@ main()
     constexpr isize SIZE = 10000000;
 
     VecManaged<int> v {SIZE};
+    defer( v.destroy() );
     v.setSize(v.cap());
+
     for (isize i = 0; i < SIZE; ++i)
         v[i] = i + 1;
 
