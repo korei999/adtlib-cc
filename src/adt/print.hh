@@ -649,7 +649,7 @@ formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept
 
     for (auto it = x.begin(); it != x.end(); ++it)
     {
-        const StringView fmt = !it.next() ? sFmtArg : sFmtArgComma;
+        const StringView fmt = it.next() == x.end() ? sFmtArg : sFmtArgComma;
         nRead += toBuffer(aBuff + nRead, utils::size(aBuff) - nRead, fmt, *it);
     }
 

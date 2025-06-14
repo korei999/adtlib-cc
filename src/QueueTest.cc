@@ -1,3 +1,4 @@
+#include "adt/QueueArray.hh"
 #include "adt/logs.hh"
 #include "adt/defer.hh"
 #include "adt/Arena.hh"
@@ -127,6 +128,21 @@ main()
         QueueManaged<int> qq {10};
         auto qq2 = qq.release();
         defer( qq2.destroy() );
+    }
+
+    {
+        QueueArray<int, 16> q0;
+
+        q0.pushBack(0);
+        q0.pushBack(1);
+        q0.pushBack(2);
+        q0.pushBack(3);
+
+        q0.pushFront(4);
+        q0.pushFront(5);
+        q0.pushFront(6);
+
+        LOG("q0: [{}]\n", q0);
     }
 
     LOG_GOOD("Queue test passed\n");
