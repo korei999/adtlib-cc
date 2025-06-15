@@ -2,7 +2,7 @@
 
 #include "Lexer.hh"
 
-#include  "adt/Vec.hh"
+#include "adt/Vec.hh"
 
 namespace json
 {
