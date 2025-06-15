@@ -8,11 +8,8 @@
 
 using namespace adt;
 
-enum CONSTEXPR_HASH : usize
-{
-    CONST_ = hash::func("CONST"),
-    EXPR_ = hash::func("EXPR"),
-};
+static const usize CONSTEXPR_HASH_CONST = hash::func("CONST");
+static const usize CONSTEXPR_HASH_EXPR = hash::func("EXPR");
 
 static usize
 memeHash(const int& x)

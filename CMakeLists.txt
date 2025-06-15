@@ -13,7 +13,7 @@ endif()
 
 project(adtlib-test VERSION 0.6 LANGUAGES CXX C)
 
-option(OPT_SSE4_2 "" OFF)
+option(OPT_SSE4_2 "" ON)
 option(OPT_MARCH_NATIVE "" OFF)
 
 include_directories(BEFORE "src")
