@@ -315,8 +315,12 @@ Map<K, V, FN_HASH>::remove(isize i)
 {
     auto& bucket = m_vBuckets[i];
 
-    bucket.key = {};
-    bucket.val = {};
+    if constexpr (!std::is_trivially_destructible_v<K>)
+        bucket.key.~K();
+
+    if constexpr (!std::is_trivially_destructible_v<V>)
+        bucket.val.~V();
+
     bucket.eFlags = MAP_BUCKET_FLAGS::DELETED;
 
     --m_nOccupied;
