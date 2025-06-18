@@ -63,6 +63,9 @@ struct StringView
     [[nodiscard]] char& last();
     [[nodiscard]] const char& last() const;
     [[nodiscard]] isize multiByteSize() const;
+    [[nodiscard]] i64 toI64(int base = 10) const noexcept;
+    [[nodiscard]] u64 toU64(int base = 10) const noexcept;
+    [[nodiscard]] f64 toF64() const noexcept;
 
     template<typename T>
     T reinterpret(isize at) const;
