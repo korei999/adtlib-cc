@@ -35,8 +35,30 @@ main()
         v0.emplace(3);
 
         CERR("v0: {}\n", v0);
+    }
 
-        return 0;
+    CERR("\n");
+
+    {
+        struct Move
+        {
+            int* p {};
+
+            Move(int i) : p {new int {i}} {}
+            Move(const Move& r) : p {r.p ? new int {*r.p} : new int {0}} {}
+            Move(Move&& r) noexcept : p {std::exchange(r.p, new int {0})} { CERR("Move({}) moves...\n", *p); }
+            ~Move() noexcept { CERR("Move({}) dies...\n", *p); delete p; }
+        };
+
+        VecManaged<Move> v0;
+        defer( v0.destroy() );
+
+        v0.emplace(1);
+        v0.emplace(2);
+        v0.emplace(3);
+        v0.emplace(4);
+
+        CERR("v0: {}\n", v0);
     }
 
     {
