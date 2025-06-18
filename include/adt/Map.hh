@@ -127,6 +127,7 @@ struct Map
     [[nodiscard]] f32 loadFactor() const;
 
     MapResult<K, V> insert(IAllocator* p, const K& key, const V& val);
+    MapResult<K, V> insert(IAllocator* p, const K& key, V&& val);
 
     template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>)
         MapResult<K, V> emplace(IAllocator* p, const K& key, ARGS&&... args);
@@ -246,12 +247,14 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline MapResult<K, V>
 Map<K, V, FN_HASH>::insert(IAllocator* p, const K& key, const V& val)
 {
-    if (m_vBuckets.cap() <= 0)
-        *this = {p};
-    else if (loadFactor() >= m_maxLoadFactor)
-        rehash(p, m_vBuckets.cap() * 2);
+    return emplace(p, key, val);
+}
 
-    return insertHashed(key, val, FN_HASH(key));
+template<typename K, typename V, usize (*FN_HASH)(const K&)>
+inline MapResult<K, V>
+Map<K, V, FN_HASH>::insert(IAllocator* p, const K& key, V&& val)
+{
+    return emplace(p, key, std::move(val));
 }
 
 template<typename K, typename V, usize (*FN_HASH)(const K&)>
@@ -383,10 +386,12 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline void
 Map<K, V, FN_HASH>::rehash(IAllocator* p, isize size)
 {
-    auto mNew = Map(p, size);
+    ADT_ASSERT(isPowerOf2(size), "size: {}", size);
+
+    Map mNew = Map(p, size);
 
     for (const auto& [key, val] : *this)
-        mNew.insert(p, key, val);
+        mNew.emplace(p, key, val);
 
     destroy(p);
     *this = mNew;
@@ -518,6 +523,7 @@ struct MapManaged : public Map<K, V, FN_HASH>
     const ALLOC_T& allocator() const { return m_alloc; }
 
     MapResult<K, V> insert(const K& key, const V& val) { return Base::insert(&allocator(), key, val); }
+    MapResult<K, V> insert(const K& key, V&& val) { return Base::insert(&allocator(), key, std::move(val)); }
 
     template<typename ...ARGS> requires(std::is_constructible_v<V, ARGS...>) MapResult<K, V> emplace(const K& key, ARGS&&... args)
     { return Base::emplace(&allocator(), key, std::forward<ARGS>(args)...); }
