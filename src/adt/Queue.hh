@@ -219,7 +219,7 @@ template<typename T>
 inline void
 Queue<T>::destroy(IAllocator* pAlloc) noexcept
 {
-    pAlloc->free(m_pData);
+    pAlloc->deallocate(m_pData, m_size);
     *this = {};
 }
 

@@ -228,7 +228,7 @@ template<typename STRUCT, typename BIND, auto ...MEMBERS>
 inline void
 VecSOA<STRUCT, BIND, MEMBERS...>::destroy(IAllocator* pAlloc)
 {
-    pAlloc->free(m_pData);
+    pAlloc->deallocate(m_pData, m_size);
     *this = {};
 }
 
