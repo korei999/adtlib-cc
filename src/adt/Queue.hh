@@ -235,7 +235,7 @@ inline void
 Queue<T>::grow(IAllocator* pAlloc)
 {
     const isize newCap = utils::max(isize(2), m_cap * 2);
-    m_pData = pAlloc->reallocV<T>(m_pData, m_cap, newCap);
+    m_pData = pAlloc->relocate<T>(m_pData, m_cap, newCap);
 
     defer( m_cap = newCap );
 
