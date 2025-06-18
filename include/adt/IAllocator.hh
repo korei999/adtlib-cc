@@ -93,6 +93,16 @@ struct AllocatorHelperCRTP
 
         static_cast<BASE*>(this)->free(p);
     }
+
+    template<typename T>
+    constexpr void
+    deallocate(T* p)
+    {
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            p->~T();
+
+        static_cast<BASE*>(this)->free(p);
+    }
 };
 
 struct IAllocator : AllocatorHelperCRTP<IAllocator>

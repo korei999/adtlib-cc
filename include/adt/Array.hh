@@ -106,6 +106,9 @@ Array<T, CAP>::push(const T& x)
 {
     ADT_ASSERT(size() < CAP, "pushing over capacity");
 
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_aData[m_size].~T();
+
     new(m_aData + m_size++) T(x);
 
     return m_size - 1;
@@ -168,6 +171,9 @@ Array<T, CAP>::emplace(ARGS&&... args)
 {
     ADT_ASSERT(size() < CAP, "pushing over capacity");
 
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_aData[m_size].~T();
+
     new(m_aData + m_size++) T(std::forward<ARGS>(args)...);
 
     return m_size - 1;
@@ -178,6 +184,10 @@ constexpr isize
 Array<T, CAP>::fakePush()
 {
     ADT_ASSERT(m_size < CAP, "push over capacity");
+
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_aData[m_size].~T();
+
     ++m_size;
     return m_size - 1;
 }

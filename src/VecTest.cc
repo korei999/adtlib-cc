@@ -8,7 +8,10 @@
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 
+#include "Types.hh"
+
 #include <vector>
+#include <memory>
 
 using namespace adt;
 
@@ -18,38 +21,38 @@ int
 main()
 {
     {
-        struct What
-        {
-            int* p {};
+        VecM<std::unique_ptr<Virtual>> v0;
+        defer(
+            v0.destroy()
+        );
 
-            What(int i) : p {new int {i}} {}
-            What(const What& r) : p {r.p ? new int {*r.p} : new int {0}} {}
-            ~What() noexcept { CERR("What({}) dies...\n", *p); delete p; }
-        };
+        v0.emplace(new V0 {1});
+        v0.emplace(new V0 {2});
+        v0.emplace(new V0 {3});
+        v0.emplace(new V0 {4});
 
+        for (auto& e : v0)
+            CERR("{}, ", static_cast<const V0&>(*e));
+        CERR("\n");
+    }
+
+    {
         VecManaged<What> v0;
         defer( v0.destroy() );
 
         v0.emplace(1);
         v0.emplace(2);
         v0.emplace(3);
+        v0.emplace(4);
+        v0.pop();
+        What w = v0.pop();
 
-        CERR("v0: {}\n", v0);
+        CERR("v0: {}, w: {}\n", v0, w);
     }
 
     CERR("\n");
 
     {
-        struct Move
-        {
-            int* p {};
-
-            Move(int i) : p {new int {i}} {}
-            Move(const Move& r) : p {r.p ? new int {*r.p} : new int {0}} {}
-            Move(Move&& r) noexcept : p {std::exchange(r.p, new int {0})} { CERR("Move({}) moves...\n", *p); }
-            ~Move() noexcept { CERR("Move({}) dies...\n", *p); delete p; }
-        };
-
         VecManaged<Move> v0;
         defer( v0.destroy() );
 
@@ -214,7 +217,7 @@ main()
 
         ADT_ASSERT_ALWAYS(sort::sorted(v.data(), v.size(), sort::ORDER::INC), "");
 
-        LOG("sorted: [{}]\n", v);
+        LOG("sorted: {}\n", v);
     }
 
     {
@@ -223,6 +226,6 @@ main()
         for (int i = 0; i < 5; ++i)
             v.push(i);
 
-        LOG("managed: [{}]\n", v);
+        LOG("managed: {}\n", v);
     }
 }

@@ -106,8 +106,12 @@ struct String : public StringView
 };
 
 template<typename ALLOC_T = StdAllocatorNV>
-struct StringManaged : protected ALLOC_T, public String
+struct StringManaged : public String
 {
+    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc;
+
+    /* */
+
     StringManaged() = default;
     StringManaged(const char* pChars, isize size) : String {&allocator(), pChars, size} {}
     StringManaged(const char* nts) : String {&allocator(), nts} {}
@@ -116,13 +120,15 @@ struct StringManaged : protected ALLOC_T, public String
 
     /* */
 
-    ALLOC_T& allocator() { return *static_cast<ALLOC_T*>(this); }
-    const ALLOC_T& allocator() const { return *static_cast<ALLOC_T*>(this); }
+    ALLOC_T& allocator() { return m_alloc; }
+    const ALLOC_T& allocator() const { return m_alloc; }
 
     void destroy() noexcept { String::destroy(&allocator()); }
     void reallocWith(const StringView svWith) { String::reallocWith(&allocator(), svWith); }
     [[nodiscard]] String release() noexcept { String r = *this; *this = {}; return r; }
 };
+
+using StringM = StringManaged<>;
 
 /* Holds SIZE - 1 characters, terminates with '\0'. */
 template<int SIZE>

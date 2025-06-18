@@ -38,8 +38,8 @@ struct Queue
     isize pushBack(IAllocator* pAlloc, const T& x);
     isize pushFront(IAllocator* pAlloc, const T& x);
 
-    T& popFront();
-    T& popBack();
+    T popFront();
+    T popBack();
 
     template<typename ...ARGS>
     isize emplaceFront(IAllocator* pAlloc, ARGS&&... args) { return pushFront(pAlloc, T(std::forward<ARGS>(args)...)); }
@@ -191,7 +191,7 @@ Queue<T>::pushFront(IAllocator* pAlloc, const T& x)
 }
 
 template<typename T>
-inline T&
+inline T
 Queue<T>::popFront()
 {
     ADT_ASSERT(!empty(), "empty");
@@ -200,11 +200,16 @@ Queue<T>::popFront()
     m_headI = nextI(m_headI);
 
     --m_size;
-    return m_pData[tmp];
+
+    T ret = std::move(m_pData[tmp]);
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_pData[tmp].~T();
+
+    return ret;
 }
 
 template<typename T>
-inline T&
+inline T
 Queue<T>::popBack()
 {
     ADT_ASSERT(!empty(), "empty");
@@ -212,7 +217,11 @@ Queue<T>::popBack()
     m_tailI = prevI(m_tailI);
     --m_size;
 
-    return m_pData[m_tailI];
+    T ret = std::move(m_pData[m_tailI]);
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_pData[m_tailI].~T();
+
+    return ret;
 }
 
 template<typename T>

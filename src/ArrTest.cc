@@ -1,5 +1,8 @@
 #include "adt/Array.hh"
+#include "adt/StdAllocator.hh"
 #include "adt/logs.hh"
+
+#include "Types.hh"
 
 using namespace adt;
 
