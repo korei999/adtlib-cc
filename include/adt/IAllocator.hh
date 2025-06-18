@@ -62,6 +62,7 @@ struct AllocatorHelperCRTP
     [[nodiscard]] constexpr T*
     relocate(T* p, isize oldCount, isize newCount) noexcept(false) /* AllocException */
     {
+        /* NOTE: Just never use self referential types and we good. */
         if constexpr (std::is_trivially_destructible_v<T>)
         {
             return reallocV<T>(p, oldCount, newCount);
