@@ -225,4 +225,7 @@ struct SListManaged : protected ALLOC_T, public SList<T>
     SListManaged release() noexcept { return utils::exchange(this, {}); }
 };
 
+template<typename T>
+using SListM = SListManaged<T>;
+
 } /* namespace adt */

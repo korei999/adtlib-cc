@@ -539,6 +539,9 @@ struct MapManaged : public Map<K, V, FN_HASH>
     MapManaged release() noexcept { return utils::exchange(this, {}); }
 };
 
+template<typename K, typename V>
+using MapM = MapManaged<K, V>;
+
 namespace print
 {
 

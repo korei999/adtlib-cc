@@ -424,4 +424,7 @@ struct ListManaged : protected ALLOC_T, public List<T>
     constexpr void sort() { Base::template sort<FN_CMP>(); }
 };
 
+template<typename T>
+using ListM = ListManaged<T>;
+
 } /* namespace adt */
