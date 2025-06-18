@@ -109,3 +109,8 @@ add_executable(
     Set
     Set.cc
 )
+
+add_executable(
+    SOA3
+    SOA3.cc
+)
