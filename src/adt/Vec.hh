@@ -171,13 +171,7 @@ template<typename T>
 inline void
 Vec<T>::pushAt(IAllocator* p, const isize atI, const T& data)
 {
-    growIfNeeded(p);
-    ADT_ASSERT(atI >= 0 && atI < size() + 1, "atI: {}, size + 1: {}", atI, size() + 1);
-
-    utils::memMove<T>(m_pData + atI + 1, m_pData + atI, size() - atI);
-    new(&operator[](atI)) T(data);
-
-    ++m_size;
+    emplaceAt(p, atI, data);
 }
 
 template<typename T>
@@ -228,11 +222,12 @@ inline void
 Vec<T>::emplaceAt(IAllocator* p, const isize atI, ARGS&&... args)
 {
     growIfNeeded(p);
-    ++m_size;
-    ADT_ASSERT(atI >= 0 && atI < size(), "atI: {}, size: {}", atI, size());
+    ADT_ASSERT(atI >= 0 && atI < size() + 1, "atI: {}, size + 1: {}", atI, size() + 1);
 
-    utils::memMove(m_pData + atI + 1, m_pData + atI, size() - atI);
-    new(&operator[](atI)) T(std::forward<ARGS>(args)...);
+    utils::memMove<T>(m_pData + atI + 1, m_pData + atI, size() - atI);
+    new(&operator[](atI)) T {std::forward<ARGS>(args)...};
+
+    ++m_size;
 }
 
 template<typename T>

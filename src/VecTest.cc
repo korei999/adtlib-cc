@@ -18,6 +18,25 @@ int
 main()
 {
     {
+        struct What
+        {
+            int* p {};
+
+            What(int i) : p {new int {i}} {}
+            What(const What& r) : p {r.p ? new int {*r.p} : new int {0}} {}
+            ~What() noexcept { CERR("What({}) dies...\n", *p); delete p; }
+        };
+
+        VecManaged<What> v0;
+        defer( v0.destroy() );
+
+        v0.emplace(1);
+        v0.emplace(2);
+        v0.emplace(3);
+
+        CERR("v0: {}\n", v0);
+
+        return 0;
     }
 
     {
