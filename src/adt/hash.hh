@@ -171,11 +171,7 @@ template<typename T>
 inline usize
 func(const T& x)
 {
-#ifdef ADT_SSE4_2
-    return crc32(reinterpret_cast<const u8*>(&x), sizeof(T), 0);
-#else
-    return xxh64::hash(reinterpret_cast<const char*>(&x), sizeof(T), 0);
-#endif
+    return func(reinterpret_cast<const u8*>(&x), sizeof(T), 0);
 }
 
 template<isize N>
@@ -183,22 +179,14 @@ inline usize
 func(const char (&aChars)[N])
 {
     /* WARN: string literals include '\0', which completely changes the hash */
-#ifdef ADT_SSE4_2
-    return crc32(reinterpret_cast<const u8*>(aChars), N - 1, 0);
-#else
-    return xxh64::hash(reinterpret_cast<const char*>(aChars), N - 1, 0);
-#endif
+    return func(reinterpret_cast<const u8*>(aChars), N - 1, 0);
 }
 
 template<typename T>
 inline usize
 func(const Span<T> sp)
 {
-#ifdef ADT_SSE4_2
-    return crc32(reinterpret_cast<const u8*>(sp.m_pData), sp.m_size * sizeof(T), 0);
-#else
-    return xxh64::hash(reinterpret_cast<const char*>(sp.m_pData), sp.m_size * sizeof(T), 0);
-#endif
+    return func(reinterpret_cast<const u8*>(sp.m_pData), sp.m_size * sizeof(T), 0);
 }
 
 /* just return the key */
