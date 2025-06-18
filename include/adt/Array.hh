@@ -51,6 +51,7 @@ struct Array
     constexpr bool empty() const { return m_size <= 0; }
 
     isize push(const T& x); /* placement new cannot be constexpr something... */
+    isize push(T&& x);
 
     isize pushSorted(sort::ORDER eOrder, const T& x);
 
@@ -58,6 +59,10 @@ struct Array
     isize pushSorted(const T& x);
 
     void pushAt(isize i, const T& x);
+    void pushAt(isize i, T&& x);
+
+    template<typename ...ARGS> requires (std::is_constructible_v<T, ARGS...>)
+    void emplaceAt(isize i, ARGS&&... x);
 
     template<typename ...ARGS> requires (std::is_constructible_v<T, ARGS...>)
     constexpr isize emplace(ARGS&&... args);
@@ -108,6 +113,13 @@ Array<T, CAP>::push(const T& x)
 
 template<typename T, isize CAP>
 inline isize
+Array<T, CAP>::push(T&& x)
+{
+    return emplace(std::move(x));
+}
+
+template<typename T, isize CAP>
+inline isize
 Array<T, CAP>::pushSorted(const sort::ORDER eOrder, const T& x)
 {
     ADT_ASSERT(size() < CAP, "pushing over capacity");
@@ -129,9 +141,24 @@ template<typename T, isize CAP>
 inline void
 Array<T, CAP>::pushAt(const isize i, const T& x)
 {
+    emplaceAt(i, x);
+}
+
+template<typename T, isize CAP>
+inline void
+Array<T, CAP>::pushAt(const isize i, T&& x)
+{
+    emplaceAt(i, std::move(x));
+}
+
+template<typename T, isize CAP>
+template<typename ...ARGS> requires (std::is_constructible_v<T, ARGS...>)
+inline void
+Array<T, CAP>::emplaceAt(isize i, ARGS&&... x)
+{
     fakePush();
     utils::memMove(&operator[](i + 1), &operator[](i), size() - 1 - i);
-    new(&operator[](i)) T(x);
+    new(&operator[](i)) T {std::forward<ARGS>(x)...};
 }
 
 template<typename T, isize CAP>
@@ -243,7 +270,7 @@ Array<T, CAP>::Array(isize size, ARGS&&... args)
     ADT_ASSERT(size <= CAP, " ");
 
     for (isize i = 0; i < size; ++i)
-        new(m_aData + i) T(std::forward<ARGS>(args)...);
+        m_aData[i] = T {std::forward<ARGS>(args)...};
 }
 
 template<typename T, isize CAP>
