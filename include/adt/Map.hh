@@ -76,11 +76,24 @@ struct MapResult
     [[nodiscard]] const V& value() const { return data().val; }
 
     [[nodiscard]] const V
+    valueOr(const V& v) const
+    {
+        return valueOr(v);
+    }
+
+    [[nodiscard]] const V
     valueOr(V&& v) const
+    {
+        return valueOr(std::move(v));
+    }
+
+    template<typename ...ARGS>
+    [[nodiscard]] const V
+    valueOr(ARGS&&... v) const
     {
         if (eStatus != MAP_RESULT_STATUS::NOT_FOUND)
             return value();
-        else return std::forward<V>(v);
+        else return V {std::forward<ARGS>(v)...};
     }
 };
 

@@ -41,11 +41,24 @@ struct SetResult : public MapResult<T, Empty>
     auto key() = delete;
 
     [[nodiscard]] const T
+    valueOr(const T& v) const
+    {
+        return valueOr(v);
+    }
+
+    [[nodiscard]] const T
     valueOr(T&& v) const
+    {
+        return valueOr(std::move(v));
+    }
+
+    template<typename ...ARGS>
+    [[nodiscard]] const T
+    valueOr(ARGS&&... args) const
     {
         if (Base::eStatus != MAP_RESULT_STATUS::NOT_FOUND)
             return value();
-        else return std::forward<T>(v);
+        else return T {std::forward<ARGS>(args)...};
     }
 };
 
