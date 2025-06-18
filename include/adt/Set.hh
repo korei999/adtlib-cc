@@ -43,18 +43,18 @@ struct SetResult : public MapResult<T, Empty>
     [[nodiscard]] const T
     valueOr(const T& v) const
     {
-        return valueOr(v);
+        return valueOrEmplace(v);
     }
 
     [[nodiscard]] const T
     valueOr(T&& v) const
     {
-        return valueOr(std::move(v));
+        return valueOrEmplace(std::move(v));
     }
 
     template<typename ...ARGS>
     [[nodiscard]] const T
-    valueOr(ARGS&&... args) const
+    valueOrEmplace(ARGS&&... args) const
     {
         if (Base::eStatus != MAP_RESULT_STATUS::NOT_FOUND)
             return value();

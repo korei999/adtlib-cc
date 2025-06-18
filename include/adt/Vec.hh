@@ -21,7 +21,7 @@ struct Vec
     Vec() = default;
 
     Vec(IAllocator* p, isize prealloc = SIZE_MIN)
-        : m_pData(p->mallocV<T>(prealloc)),
+        : m_pData(p->zallocV<T>(prealloc)),
           m_size(0),
           m_capacity(prealloc) {}
 

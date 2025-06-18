@@ -35,18 +35,18 @@ struct Opt
     constexpr T
     valueOr(const T& v) const
     {
-        return valueOr(v);
+        return valueOrEmplace(v);
     }
 
     constexpr T
     valueOr(T&& v) const
     {
-        return valueOr(std::move(v));
+        return valueOrEmplace(std::move(v));
     }
 
     template<typename ...ARGS>
     constexpr T
-    valueOr(ARGS&&... args) const
+    valueOrEmplace(ARGS&&... args) const
     {
         if (m_bHasValue) return m_data;
         else return T (std::forward<ARGS>(args)...);

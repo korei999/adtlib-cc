@@ -112,7 +112,7 @@ Queue<T>::Queue(IAllocator* pAlloc, isize prealloc)
     const isize cap = nextPowerOf2(prealloc);
     ADT_ASSERT(isPowerOf2(cap), "nextPowerOf2: {}", cap);
 
-    m_pData = pAlloc->mallocV<T>(cap);
+    m_pData = pAlloc->zallocV<T>(cap);
     m_cap = cap;
 }
 
