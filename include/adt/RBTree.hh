@@ -470,7 +470,7 @@ template<typename T>
 inline void
 RBTree<T>::removeAndFree(IAllocator* p, const T& elm)
 {
-    p->free(RBSearch(m_pRoot, elm));
+    removeAndFree(p, RBSearch(m_pRoot, elm));
 }
 
 /* create RBNode outside then insert */
