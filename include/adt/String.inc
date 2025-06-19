@@ -3,6 +3,8 @@
 #include "Span.inc"
 #include "hash.hh"
 
+#include <concepts>
+
 namespace adt
 {
 
@@ -13,11 +15,18 @@ struct StringView;
 
 template<typename T>
 concept ConvertsToStringView =
-(requires(const T& t) {
-    StringView(t);
-}) || (requires(const T& t) {
-    StringView(t.c_str());
+(requires(const T& t)
+{
+    { t.data() } -> std::same_as<const char*>;
+    { t.size() } -> std::convertible_to<isize>;
+}) ||
+(requires(const T& t)
+{
+    { StringView(t) } -> std::same_as<StringView>;
 });
+
+template<typename T>
+concept PrintbableAsString = ConvertsToStringView<T>;
 
 [[nodiscard]] constexpr isize ntsSize(const char* nts);
 
