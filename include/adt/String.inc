@@ -12,8 +12,12 @@ struct String;
 struct StringView;
 
 template<typename T>
-concept ConvertsToStringView = requires(const T& c)
-{ StringView(c); };
+concept ConvertsToStringView =
+(requires(const T& t) {
+    StringView(t);
+}) || (requires(const T& t) {
+    StringView(t.c_str());
+});
 
 [[nodiscard]] constexpr isize ntsSize(const char* nts);
 

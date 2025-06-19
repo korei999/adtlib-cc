@@ -21,6 +21,13 @@ struct Move
     Move(const Move& r) : p {r.p ? new int {*r.p} : new int {0}} {}
     Move(Move&& r) noexcept : p {std::exchange(r.p, new int {0})} { CERR("Move({}) moves...\n", *p); }
     ~Move() noexcept { CERR("Move({}) dies...\n", *p); delete p; }
+
+    bool operator<(const Move& r) const { return *p < *r.p; }
+    bool operator<=(const Move& r) const { return *p <= *r.p; }
+    bool operator>(const Move& r) const { return *p > *r.p; }
+    bool operator>=(const Move& r) const { return *p >= *r.p; }
+    bool operator==(const Move& r) const { return *p == *r.p; }
+    bool operator!=(const Move& r) const { return *p != *r.p; }
 };
 
 struct Virtual
