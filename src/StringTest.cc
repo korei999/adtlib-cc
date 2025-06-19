@@ -147,7 +147,7 @@ main()
             v0.emplace(&arena, &arena, aBuff, n);
         }
 
-        sort::quick(&v0, utils::ComparatorRev<StringView> {});
+        sort::quick(&v0, utils::ComparatorRev<String> {});
 
         ADT_ASSERT_ALWAYS(StringView("s1") > StringView("s0"), "");
         ADT_ASSERT_ALWAYS(StringView("s0") < StringView("s1"), "");

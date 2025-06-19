@@ -767,26 +767,4 @@ hash::func(const StringView& str)
     return hash::func(str.m_pData, str.m_size);
 }
 
-template<>
-[[nodiscard]] inline isize
-utils::compare(const StringView& l, const StringView& r)
-{
-    const isize len = utils::min(l.m_size, r.m_size);
-    const isize res = strncmp(l.m_pData, r.m_pData, len);
-
-    if (res == 0) return l.m_size > r.m_size;
-    else return res;
-}
-
-template<>
-[[nodiscard]] inline isize
-utils::compareRev(const StringView& l, const StringView& r)
-{
-    const isize len = utils::min(l.m_size, r.m_size);
-    const isize res = ::strncmp(r.m_pData, l.m_pData, len);
-
-    if (res == 0) return r.m_size > l.m_size;
-    else return res;
-}
-
 } /* namespace adt */
