@@ -54,7 +54,7 @@ struct ArenaSTD
     }
 
     void
-    deallocate(T*, std::size_t) noexcept
+    dealloc(T*, std::size_t) noexcept
     {
         //
     }

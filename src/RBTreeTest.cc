@@ -11,26 +11,51 @@ using namespace adt;
 int
 main()
 {
-    PoolAllocator al(sizeof(RBNode<long>), SIZE_8K);
-    defer( al.freeAll() );
+    {
+        PoolAllocator pool {sizeof(RBNode<long>), 200};
+        defer( pool.freeAll() );
 
-    RBTree<long> tree;
+        RBTree<long> tree;
 
-    tree.emplace(&al, false, 1L);
-    tree.emplace(&al, false, -1L);
-    tree.emplace(&al, false, 2L);
-    tree.emplace(&al, false, -2L);
-    tree.emplace(&al, false, -3L);
-    tree.emplace(&al, false, -6L);
-    tree.emplace(&al, false, 10L);
-    tree.emplace(&al, false, 22L);
+        tree.emplace(&pool, false, 1L);
+        tree.emplace(&pool, false, -1L);
+        tree.emplace(&pool, false, 2L);
+        tree.emplace(&pool, false, -2L);
+        tree.emplace(&pool, false, -3L);
+        tree.emplace(&pool, false, -6L);
+        tree.emplace(&pool, false, 10L);
+        tree.emplace(&pool, false, 22L);
 
-    tree.removeAndFree(&al, -3L);
-    tree.removeAndFree(&al, -6L);
+        tree.removeAndFree(&pool, -3L);
+        tree.removeAndFree(&pool, -6L);
 
-    LOG_GOOD("root: {}\n", *tree.root());
+        LOG_GOOD("root: {}\n", *tree.root());
 
-    RBPrintNodes(StdAllocator::inst(), tree.root(), stdout);
+        RBPrintNodes(StdAllocator::inst(), tree.root(), stdout);
 
-    LOG("sizeof(RBNode<Empty>): {}\n", sizeof(RBNode<Empty>));
+        LOG("sizeof(RBNode<Empty>): {}\n", sizeof(RBNode<Empty>));
+    }
+
+    {
+        Arena arena {SIZE_1K};
+        defer( arena.freeAll() );
+
+        RBTree<String> rb0;
+
+        PoolAllocator pool {sizeof(decltype(rb0)::NodeType), 500};
+        defer( pool.freeAll() );
+
+        rb0.insert(&pool, false, {&arena, "Hello"});
+        rb0.insert(&pool, false, {&arena, "Sailor"});
+
+        rb0.insert(&pool, false, {&arena, "Thirdy"});
+        rb0.insert(&pool, false, {&arena, "Seconds"});
+        rb0.insert(&pool, false, {&arena, "To"});
+        rb0.insert(&pool, false, {&arena, "Mars"});
+
+        auto rb1 = rb0.release();
+
+        RBPrintNodes(StdAllocator::inst(), rb0.root(), stdout);
+        RBPrintNodes(StdAllocator::inst(), rb1.root(), stdout);
+    }
 }
