@@ -693,7 +693,7 @@ namespace print
 
 template<typename T>
 inline isize
-formatToContext(Context ctx, [[maybe_unused]]  FormatArgs fmtArgs, const RBNode<T>& node)
+formatToContext(Context ctx, FormatArgs fmtArgs, const RBNode<T>& node)
 {
     char aBuff[128] {};
     const StringView sCol = node.color() == RB_COLOR::BLACK ? ADT_LOGS_COL_BLUE : ADT_LOGS_COL_RED;
