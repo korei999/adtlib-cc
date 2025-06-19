@@ -69,7 +69,7 @@ struct RBNode
     RB_COLOR color() const { return (RB_COLOR)((usize)m_parentColor & COLOR_MASK); }
     RB_COLOR setColor(const RB_COLOR eColor) { m_parentColor = (RBNode*)((usize)parent() | (usize)eColor); return eColor; }
 
-    RBNode* parent() const {  return (RBNode*)((usize)m_parentColor & ~COLOR_MASK); }
+    RBNode* parent() const { return (RBNode*)((usize)m_parentColor & ~COLOR_MASK); }
     void setParent(RBNode* par) { m_parentColor = (RBNode*)(((usize)par & ~COLOR_MASK) | (usize)color()); }
 
     RBNode*& parentAndColor() { return m_parentColor; }
