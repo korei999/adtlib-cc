@@ -25,9 +25,6 @@ concept ConvertsToStringView =
     { StringView(t) } -> std::same_as<StringView>;
 });
 
-template<typename T>
-concept PrintbableAsString = ConvertsToStringView<T>;
-
 [[nodiscard]] constexpr isize ntsSize(const char* nts);
 
 template<isize SIZE>
