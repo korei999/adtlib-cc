@@ -1,7 +1,9 @@
 #include "adt/Arena.hh"
+#include "adt/Vec.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/ReverseIt.hh"
+#include "adt/rng.hh"
 #include "adt/Thread.hh"
 
 #include <clocale>
@@ -133,6 +135,24 @@ main()
         COUT("thread: '{}'\n", Thread {});
         COUT("StdAllocator: '{}'\n", StdAllocator {});
         COUT("arena: '{}'\n", arena);
+    }
+
+    {
+        Vec<String> v0;
+        rng::PCG32 rng = 666;
+        for (isize i = 9; i >= 0; --i)
+        {
+            char aBuff[32] {};
+            const isize n = print::toSpan(aBuff, "s{}", rng.nextInRange(0, 100));
+            v0.emplace(&arena, &arena, aBuff, n);
+        }
+
+        sort::quick(&v0, utils::ComparatorRev<StringView> {});
+
+        ADT_ASSERT_ALWAYS(StringView("s1") > StringView("s0"), "");
+        ADT_ASSERT_ALWAYS(StringView("s0") < StringView("s1"), "");
+
+        COUT("v0: {}\n", v0);
     }
 
     COUT("StringTest: PASSED\n");

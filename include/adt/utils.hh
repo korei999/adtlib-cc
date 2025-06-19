@@ -144,9 +144,7 @@ struct Comparator
     constexpr isize
     operator()(const T& l, const T& r) const noexcept
     {
-        if (l == r) return 0;
-        else if (l > r) return 1;
-        else return -1;
+        return compare(l, r);
     }
 };
 
@@ -156,9 +154,7 @@ struct ComparatorRev
     constexpr isize
     operator()(const T& l, const T& r) const noexcept
     {
-        if (l == r) return 0;
-        else if (l < r) return 1;
-        else return -1;
+        return compareRev(l, r);
     }
 };
 

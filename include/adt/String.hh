@@ -8,6 +8,7 @@
 #include "Span.hh" /* IWYU pragma: keep */
 #include "print.hh" /* IWYU pragma: keep */
 #include "wcwidth.hh"
+#include "hash.hh"
 
 #include <cwchar>
 
@@ -416,40 +417,32 @@ inline bool
 operator<(const StringView& l, const StringView& r)
 {
     const isize len = utils::min(l.m_size, r.m_size);
-    for (isize i = 0; i < len; ++i)
-    {
-        if (l.m_pData[i] < r.m_pData[i]) return true;
-        else if (r.m_pData[i] < l.m_pData[i]) return false;
-    }
+    const isize res = strncmp(l.m_pData, r.m_pData, len);
 
-    return l.m_size < r.m_size;
+    if (res == 0) return l.m_size < r.m_size;
+    else return res < 0;
 }
 
 inline bool
 operator<=(const StringView& l, const StringView& r)
 {
-    if (l.m_size == r.m_size) return true;
-    else return operator<(l, r);
+    return (l.m_size == r.m_size) || (l < r);
 }
 
 inline bool
 operator>(const StringView& l, const StringView& r)
 {
     const isize len = utils::min(l.m_size, r.m_size);
-    for (isize i = 0; i < len; ++i)
-    {
-        if (l.m_pData[i] > r.m_pData[i]) return true;
-        else if (r.m_pData[i] > l.m_pData[i]) return false;
-    }
+    const isize res = ::strncmp(l.m_pData, r.m_pData, len);
 
-    return l.m_size > r.m_size;
+    if (res == 0) return l.m_size > r.m_size;
+    else return res > 0;
 }
 
 inline bool
 operator>=(const StringView& l, const StringView& r)
 {
-    if (l.m_size == r.m_size) return true;
-    else return operator>(l, r);
+    return (l.m_size == r.m_size) || (l > r);
 }
 
 inline constexpr isize
@@ -772,6 +765,28 @@ inline usize
 hash::func(const StringView& str)
 {
     return hash::func(str.m_pData, str.m_size);
+}
+
+template<>
+[[nodiscard]] inline isize
+utils::compare(const StringView& l, const StringView& r)
+{
+    const isize len = utils::min(l.m_size, r.m_size);
+    const isize res = strncmp(l.m_pData, r.m_pData, len);
+
+    if (res == 0) return l.m_size > r.m_size;
+    else return res;
+}
+
+template<>
+[[nodiscard]] inline isize
+utils::compareRev(const StringView& l, const StringView& r)
+{
+    const isize len = utils::min(l.m_size, r.m_size);
+    const isize res = ::strncmp(r.m_pData, l.m_pData, len);
+
+    if (res == 0) return r.m_size > l.m_size;
+    else return res;
 }
 
 } /* namespace adt */
