@@ -72,6 +72,9 @@ main()
         t0.insert(&arena, false, "fine");
         t0.insert(&arena, false, "long string should allocate                          1");
 
+        static_assert(ConvertsToStringView<std::string>);
+        static_assert(!ConvertsToStringView<Arena>);
+
         RBPrintNodes(StdAllocator::inst(), t0.root(), stdout);
 
         t0.destructNodes();
