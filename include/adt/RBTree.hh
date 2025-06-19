@@ -123,12 +123,18 @@ struct RBTree
     RBNode<T>* root();
     bool empty();
     RBNode<T>* remove(RBNode<T>* elm);
+
     void removeAndFree(IAllocator* p, RBNode<T>* elm);
     void removeAndFree(IAllocator* p, const T& elm);
+
     RBNode<T>* insertNode(bool bAllowDuplicates, RBNode<T>* elm);
+
     RBNode<T>* insert(IAllocator* pA, bool bAllowDuplicates, const T& data);
     RBNode<T>* insert(IAllocator* pA, bool bAllowDuplicates, T&& data);
-    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>) RBNode<T>* emplace(IAllocator* pA, bool bAllowDuplicates, ARGS&&... args);
+
+    template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
+    RBNode<T>* emplace(IAllocator* pA, bool bAllowDuplicates, ARGS&&... args);
+
     void destroy(IAllocator* pA);
 };
 
@@ -516,7 +522,7 @@ RBTree<T>::insert(IAllocator* pA, bool bAllowDuplicates, T&& data)
 }
 
 template<typename T>
-template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>) 
+template<typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
 inline RBNode<T>*
 RBTree<T>::emplace(IAllocator* pA, bool bAllowDuplicates, ARGS&&... args)
 {
