@@ -7,6 +7,8 @@
 #include "adt/Thread.hh"
 
 #include <clocale>
+#include <string>
+#include <vector>
 
 using namespace adt;
 
@@ -153,6 +155,24 @@ main()
         ADT_ASSERT_ALWAYS(StringView("s0") < StringView("s1"), "");
 
         COUT("v0: {}\n", v0);
+    }
+
+    COUT("\n");
+
+    {
+        std::vector<std::string> v0;
+
+        rng::PCG32 rng = 666;
+        for (isize i = 9; i >= 0; --i)
+        {
+            char aBuff[32] {};
+            const isize n = print::toSpan(aBuff, "s{}", rng.nextInRange(0, 100));
+            v0.push_back({aBuff, size_t(n)});
+        }
+
+        sort::quick(&v0);
+
+        COUT("std::vector: {}\n", v0);
     }
 
     COUT("StringTest: PASSED\n");
