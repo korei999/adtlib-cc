@@ -114,3 +114,8 @@ add_executable(
     SOA3
     SOA3.cc
 )
+
+add_executable(
+    Pipeline
+    Pipeline.cc
+)
