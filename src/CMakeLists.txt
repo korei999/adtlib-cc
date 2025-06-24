@@ -119,3 +119,8 @@ add_executable(
     Pipeline
     Pipeline.cc
 )
+
+add_executable(
+    Sort
+    Sort.cc
+)

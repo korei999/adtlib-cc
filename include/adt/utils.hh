@@ -146,6 +146,9 @@ requires (!std::convertible_to<T, StringView>)
 [[nodiscard]] inline constexpr isize
 compare(const T& l, const T& r)
 {
+    if constexpr (std::is_integral_v<T>)
+        return l - r;
+
     if (l == r) return 0;
     else if (l > r) return 1;
     else return -1;
@@ -156,6 +159,9 @@ requires (!std::convertible_to<T, StringView>)
 [[nodiscard]] inline constexpr isize
 compareRev(const T& l, const T& r)
 {
+    if constexpr (std::is_integral_v<T>)
+        return r - l;
+
     if (l == r) return 0;
     else if (l < r) return 1;
     else return -1;
