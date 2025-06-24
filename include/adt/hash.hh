@@ -25,7 +25,6 @@
 #include "types.hh"
 #include "Span.inc"
 
-#include <cstring>
 #include <nmmintrin.h>
 
 namespace adt::hash
@@ -80,7 +79,7 @@ private:
     endian64(const char* v)
     {
         return u64(u8(v[7])) | (u64(u8(v[6])) << 8) | (u64(u8(v[5])) << 16) | (u64(u8(v[4])) << 24) |
-               (u64(u8(v[3])) << 32) | (u64(u8(v[2])) << 40) | (u64(u8(v[1])) << 48) | (u64(u8(v[0])) << 56);
+            (u64(u8(v[3])) << 32) | (u64(u8(v[2])) << 40) | (u64(u8(v[1])) << 48) | (u64(u8(v[0])) << 56);
     }
 #else
     static constexpr u32
@@ -93,7 +92,7 @@ private:
     endian64(const char* v)
     {
         return u64(u8(v[0])) | (u64(u8(v[1])) << 8) | (u64(u8(v[2])) << 16) | (u64(u8(v[3])) << 24) |
-               (u64(u8(v[4])) << 32) | (u64(u8(v[5])) << 40) | (u64(u8(v[6])) << 48) | (u64(u8(v[7])) << 56);
+            (u64(u8(v[4])) << 32) | (u64(u8(v[5])) << 40) | (u64(u8(v[6])) << 48) | (u64(u8(v[7])) << 56);
     }
 #endif
     static constexpr u64
@@ -118,18 +117,18 @@ private:
     finalize(const u64 h, const char* p, u64 len)
     {
         return (len >= 8) ? (finalize(rotl(h ^ fetch64(p), 27) * PRIME1 + PRIME4, p + 8, len - 8))
-                          : ((len >= 4) ? (finalize(rotl(h ^ fetch32(p), 23) * PRIME2 + PRIME3, p + 4, len - 4))
-                                        : ((len > 0) ? (finalize(rotl(h ^ fetch8(p), 11) * PRIME1, p + 1, len - 1))
-                                                     : (mix1(mix1(mix1(h, PRIME2, 33), PRIME3, 29), 1, 32))));
+            : ((len >= 4) ? (finalize(rotl(h ^ fetch32(p), 23) * PRIME2 + PRIME3, p + 4, len - 4))
+                : ((len > 0) ? (finalize(rotl(h ^ fetch8(p), 11) * PRIME1, p + 1, len - 1))
+                    : (mix1(mix1(mix1(h, PRIME2, 33), PRIME3, 29), 1, 32))));
     }
     static constexpr u64
     h32bytes(const char* p, u64 len, const u64 v1, const u64 v2, const u64 v3, const u64 v4)
     {
         return (len >= 32)
-                   ? h32bytes(
-                         p + 32, len - 32, fetch64(p, v1), fetch64(p + 8, v2), fetch64(p + 16, v3), fetch64(p + 24, v4)
-                     )
-                   : mix3(mix3(mix3(mix3(rotl(v1, 1) + rotl(v2, 7) + rotl(v3, 12) + rotl(v4, 18), v1), v2), v3), v4);
+            ? h32bytes(
+                p + 32, len - 32, fetch64(p, v1), fetch64(p + 8, v2), fetch64(p + 16, v3), fetch64(p + 24, v4)
+            )
+            : mix3(mix3(mix3(mix3(rotl(v1, 1) + rotl(v2, 7) + rotl(v3, 12) + rotl(v4, 18), v1), v2), v3), v4);
     }
 
     static constexpr u64
