@@ -54,17 +54,26 @@ template<typename T>
 inline constexpr void
 swap(T* l, T* r)
 {
-    T t = *r;
-    *r = *l;
-    *l = t;
+    T t = std::move(*r);
+    *r = std::move(*l);
+    *l = std::move(t);
 }
 
 template<typename T>
 [[nodiscard]] inline constexpr T
-exchange(T* pObj, const T& replaceObjWith)
+exchange(T* pObj, T& replaceObjWith)
 {
-    T ret = *pObj;
+    T ret = std::move(*pObj);
     *pObj = replaceObjWith;
+    return ret;
+}
+
+template<typename T>
+[[nodiscard]] inline constexpr T
+exchange(T* pObj, T&& replaceObjWith)
+{
+    T ret = std::move(*pObj);
+    *pObj = std::move(replaceObjWith);
     return ret;
 }
 
