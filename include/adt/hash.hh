@@ -25,6 +25,7 @@
 #include "types.hh"
 #include "Span.inc"
 
+#include <cstring>
 #include <nmmintrin.h>
 
 namespace adt::hash
@@ -140,7 +141,7 @@ private:
 
 #ifdef ADT_SSE4_2
 
-inline usize
+ADT_NO_UB inline usize
 crc32(const u8* p, isize byteSize, usize seed = 0)
 {
     usize crc = seed;
@@ -148,10 +149,18 @@ crc32(const u8* p, isize byteSize, usize seed = 0)
     isize i = 0;
     for (; i + 7 < byteSize; i += 8)
         crc = _mm_crc32_u64(crc, *reinterpret_cast<const usize*>(&p[i]));
-    for (; i + 3 < byteSize; i += 4)
-        crc = u64(_mm_crc32_u32(u32(crc), *reinterpret_cast<const u32*>(&p[i])));
-    for (; i < byteSize; ++i)
-        crc = u64(_mm_crc32_u8(u32(crc), u8(p[i])));
+
+    if (i < byteSize && byteSize >= 8)
+    {
+        crc = _mm_crc32_u64(crc, *reinterpret_cast<const usize*>(&p[byteSize - 9]));
+    }
+    else
+    {
+        for (; i + 3 < byteSize; i += 4)
+            crc = u64(_mm_crc32_u32(u32(crc), *reinterpret_cast<const u32*>(&p[i])));
+        for (; i < byteSize; ++i)
+            crc = u64(_mm_crc32_u8(u32(crc), u8(p[i])));
+    }
 
     return ~crc;
 }
