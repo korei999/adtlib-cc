@@ -6,6 +6,9 @@
 #include "adt/Span.hh"
 #include "adt/rng.hh"
 
+#include <string_view>
+#include <unordered_map>
+
 using namespace adt;
 
 static const usize CONSTEXPR_HASH_CONST = hash::func("CONST");
@@ -49,55 +52,120 @@ microBench()
     for (isize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
 
-    Map<StringView, int> map(&arena);
-    VecManaged<StringView> vNotFoundStrings {};
-    defer( vNotFoundStrings.destroy() );
-
     {
-        f64 t0 = utils::timeNowMS();
+        Map<StringView, int> map(&arena);
+        VecManaged<StringView> vNotFoundStrings {};
+        defer( vNotFoundStrings.destroy() );
 
-        for (isize i = 0; i < BIG; ++i)
         {
-            auto res = map.tryInsert(&arena, vStrings[i], i);
-            if (res.eStatus == MAP_RESULT_STATUS::FOUND)
+            f64 t0 = utils::timeNowMS();
+
+            for (isize i = 0; i < BIG; ++i)
             {
-                vNotFoundStrings.push(vStrings[i]);
+                auto res = map.tryInsert(&arena, vStrings[i], i);
+                if (res.eStatus == MAP_RESULT_STATUS::FOUND)
+                {
+                    vNotFoundStrings.push(vStrings[i]);
+                }
             }
+
+            f64 t1 = utils::timeNowMS() - t0;
+            LOG("tryInsert {} items in {} ms\n", BIG, t1);
         }
 
-        f64 t1 = utils::timeNowMS() - t0;
-        LOG("tryInsert {} items in {} ms\n", BIG, t1);
+        {
+            f64 t0 = utils::timeNowMS();
+
+            for (isize i = 0; i < BIG; ++i)
+            {
+                [[maybe_unused]] auto f = map.search(vStrings[i]);
+                if (!f)
+                {
+                    auto onceMore = map.search(vStrings[i]);
+
+                    bool bFound = false;
+                    for (auto& bucket : map.m_vBuckets)
+                    {
+                        if (bucket.key == vStrings[i])
+                        {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    LOG_WARN("bFound: {}, '{}': str: '{}', onceMore: {}\n", bFound, f.eStatus, vStrings[i], onceMore.eStatus);
+                }
+            }
+
+            f64 t1 = utils::timeNowMS() - t0;
+            LOG("search {} items in {} ms\n", BIG, t1);
+
+            for (auto& sv : vNotFoundStrings)
+            {
+                ADT_ASSERT_ALWAYS(map.search(sv), "failed to find: '{}'", sv);
+            }
+        }
     }
 
+    CERR("\n");
+
     {
-        f64 t0 = utils::timeNowMS();
-
-        for (isize i = 0; i < BIG; ++i)
+        struct StringViewHash
         {
-            [[maybe_unused]] auto f = map.search(vStrings[i]);
-            if (!f)
+            std::size_t operator()(const StringView sv) const
             {
-                auto onceMore = map.search(vStrings[i]);
+                return hash::func(sv);
+                // return std::hash<std::string_view> {}(std::string_view {sv.data(), std::size_t(sv.size())});
+            };
+        };
 
-                bool bFound = false;
-                for (auto& bucket : map.m_vBuckets)
-                {
-                    if (bucket.key == vStrings[i])
-                    {
-                        bFound = true;
-                        break;
-                    }
-                }
-                LOG_WARN("bFound: {}, '{}': str: '{}', onceMore: {}\n", bFound, f.eStatus, vStrings[i], onceMore.eStatus);
+        std::unordered_map<StringView, int, StringViewHash> map;
+        VecM<StringView> vNotFoundStrings {};
+        defer( vNotFoundStrings.destroy() );
+
+        {
+            f64 t0 = utils::timeNowMS();
+
+            for (isize i = 0; i < BIG; ++i)
+            {
+                auto res = map.try_emplace(vStrings[i], i);
+                if (!res.second)
+                    vNotFoundStrings.push(vStrings[i]);
             }
+
+            f64 t1 = utils::timeNowMS() - t0;
+            LOG("STL: try_emplace {} items in {} ms\n", BIG, t1);
         }
 
-        f64 t1 = utils::timeNowMS() - t0;
-        LOG("search {} items in {} ms\n", BIG, t1);
-
-        for (auto& sv : vNotFoundStrings)
         {
-            ADT_ASSERT_ALWAYS(map.search(sv), "failed to find: '{}'", sv);
+            f64 t0 = utils::timeNowMS();
+
+            for (isize i = 0; i < BIG; ++i)
+            {
+                [[maybe_unused]] auto f = map.find(vStrings[i]);
+                if (f == map.end())
+                {
+                    auto onceMore = map.find(vStrings[i]);
+
+                    bool bFound = false;
+                    for (auto& bucket : map)
+                    {
+                        if (bucket.first == vStrings[i])
+                        {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    LOG_WARN("bFound: {}, '{}': str: '{}', onceMore: {}\n", bFound, f->second, vStrings[i], onceMore->second);
+                }
+            }
+
+            f64 t1 = utils::timeNowMS() - t0;
+            LOG("STL: search {} items in {} ms\n", BIG, t1);
+
+            for (auto& sv : vNotFoundStrings)
+            {
+                ADT_ASSERT_ALWAYS(map.find(sv) != map.end(), "failed to find: '{}'", sv);
+            }
         }
     }
 }
