@@ -21,7 +21,7 @@ main()
     const f64 t0 = utils::timeNowMS();
     for (int e : v)
     {
-        isize f = utils::binarySearch(v, e);
+        isize f = utils::binarySearchI(v, e);
         ADT_ASSERT_ALWAYS(f != NPOS && f + 1 == e, "f: {}, f + 1: {}, e: {}", f, f + 1, e);
     }
     const f64 t1 = utils::timeNowMS();
