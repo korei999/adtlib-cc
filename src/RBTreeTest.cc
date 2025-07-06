@@ -2,6 +2,7 @@
 #include "adt/Map.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
+#include "adt/ReverseIt.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
@@ -77,7 +78,7 @@ main()
 
         RBPrintNodes(StdAllocator::inst(), t0.root(), stdout);
 
-        t0.destructNodes();
+        t0.destructElements();
     }
 
     {
@@ -88,6 +89,112 @@ main()
 
         RBPrintNodes(&arena, t0.root(), stdout);
 
-        t0.destructNodes();
+        t0.destructElements();
+    }
+
+    {
+        RBTree<int> t0;
+        for (isize i = 0; i < 10; ++i)
+            t0.emplace(&arena, false, i);
+
+        RBPrintNodes(&arena, t0.root(), stdout);
+
+        CERR("t0: {}\n", t0);
+        for (auto& e : ReverseIt(t0))
+            CERR("{}, ", e);
+        CERR("\n\n");
+    }
+
+    {
+        RBTree<int> t0;
+        defer( t0.destroy(StdAllocator::inst()) );
+
+        for (isize i = 0; i < 5000000; ++i)
+            t0.emplace(StdAllocator::inst(), false, i);
+
+        {
+            auto* pFound = RBTraversePre(t0.root(), [&](RBNode<int>* p)
+                {
+                    if (p->data() == 5) return true;
+                    return false;
+                }
+            );
+            ADT_ASSERT_ALWAYS(pFound && pFound->data() == 5, "pFive: {}, data: {}", pFound, pFound ? pFound->data() : 0);
+        }
+
+        {
+            auto* pFound = RBTraversePost(t0.root(), [&](RBNode<int>* p)
+                {
+                    if (p->data() == 2315) return true;
+                    return false;
+                }
+            );
+            ADT_ASSERT_ALWAYS(pFound && pFound->data() == 2315, "pFive: {}, data: {}", pFound, pFound ? pFound->data() : 0);
+        }
+
+        {
+            auto* pFound = RBTraverseIn(t0.root(), [&](RBNode<int>* p)
+                {
+                    if (p->data() == 3235823) return true;
+                    return false;
+                }
+            );
+            ADT_ASSERT_ALWAYS(pFound && pFound->data() == 3235823, "pFive: {}, data: {}", pFound, pFound ? pFound->data() : 0);
+        }
+
+        {
+            auto time0 = utils::timeNowUS();
+            isize total = 0;
+            for (auto& e : t0) total += e;
+            auto time1 = utils::timeNowUS() - time0;
+
+            LOG("for loop: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            CERR("\n");
+        }
+
+        {
+            auto time0 = utils::timeNowUS();
+            isize total = 0;
+            RBTraverseIn(t0.root(), [&](RBNode<int>* p)
+                {
+                    total += p->data();
+                    return false;
+                }
+            );
+            auto time1 = utils::timeNowUS() - time0;
+
+            LOG("traverseIn: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            CERR("\n");
+        }
+
+        {
+            auto time0 = utils::timeNowUS();
+            isize total = 0;
+            RBTraversePost(t0.root(), [&](RBNode<int>* p)
+                {
+                    total += p->data();
+                    return false;
+                }
+            );
+            auto time1 = utils::timeNowUS() - time0;
+
+            LOG("traversePost: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            CERR("\n");
+        }
+
+        {
+            auto time0 = utils::timeNowUS();
+            isize total = 0;
+            RBTraversePre(t0.root(), [&](RBNode<int>* p)
+                {
+                    total += p->data();
+                    return false;
+                }
+            );
+            auto time1 = utils::timeNowUS() - time0;
+
+            LOG("traversePre: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            CERR("\n");
+        }
     }
 }
