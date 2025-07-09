@@ -124,3 +124,8 @@ add_executable(
     Sort
     Sort.cc
 )
+
+add_executable(
+    ParallelFor
+    ParallelFor.cc
+)

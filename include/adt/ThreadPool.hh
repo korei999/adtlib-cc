@@ -3,6 +3,7 @@
 #include "QueueArray.hh"
 #include "ScratchBuffer.hh"
 #include "Thread.hh"
+#include "Vec.hh"
 #include "atomic.hh"
 #include "defer.hh"
 #include "StdAllocator.hh"
@@ -23,6 +24,8 @@ struct IThreadPool
     virtual void wait() = 0;
 
     virtual bool add(Task task) = 0;
+
+    virtual int nThreads() const noexcept = 0;
 
     bool add(ThreadFn pfn, void* pArg) { return add({pfn, pArg}); }
 
@@ -98,6 +101,8 @@ struct ThreadPool : IThreadPool
     void destroy(IAllocator* pAlloc);
 
     virtual bool add(Task task) override;
+
+    virtual int nThreads() const noexcept override { return m_spThreads.size(); }
 
 protected:
     void start();
@@ -326,5 +331,61 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
         gtl_scratchBuff = {};
     }
 };
+
+/* Usage example:
+ * Vec<Future<Span<f32>>*> vFutures = parallelFor(&arena, &tp, Span<f32> {v},
+ *     [](Span<f32> spBatch, isize offFrom0)
+ *     {
+ *         for (auto& e : spBatch) r += 1 + offFrom0;
+ *     }
+ * );
+ * 
+ *  for (auto* pF : vFutures) pF->wait(); */
+template<typename THREAD_POOL_T, typename T, typename CL_PROC_BATCH>
+inline Vec<Future<Span<T>>*>
+parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH clProcBatch)
+{
+    const isize nThreads = pTp->nThreads();
+    const isize batchSize = [&]
+    {
+        const isize len = spData.size() / nThreads;
+        return len > 0 ? len : spData.size();
+    }();
+    const isize tailSize = spData.size() - nThreads*batchSize;
+
+    struct Arg
+    {
+        Future<Span<T>> future {};
+        Span<T> sp {};
+        isize off {};
+        decltype(clProcBatch) cl {};
+    };
+
+    Vec<Future<Span<T>>*> vFutures {pArena, tailSize > 0 ? nThreads + 1 : nThreads};
+
+    auto clBatch = [&](isize off, isize size) {
+        Arg* pArg = pArena->alloc<Arg>(INIT, Span<T> {spData.data() + off, size}, off, clProcBatch);
+        pArg->future.m_data = pArg->sp;
+
+        vFutures.push(pArena, &pArg->future);
+
+        pTp->addRetry(
+            +[](void* p) -> THREAD_STATUS
+            {
+                Arg& arg = *static_cast<Arg*>(p);
+                arg.cl(arg.sp, arg.off);
+                arg.future.signal();
+                return THREAD_STATUS(0);
+            },
+            pArg
+        );
+    };
+
+    isize i = 0;
+    for (; i < batchSize*nThreads; i += batchSize) clBatch(i, batchSize);
+    if (tailSize > 0) clBatch(i, tailSize);
+
+    return vFutures;
+}
 
 } /* namespace adt */

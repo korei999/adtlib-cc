@@ -642,9 +642,10 @@ protected:
     T* pMtx {};
 };
 
+template<typename T>
 struct Future
 {
-    void* m_pExtraData {};
+    ADT_NO_UNIQUE_ADDRESS T m_data {};
     Mutex m_mtx {};
     CndVar m_cnd {};
     bool m_bDone {};
@@ -660,22 +661,28 @@ struct Future
     void signal();
     void reset();
     void destroy();
+
+    T& data() noexcept { return m_data; }
+    T& waitData() noexcept { wait(); return m_data; }
 };
 
+template<typename T>
 inline
-Future::Future(InitFlag)
+Future<T>::Future(InitFlag)
     : m_mtx(Mutex::TYPE::PLAIN), m_cnd(INIT) {}
 
+template<typename T>
 inline void
-Future::wait()
+Future<T>::wait()
 {
     LockGuard lock {&m_mtx};
 
     while (!m_bDone) m_cnd.wait(&m_mtx);
 }
 
+template<typename T>
 inline void
-Future::signal()
+Future<T>::signal()
 {
     LockGuard lock {&m_mtx};
 
@@ -683,14 +690,16 @@ Future::signal()
     m_cnd.signal();
 }
 
+template<typename T>
 inline void
-Future::reset()
+Future<T>::reset()
 {
     m_bDone = false;
 }
 
+template<typename T>
 inline void
-Future::destroy()
+Future<T>::destroy()
 {
     m_mtx.destroy();
     m_cnd.destroy();
