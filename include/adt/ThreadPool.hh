@@ -55,12 +55,37 @@ struct IThreadPool
         );
     }
 
+    template<typename LAMBDA>
+    bool
+    addLambdaRetry(LAMBDA& t, int nRetries)
+    {
+        return addRetry(+[](void* pArg) -> THREAD_STATUS
+            {
+                static_cast<LAMBDA*>(pArg)->operator()();
+                return 0;
+            },
+            (void*)(&t),
+            nRetries
+        );
+    }
+
     template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
     [[deprecated("rvalue lambdas cause use after free")]] bool addLambda(LAMBDA&& t) = delete;
 
     void addRetry(Task task) { while (!add(task)); }
 
+    bool
+    addRetry(Task task, const int nRetries)
+    {
+        int nTried = 0;
+        while (++nTried <= nRetries)
+            if (add(task)) return true;
+        return false;
+    }
+
     void addRetry(ThreadFn pfn, void* pArg) { while (!add(pfn, pArg)); }
+
+    bool addRetry(ThreadFn pfn, void* pArg, const int nRetries) { return addRetry({pfn, pArg}, nRetries); }
 
     template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
     [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetry(LAMBDA&& t) = delete;
@@ -308,8 +333,13 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
     template<typename LAMBDA>
     void addLambdaRetry(LAMBDA& t) { Base::addLambdaRetry(t); }
 
-    void addRetry(Task task) { while (!Base::add(task)); }
+    template<typename LAMBDA>
+    [[nodiscard]] bool addLambdaRetry(LAMBDA& t, int nRetries) { return Base::addLambdaRetry(t, nRetries); }
+
+    void addRetry(Task task) { Base::addRetry(task); }
+    [[nodiscard]] bool addRetry(Task task, int nRetries) { return Base::addRetry(task, nRetries); }
     void addRetry(ThreadFn pfn, void* pArg) { addRetry({pfn, pArg}); }
+    [[nodiscard]] bool addRetry(ThreadFn pfn, void* pArg, int nRetries) { return addRetry({pfn, pArg}, nRetries); }
 
     void
     destroy(IAllocator* pAlloc)

@@ -34,6 +34,7 @@ main()
     tp.addLambdaRetry(inc);
 
     Future<int> fut {INIT};
+    Future<int> fut2 {INIT};
 
     auto clFut = [&]
     {
@@ -41,9 +42,20 @@ main()
         fut.signal();
     };
 
-    tp.addLambdaRetry(clFut);
+    auto clFut2 = [&]
+    {
+        fut2.data() = 999;
+        fut2.signal();
+    };
 
-    LOG_GOOD("future: {}\n", fut.waitData());
+    const bool bAdded = tp.addLambdaRetry(clFut, 1);
+    const bool bAdded2 = tp.addLambdaRetry(clFut2, 1);
+
+    if (bAdded) LOG_GOOD("future: {}\n", fut.waitData());
+    else LOG_BAD("future: failed to add\n");
+
+    if (bAdded2) LOG_GOOD("future2: {}\n", fut2.waitData());
+    else LOG_BAD("future2: failed to add\n");
 
     tp.destroy(StdAllocator::inst());
 
