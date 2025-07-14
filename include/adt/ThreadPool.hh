@@ -317,6 +317,7 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
             nThreads
         )
     {
+        ADT_ASSERT(nThreads > 0, "nThreads: {}", nThreads);
         allocScratchBufferForThisThread(nBytesEachBuffer);
     }
 

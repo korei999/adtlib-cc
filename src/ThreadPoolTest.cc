@@ -31,7 +31,7 @@ main()
     tp.addLambda(inc);
     tp.addLambda(inc);
     tp.addLambda(inc);
-    tp.addLambdaRetry(inc);
+    tp.addLambda(inc);
 
     Future<int> fut {INIT};
     Future<int> fut2 {INIT};
@@ -62,5 +62,5 @@ main()
     LOG("destroyed: i: {}\n", i.load(atomic::ORDER::RELAXED));
     ADT_ASSERT(i.load(atomic::ORDER::RELAXED) == NTASKS + 4, " ");
 
-    CERR("\n\n\n\n");
+    CERR("\n\n");
 }
