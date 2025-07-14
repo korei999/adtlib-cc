@@ -42,6 +42,19 @@ struct IThreadPool
         );
     }
 
+    template<typename LAMBDA>
+    void
+    addLambdaRetry(LAMBDA& t)
+    {
+        addRetry(+[](void* pArg) -> THREAD_STATUS
+            {
+                static_cast<LAMBDA*>(pArg)->operator()();
+                return 0;
+            },
+            (void*)(&t)
+        );
+    }
+
     template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
     [[deprecated("rvalue lambdas cause use after free")]] bool addLambda(LAMBDA&& t) = delete;
 
@@ -241,11 +254,11 @@ ThreadPool<QUEUE_SIZE>::add(Task task)
     ADT_ASSERT(m_bStarted, "forgot to `start()` this ThreadPool: (m_bStarted: '{}')", m_bStarted);
 
     isize i;
-
     {
         LockGuard lock {&m_mtxQ};
         i = m_qTasks.pushBack(task);
     }
+
     if (i != -1)
     {
         m_cndQ.signal();
@@ -267,7 +280,7 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
 
     /* */
 
-    using ThreadPool<QUEUE_SIZE>::ThreadPool;
+    ThreadPoolWithMemory() = default;
 
     ThreadPoolWithMemory(IAllocator* pAlloc, isize nBytesEachBuffer, int nThreads = utils::max(ADT_GET_NPROCS() - 1, 2))
         : Base(
@@ -287,13 +300,13 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
     virtual void wait() override { Base::wait(); }
     virtual bool add(Task task) override { return Base::add(task); }
     virtual ScratchBuffer& scratchBuffer() override { return gtl_scratchBuff; }
+    virtual int nThreads() const noexcept override { return Base::nThreads(); }
 
     template<typename LAMBDA>
-    bool
-    addLambda(LAMBDA& t)
-    {
-        return Base::addLambda(t);
-    }
+    bool addLambda(LAMBDA& t) { return Base::addLambda(t); }
+
+    template<typename LAMBDA>
+    void addLambdaRetry(LAMBDA& t) { Base::addLambdaRetry(t); }
 
     void addRetry(Task task) { while (!Base::add(task)); }
     void addRetry(ThreadFn pfn, void* pArg) { addRetry({pfn, pArg}); }
@@ -342,7 +355,7 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
  * 
  *  for (auto* pF : vFutures) pF->wait(); */
 template<typename THREAD_POOL_T, typename T, typename CL_PROC_BATCH>
-inline Vec<Future<Span<T>>*>
+[[nodiscard]] inline Vec<Future<Span<T>>*>
 parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH clProcBatch)
 {
     const isize nThreads = pTp->nThreads();

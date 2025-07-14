@@ -12,7 +12,7 @@ static atomic::Int i {};
 int
 main()
 {
-    ThreadPool<512> tp(StdAllocator::inst(), 100);
+    ThreadPoolWithMemory<512> tp {StdAllocator::inst(), SIZE_1K};
 
     auto inc = [&] {
         i.fetchAdd(1, atomic::ORDER::RELAXED);
@@ -31,7 +31,19 @@ main()
     tp.addLambda(inc);
     tp.addLambda(inc);
     tp.addLambda(inc);
-    tp.addLambda(inc);
+    tp.addLambdaRetry(inc);
+
+    Future<int> fut {INIT};
+
+    auto clFut = [&]
+    {
+        fut.data() = 666;
+        fut.signal();
+    };
+
+    tp.addLambdaRetry(clFut);
+
+    LOG_GOOD("future: {}\n", fut.waitData());
 
     tp.destroy(StdAllocator::inst());
 
