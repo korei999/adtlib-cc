@@ -16,6 +16,4 @@ main()
     Vec<int> vec {&arena};
     vec.push(&arena, 1);
     vec.push(&arena, 2);
-
-    auto debugDeath = vec[2];
 }

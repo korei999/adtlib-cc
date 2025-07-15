@@ -19,7 +19,7 @@ main()
 
     COUT("arr: {}\n", arr);
 
-    int i = 10;
+    [[maybe_unused]] int i = 10;
 
     {
         Array<int, 16> a {};

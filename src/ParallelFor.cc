@@ -11,7 +11,7 @@ main()
 {
     LOG_NOTIFY("ParallelFor test...\n");
 
-    Arena arena {SIZE_1K};
+    Arena arena {SIZE_1K * 3};
     defer( arena.freeAll() );
 
     ThreadPool<128> tp {&arena};

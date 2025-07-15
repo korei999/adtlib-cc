@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Thread.hh"
+#include "defer.hh"
 #include "utils.hh"
 
 namespace adt
@@ -173,9 +175,108 @@ quick(auto a[], isize l, isize r, const CL_CMP clCmp)
             if (i <= j) utils::swap(&a[i++], &a[j--]);
         }
 
-        if (l < j) quick(a, l, j, clCmp);
-        if (i < r) quick(a, i, r, clCmp);
+        quick(a, l, j, clCmp);
+        quick(a, i, r, clCmp);
     }
+}
+
+template<typename ALLOC_T, typename THREAD_POOL_T, typename CL_CMP>
+inline void
+quickParallel(
+    ALLOC_T* pAlloc,
+    THREAD_POOL_T* pTPool,
+    auto a[],
+    isize l,
+    isize r,
+    CL_CMP clCmp,
+    const isize maxDepth,
+    const isize depth
+)
+{
+    if (l < r)
+    {
+        if ((r - l + 1) <= 32)
+        {
+            insertion(a, l, r, clCmp);
+            return;
+        }
+
+        auto pivot = a[ median3(l, (l + r) / 2, r) ];
+        isize i = l, j = r;
+
+        while (i <= j)
+        {
+            while (clCmp(a[i], pivot) < 0) ++i;
+            while (clCmp(a[j], pivot) > 0) --j;
+
+            if (i <= j) utils::swap(&a[i++], &a[j--]);
+        }
+
+        struct Arg
+        {
+            ALLOC_T* pAlloc {};
+            THREAD_POOL_T* pTp {};
+            Future<Empty>* pFuture {};
+            decltype(a) p {};
+            isize l {};
+            isize r {};
+            decltype(clCmp) cl {};
+            isize maxDepth {};
+            isize depth {};
+        };
+
+        Future<Empty> fut {INIT};
+        ADT_DEFER( fut.destroy() );
+        bool bSpawned = false;
+
+        auto pfn = +[](void* p)
+        {
+            Arg& a = *static_cast<Arg*>(p);
+            quickParallel(a.pAlloc, a.pTp, a.p, a.l, a.r, a.cl, a.maxDepth, a.depth + 1);
+            a.pFuture->signal();
+            a.pAlloc->free(p);
+            return 0;
+        };
+
+        /* Prevent deadlocks. */
+        if (depth >= maxDepth || ((j - l + 1) <= 32))
+        {
+            quick(a, l, j, clCmp);
+        }
+        else
+        {
+            Arg* pArg0 = pAlloc->template alloc<Arg>(pAlloc, pTPool, &fut, a, l, j, clCmp, maxDepth, depth);
+            if (!pTPool->add({pfn, pArg0}))
+            {
+                pAlloc->free(pArg0);
+                quickParallel(pAlloc, pTPool, a, l, j, clCmp, maxDepth, depth + 1);
+            }
+            else
+            {
+                bSpawned = true;
+            }
+        }
+
+        quickParallel(pAlloc, pTPool, a, i, r, clCmp, maxDepth, depth + 1);
+
+        if (bSpawned) fut.wait();
+    }
+}
+
+template<typename ALLOC_T, typename THREAD_POOL_T, typename T>
+requires IsIndexable<T>
+inline void
+quickParallel(ALLOC_T* pAlloc, THREAD_POOL_T* pThreadPool, T* pArray)
+{
+    if (pArray->size() <= 1) return;
+    quickParallel(
+        pAlloc,
+        pThreadPool,
+        pArray->data(), 0, pArray->size() - 1,
+        utils::Comparator<decltype(pArray->operator[](0))> {},
+        pThreadPool->nThreads()/2 - 1,
+        0
+    );
 }
 
 template<typename T, typename CL_CMP> 

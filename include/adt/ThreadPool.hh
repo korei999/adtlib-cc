@@ -121,7 +121,7 @@ struct ThreadPool : IThreadPool
 
     ThreadPool() = default;
 
-    ThreadPool(IAllocator* pAlloc, int nThreads = utils::max(ADT_GET_NPROCS() - 1, 2));
+    ThreadPool(IAllocator* pAlloc, int nThreads = ADT_GET_NPROCS());
 
     ThreadPool(
         IAllocator* pAlloc,
@@ -236,7 +236,7 @@ ThreadPool<QUEUE_SIZE>::start()
     m_bStarted = true;
 
 #ifndef NDEBUG
-    print::err("ThreadPool: new pool with {} threads\n", m_spThreads.size());
+    print::err("[ThreadPool]: new pool with {} threads\n", m_spThreads.size());
 #endif
 }
 
@@ -296,9 +296,11 @@ ThreadPool<QUEUE_SIZE>::add(Task task)
 /* ThreadPool with ScratchBuffers created for each thread.
  * Any thread can access its own thread local buffer with `threadPool.scratch()`. */
 template<isize QUEUE_SIZE>
-struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
+struct ThreadPoolWithMemory : IThreadPoolWithMemory
 {
-    using Base = ThreadPool<QUEUE_SIZE>;
+    ThreadPool<QUEUE_SIZE> m_base {};
+
+    /* */
 
     static inline thread_local u8* gtl_pScratchMem;
     static inline thread_local ScratchBuffer gtl_scratchBuff;
@@ -307,8 +309,8 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
 
     ThreadPoolWithMemory() = default;
 
-    ThreadPoolWithMemory(IAllocator* pAlloc, isize nBytesEachBuffer, int nThreads = utils::max(ADT_GET_NPROCS() - 1, 2))
-        : Base(
+    ThreadPoolWithMemory(IAllocator* pAlloc, isize nBytesEachBuffer, int nThreads = ADT_GET_NPROCS())
+        : m_base(
             pAlloc,
             +[](void* p) { allocScratchBufferForThisThread(reinterpret_cast<isize>(p)); },
             reinterpret_cast<void*>(nBytesEachBuffer),
@@ -323,29 +325,15 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
 
     /* */
 
-    virtual void wait() override { Base::wait(); }
-    virtual bool add(Task task) override { return Base::add(task); }
+    virtual void wait() override { m_base.wait(); }
+    virtual bool add(Task task) override { return m_base.add(task); }
     virtual ScratchBuffer& scratchBuffer() override { return gtl_scratchBuff; }
-    virtual int nThreads() const noexcept override { return Base::nThreads(); }
-
-    template<typename LAMBDA>
-    bool addLambda(LAMBDA& t) { return Base::addLambda(t); }
-
-    template<typename LAMBDA>
-    void addLambdaRetry(LAMBDA& t) { Base::addLambdaRetry(t); }
-
-    template<typename LAMBDA>
-    [[nodiscard]] bool addLambdaRetry(LAMBDA& t, int nRetries) { return Base::addLambdaRetry(t, nRetries); }
-
-    void addRetry(Task task) { Base::addRetry(task); }
-    [[nodiscard]] bool addRetry(Task task, int nRetries) { return Base::addRetry(task, nRetries); }
-    void addRetry(ThreadFn pfn, void* pArg) { addRetry({pfn, pArg}); }
-    [[nodiscard]] bool addRetry(ThreadFn pfn, void* pArg, int nRetries) { return addRetry({pfn, pArg}, nRetries); }
+    virtual int nThreads() const noexcept override { return m_base.nThreads(); }
 
     void
     destroy(IAllocator* pAlloc)
     {
-        Base::destroy(pAlloc);
+        m_base.destroy(pAlloc);
         destroyScratchBufferForThisThread();
     }
 
@@ -353,7 +341,7 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
     void
     destroyKeepScratchBuffer(IAllocator* pAlloc)
     {
-        Base::destroy(pAlloc);
+        m_base.destroy(pAlloc);
     }
 
     /* */
@@ -387,13 +375,16 @@ struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>, IThreadPoolWithMemory
  *  for (auto* pF : vFutures) pF->wait(); */
 template<typename THREAD_POOL_T, typename T, typename CL_PROC_BATCH>
 [[nodiscard]] inline Vec<Future<Span<T>>*>
-parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH clProcBatch)
+parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH clProcBatch, isize minBatchSize = 1)
 {
+    if (spData.size() < 0) return {};
+
     const isize nThreads = pTp->nThreads();
     const isize batchSize = [&]
     {
         const isize len = spData.size() / nThreads;
-        return len > 0 ? len : spData.size();
+        const isize div = len > 0 ? len : spData.size();
+        return div < minBatchSize ? minBatchSize : div;
     }();
     const isize tailSize = spData.size() - nThreads*batchSize;
 
@@ -409,7 +400,7 @@ parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH cl
 
     auto clBatch = [&](isize off, isize size) {
         Arg* pArg = pArena->alloc<Arg>(INIT, Span<T> {spData.data() + off, size}, off, clProcBatch);
-        pArg->future.m_data = pArg->sp;
+        pArg->future.data() = pArg->sp;
 
         vFutures.push(pArena, &pArg->future);
 

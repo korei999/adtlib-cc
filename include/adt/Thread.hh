@@ -7,6 +7,7 @@
 #include <emmintrin.h>
 
 #include <type_traits>
+#include <utility>
 
 #if __has_include(<windows.h>)
     #define ADT_USE_WIN32THREAD
@@ -664,6 +665,8 @@ struct Future
 
     T& data() noexcept { return m_data; }
     T& waitData() noexcept { wait(); return m_data; }
+    T& signalData(const T& data) noexcept { m_data = data; signal(); }
+    T& signalData(T&& data) noexcept { m_data = std::move(data); signal(); }
 };
 
 template<typename T>
