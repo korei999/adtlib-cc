@@ -181,10 +181,9 @@ quick(auto a[], isize l, isize r, const CL_CMP clCmp)
     }
 }
 
-template<typename ALLOC_T, typename THREAD_POOL_T, typename CL_CMP>
+template<typename THREAD_POOL_T, typename CL_CMP>
 inline void
 quickParallel(
-    ALLOC_T* pAlloc,
     THREAD_POOL_T* pTPool,
     auto a[],
     isize l,
@@ -211,65 +210,44 @@ quickParallel(
             if (i <= j) utils::swap(&a[i++], &a[j--]);
         }
 
-        struct Arg
-        {
-            ALLOC_T* pAlloc {};
-            THREAD_POOL_T* pTp {};
-            Future<Empty>* pFuture {};
-            decltype(a) p {};
-            isize l {};
-            isize r {};
-            decltype(clCmp) cl {};
-        };
-
         Future<Empty> fut {INIT};
         ADT_DEFER( fut.destroy() );
         bool bSpawned = false;
 
-        auto pfn = +[](void* p)
+        auto clDo = [&]
         {
-            Arg& a = *static_cast<Arg*>(p);
-            quickParallel(a.pAlloc, a.pTp, a.p, a.l, a.r, a.cl);
-            a.pFuture->signal();
-            a.pAlloc->free(p);
+            quickParallel(pTPool, a, l, j, clCmp);
+            fut.signal();
+
             return 0;
         };
 
         /* Prevent deadlocks. */
-        if (pTPool->m_atomNActiveTasks.load(atomic::ORDER::ACQUIRE) >= pTPool->nThreads() ||
-            ((j - l + 1) <= 32)
+        if (((j - l + 1) <= SIZE_8K) ||
+            pTPool->m_atomNActiveTasks.load(atomic::ORDER::ACQUIRE) >= pTPool->nThreads()
         )
         {
             quick(a, l, j, clCmp);
         }
         else
         {
-            Arg* pArg0 = pAlloc->template alloc<Arg>(pAlloc, pTPool, &fut, a, l, j, clCmp);
-            if (!pTPool->add({pfn, pArg0}))
-            {
-                pAlloc->free(pArg0);
-                quickParallel(pAlloc, pTPool, a, l, j, clCmp);
-            }
-            else
-            {
-                bSpawned = true;
-            }
+            if (!pTPool->addLambda(clDo)) quickParallel(pTPool, a, l, j, clCmp);
+            else bSpawned = true;
         }
 
-        quickParallel(pAlloc, pTPool, a, i, r, clCmp);
+        quickParallel(pTPool, a, i, r, clCmp);
 
         if (bSpawned) fut.wait();
     }
 }
 
-template<typename ALLOC_T, typename THREAD_POOL_T, typename T>
+template<typename THREAD_POOL_T, typename T>
 requires IsIndexable<T>
 inline void
-quickParallel(ALLOC_T* pAlloc, THREAD_POOL_T* pThreadPool, T* pArray)
+quickParallel(THREAD_POOL_T* pThreadPool, T* pArray)
 {
     if (pArray->size() <= 1) return;
     quickParallel(
-        pAlloc,
         pThreadPool,
         pArray->data(), 0, pArray->size() - 1,
         utils::Comparator<decltype(pArray->operator[](0))> {}

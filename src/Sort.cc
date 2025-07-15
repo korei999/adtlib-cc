@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <execution>
 
-#include "adt/Arena.hh"
+#include "adt/Arena.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh"
 #include "adt/logs.hh"
 #include "adt/Vec.hh"
@@ -76,16 +76,6 @@ main()
         for (isize i = 0; i < v0.size(); ++i)
             v0[i] = isize(rng.next());
 
-        auto v2 = v0.clone();
-        defer( v2.destroy() );
-        {
-            const isize t0 = utils::timeNowUS();
-            sort::quickParallel(StdAllocator::inst(), &tp, &v2);
-            const isize t1 = utils::timeNowUS() - t0;
-
-            LOG_NOTIFY("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), t1 / 1000.0);
-        }
-
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
@@ -93,6 +83,16 @@ main()
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
             const isize t1 = utils::timeNowUS() - t0;
             LOG_NOTIFY("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), t1 / 1000.0);
+        }
+
+        auto v2 = v0.clone();
+        defer( v2.destroy() );
+        {
+            const isize t0 = utils::timeNowUS();
+            sort::quickParallel(&tp, &v2);
+            const isize t1 = utils::timeNowUS() - t0;
+
+            LOG_NOTIFY("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), t1 / 1000.0);
         }
 
         ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");
