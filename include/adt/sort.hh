@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thread.hh"
+#include "atomic.hh"
 #include "defer.hh"
 #include "utils.hh"
 
@@ -188,9 +189,7 @@ quickParallel(
     auto a[],
     isize l,
     isize r,
-    CL_CMP clCmp,
-    const isize maxDepth,
-    const isize depth
+    CL_CMP clCmp
 )
 {
     if (l < r)
@@ -221,8 +220,6 @@ quickParallel(
             isize l {};
             isize r {};
             decltype(clCmp) cl {};
-            isize maxDepth {};
-            isize depth {};
         };
 
         Future<Empty> fut {INIT};
@@ -232,24 +229,26 @@ quickParallel(
         auto pfn = +[](void* p)
         {
             Arg& a = *static_cast<Arg*>(p);
-            quickParallel(a.pAlloc, a.pTp, a.p, a.l, a.r, a.cl, a.maxDepth, a.depth + 1);
+            quickParallel(a.pAlloc, a.pTp, a.p, a.l, a.r, a.cl);
             a.pFuture->signal();
             a.pAlloc->free(p);
             return 0;
         };
 
         /* Prevent deadlocks. */
-        if (depth >= maxDepth || ((j - l + 1) <= 32))
+        if (pTPool->m_atomNActiveTasks.load(atomic::ORDER::ACQUIRE) >= pTPool->nThreads() ||
+            ((j - l + 1) <= 32)
+        )
         {
             quick(a, l, j, clCmp);
         }
         else
         {
-            Arg* pArg0 = pAlloc->template alloc<Arg>(pAlloc, pTPool, &fut, a, l, j, clCmp, maxDepth, depth);
+            Arg* pArg0 = pAlloc->template alloc<Arg>(pAlloc, pTPool, &fut, a, l, j, clCmp);
             if (!pTPool->add({pfn, pArg0}))
             {
                 pAlloc->free(pArg0);
-                quickParallel(pAlloc, pTPool, a, l, j, clCmp, maxDepth, depth + 1);
+                quickParallel(pAlloc, pTPool, a, l, j, clCmp);
             }
             else
             {
@@ -257,7 +256,7 @@ quickParallel(
             }
         }
 
-        quickParallel(pAlloc, pTPool, a, i, r, clCmp, maxDepth, depth + 1);
+        quickParallel(pAlloc, pTPool, a, i, r, clCmp);
 
         if (bSpawned) fut.wait();
     }
@@ -273,9 +272,7 @@ quickParallel(ALLOC_T* pAlloc, THREAD_POOL_T* pThreadPool, T* pArray)
         pAlloc,
         pThreadPool,
         pArray->data(), 0, pArray->size() - 1,
-        utils::Comparator<decltype(pArray->operator[](0))> {},
-        pThreadPool->nThreads()/2 - 1,
-        0
+        utils::Comparator<decltype(pArray->operator[](0))> {}
     );
 }
 
