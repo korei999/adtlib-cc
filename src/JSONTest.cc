@@ -45,12 +45,15 @@ main(int argc, char* argv[])
 
     try
     {
-        // FreeList al(SIZE_1G);
+        // FreeList al {SIZE_1G};
         // StdAllocator al;
         // MiMalloc al;
-        Arena al(SIZE_8M);
+        Arena al {SIZE_8M};
         // MiHeap al(0);
-        defer( al.freeAll() );
+        defer(
+            LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
+            al.freeAll()
+        );
 
         String sJson = file::load(&al, argv[1]);
 

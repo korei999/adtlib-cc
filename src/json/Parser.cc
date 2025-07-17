@@ -167,6 +167,8 @@ Parser::parseObject(Node* pNode)
     pNode->tagVal.val.o = Vec<Node>(m_pAlloc);
     auto& aObjs = getObject(pNode);
 
+    ADT_DEFER( aObjs.setCap(m_pAlloc, aObjs.size()) );
+
     while (m_token.eType != TOKEN_TYPE::R_BRACE)
     {
         /* make sure key is quoted */
@@ -206,6 +208,8 @@ Parser::parseArray(Node* pNode)
     pNode->tagVal.eTag = TAG::ARRAY;
     pNode->tagVal.val.a = Vec<Node>(m_pAlloc);
     auto& aTVs = getArray(pNode);
+
+    ADT_DEFER( aTVs.setCap(m_pAlloc, aTVs.size()) );
 
     /* collect each key/value pair inside array */
     while (m_token.eType != TOKEN_TYPE::R_BRACKET)
