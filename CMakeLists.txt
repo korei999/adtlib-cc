@@ -14,6 +14,7 @@ endif()
 project(adtlib-test VERSION 0.7 LANGUAGES CXX C)
 
 option(OPT_SSE4_2 "" ON)
+option(OPT_AVX2 "" OFF)
 option(OPT_MARCH_NATIVE "" OFF)
 
 include_directories(BEFORE "src")
@@ -70,6 +71,16 @@ if (OPT_SSE4_2)
         add_compile_options(/arch:SSE4.2)
     else()
         add_compile_options(-msse4.2)
+    endif()
+endif()
+
+if (OPT_AVX2)
+    add_definitions("-DADT_AVX2")
+
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        add_compile_options(/arch:AVX2)
+    else()
+        add_compile_options(-mavx2 -mfma)
     endif()
 endif()
 

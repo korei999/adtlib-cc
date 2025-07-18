@@ -62,7 +62,6 @@ struct VecSOA
     isize size() const { return m_size; }
     isize cap() const { return m_capacity; }
     void setSize(IAllocator* pAlloc, const isize newSize);
-    void setCap(IAllocator* pAlloc, const isize newCap);
     void zeroOut();
     isize totalByteCap() const;
 
@@ -104,7 +103,7 @@ public:
 template<typename STRUCT, typename BIND, auto ...MEMBERS>
 inline
 VecSOA<STRUCT, BIND, MEMBERS...>::VecSOA(IAllocator* pAlloc, isize prealloc)
-    : m_pData(pAlloc->zallocV<u8>(prealloc * sizeof(STRUCT))), m_capacity(prealloc) {}
+    : m_pData {pAlloc->zallocV<u8>(prealloc * sizeof(STRUCT))}, m_capacity(prealloc) {}
 
 template<typename STRUCT, typename BIND>
 inline void VecSOASetHelper(u8*, const isize, const isize) { /* empty case */ }
@@ -147,22 +146,6 @@ VecSOA<STRUCT, BIND, MEMBERS...>::setSize(IAllocator* pAlloc, const isize newSiz
 {
     if (m_capacity < newSize) grow(pAlloc, newSize);
     m_size = newSize;
-}
-
-template<typename STRUCT, typename BIND, auto ...MEMBERS>
-inline void
-VecSOA<STRUCT, BIND, MEMBERS...>::setCap(IAllocator* pAlloc, const isize newCap)
-{
-    if (newCap == 0)
-    {
-        destroy(pAlloc);
-        return;
-    }
-
-    m_pData = (u8*)pAlloc->realloc(m_pData, m_capacity, newCap, sizeof(STRUCT));
-    m_capacity = newCap;
-
-    if (m_size > newCap) m_size = newCap;
 }
 
 template<typename STRUCT, typename BIND, auto ...MEMBERS>
