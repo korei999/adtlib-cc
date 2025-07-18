@@ -44,7 +44,7 @@ struct FreeListData
 
 struct FreeList : public IArena
 {
-    using Node = RBNode<FreeListData>; /* node is the header + the memory chunk */
+    using Node = RBTree<FreeListData>::Node; /* node is the header + the memory chunk */
 
     /* */
 

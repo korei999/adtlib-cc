@@ -20,7 +20,7 @@ main()
     defer( arena.freeAll() );
 
     {
-        PoolAllocator pool {sizeof(RBNode<long>), 200};
+        PoolAllocator pool {sizeof(RBTree<long>::Node), 200};
         defer( pool.freeAll() );
 
         RBTree<long> tree;
@@ -39,15 +39,15 @@ main()
 
         LOG_GOOD("root: {}\n", *tree.root());
 
-        RBPrintNodes(StdAllocator::inst(), tree.root(), stdout);
+        RBTree<long>::printNodes(StdAllocator::inst(), tree.root(), stdout);
 
-        LOG("sizeof(RBNode<Empty>): {}\n", sizeof(RBNode<Empty>));
+        LOG("sizeof(RBTree<Empty>::Node): {}\n", sizeof(RBTree<Empty>::Node));
     }
 
     {
         RBTree<String> rb0;
 
-        PoolAllocator pool {sizeof(decltype(rb0)::NodeType), 500};
+        PoolAllocator pool {sizeof(RBTree<String>::Node), 500};
         defer( pool.freeAll() );
 
         rb0.insert(&pool, false, {&arena, "Hello"});
@@ -60,8 +60,8 @@ main()
 
         auto rb1 = rb0.release();
 
-        RBPrintNodes(StdAllocator::inst(), rb0.root(), stdout);
-        RBPrintNodes(StdAllocator::inst(), rb1.root(), stdout);
+        RBTree<String>::printNodes(StdAllocator::inst(), rb0.root(), stdout);
+        RBTree<String>::printNodes(StdAllocator::inst(), rb1.root(), stdout);
     }
 
     {
@@ -76,7 +76,7 @@ main()
         static_assert(ConvertsToStringView<std::string>);
         static_assert(!ConvertsToStringView<Arena>);
 
-        RBPrintNodes(StdAllocator::inst(), t0.root(), stdout);
+        RBTree<std::string>::printNodes(StdAllocator::inst(), t0.root(), stdout);
 
         t0.destructElements();
     }
@@ -87,7 +87,7 @@ main()
         t0.emplace(&arena, false, 2);
         t0.emplace(&arena, false, 3);
 
-        RBPrintNodes(&arena, t0.root(), stdout);
+        RBTree<Move>::printNodes(&arena, t0.root(), stdout);
 
         t0.destructElements();
     }
@@ -97,7 +97,7 @@ main()
         for (isize i = 0; i < 10; ++i)
             t0.emplace(&arena, false, i);
 
-        RBPrintNodes(&arena, t0.root(), stdout);
+        RBTree<int>::printNodes(&arena, t0.root(), stdout);
 
         CERR("t0: {}\n", t0);
         for (auto& e : ReverseIt(t0))
@@ -113,7 +113,7 @@ main()
             t0.emplace(StdAllocator::inst(), false, i);
 
         {
-            auto* pFound = RBTraversePre(t0.root(), [&](RBNode<int>* p)
+            auto* pFound = RBTree<int>::traversePre(t0.root(), [&](RBTree<int>::Node* p)
                 {
                     if (p->data() == 5) return true;
                     return false;
@@ -123,7 +123,7 @@ main()
         }
 
         {
-            auto* pFound = RBTraversePost(t0.root(), [&](RBNode<int>* p)
+            auto* pFound = RBTree<int>::traversePost(t0.root(), [&](RBTree<int>::Node* p)
                 {
                     if (p->data() == 2315) return true;
                     return false;
@@ -133,7 +133,7 @@ main()
         }
 
         {
-            auto* pFound = RBTraverseIn(t0.root(), [&](RBNode<int>* p)
+            auto* pFound = RBTree<int>::traverseIn(t0.root(), [&](RBTree<int>::Node* p)
                 {
                     if (p->data() == 3235823) return true;
                     return false;
@@ -155,7 +155,7 @@ main()
         {
             auto time0 = utils::timeNowUS();
             isize total = 0;
-            RBTraverseIn(t0.root(), [&](RBNode<int>* p)
+            RBTree<int>::traverseIn(t0.root(), [&](RBTree<int>::Node* p)
                 {
                     total += p->data();
                     return false;
@@ -170,7 +170,7 @@ main()
         {
             auto time0 = utils::timeNowUS();
             isize total = 0;
-            RBTraversePost(t0.root(), [&](RBNode<int>* p)
+            RBTree<int>::traversePost(t0.root(), [&](RBTree<int>::Node* p)
                 {
                     total += p->data();
                     return false;
@@ -185,7 +185,7 @@ main()
         {
             auto time0 = utils::timeNowUS();
             isize total = 0;
-            RBTraversePre(t0.root(), [&](RBNode<int>* p)
+            RBTree<int>::traversePre(t0.root(), [&](RBTree<int>::Node* p)
                 {
                     total += p->data();
                     return false;
