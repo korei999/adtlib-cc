@@ -102,11 +102,11 @@ main()
 
         const int aSpan[] {999, 999, 999};
 
-        LOG_WARN("v: [{}]\n", v);
+        LOG_WARN("v: {}\n", v);
         v.pushSpanAt(4, aSpan);
-        LOG_GOOD("v: [{}]\n", v);
+        LOG_GOOD("v: {}\n", v);
         v.pushSpanAt(10, aSpan);
-        LOG_NOTIFY("v: [{}]\n", v);
+        LOG_NOTIFY("v: {}\n", v);
     }
 
     Vec<Arena> aArenas(StdAllocator::inst(), 1);
