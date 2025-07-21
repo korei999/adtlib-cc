@@ -57,6 +57,8 @@ main()
         // printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
 
+    CERR("\n");
+
     {
         const auto t0 = utils::timeNowUS();
 
@@ -66,10 +68,12 @@ main()
 
         const auto t1 = utils::timeNowUS();
 
-        print::out("aBuff: {}\n", aBuff);
-        // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        // print::out("aBuff: {}\n", aBuff);
+        LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        // printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
+
+    CERR("\n");
 
     {
         const auto t0 = utils::timeNowUS();
@@ -80,10 +84,12 @@ main()
 
         const auto t1 = utils::timeNowUS();
 
-        print::out("aBuff: {}\n", aBuff);
-        // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        // print::out("aBuff: {}\n", aBuff);
+        LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        // printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
+
+    CERR("\n");
 
     {
         const auto t0 = utils::timeNowUS();
@@ -93,10 +99,10 @@ main()
             std::format_to(aBuff, "{}", i);
 
         const auto t1 = utils::timeNowUS();
-        print::out("aBuff: {}\n", aBuff);
+        // print::out("aBuff: {}\n", aBuff);
 
-        // LOG_BAD("(fmtlib) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        // printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
 
 }
