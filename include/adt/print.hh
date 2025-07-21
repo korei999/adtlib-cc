@@ -529,7 +529,7 @@ formatToContextVariadic(Context, FormatArgs) noexcept
     return 0;
 }
 
-template<typename T, typename ...ARGS>
+template<typename T>
 inline isize
 formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const T& x) noexcept
 {
@@ -549,7 +549,7 @@ formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const T& first, const A
     if (ctx.push(' ') == -1) return n;
     ++n;
 
-    return n + formatToContextVariadic(ctx, fmtArgs, args...);
+    return n + details::formatToContextVariadic(ctx, fmtArgs, args...);
 }
 
 } /* namespace details */
