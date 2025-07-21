@@ -7,6 +7,8 @@
 #include "adt/String.hh" /* IWYU pragma: keep */
 #include "adt/math.hh" /* IWYU pragma: keep */
 
+#include <format>
+
 using namespace adt;
 
 int
@@ -38,4 +40,63 @@ main()
         print::out("Pair<int, int>(:>3): {:>3}\n", Pair {1, 1});
         print::out("Pair<f32, f32>(:.4): {:.4}\n", Pair {1.1f, 2.2f});
     }
+
+    constexpr isize BIG = 500000;
+
+    {
+        // const auto t0 = utils::timeNowUS();
+
+        char aBuff[64] {};
+        for (isize i = 0; i < BIG; ++i)
+            print::toSpan(aBuff, "{}", i);
+
+        // const auto t1 = utils::timeNowUS();
+
+        // print::out("aBuff: {}\n", aBuff);
+        // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        // printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+    }
+
+    {
+        const auto t0 = utils::timeNowUS();
+
+        char aBuff[64] {};
+        for (isize i = 0; i < BIG; ++i)
+            print::toSpan(aBuff, "{}", i);
+
+        const auto t1 = utils::timeNowUS();
+
+        print::out("aBuff: {}\n", aBuff);
+        // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+    }
+
+    {
+        const auto t0 = utils::timeNowUS();
+
+        char aBuff[64] {};
+        for (isize i = 0; i < BIG; ++i)
+            snprintf(aBuff, sizeof(aBuff) - 1, "%lld", i);
+
+        const auto t1 = utils::timeNowUS();
+
+        print::out("aBuff: {}\n", aBuff);
+        // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+    }
+
+    {
+        const auto t0 = utils::timeNowUS();
+
+        char aBuff[64] {};
+        for (isize i = 0; i < BIG; ++i)
+            std::format_to(aBuff, "{}", i);
+
+        const auto t1 = utils::timeNowUS();
+        print::out("aBuff: {}\n", aBuff);
+
+        // LOG_BAD("(fmtlib) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+    }
+
 }

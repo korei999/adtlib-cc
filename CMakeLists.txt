@@ -129,6 +129,7 @@ message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 # link_directories(${TBB_LIBRARY_DIRS})
 # link_libraries(${TBB_LIBRARIES})
 
+# add_link_options(-lfmt)
 # add_link_options(-lmimalloc)
 # include(FetchContent)
 # 

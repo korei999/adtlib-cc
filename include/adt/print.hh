@@ -214,11 +214,11 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
 
 template<typename INT_T>
 requires std::is_integral_v<INT_T>
-inline isize
+inline constexpr isize
 intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
 {
-    bool bNegative = false;
     isize i = 0;
+    bool bNegative = false;
     ADT_DEFER( utils::reverse(spBuff.data(), i) );
 
 #define PUSH_OR_RET(x)                                                                                                 \
@@ -293,8 +293,8 @@ copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexc
 
     auto clCopySpan = [&]
     {
-        for (; i < spSrc.size() && spSrc[i] && ctx.buffIdx < ctx.buffSize && i < fmtArgs.maxLen; ++i)
-            ctx.pBuff[ctx.buffIdx++] = spSrc[i];
+        for (; i < spSrc.size() && spSrc[i] && ctx.buffIdx < ctx.buffSize && i < fmtArgs.maxLen; ++i, ++ctx.buffIdx)
+            ctx.pBuff[ctx.buffIdx] = spSrc[i];
     };
 
     if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::JUSTIFY_RIGHT))
