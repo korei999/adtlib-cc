@@ -242,13 +242,13 @@ intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
         bNegative = true;
         x = -x;
     }
- 
+
     while (x != 0)
     {
-        int rem = x % int(fmtArgs.eBase);
-        char c = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
-        PUSH_OR_RET(c);
-        x = x / int(fmtArgs.eBase);
+        const int rem = x % int(fmtArgs.eBase);
+        const char digit = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+        PUSH_OR_RET(digit);
+        x /= int(fmtArgs.eBase);
     }
  
     if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::ALWAYS_SHOW_SIGN))
