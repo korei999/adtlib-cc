@@ -32,7 +32,7 @@ main()
         a.pushSorted(sort::ORDER::INC, 50);
         a.pushSorted(sort::ORDER::INC, -240);
 
-        LOG("sorted inc: [{}]\n", a);
+        LOG("sorted inc: {}\n", a);
     }
 
     {

@@ -20,7 +20,7 @@ main()
     list.pushBack(0);
 
     list.sort<utils::compareRev<long>>();
-    LOG("list: [{}]\n", list);
+    LOG("list: {}\n", list);
     list.sort();
-    LOG("list: [ {:>5} ]\n", list);
+    LOG("list: {:>5}\n", list);
 }

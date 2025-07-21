@@ -20,7 +20,7 @@ main()
     print::out("'{:>10}'{}\n", "10", 10);
 
     print::out("'{:{}}'", 10, 1);
-    print::out("there must be single quote before the word 'there'\n");
+    print::out("there must be a single quote before the word 'there'\n");
 
     print::out("dec: {}, hex: {:#x}, bin: {:#b}\n", 13, 13, 13);
 
@@ -28,10 +28,14 @@ main()
 
     print::out("{}\n", 10);
 
-
     Array<f64, 32> arr {1.1, 2.2, 3.3, 4.4, 5.5};
-    print::out("arr: [{:.5}]\n", arr);
+    print::out("arr: {:.5}\n", arr);
 
     Span<f64> spArr(arr.data(), arr.size());
-    print::out("spArr: [{:.4}]\n", spArr);
+    print::out("spArr: {:.4}\n", spArr);
+
+    {
+        print::out("Pair<int, int>(:>3): {:>3}\n", Pair {1, 1});
+        print::out("Pair<f32, f32>(:.4): {:.4}\n", Pair {1.1f, 2.2f});
+    }
 }
