@@ -1,9 +1,9 @@
-#include "adt/StdAllocator.hh"
-#include "adt/defer.hh"
-#include "adt/logs.hh"
-#include "adt/ThreadPool.hh"
-#include "adt/BufferAllocator.hh"
-#include "adt/ScratchBuffer.hh"
+#include "adt/StdAllocator.hh" /* IWYU pragma: keep */
+#include "adt/defer.hh" /* IWYU pragma: keep */
+#include "adt/logs.hh" /* IWYU pragma: keep */
+#include "adt/ThreadPool.hh" /* IWYU pragma: keep */
+#include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
+#include "adt/ScratchBuffer.hh" /* IWYU pragma: keep */
 
 using namespace adt;
 
