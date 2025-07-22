@@ -74,18 +74,61 @@ main()
         Entity acc {};
 
         isize t0 = utils::timeNowUS();
-        for (const Entity::Bind e : v0)
+        for (Entity::Bind en : v0)
         {
-            acc.pos += e.pos;
-            acc.scale += e.pos;
-            acc.vel += e.vel;
-            acc.assetI += e.assetI;
+            acc.pos += en.pos;
+            acc.scale += en.scale;
+            acc.vel += en.vel;
+            acc.assetI += en.assetI;
         }
 
         isize t1 = utils::timeNowUS() - t0;
         CERR("acc: {}, {}, {}, {}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA time: {:.3} ms\n\n", t1 / 1'000.0);
+    }
+
+    {
+        VecSOA<Entity, Entity::Bind,
+            &Entity::pos, &Entity::scale, &Entity::vel,
+            &Entity::_pad0,
+            &Entity::_pad1,
+            &Entity::_pad2,
+            &Entity::_pad3,
+            &Entity::_pad4,
+            &Entity::_pad5,
+            &Entity::_pad6,
+            &Entity::assetI
+        > v0 {&alloc, SIZE};
+
+        defer( v0.destroy(&alloc) );
+
+        for (isize i = 0; i < SIZE; ++i)
+        {
+            f32 fi = f32(i);
+            v0.push(&alloc, {.pos {fi, fi, fi}, .scale {fi, fi, fi}, .vel {fi, fi, fi}, .assetI = int(i)});
+        }
+
+        Entity acc {};
+
+        auto* pPos = &v0[0].pos;
+        auto* pScale = &v0[0].scale;
+        auto* pVel = &v0[0].vel;
+        auto* pAsset = &v0[0].assetI;
+
+        isize t0 = utils::timeNowUS();
+        for (isize i = 0; i < v0.size(); ++i)
+        {
+            acc.pos += pPos[i];
+            acc.scale += pScale[i];
+            acc.vel += pVel[i];
+            acc.assetI += pAsset[i];
+        }
+
+        isize t1 = utils::timeNowUS() - t0;
+        CERR("acc: {}, {}, {}, {}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+
+        LOG_NOTIFY("SOA(offsets) time: {:.3} ms\n\n", t1 / 1'000.0);
     }
 
     {
@@ -101,17 +144,17 @@ main()
         Entity acc {};
 
         isize t0 = utils::timeNowUS();
-        for (const auto& e : v0)
+        for (isize i = 0; i < v0.size(); ++i)
         {
-            acc.pos += e.pos;
-            acc.scale += e.pos;
-            acc.vel += e.vel;
-            acc.assetI += e.assetI;
+            acc.pos += v0[i].pos;
+            acc.scale += v0[i].scale;
+            acc.vel += v0[i].vel;
+            acc.assetI += v0[i].assetI;
         }
 
         isize t1 = utils::timeNowUS() - t0;
         CERR("acc: {}, {}, {}, {}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
-        LOG_NOTIFY("AOS time: {:.3} ms\n", t1 / 1'000.0);
+        LOG_NOTIFY("AOS time: {:.3} ms\n\n", t1 / 1'000.0);
     }
 }
