@@ -701,7 +701,6 @@ details::Future::wait()
     LockGuard lock {&m_mtx};
 
     while (!m_bDone) m_cnd.wait(&m_mtx);
-    reset();
 }
 
 inline void

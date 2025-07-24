@@ -64,6 +64,7 @@ struct QueueMPMC
     bool push(const T& x);
     [[nodiscard]] Opt<T> pop();
     int cap() const noexcept { return CAP; }
+    bool empty() const noexcept;
 };
 
 template<typename T, int CAP>
@@ -150,6 +151,13 @@ QueueMPMC<T, CAP>::pop()
     pCell->sequence.store(pos + BUFFER_MASK + 1, atomic::ORDER::RELEASE);
 
     return ret;
+}
+
+template<typename T, int CAP>
+inline bool
+QueueMPMC<T, CAP>::empty() const noexcept
+{
+    return m_dequeuePos.load(atomic::ORDER::ACQUIRE) == m_enqueuePos.load(atomic::ORDER::ACQUIRE);
 }
 
 } /* namespace adt */
