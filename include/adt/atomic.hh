@@ -3,11 +3,10 @@
 #include "types.hh"
 #include "print.hh"
 
-#if __has_include(<windows.h>)
-    #define ADT_USE_WIN32_ATOMICS
-#elif __has_include(<pthread.h>)
-    #include <pthread.h>
+#if __clang__ || __GNUC__
     #define ADT_USE_LINUX_ATOMICS
+#elif __has_include(<windows.h>)
+    #define ADT_USE_WIN32_ATOMICS
 #endif
 
 namespace adt::atomic
