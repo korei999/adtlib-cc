@@ -21,6 +21,8 @@ struct IThreadPool
 
     /* */
 
+    virtual const atomic::Int& nActiveTasks() = 0;
+
     virtual void wait() = 0;
 
     virtual bool add(Task task) = 0;
@@ -87,13 +89,26 @@ struct IThreadPool
 
     bool addRetry(ThreadFn pfn, void* pArg, const int nRetries) { return addRetry({pfn, pArg}, nRetries); }
 
+    void
+    addRetryOrDo(ThreadFn pfn, void* pArg)
+    {
+        if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) pfn(pArg);
+        else addRetry(pfn, pArg);
+    }
+
+    template<typename LAMBDA>
+    void
+    addLambdaRetryOrDo(LAMBDA& cl)
+    {
+        if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) cl();
+        else addLambdaRetry(cl);
+    }
+
+    template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
+    [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetryOrDo(LAMBDA&& cl) = delete;
+
     template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
     [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetry(LAMBDA&& t) = delete;
-};
-
-struct IThreadPoolWithMemory : IThreadPool
-{
-    virtual ScratchBuffer& scratchBuffer() = 0;
 };
 
 template<isize QUEUE_SIZE>
@@ -133,6 +148,8 @@ struct ThreadPool : IThreadPool
     );
 
     /* */
+
+    virtual const atomic::Int& nActiveTasks() override { return m_atomNActiveTasks; }
 
     virtual void wait() override;
 
@@ -296,9 +313,10 @@ ThreadPool<QUEUE_SIZE>::add(Task task)
 /* ThreadPool with ScratchBuffers created for each thread.
  * Any thread can access its own thread local buffer with `threadPool.scratch()`. */
 template<isize QUEUE_SIZE>
-struct ThreadPoolWithMemory : IThreadPoolWithMemory
+struct ThreadPoolWithMemory : ThreadPool<QUEUE_SIZE>
 {
-    ThreadPool<QUEUE_SIZE> m_base {};
+    using Base = ThreadPool<QUEUE_SIZE>;
+    using Task = Base::Task;
 
     /* */
 
@@ -310,7 +328,7 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
     ThreadPoolWithMemory() = default;
 
     ThreadPoolWithMemory(IAllocator* pAlloc, isize nBytesEachBuffer, int nThreads = utils::max(ADT_GET_NPROCS() - 1, 1))
-        : m_base(
+        : Base(
             pAlloc,
             +[](void* p) { allocScratchBufferForThisThread(reinterpret_cast<isize>(p)); },
             reinterpret_cast<void*>(nBytesEachBuffer),
@@ -325,15 +343,12 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
 
     /* */
 
-    virtual void wait() override { m_base.wait(); }
-    virtual bool add(Task task) override { return m_base.add(task); }
-    virtual ScratchBuffer& scratchBuffer() override { return gtl_scratchBuff; }
-    virtual int nThreads() const noexcept override { return m_base.nThreads(); }
+    ScratchBuffer& scratchBuffer() { return gtl_scratchBuff; }
 
     void
     destroy(IAllocator* pAlloc)
     {
-        m_base.destroy(pAlloc);
+        Base::destroy(pAlloc);
         destroyScratchBufferForThisThread();
     }
 
@@ -341,7 +356,7 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
     void
     destroyKeepScratchBuffer(IAllocator* pAlloc)
     {
-        m_base.destroy(pAlloc);
+        Base::destroy(pAlloc);
     }
 
     /* */

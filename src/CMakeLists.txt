@@ -129,3 +129,8 @@ add_executable(
     ParallelFor
     ParallelFor.cc
 )
+
+add_executable(
+    QueueMPMC
+    QueueMPMC.cc
+)
