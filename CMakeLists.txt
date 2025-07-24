@@ -86,7 +86,10 @@ endif()
 
 if (OPT_MARCH_NATIVE)
     add_definitions("-DADT_MARCH_NATIVE")
-    add_compile_options(-march=native)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    else()
+        add_compile_options(-march=native)
+    endif()
 endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
