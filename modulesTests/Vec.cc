@@ -1,0 +1,6 @@
+import adt;
+
+int
+main()
+{
+}
