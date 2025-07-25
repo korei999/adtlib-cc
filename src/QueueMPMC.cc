@@ -8,7 +8,7 @@ using namespace adt;
 
 constexpr isize BIG = 1 << 18;
 
-QueueMPMC<int, BIG> s_q {INIT};
+static QueueMPMC<int, BIG*2> s_q {INIT};
 static atomic::Int s_atomCounter {};
 
 int
