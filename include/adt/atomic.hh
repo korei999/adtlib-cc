@@ -92,13 +92,13 @@ struct Int
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
-        return __atomic_load_n(&m_volInt, orderMap(eOrder));
+        return __atomic_load_n(&m_volInt, int(eOrder));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
         return std::atomic_load_explicit(
             (volatile std::atomic<Type>*)&m_volInt,
-            (std::memory_order)orderMap(eOrder)
+            (std::memory_order)eOrder
         );
 
 #endif
@@ -109,14 +109,14 @@ struct Int
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
-        __atomic_store_n(&m_volInt, val, orderMap(eOrder));
+        __atomic_store_n(&m_volInt, val, int(eOrder));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
         std::atomic_store_explicit(
             (volatile std::atomic<Type>*)&m_volInt,
             (std::_Identity_t<Type>)val,
-            (std::memory_order)orderMap(eOrder)
+            (std::memory_order)eOrder
         );
 
 #endif
@@ -127,14 +127,14 @@ struct Int
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
-        return __atomic_fetch_add(&m_volInt, val, orderMap(eOrder));
+        return __atomic_fetch_add(&m_volInt, val, int(eOrder));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
         return std::atomic_fetch_add_explicit(
             (volatile std::atomic<Type>*)&m_volInt,
             (std::_Identity_t<Type>)val,
-            (std::memory_order)orderMap(eOrder)
+            (std::memory_order)eOrder
         );
 
 #endif
@@ -145,14 +145,14 @@ struct Int
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
-        return __atomic_fetch_sub(&m_volInt, val, orderMap(eOrder));
+        return __atomic_fetch_sub(&m_volInt, val, int(eOrder));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
         return std::atomic_fetch_sub_explicit(
             (volatile std::atomic<Type>*)&m_volInt,
             (std::_Identity_t<Type>)val,
-            (std::memory_order)orderMap(eOrder)
+            (std::memory_order)eOrder
         );
 
 #endif
@@ -163,7 +163,7 @@ struct Int
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
-        return __atomic_compare_exchange_n(&m_volInt, pExpected, desired, true /* weak */, orderMap(eSucces), orderMap(eFailure));
+        return __atomic_compare_exchange_n(&m_volInt, pExpected, desired, true /* weak */, int(eSucces), int(eFailure));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
@@ -171,8 +171,8 @@ struct Int
             (volatile std::atomic<Type>*)&m_volInt,
             (std::_Identity_t<Type>*)pExpected,
             (std::_Identity_t<Type>)desired,
-            (std::memory_order)orderMap(eSucces),
-            (std::memory_order)orderMap(eFailure)
+            (std::memory_order)eSucces,
+            (std::memory_order)eFailure
         );
 
 #endif
@@ -184,7 +184,7 @@ struct Int
 
 #ifdef ADT_USE_LINUX_ATOMICS
 
-        return __atomic_compare_exchange_n(&m_volInt, pExpected, desired, false /* weak */, orderMap(eSucces), orderMap(eFailure));
+        return __atomic_compare_exchange_n(&m_volInt, pExpected, desired, false /* weak */, int(eSucces), int(eFailure));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
@@ -192,21 +192,12 @@ struct Int
             (volatile std::atomic<Type>*)&m_volInt,
             (std::_Identity_t<Type>*)pExpected,
             (std::_Identity_t<Type>)desired,
-            (std::memory_order)orderMap(eSucces),
-            (std::memory_order)orderMap(eFailure)
+            (std::memory_order)eSucces,
+            (std::memory_order)eFailure
         );
 
 #endif
     };
-
-    /* */
-protected:
-
-    ADT_ALWAYS_INLINE static constexpr int
-    orderMap(const ORDER eOrder) noexcept
-    {
-        return static_cast<int>(eOrder);
-    }
 };
 
 } /* namespace adt::atomic */
