@@ -96,8 +96,6 @@ struct Int
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        return InterlockedCompareExchange(const_cast<volatile LONG*>(&m_volInt), 0, 0);
-
         return std::atomic_load_explicit(
             (volatile std::atomic<Type>*)&m_volInt,
             (std::memory_order)orderMap(eOrder)
@@ -115,7 +113,7 @@ struct Int
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        return std::atomic_store_explicit(
+        std::atomic_store_explicit(
             (volatile std::atomic<Type>*)&m_volInt,
             (std::_Identity_t<Type>)val,
             (std::memory_order)orderMap(eOrder)
