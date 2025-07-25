@@ -3,10 +3,12 @@
 #include "types.hh"
 #include "print.hh"
 
-#if __clang__ || __GNUC__
-    #define ADT_USE_LINUX_ATOMICS
-#elif __has_include(<windows.h>)
+#include <atomic>
+
+#if __has_include(<windows.h>)
     #define ADT_USE_WIN32_ATOMICS
+#elif __clang__ || __GNUC__
+    #define ADT_USE_LINUX_ATOMICS
 #endif
 
 namespace adt::atomic
@@ -54,7 +56,7 @@ fence([[maybe_unused]] const ORDER eOrder)
 {
 #ifdef ADT_USE_WIN32_ATOMICS
 
-    MemoryBarrier();
+    return std::atomic_thread_fence((std::memory_order)eOrder);
 
 #elif defined ADT_USE_LINUX_ATOMICS
 
@@ -97,6 +99,11 @@ struct Int
 
         return InterlockedCompareExchange(const_cast<volatile LONG*>(&m_volInt), 0, 0);
 
+        return std::atomic_load_explicit(
+            (volatile std::atomic<Type>*)&m_volInt,
+            (std::memory_order)orderMap(eOrder)
+        );
+
 #endif
     }
 
@@ -109,7 +116,11 @@ struct Int
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        InterlockedExchange(&m_volInt, val);
+        return std::atomic_store_explicit(
+            (volatile std::atomic<Type>*)&m_volInt,
+            (std::_Identity_t<Type>)val,
+            (std::memory_order)orderMap(eOrder)
+        );
 
 #endif
     }
@@ -123,7 +134,11 @@ struct Int
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        return InterlockedExchangeAdd(&m_volInt, val);
+        return std::atomic_fetch_add_explicit(
+            (volatile std::atomic<Type>*)&m_volInt,
+            (std::_Identity_t<Type>)val,
+            (std::memory_order)orderMap(eOrder)
+        );
 
 #endif
     }
@@ -137,7 +152,11 @@ struct Int
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        return InterlockedExchangeAdd(&m_volInt, -val);
+        return std::atomic_fetch_sub_explicit(
+            (volatile std::atomic<Type>*)&m_volInt,
+            (std::_Identity_t<Type>)val,
+            (std::memory_order)orderMap(eOrder)
+        );
 
 #endif
     }
@@ -151,10 +170,13 @@ struct Int
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        Type old = InterlockedCompareExchange(&m_volInt, desired, *pExpected);
-        if (old != *pExpected) *pExpected = old;
-
-        return old;
+        return std::atomic_compare_exchange_weak_explicit(
+            (volatile std::atomic<Type>*)&m_volInt,
+            (std::_Identity_t<Type>*)pExpected,
+            (std::_Identity_t<Type>)desired,
+            (std::memory_order)orderMap(eSucces),
+            (std::memory_order)orderMap(eFailure)
+        );
 
 #endif
     };
@@ -162,16 +184,20 @@ struct Int
     ADT_ALWAYS_INLINE Type
     compareExchange(Type* pExpected, Type desired, [[maybe_unused]] ORDER eSucces, [[maybe_unused]] ORDER eFailure) noexcept
     {
+
 #ifdef ADT_USE_LINUX_ATOMICS
 
         return __atomic_compare_exchange_n(&m_volInt, pExpected, desired, false /* weak */, orderMap(eSucces), orderMap(eFailure));
 
 #elif defined ADT_USE_WIN32_ATOMICS
 
-        Type old = InterlockedCompareExchange(&m_volInt, desired, *pExpected);
-        if (old != *pExpected) *pExpected = old;
-
-        return old;
+        return std::atomic_compare_exchange_strong_explicit(
+            (volatile std::atomic<Type>*)&m_volInt,
+            (std::_Identity_t<Type>*)pExpected,
+            (std::_Identity_t<Type>)desired,
+            (std::memory_order)orderMap(eSucces),
+            (std::memory_order)orderMap(eFailure)
+        );
 
 #endif
     };
@@ -182,15 +208,7 @@ protected:
     ADT_ALWAYS_INLINE static constexpr int
     orderMap([[maybe_unused]] const ORDER eOrder) noexcept
     {
-#ifdef ADT_USE_LINUX_ATOMICS
-
         return static_cast<int>(eOrder);
-
-#elif defined ADT_USE_WIN32_ATOMICS
-
-        return {};
-
-#endif
     }
 };
 
