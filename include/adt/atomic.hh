@@ -3,10 +3,9 @@
 #include "types.hh"
 #include "print.hh"
 
-#include <atomic>
-
 #if __has_include(<windows.h>)
     #define ADT_USE_WIN32_ATOMICS
+    #include <atomic>
 #elif __clang__ || __GNUC__
     #define ADT_USE_LINUX_ATOMICS
 #endif
