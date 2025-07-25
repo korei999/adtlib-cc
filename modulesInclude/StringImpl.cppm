@@ -2,12 +2,12 @@ module adt:String;
 
 import :utils;
 import :print;
+import :assert;
+import :IAllocator;
+import :hash;
+import :Span;
 
-#include "assert.hh"
-#include "IAllocator.hh"
-#include "Span.hh" /* IWYU pragma: keep */
 #include "wcwidth.hh"
-#include "hash.hh"
 
 #include <cwchar>
 

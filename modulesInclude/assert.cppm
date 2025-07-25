@@ -1,8 +1,7 @@
 export module adt:assert;
 
 import :print;
-
-#include "types.hh"
+import :types;
 
 #if __has_include(<unistd.h>)
     #include <unistd.h>

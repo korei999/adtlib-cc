@@ -2,6 +2,7 @@ export module adt:utils;
 
 import :assert;
 import :String;
+import :Pair;
 
 #if __has_include(<unistd.h>)
     #include <unistd.h>
@@ -23,8 +24,6 @@ import :String;
     #undef MAX
     #include <sysinfoapi.h>
 #endif
-
-#include "Pair.hh"
 
 #include <ctime>
 #include <cstring>

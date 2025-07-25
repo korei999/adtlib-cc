@@ -1,11 +1,9 @@
-#pragma once
+module adt:Span;
 
-#include "Span.inc"
+import :types;
+import :assert;
 
-#include "types.hh"
-#include "assert.hh"
-
-namespace adt
+export namespace adt
 {
 
 template<typename T>

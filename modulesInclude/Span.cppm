@@ -1,8 +1,8 @@
-#pragma once
+export module adt:Span;
 
-#include "types.hh"
+import :types;
 
-namespace adt
+export namespace adt
 {
 
 template<typename T>

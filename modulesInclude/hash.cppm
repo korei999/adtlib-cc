@@ -20,15 +20,15 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+export module adt:hash;
 
-#include "Span.inc"
-#include "assert.hh"
-#include "types.hh"
+import :Span;
+import :assert;
+import :types;
 
 #include <nmmintrin.h>
 
-namespace adt::hash
+export namespace adt::hash
 {
 
 struct xxh64

@@ -1,8 +1,10 @@
-#pragma once
+export module adt:Pair;
 
-#include "types.hh"
+import :types;
 
-namespace adt
+#include "macro.hh"
+
+export namespace adt
 {
 
 template<typename A, typename B>

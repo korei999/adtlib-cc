@@ -1,11 +1,8 @@
 export module adt:print;
 
+import :Pair;
 import :String;
-import std.core;
-
-#include "Pair.hh"
-
-#include <cstdio>
+import std;
 
 namespace adt::print
 {

@@ -1,8 +1,7 @@
 export module adt:IAllocator;
 
+import :types;
 import :IException;
-
-#include "types.hh"
 
 #include <cerrno>
 #include <cstdio>

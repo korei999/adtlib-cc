@@ -1,13 +1,12 @@
 export module adt:Thread;
 
+import :types;
 import :assert;
-
-#include "types.hh"
+import std;
 
 #include <cstring>
 #include <emmintrin.h>
 
-#include <type_traits>
 #include <utility>
 
 #if __has_include(<windows.h>)

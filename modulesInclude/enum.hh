@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 /* https://voithos.io/articles/enum-class-bitmasks/ */
 /* Define bitwise operators for an enum class, allowing usage as bitmasks. */
 #define ADT_ENUM_BITWISE_OPERATORS(ENUM)                                                                               \

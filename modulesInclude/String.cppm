@@ -1,8 +1,9 @@
 export module adt:String;
 
-#include "Span.inc"
+import :Span;
+import std;
 
-#include <concepts>
+#include "macro.hh"
 
 export namespace adt
 {
