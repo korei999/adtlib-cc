@@ -52,7 +52,7 @@ enum class ORDER : int
 };
 
 ADT_ALWAYS_INLINE void
-fence([[maybe_unused]] const ORDER eOrder)
+fence(const ORDER eOrder)
 {
 #ifdef ADT_USE_WIN32_ATOMICS
 
@@ -89,7 +89,7 @@ struct Int
     /* */
 
     ADT_ALWAYS_INLINE Type
-    load([[maybe_unused]] const ORDER eOrder) const noexcept
+    load(const ORDER eOrder) const noexcept
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
@@ -108,7 +108,7 @@ struct Int
     }
 
     ADT_ALWAYS_INLINE void
-    store(const int val, [[maybe_unused]] const ORDER eOrder) noexcept
+    store(const int val, const ORDER eOrder) noexcept
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
@@ -126,7 +126,7 @@ struct Int
     }
 
     ADT_ALWAYS_INLINE Type
-    fetchAdd(const int val, [[maybe_unused]] const ORDER eOrder) noexcept
+    fetchAdd(const int val, const ORDER eOrder) noexcept
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
@@ -144,7 +144,7 @@ struct Int
     }
 
     ADT_ALWAYS_INLINE Type
-    fetchSub(const int val, [[maybe_unused]] const ORDER eOrder) noexcept
+    fetchSub(const int val, const ORDER eOrder) noexcept
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
@@ -162,7 +162,7 @@ struct Int
     }
 
     ADT_ALWAYS_INLINE Type
-    compareExchangeWeak(Type* pExpected, Type desired, [[maybe_unused]] ORDER eSucces, [[maybe_unused]] ORDER eFailure) noexcept
+    compareExchangeWeak(Type* pExpected, Type desired, ORDER eSucces, ORDER eFailure) noexcept
     {
 #ifdef ADT_USE_LINUX_ATOMICS
 
@@ -182,7 +182,7 @@ struct Int
     };
 
     ADT_ALWAYS_INLINE Type
-    compareExchange(Type* pExpected, Type desired, [[maybe_unused]] ORDER eSucces, [[maybe_unused]] ORDER eFailure) noexcept
+    compareExchange(Type* pExpected, Type desired, ORDER eSucces, ORDER eFailure) noexcept
     {
 
 #ifdef ADT_USE_LINUX_ATOMICS
@@ -206,7 +206,7 @@ struct Int
 protected:
 
     ADT_ALWAYS_INLINE static constexpr int
-    orderMap([[maybe_unused]] const ORDER eOrder) noexcept
+    orderMap(const ORDER eOrder) noexcept
     {
         return static_cast<int>(eOrder);
     }
