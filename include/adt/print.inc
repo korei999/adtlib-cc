@@ -27,7 +27,7 @@ enum class FMT_FLAGS : u8
 };
 ADT_ENUM_BITWISE_OPERATORS(FMT_FLAGS);
 
-enum CONTEXT_FLAGS : u8
+enum class CONTEXT_FLAGS : u8
 {
     NONE = 0,
     UPDATE_FMT_ARGS = 1,

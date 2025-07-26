@@ -4,7 +4,6 @@
 
 #include "String.hh" /* IWYU pragma: keep */
 #include "defer.hh"
-#include "enum.hh"
 
 #include <ctype.h> /* win32 */
 #include <cstdio>
@@ -464,7 +463,7 @@ printArg(isize& nRead, isize& i, bool& bArg, Context& ctx, const T& arg) noexcep
 
         FormatArgs fmtArgs {};
 
-        if (ctx.eFlags & CONTEXT_FLAGS::UPDATE_FMT_ARGS)
+        if (bool(ctx.eFlags & CONTEXT_FLAGS::UPDATE_FMT_ARGS))
         {
             ctx.eFlags &= ~CONTEXT_FLAGS::UPDATE_FMT_ARGS;
 
@@ -558,7 +557,7 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs) noexcept
     isize i = ctx.fmtIdx;
 
     /* NOTE: Ugly edge case, when we need to fill with spaces but fmt is out of range. */
-    if (ctx.eFlags & CONTEXT_FLAGS::UPDATE_FMT_ARGS && ctx.fmtIdx >= ctx.fmt.size())
+    if (bool(ctx.eFlags & CONTEXT_FLAGS::UPDATE_FMT_ARGS) && ctx.fmtIdx >= ctx.fmt.size())
         return formatToContext(ctx, ctx.prevFmtArgs, tFirst);
     else if (ctx.fmtIdx >= ctx.fmt.size())
         return 0;
