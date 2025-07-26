@@ -4,7 +4,9 @@
 
 /* example:
  *
- * ADT_GEN_SOA_STRUCT(Entity,
+ * #define ENTITY_PP_BIND_I(TYPE, NAME) , &Entity::NAME
+ * #define ENTITY_PP_BIND(TUPLE) ENTITY_PP_BIND_I TUPLE
+ * #define ENTITY_FIELDS \
  *     (adt::StringFixed<128>, sfName),
  *     (adt::math::V4, color),
  *     (adt::math::V3, pos),
@@ -14,7 +16,7 @@
  *     (adt::i16, assetI),
  *     (adt::i16, modelI),
  *     (bool, bNoDraw)
- * );
+ * ADT_SOA_GEN_STRUCT_ZERO(Entity, Bind, ENTITY_FIELDS);
  *
  * expands to:
  *
@@ -41,8 +43,8 @@
  *   bool bNoDraw;
  * }; */
 
-#define ADT_PP_RSEQ_N() 20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
-#define ADT_PP_ARG_N(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,N,...) N
+#define ADT_PP_RSEQ_N() 30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
+#define ADT_PP_ARG_N(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,N,...) N
 #define ADT_PP_NARG_(...) ADT_PP_ARG_N(__VA_ARGS__)
 #define ADT_PP_NARG(...) ADT_PP_NARG_(__VA_ARGS__, ADT_PP_RSEQ_N())
 
@@ -91,6 +93,29 @@
     m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19)
 #define ADT_PP_FOR_EACH_20(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20) \
     m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20)
+#define ADT_PP_FOR_EACH_21(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21)
+#define ADT_PP_FOR_EACH_22(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22)
+#define ADT_PP_FOR_EACH_23(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23)
+#define ADT_PP_FOR_EACH_24(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24)
+#define ADT_PP_FOR_EACH_25(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24) m(x25)
+#define ADT_PP_FOR_EACH_26(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24) m(x25) m(x26)
+#define ADT_PP_FOR_EACH_27(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24) m(x25) m(x26) m(x27)
+#define ADT_PP_FOR_EACH_28(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24) m(x25) m(x26) m(x27) m(x28)
+#define ADT_PP_FOR_EACH_29(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24) m(x25) m(x26) m(x27) m(x28) m(x29)
+#define ADT_PP_FOR_EACH_30(m, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29, x30) \
+    m(x1) m(x2) m(x3) m(x4) m(x5) m(x6) m(x7) m(x8) m(x9) m(x10) m(x11) m(x12) m(x13) m(x14) m(x15) m(x16) m(x17) m(x18) m(x19) m(x20) m(x21) m(x22) m(x23) m(x24) m(x25) m(x26) m(x27) m(x28) m(x29) m(x30)
+
+#define ADT_DECL_FIELD_ZERO(TUPLE) ADT_DECL_FIELD_ZERO_I TUPLE;
+#define ADT_DECL_FIELD_ZERO_I(TYPE, NAME) TYPE NAME {}
 
 #define ADT_DECL_FIELD(TUPLE) ADT_DECL_FIELD_I TUPLE;
 #define ADT_DECL_FIELD_I(TYPE, NAME) TYPE NAME
@@ -98,13 +123,24 @@
 #define ADT_DECL_FIELD_REF(TUPLE) ADT_DECL_FIELD_REF_I TUPLE;
 #define ADT_DECL_FIELD_REF_I(TYPE, NAME) TYPE& NAME
 
-#define ADT_GEN_SOA_STRUCT(NAME, ...)                                                                                  \
+#define ADT_SOA_GEN_STRUCT(NAME, BIND, ...)                                                                            \
     struct NAME                                                                                                        \
     {                                                                                                                  \
-        struct Bind                                                                                                    \
+        struct BIND                                                                                                    \
         {                                                                                                              \
             ADT_PP_FOR_EACH(ADT_DECL_FIELD_REF, __VA_ARGS__)                                                           \
         };                                                                                                             \
                                                                                                                        \
         ADT_PP_FOR_EACH(ADT_DECL_FIELD, __VA_ARGS__)                                                                   \
+    }
+
+#define ADT_SOA_GEN_STRUCT_ZERO(NAME, BIND, ...)                                                                       \
+    struct NAME                                                                                                        \
+    {                                                                                                                  \
+        struct BIND                                                                                                    \
+        {                                                                                                              \
+            ADT_PP_FOR_EACH(ADT_DECL_FIELD_REF, __VA_ARGS__)                                                           \
+        };                                                                                                             \
+                                                                                                                       \
+        ADT_PP_FOR_EACH(ADT_DECL_FIELD_ZERO, __VA_ARGS__)                                                              \
     }

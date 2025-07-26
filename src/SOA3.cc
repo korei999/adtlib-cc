@@ -4,71 +4,51 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/math.hh"
+#include "adt/SOA.hh"
 
 using namespace adt;
 
-struct Entity
-{
-    struct Bind
-    {
-        math::V3& pos;
-        math::V3& scale;
-        math::V3& vel;
-
-        math::V3& _pad0;
-        math::V3& _pad1;
-        math::V3& _pad2;
-        math::V3& _pad3;
-        math::V3& _pad4;
-        math::V3& _pad5;
-        math::V3& _pad6;
-
-        int& assetI;
-    };
-
-    /* */
-
-    math::V3 pos {};
-    math::V3 scale {};
-    math::V3 vel {};
-
-    math::V3 _pad0 {};
-    math::V3 _pad1 {};
-    math::V3 _pad2 {};
-    math::V3 _pad3 {};
-    math::V3 _pad4 {};
-    math::V3 _pad5 {};
-    math::V3 _pad6 {};
-
-    int assetI {};
-};
+#define ENTITY_PP_BIND_I(TYPE, NAME) , &Entity::NAME
+#define ENTITY_PP_BIND(TUPLE) ENTITY_PP_BIND_I TUPLE
+#define ENTITY_FIELDS \
+    (math::V3, pos),\
+    (math::V3, scale),\
+    (math::V3, vel),\
+    (math::V3, _pad0),\
+    (math::V3, _pad1),\
+    (math::V3, _pad2),\
+    (math::V3, _pad3),\
+    (math::V3, _pad4),\
+    (math::V3, _pad5),\
+    (math::V3, _pad6),\
+    (int, assetI),\
+    (math::V4, _pad7),\
+    (math::V4, _pad8),\
+    (math::V4, _pad9),\
+    (math::V4, _pad10),\
+    (math::V4, _pad11),\
+    (math::V4, _pad12),\
+    (math::V4, _pad13),\
+    (math::V4, _pad14)
+ADT_SOA_GEN_STRUCT_ZERO(Entity, Bind, ENTITY_FIELDS);
+#define ENTITY_TEMPLATE_ARGS Entity, Entity::Bind ADT_PP_FOR_EACH(ENTITY_PP_BIND, ENTITY_FIELDS)
 
 int
 main()
 {
-    constexpr isize SIZE = 1000000;
+    constexpr isize SIZE = 5000000;
 
     StdAllocator alloc;
 
     {
-        VecSOA<Entity, Entity::Bind,
-            &Entity::pos, &Entity::scale, &Entity::vel,
-            &Entity::_pad0,
-            &Entity::_pad1,
-            &Entity::_pad2,
-            &Entity::_pad3,
-            &Entity::_pad4,
-            &Entity::_pad5,
-            &Entity::_pad6,
-            &Entity::assetI
-        > v0 {&alloc, SIZE};
-
+        VecSOA<ENTITY_TEMPLATE_ARGS> v0 {&alloc, SIZE};
         defer( v0.destroy(&alloc) );
 
         for (isize i = 0; i < SIZE; ++i)
         {
             f32 fi = f32(i);
-            v0.push(&alloc, {.pos {fi, fi, fi}, .scale {fi, fi, fi}, .vel {fi, fi, fi}, .assetI = int(i)});
+            v0.push(&alloc, {
+                .pos {fi, fi, fi}, .scale {fi, fi, fi}, .vel {fi, fi, fi}, .assetI = int(i)});
         }
 
         Entity acc {};
@@ -89,16 +69,8 @@ main()
     }
 
     {
-        VecSOA<Entity, Entity::Bind,
-            &Entity::pos, &Entity::scale, &Entity::vel,
-            &Entity::_pad0,
-            &Entity::_pad1,
-            &Entity::_pad2,
-            &Entity::_pad3,
-            &Entity::_pad4,
-            &Entity::_pad5,
-            &Entity::_pad6,
-            &Entity::assetI
+        VecSOA<Entity, Entity::Bind
+            ADT_PP_FOR_EACH(ENTITY_PP_BIND, ENTITY_FIELDS)
         > v0 {&alloc, SIZE};
 
         defer( v0.destroy(&alloc) );
