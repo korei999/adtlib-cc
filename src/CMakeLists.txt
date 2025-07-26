@@ -134,3 +134,8 @@ add_executable(
     QueueMPMC
     QueueMPMC.cc
 )
+
+add_executable(
+    PPGenerator
+    PPGenerator.cc
+)
