@@ -1,9 +1,9 @@
 #pragma once
 
-#include "defer.hh"
 #include "print.inc"
 
 #include "String.hh" /* IWYU pragma: keep */
+#include "defer.hh"
 #include "enum.hh"
 
 #include <ctype.h> /* win32 */
@@ -24,19 +24,6 @@
 namespace adt::print
 {
 
-enum class BASE : u8 { TWO = 2, EIGHT = 8, TEN = 10, SIXTEEN = 16 };
-
-enum class FMT_FLAGS : u8
-{
-    HASH = 1,
-    ALWAYS_SHOW_SIGN = 1 << 1,
-    ARG_IS_FMT = 1 << 2,
-    FLOAT_PRECISION_ARG = 1 << 3,
-    JUSTIFY_RIGHT = 1 << 4,
-    SQUARE_BRACKETS = 1 << 5,
-};
-ADT_ENUM_BITWISE_OPERATORS(FMT_FLAGS);
-
 struct FormatArgs
 {
     u16 maxLen = NPOS16;
@@ -44,13 +31,6 @@ struct FormatArgs
     BASE eBase = BASE::TEN;
     FMT_FLAGS eFmtFlags {};
 };
-
-enum CONTEXT_FLAGS : u8
-{
-    NONE = 0,
-    UPDATE_FMT_ARGS = 1,
-};
-ADT_ENUM_BITWISE_OPERATORS(CONTEXT_FLAGS);
 
 struct Context
 {
@@ -76,6 +56,21 @@ struct Context
         return -1;
     }
 };
+
+template<typename T>
+constexpr const StringView
+typeName()
+{
+#ifdef __clang__
+    return __PRETTY_FUNCTION__;
+#elif defined(__GNUC__)
+    return __PRETTY_FUNCTION__;
+#elif defined(_MSC_VER)
+    return __FUNCSIG__;
+#else
+    return "unsupported compiler";
+#endif
+}
 
 inline const char*
 _currentWorkingDirectory()

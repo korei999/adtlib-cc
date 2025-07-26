@@ -83,7 +83,7 @@ main()
         }
 
         isize t1 = utils::timeNowUS() - t0;
-        CERR("acc: {}, {}, {}, {}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+        CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA time: {:.3} ms\n\n", t1 / 1'000.0);
     }
@@ -126,7 +126,7 @@ main()
         }
 
         isize t1 = utils::timeNowUS() - t0;
-        CERR("acc: {}, {}, {}, {}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+        CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA(offsets) time: {:.3} ms\n\n", t1 / 1'000.0);
     }
@@ -153,7 +153,7 @@ main()
         }
 
         isize t1 = utils::timeNowUS() - t0;
-        CERR("acc: {}, {}, {}, {}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+        CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("AOS time: {:.3} ms\n\n", t1 / 1'000.0);
     }
