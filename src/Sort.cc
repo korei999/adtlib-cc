@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <execution>
 
+#include "adt/sort.hh"
 #include "adt/Arena.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh"
 #include "adt/logs.hh"

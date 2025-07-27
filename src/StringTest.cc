@@ -5,6 +5,7 @@
 #include "adt/ReverseIt.hh"
 #include "adt/rng.hh"
 #include "adt/Thread.hh"
+#include "adt/sort.hh"
 
 #include <clocale>
 #include <string>
@@ -15,6 +16,13 @@ using namespace adt;
 int
 main()
 {
+    {
+        constexpr StringView sv0 = "sv1";
+        constexpr StringView sv1 = "sv2";
+        isize what = utils::Comparator<StringView>{}(sv0, sv1);
+        ADT_ASSERT_ALWAYS(what < 0, "{}", what);
+    }
+
     setlocale(LC_ALL, "");
 
     Arena arena(SIZE_1K);

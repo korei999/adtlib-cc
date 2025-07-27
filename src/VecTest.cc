@@ -210,10 +210,10 @@ main()
         VecManaged<int> v {};
         defer( v.destroy() );
 
-        v.pushSorted<sort::ORDER::INC>(-15);
-        v.pushSorted<sort::ORDER::INC>(23);
-        v.pushSorted<sort::ORDER::INC>(999);
-        v.pushSorted<sort::ORDER::INC>(-666);
+        sort::push<sort::ORDER::INC>(&v, -15);
+        sort::push<sort::ORDER::INC>(&v, 23);
+        sort::push<sort::ORDER::INC>(&v, 999);
+        sort::push<sort::ORDER::INC>(&v, -666);
 
         ADT_ASSERT_ALWAYS(sort::sorted(v.data(), v.size(), sort::ORDER::INC), "");
 

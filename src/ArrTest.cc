@@ -1,6 +1,7 @@
 #include "adt/Array.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/logs.hh"
+#include "adt/sort.hh"
 
 #include "Types.hh"
 
@@ -24,13 +25,15 @@ main()
     {
         Array<int, 16> a {};
 
-        a.pushSorted(sort::ORDER::INC, 5);
-        a.pushSorted(sort::ORDER::INC, 4);
-        a.pushSorted(sort::ORDER::INC, 10);
-        a.pushSorted(sort::ORDER::INC, 2);
-        a.pushSorted(sort::ORDER::INC, -1);
-        a.pushSorted(sort::ORDER::INC, 50);
-        a.pushSorted(sort::ORDER::INC, -240);
+        sort::push<sort::ORDER::INC>(&a, 5);
+        sort::push<sort::ORDER::INC>(&a, 4);
+        sort::push<sort::ORDER::INC>(&a, 10);
+        sort::push<sort::ORDER::INC>(&a, 2);
+        sort::push<sort::ORDER::INC>(&a, -1);
+        sort::push<sort::ORDER::INC>(&a, 50);
+        sort::push<sort::ORDER::INC>(&a, -240);
+
+        ADT_ASSERT_ALWAYS(sort::sorted(a, sort::ORDER::INC), "");
 
         LOG("sorted inc: {}\n", a);
     }
