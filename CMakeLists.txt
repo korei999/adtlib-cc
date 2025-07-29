@@ -55,7 +55,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/utf-8)
+    add_compile_options(/Zc:preprocessor /EHsc /utf-8)
 else()
     add_compile_options(-Wall -Wextra -Wswitch -Wimplicit-fallthrough -Wno-missing-braces)
 endif()
