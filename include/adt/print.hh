@@ -72,7 +72,7 @@ typeName()
 }
 
 inline const char*
-_currentWorkingDirectory()
+currentWorkingDirectory()
 {
     static char aBuff[300] {};
     return getcwd(aBuff, sizeof(aBuff) - 1);
@@ -81,7 +81,7 @@ _currentWorkingDirectory()
 inline const char*
 stripSourcePath(const char* ntsSourcePath)
 {
-    static const StringView svCwd = _currentWorkingDirectory();
+    static const StringView svCwd = currentWorkingDirectory();
     return ntsSourcePath + svCwd.size() + 1;
 }
 
