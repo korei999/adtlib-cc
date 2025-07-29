@@ -37,6 +37,14 @@ main()
     print::out("spArr: {:.4}\n", spArr);
 
     {
+        isize nn = 128;
+        f64 nnn = 128.88;
+
+        printf("(05lld): '%05lld', (08lf): '%08lf'\n", nn, nnn);
+        print::out("({{:>05}): '{:>05}', ({{:>08}): '{:>08}'\n", nn, nnn);
+    }
+
+    {
         print::out("Pair<int, int>(:>3): {:>3}\n", Pair {1, 1});
         print::out("Pair<f32, f32>(:.4): {:.4}\n", Pair {1.1f, 2.2f});
     }
@@ -104,5 +112,4 @@ main()
         // LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
         printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
-
 }

@@ -30,6 +30,7 @@ struct FormatArgs
     u8 maxFloatLen = NPOS8;
     BASE eBase = BASE::TEN;
     FMT_FLAGS eFmtFlags {};
+    char filler {};
 };
 
 struct Context
@@ -170,6 +171,12 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
             }
             else if (isdigit(fmt[i]))
             {
+                if (fmt[i] == '0')
+                {
+                    if (i + 1 < fmt.size())
+                        pArgs->filler = '0';
+                }
+
                 clSkipUntil("}.#xb");
                 pArgs->maxLen = StringView(aBuff, buffIdx).toI64();
             }
@@ -293,6 +300,7 @@ inline isize
 copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept
 {
     isize i = 0;
+    const char filler = fmtArgs.filler ? fmtArgs.filler : ' ';
 
     auto clCopySpan = [&]
     {
@@ -309,7 +317,7 @@ copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexc
         if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen > i && nSpaces > 0)
         {
             for (j = 0; ctx.buffIdx < ctx.buffSize && j < nSpaces; ++j)
-                ctx.pBuff[ctx.buffIdx++] = ' ';
+                ctx.pBuff[ctx.buffIdx++] = filler;
         }
 
         clCopySpan();
@@ -323,7 +331,7 @@ copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexc
         if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen > i)
         {
             for (; ctx.buffIdx < ctx.buffSize && i < fmtArgs.maxLen; ++i)
-                ctx.pBuff[ctx.buffIdx++] = ' ';
+                ctx.pBuff[ctx.buffIdx++] = filler;
         }
     }
 
@@ -488,7 +496,7 @@ printArg(isize& nRead, isize& i, bool& bArg, Context& ctx, const T& arg) noexcep
         if (bArg)
         {
             isize addBuff = 0;
-            isize add = parseFormatArg(&fmtArgs, ctx.fmt, i);
+            const isize add = parseFormatArg(&fmtArgs, ctx.fmt, i);
 
             if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::ARG_IS_FMT))
             {
