@@ -41,7 +41,7 @@ main()
         print::out("Pair<f32, f32>(:.4): {:.4}\n", Pair {1.1f, 2.2f});
     }
 
-    constexpr isize BIG = 500000;
+    constexpr isize BIG = 1000000;
 
     {
         // const auto t0 = utils::timeNowUS();
@@ -69,8 +69,8 @@ main()
         const auto t1 = utils::timeNowUS();
 
         // print::out("aBuff: {}\n", aBuff);
-        LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        // printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
 
     CERR("\n");
@@ -85,8 +85,8 @@ main()
         const auto t1 = utils::timeNowUS();
 
         // print::out("aBuff: {}\n", aBuff);
-        LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        // printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
 
     CERR("\n");
@@ -101,8 +101,8 @@ main()
         const auto t1 = utils::timeNowUS();
         // print::out("aBuff: {}\n", aBuff);
 
-        LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        // printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        // LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
 
 }
