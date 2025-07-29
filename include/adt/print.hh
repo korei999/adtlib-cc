@@ -195,6 +195,11 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
                 pArgs->eBase = BASE::TWO;
                 continue;
             }
+            else if (fmt[i] == 'o')
+            {
+                pArgs->eBase = BASE::EIGHT;
+                continue;
+            }
             else if (fmt[i] == '+')
             {
                 pArgs->eFmtFlags |= FMT_FLAGS::ALWAYS_SHOW_SIGN;
@@ -288,6 +293,10 @@ intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
         {
             PUSH_OR_RET('b');
             PUSH_OR_RET('0');
+        }
+        else if (fmtArgs.eBase == BASE::EIGHT)
+        {
+            PUSH_OR_RET('o');
         }
     }
 

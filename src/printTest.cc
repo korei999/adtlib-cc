@@ -42,6 +42,7 @@ main()
 
         printf("(05lld): '%05lld', (08lf): '%08lf'\n", nn, nnn);
         print::out("({{:>05}): '{:>05}', ({{:>08}): '{:>08}'\n", nn, nnn);
+        print::out("octal({}): '{:#o}'\n", nn, nn);
     }
 
     {
