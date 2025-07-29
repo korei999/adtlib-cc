@@ -8,6 +8,7 @@
 #include <ctype.h> /* win32 */
 #include <cstdio>
 #include <cuchar> /* IWYU pragma: keep */
+#include <charconv>
 
 #if __has_include(<unistd.h>)
 
@@ -373,28 +374,19 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept
     return copyBackToContext(ctx, fmtArgs, {aBuff, n});
 }
 
+template<typename FLOAT_T>
+requires std::is_floating_point_v<FLOAT_T>
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const f32 x) noexcept
+formatToContext(Context ctx, FormatArgs fmtArgs, const FLOAT_T x) noexcept
 {
     char aBuff[64] {};
+    std::to_chars_result res {};
     if (fmtArgs.maxFloatLen == NPOS8)
-        snprintf(aBuff, utils::size(aBuff), "%g", x);
-    else
-        snprintf(aBuff, utils::size(aBuff), "%.*f", fmtArgs.maxFloatLen, x);
+        res = std::to_chars(aBuff, aBuff + sizeof(aBuff), x);
+    else res = std::to_chars(aBuff, aBuff + sizeof(aBuff), x, std::chars_format::general, fmtArgs.maxFloatLen);
 
-    return copyBackToContext(ctx, fmtArgs, {aBuff});
-}
-
-inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const f64 x) noexcept
-{
-    char aBuff[128] {};
-    if (fmtArgs.maxFloatLen == NPOS8)
-        snprintf(aBuff, utils::size(aBuff), "%g", x);
-    else
-        snprintf(aBuff, utils::size(aBuff), "%.*lf", fmtArgs.maxFloatLen, x);
-
-    return copyBackToContext(ctx, fmtArgs, {aBuff});
+    if (res.ptr) return copyBackToContext(ctx, fmtArgs, {aBuff, res.ptr - aBuff});
+    else return copyBackToContext(ctx, fmtArgs, {aBuff});
 }
 
 inline isize
