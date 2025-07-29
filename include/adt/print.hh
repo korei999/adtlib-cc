@@ -239,39 +239,19 @@ intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
 
     const char* ntsCharSet = "0123456789abcdef";
 
-    /* This compiles to about 2.5x faster code than generic loop. */
-    if (fmtArgs.eBase == BASE::TEN)
-    {
-        do
-        {
-            PUSH_OR_RET(ntsCharSet[x % 10]);
-        }
-        while ((x /= 10) > 0);
-    }
-    else if (fmtArgs.eBase == BASE::EIGHT)
-    {
-        do
-        {
-            PUSH_OR_RET(ntsCharSet[x % 8]);
-        }
-        while ((x /= 8) > 0);
-    }
-    else if (fmtArgs.eBase == BASE::SIXTEEN)
-    {
-        do
-        {
-            PUSH_OR_RET(ntsCharSet[x % 16]);
-        }
-        while ((x /= 16) > 0);
-    }
-    else if (fmtArgs.eBase == BASE::TWO)
-    {
-        do
-        {
-            PUSH_OR_RET(ntsCharSet[x % 2]);
-        }
-        while ((x /= 2) > 0);
-    }
+#define _ITOA_(BASE)                                                                                                   \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        PUSH_OR_RET(ntsCharSet[x % BASE]);                                                                             \
+    } while ((x /= BASE) > 0);
+
+    /* About 2.5x faster code than generic base. */
+    if (fmtArgs.eBase == BASE::TEN) { _ITOA_(10); }
+    else if (fmtArgs.eBase == BASE::EIGHT) { _ITOA_(8); }
+    else if (fmtArgs.eBase == BASE::SIXTEEN) { _ITOA_(16); }
+    else if (fmtArgs.eBase == BASE::TWO) { _ITOA_(2); }
+
+#undef _ITOA_
  
     if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::ALWAYS_SHOW_SIGN))
     {
