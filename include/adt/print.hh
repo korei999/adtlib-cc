@@ -535,7 +535,10 @@ printArg(isize& nRead, isize& i, bool& bArg, Context& ctx, const T& arg) noexcep
                 i += 1, nRead += 1;
                 bArg = false;
             }
-            else bArg = true;
+            else
+            {
+                bArg = true;
+            }
         }
 
         if (bArg)
