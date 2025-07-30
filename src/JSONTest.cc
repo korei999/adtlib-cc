@@ -37,7 +37,7 @@ main(int argc, char* argv[])
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string1"));
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string2"));
 
-        json::printNode(stdout, &jObj);
+        json::printNode(StdAllocator::inst(), stdout, &jObj);
         putchar('\n');
 
         return 0;
@@ -67,7 +67,7 @@ main(int argc, char* argv[])
         // defer( p.destroy() );
 
         if (argc >= 3 && "-p" == StringView(argv[2]))
-            p.print(stdout);
+            p.print(StdAllocator::inst(), stdout);
     }
     catch (IException& ex)
     {

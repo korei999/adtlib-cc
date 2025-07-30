@@ -636,7 +636,7 @@ toFILE(IAllocator* pAlloc, FILE* fp, const StringView fmt, const ARGS_T&... tArg
     const isize r = printArgs(ctx, tArgs...);
     fwrite(ctx.pBuffer->m_pData, r, 1, fp);
 
-    if (pAlloc) pAlloc->free(buff.m_pData);
+    if (pAlloc && buff.m_pData != aPreallocated) pAlloc->free(buff.m_pData);
 
     return r;
 }
