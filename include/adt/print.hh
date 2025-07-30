@@ -727,7 +727,7 @@ formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const ARGS&... args) no
         ++n;
     }
 
-    const isize nFormatted =  details::formatToContextVariadic(ctx, fmtArgs, args...);
+    const isize nFormatted = details::formatToContextVariadic(ctx, fmtArgs, args...);
     if (nFormatted <= 0) return n;
 
     n += nFormatted;
