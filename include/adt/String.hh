@@ -478,7 +478,7 @@ StringView::removeNLEnd()
 }
 
 inline bool
-StringView::contains(const StringView r) const
+StringView::contains(const StringView r) const noexcept
 {
     if (m_size < r.m_size || m_size == 0 || r.m_size == 0)
         return false;
@@ -501,11 +501,18 @@ StringView::contains(const StringView r) const
 #endif
 }
 
+bool
+StringView::contains(char c) const noexcept
+{
+    if (m_size < 0 || !m_pData) return false;
+    return memchr(m_pData, c, m_size) != nullptr;
+}
+
 inline isize
 StringView::subStringAt(const StringView r) const noexcept
 {
     if (m_size < r.m_size || m_size == 0 || r.m_size == 0)
-        return false;
+        return -1;
 
 #if __has_include(<unistd.h>)
 
@@ -525,6 +532,16 @@ StringView::subStringAt(const StringView r) const noexcept
 #endif
 
     return -1;
+}
+
+isize
+StringView::charAt(char c) const noexcept
+{
+    if (m_size < 0 || !m_pData) return -1;
+
+    const void* p = memchr(m_pData, c, m_size);
+    if (p) return static_cast<const char*>(p) - m_pData;
+    else return -1;
 }
 
 inline char&
