@@ -501,7 +501,7 @@ StringView::contains(const StringView r) const noexcept
 #endif
 }
 
-bool
+inline bool
 StringView::contains(char c) const noexcept
 {
     if (m_size < 0 || !m_pData) return false;
@@ -534,7 +534,7 @@ StringView::subStringAt(const StringView r) const noexcept
     return -1;
 }
 
-isize
+inline isize
 StringView::charAt(char c) const noexcept
 {
     if (m_size < 0 || !m_pData) return -1;
