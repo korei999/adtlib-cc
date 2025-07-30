@@ -64,51 +64,40 @@ struct Context
 inline isize
 Buffer::push(char c)
 {
-    if (m_size >= m_cap)
+    try
     {
-        if (!m_pAlloc) return -1;
-
-        const int newCap = m_cap*2 + 1;
-        char* pNewData {};
-
-        if (!m_bDataAllocated)
+        if (m_size >= m_cap)
         {
-            try
+            if (!m_pAlloc) return -1;
+
+            const int newCap = m_cap*2 + 1;
+            char* pNewData {};
+
+            if (!m_bDataAllocated)
             {
                 pNewData = m_pAlloc->zallocV<char>(newCap);
+                m_bDataAllocated = true;
+                memcpy(pNewData, m_pData, m_size);
             }
-            catch (const AllocException& ex)
-            {
-#ifdef ADT_DBG_MEMORY
-                ex.printErrorMsg(stderr);
-#endif
-                return -1;
-            }
-
-            m_bDataAllocated = true;
-            memcpy(pNewData, m_pData, m_size);
-        }
-        else
-        {
-            try
+            else
             {
                 pNewData = m_pAlloc->relocate(m_pData, m_size, newCap);
             }
-            catch (const AllocException& ex)
-            {
-#ifdef ADT_DBG_MEMORY
-                ex.printErrorMsg(stderr);
-#endif
-                return -1;
-            }
+
+            m_cap = newCap;
+            m_pData = pNewData;
         }
 
-        m_cap = newCap;
-        m_pData = pNewData;
+        m_pData[m_size++] = c;
+        return m_size - 1;
     }
-
-    m_pData[m_size++] = c;
-    return m_size - 1;
+    catch (const AllocException& ex)
+    {
+#ifdef ADT_DBG_MEMORY
+        ex.printErrorMsg(stderr);
+#endif
+        return -1;
+    }
 }
 
 template<typename T>
