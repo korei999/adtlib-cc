@@ -139,15 +139,6 @@ printArgs(Context ctx) noexcept
     return nRead;
 }
 
-inline constexpr bool
-oneOfChars(const char x, const StringView chars) noexcept
-{
-    for (auto ch : chars)
-        if (ch == x) return true;
-
-    return false;
-}
-
 inline isize
 parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
 {
@@ -160,11 +151,11 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
     isize buffIdx = 0;
     isize i = fmtIdx + 1;
 
-    auto clSkipUntil = [&](const StringView chars) -> void
+    auto clSkipUntil = [&](const StringView svCharSet) -> void
     {
         memset(aBuff, 0, sizeof(aBuff));
         buffIdx = 0;
-        while (buffIdx < (isize)sizeof(aBuff) - 1 && i < fmt.size() && !oneOfChars(fmt[i], chars))
+        while (buffIdx < (isize)sizeof(aBuff) - 1 && i < fmt.size() && !svCharSet.contains(fmt[i]))
         {
             aBuff[buffIdx++] = fmt[i++];
             ++nRead;

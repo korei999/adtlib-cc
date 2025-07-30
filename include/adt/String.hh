@@ -305,16 +305,7 @@ struct StringWordIt
             isize start = m_i;
             isize end = m_i;
 
-            auto oneOf = [&](char c) -> bool
-            {
-                for (auto sep : m_svSeps)
-                    if (c == sep)
-                        return true;
-
-                return false;
-            };
-
-            while (end < m_svStr.m_size && !oneOf(m_svStr[end]))
+            while (end < m_svStr.m_size && !m_svSeps.contains(m_svStr[end]))
                 end++;
 
             m_svCurrWord = {const_cast<char*>(&m_svStr[start]), end - start};
@@ -641,15 +632,9 @@ template<typename LAMBDA>
 inline StringView&
 StringView::removeNLEnd(LAMBDA clFill)
 {
-    auto oneOf = [&](const char c) -> bool
-    {
-        constexpr StringView chars = "\r\n";
-        for (const char ch : chars)
-            if (c == ch) return true;
-        return false;
-    };
+    constexpr StringView svChars = "\r\n";
 
-    while (m_size > 0 && oneOf(last()))
+    while (m_size > 0 && svChars.contains(last()))
     {
         --m_size;
         clFill(&m_pData[m_size]);
