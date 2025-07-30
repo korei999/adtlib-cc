@@ -342,33 +342,23 @@ printNode(IAllocator* pAlloc, FILE* fp, const Node* pNode, StringView svEnd, int
         break;
 
         case TAG::DOUBLE:
-        {
-            print::toFILE(pAlloc, fp, "{}", getFloat(pNode));
-        }
+        print::toFILE(pAlloc, fp, "{}", getFloat(pNode));
         break;
 
         case TAG::LONG:
-        {
-            print::toFILE(pAlloc, fp, "{}", getInteger(pNode));
-        }
+        print::toFILE(pAlloc, fp, "{}", getInteger(pNode));
         break;
 
         case TAG::NULL_:
-        {
-            print::toFILE<16>(fp, "null");
-        }
+        print::toFILE<16>(fp, "null");
         break;
 
         case TAG::STRING:
-        {
-            print::toFILE(pAlloc, fp, "\"{}\"", getString(pNode));
-        }
+        print::toFILE(pAlloc, fp, "\"{}\"", getString(pNode));
         break;
 
         case TAG::BOOL:
-        {
-            print::toFILE<16>(fp, "{}", getBool(pNode));
-        }
+        print::toFILE<16>(fp, "{}", getBool(pNode));
         break;
     }
 }
