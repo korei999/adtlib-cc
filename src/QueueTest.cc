@@ -142,7 +142,7 @@ main()
         q0.pushFront(5);
         q0.pushFront(6);
 
-        LOG("q0: [{}]\n", q0);
+        LOG("q0: {}\n", q0);
     }
 
     LOG_GOOD("Queue test passed\n");

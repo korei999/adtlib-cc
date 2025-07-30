@@ -50,23 +50,22 @@ main()
         print::out("Pair<f32, f32>(:.4): {:.4}\n", Pair {1.1f, 2.2f});
     }
 
+    {
+        auto* pStd = StdAllocator::inst();
+
+        constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        const isize n = print::toFILE<32>(pStd, stdout, svLong);
+        print::out("\n");
+        print::out("preallocated size: {}, nWritten: {}, svLong: {}\n", 32, n, svLong.size());
+    }
+
     constexpr isize BIG = 1000000;
 
     {
-        // const auto t0 = utils::timeNowUS();
-
         char aBuff[64] {};
         for (isize i = 0; i < BIG; ++i)
             print::toSpan(aBuff, "{}, {}, {}, {}", i, i, f32(i), f64(i));
-
-        // const auto t1 = utils::timeNowUS();
-
-        // print::out("aBuff: {}\n", aBuff);
-        // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        // printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
-
-    CERR("\n");
 
     {
         const auto t0 = utils::timeNowUS();

@@ -95,6 +95,9 @@ inline constexpr isize printArgs(Context ctx, const T& tFirst, const ARGS_T&... 
 template<isize SIZE = 512, typename ...ARGS_T>
 inline isize toFILE(FILE* fp, const StringView fmt, const ARGS_T&... tArgs) noexcept;
 
+template<isize SIZE = 512, typename ...ARGS_T>
+inline isize toFILE(IAllocator* pAlloc, FILE* fp, const StringView fmt, const ARGS_T&... tArgs) noexcept;
+
 template<typename ...ARGS_T>
 inline constexpr isize toBuffer(char* pBuff, isize buffSize, const StringView fmt, const ARGS_T&... tArgs) noexcept;
 
