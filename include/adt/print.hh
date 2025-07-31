@@ -24,43 +24,6 @@
 namespace adt::print
 {
 
-struct FormatArgs
-{
-    u16 maxLen = NPOS16;
-    u8 maxFloatLen = NPOS8;
-    BASE eBase = BASE::TEN;
-    FMT_FLAGS eFmtFlags {};
-    char filler {};
-};
-
-struct Buffer
-{
-    IAllocator* m_pAlloc {};
-    char* m_pData {};
-    isize m_size {};
-    isize m_cap {};
-    bool m_bDataAllocated {}; /* Point to preallocated buffer at first, realloc later. */
-
-    /* */
-
-    Buffer() = default;
-    Buffer(IAllocator* pAlloc, char* pBuff, isize buffSize) : m_pAlloc {pAlloc}, m_pData {pBuff}, m_cap {buffSize} {}
-    Buffer(char* pBuff, isize buffSize) : m_pData {pBuff}, m_cap {buffSize} {}
-
-    /* */
-
-    isize push(char c);
-};
-
-struct Context
-{
-    StringView fmt {};
-    isize fmtIdx {};
-    Buffer* pBuffer {};
-    FormatArgs prevFmtArgs {};
-    CONTEXT_FLAGS eFlags {};
-};
-
 inline isize
 Buffer::push(char c)
 {
@@ -485,10 +448,9 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const Pair<A, B>& x)
     return formatToContextVariadic(ctx, fmtArgs, x.first, x.second);
 }
 
-template<typename PTR_T>
-requires std::is_pointer_v<PTR_T>
+template<typename T>
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const PTR_T p) noexcept
+formatToContext(Context ctx, FormatArgs fmtArgs, const T* const p) noexcept
 {
     if (p == nullptr) return formatToContext(ctx, fmtArgs, nullptr);
 
@@ -584,7 +546,7 @@ inline isize
 formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const T& first, const ARGS&... args) noexcept
 {
     isize n = formatToContext(ctx, fmtArgs, first);
-    if (n <= 0) return n;
+    if (n < 0) return n;
 
     if (ctx.pBuffer->push(',') < 0) return n;
     ++n;
@@ -701,7 +663,7 @@ formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const auto& x, const isi
     for (const auto& e : x)
     {
         const isize n = formatToContext(ctx, fmtArgs, e);
-        if (n <= 0) break;
+        if (n < 0) break;
 
         nWritten += n;
 
@@ -737,7 +699,7 @@ formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept
     for (auto it = x.begin(); it != x.end(); ++it)
     {
         const isize n = formatToContext(ctx, fmtArgs, *it);
-        if (n <= 0) break;
+        if (n < 0) break;
 
         nWritten += n;
 
@@ -769,7 +731,7 @@ formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const ARGS&... args) no
     }
 
     const isize nFormatted = details::formatToContextVariadic(ctx, fmtArgs, args...);
-    if (nFormatted <= 0) return n;
+    if (nFormatted < 0) return n;
 
     n += nFormatted;
 
@@ -808,11 +770,11 @@ requires (!Printable<T>)
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept
 {
-    const StringView sv = typeName<T>();
+    constexpr StringView sv = typeName<T>();
 
 #if defined __clang__ || __GNUC__
 
-    const StringView svSub = "T = ";
+    constexpr StringView svSub = "T = ";
     const isize atI = sv.subStringAt(svSub);
     const StringView svDemangled = [&]
     {

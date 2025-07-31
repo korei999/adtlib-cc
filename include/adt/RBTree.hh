@@ -715,21 +715,20 @@ RBTree<T>::printNodes(
     IAllocator* pA,
     const Node* pNode,
     FILE* pF,
-    const StringView sPrefix,
+    const StringView svPrefix,
     bool bLeft
 )
 {
     if (pNode)
     {
         const StringView sCol = pNode->color() == RB_COLOR::BLACK ? ADT_LOGS_COL_BLUE : ADT_LOGS_COL_RED;
-        print::toFILE(pF, "{}{} {}{}" ADT_LOGS_COL_NORM "\n", sPrefix, bLeft ? "|__" : "\\__", sCol, pNode->m_data);
+        print::toFILE(pA, pF, "{}{} {}{}" ADT_LOGS_COL_NORM "\n", svPrefix, bLeft ? "|__" : "\\__", sCol, pNode->m_data);
 
-        String sCat = StringCat(pA, sPrefix, bLeft ? "|   " : "    ");
+        String sCat = StringCat(pA, svPrefix, bLeft ? "|   " : "    ");
+        ADT_DEFER( pA->free(sCat.m_pData) );
 
         printNodes(pA, pNode->left(), pF, sCat, true);
         printNodes(pA, pNode->right(), pF, sCat, false);
-
-        pA->free(sCat.m_pData);
     }
 }
 

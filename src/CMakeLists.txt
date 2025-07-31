@@ -139,3 +139,8 @@ add_executable(
     PPGenerator
     PPGenerator.cc
 )
+
+add_executable(
+    SplayTree
+    SplayTree.cc
+)

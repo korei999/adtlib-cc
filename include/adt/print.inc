@@ -34,8 +34,42 @@ enum class CONTEXT_FLAGS : u8
 };
 ADT_ENUM_BITWISE_OPERATORS(CONTEXT_FLAGS);
 
-struct FormatArgs;
-struct Context;
+struct FormatArgs
+{
+    u16 maxLen = NPOS16;
+    u8 maxFloatLen = NPOS8;
+    BASE eBase = BASE::TEN;
+    FMT_FLAGS eFmtFlags {};
+    char filler {};
+};
+
+struct Buffer
+{
+    IAllocator* m_pAlloc {};
+    char* m_pData {};
+    isize m_size {};
+    isize m_cap {};
+    bool m_bDataAllocated {}; /* Point to preallocated buffer at first, realloc later. */
+
+    /* */
+
+    Buffer() = default;
+    Buffer(IAllocator* pAlloc, char* pBuff, isize buffSize) : m_pAlloc {pAlloc}, m_pData {pBuff}, m_cap {buffSize} {}
+    Buffer(char* pBuff, isize buffSize) : m_pData {pBuff}, m_cap {buffSize} {}
+
+    /* */
+
+    isize push(char c);
+};
+
+struct Context
+{
+    StringView fmt {};
+    isize fmtIdx {};
+    Buffer* pBuffer {};
+    FormatArgs prevFmtArgs {};
+    CONTEXT_FLAGS eFlags {};
+};
 
 template<typename T>
 constexpr const StringView typeName();
@@ -84,8 +118,8 @@ inline isize formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept;
 template<typename A, typename B>
 inline u32 formatToContext(Context ctx, FormatArgs fmtArgs, const Pair<A, B>& x);
 
-template<typename PTR_T> requires std::is_pointer_v<PTR_T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const PTR_T p) noexcept;
+template<typename T>
+inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T* const p) noexcept;
 
 template<typename T, typename ...ARGS_T>
 inline constexpr isize printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs) noexcept;
