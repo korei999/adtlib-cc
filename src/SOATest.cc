@@ -29,7 +29,7 @@ namespace adt::print
 {
 
 inline isize
-formatToContext(Context ctx, FormatArgs, const EntityBind& x)
+format(Context ctx, FormatArgs, const EntityBind& x)
 {
     ctx.fmt = "[{}], [{}], [{}], {}";
     ctx.fmtIdx = 0;

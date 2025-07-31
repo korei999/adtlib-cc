@@ -63,13 +63,11 @@ private:
 
 } /* namespace json */
 
-namespace adt
-{
-namespace print
+namespace adt::print
 {
 
 inline u32
-formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
+format(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
 {
     ctx.fmt = "{}";
     ctx.fmtIdx = 0;
@@ -105,5 +103,4 @@ formatToContext(Context ctx, [[maybe_unused]] FormatArgs fmtArgs, const json::TO
     return printArgs(ctx, aBuff);
 }
 
-} /* namespace print */
-} /* namespace adt */
+} /* namespace adt::print */

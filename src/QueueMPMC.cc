@@ -27,8 +27,14 @@ main()
 
     auto clDequeue = [&]
     {
-        Opt<int> r = s_q.pop();
-        if (r) s_atomCounter.fetchAdd(r.value(), atomic::ORDER::RELAXED);
+        while (!s_q.empty())
+        {
+            if (Opt<int> r = s_q.pop())
+            {
+                s_atomCounter.fetchAdd(r.value(), atomic::ORDER::RELAXED);
+                break;
+            }
+        }
     };
 
     for (isize i = 0; i < BIG; ++i)

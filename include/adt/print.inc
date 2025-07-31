@@ -18,7 +18,7 @@ enum class BASE : u8 { TWO = 2, EIGHT = 8, TEN = 10, SIXTEEN = 16 };
 
 struct FormatArgs
 {
-    enum class FLAGS
+    enum class FLAGS : u8
     {
         HASH = 1,
         ALWAYS_SHOW_SIGN = 1 << 1,
@@ -92,38 +92,38 @@ inline constexpr isize intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArg
 
 inline isize copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const StringView str) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const StringView str) noexcept;
 
 template<typename STRING_T> requires ConvertsToStringView<STRING_T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const STRING_T& str) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const STRING_T& str) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const char* str) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const char* str) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, char* const& pNullTerm) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, char* const& pNullTerm) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, bool b) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, bool b) noexcept;
 
 template<typename INT_T> requires std::is_integral_v<INT_T>
-inline constexpr isize formatToContext(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept;
+inline constexpr isize format(Context ctx, FormatArgs fmtArgs, const INT_T& x) noexcept;
 
 template<typename FLOAT_T> requires std::is_floating_point_v<FLOAT_T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const FLOAT_T x) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const FLOAT_T x) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const wchar_t x) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const wchar_t x) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const char32_t x) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const char32_t x) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const char x) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const char x) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, null) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, null) noexcept;
 
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, Empty) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, Empty) noexcept;
 
 template<typename A, typename B>
-inline u32 formatToContext(Context ctx, FormatArgs fmtArgs, const Pair<A, B>& x);
+inline u32 format(Context ctx, FormatArgs fmtArgs, const Pair<A, B>& x);
 
 template<typename T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T* const p) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const T* const p) noexcept;
 
 template<typename T, typename ...ARGS_T>
 inline constexpr isize printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs) noexcept;
@@ -151,30 +151,30 @@ inline isize err(const StringView fmt, const ARGS_T&... tArgs) noexcept;
 
 inline isize FormatArgsToFmt(const FormatArgs fmtArgs, Span<char> spFmt) noexcept;
 
-inline isize formatToContextExpSize(Context ctx, FormatArgs fmtArgs, const auto& x, const isize contSize) noexcept;
+inline isize formatExpSize(Context ctx, FormatArgs fmtArgs, const auto& x, const isize contSize) noexcept;
 
-inline isize formatToContextUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept;
+inline isize formatUntilEnd(Context ctx, FormatArgs fmtArgs, const auto& x) noexcept;
 
 template<typename ...ARGS>
-inline isize formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const ARGS&... args) noexcept;
+inline isize formatVariadic(Context ctx, FormatArgs fmtArgs, const ARGS&... args) noexcept;
 
 template<typename T>
 requires (HasSizeMethod<T> && !ConvertsToStringView<T>)
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T& x) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const T& x) noexcept;
 
 template<typename T>
 requires HasNextIt<T>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T& x) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const T& x) noexcept;
 
 template<typename T, isize N>
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const T (&a)[N]) noexcept;
 
 template<typename T>
 concept Printable = requires(const T& c)
-{ print::formatToContext({}, {}, c); };
+{ print::format({}, {}, c); };
 
 template<typename T>
 requires (!Printable<T>)
-inline isize formatToContext(Context ctx, FormatArgs fmtArgs, const T&) noexcept;
+inline isize format(Context ctx, FormatArgs fmtArgs, const T&) noexcept;
 
 } /* namespace adt::print */

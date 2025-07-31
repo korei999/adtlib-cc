@@ -35,8 +35,8 @@ struct SplayTreeNode
 
     /* */
 
-    T& data() noexcept { return data; }
-    const T& data() const noexcept { return data; }
+    T& data() noexcept { return m_data; }
+    const T& data() const noexcept { return m_data; }
 
     void print(IAllocator* pAlloc, FILE* pF, const StringView svPrefix = "");
 };
@@ -187,7 +187,6 @@ SplayTree<T>::rotateLeft(Node** pp)
     Node* b = Y->m_pLeft;
 
     X->m_pRight = b;
-    if (b) b->m_pParent = X;
     Y->m_pLeft = X;
 
     return *pp = Y;
@@ -221,18 +220,18 @@ namespace print
 
 template<typename T>
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const SplayTreeNode<T>* const x)
+format(Context ctx, FormatArgs fmtArgs, const SplayTreeNode<T>* const x)
 {
-    if (x) return formatToContext(ctx, fmtArgs, x->m_data);
-    else return formatToContext(ctx, fmtArgs, nullptr);
+    if (x) return format(ctx, fmtArgs, x->m_data);
+    else return format(ctx, fmtArgs, nullptr);
 }
 
 template<typename T>
 inline isize
-formatToContext(Context ctx, FormatArgs fmtArgs, const SplayTreeThreeNodes<T>& x)
+format(Context ctx, FormatArgs fmtArgs, const SplayTreeThreeNodes<T>& x)
 {
     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
-    return formatToContextVariadic(ctx, fmtArgs, x.grand, x.parent, x.node);
+    return formatVariadic(ctx, fmtArgs, x.grand, x.parent, x.node);
 }
 
 } /* namespace format */
