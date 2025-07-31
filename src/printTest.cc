@@ -14,20 +14,33 @@ using namespace adt;
 int
 main()
 {
-    int nSpaces = 2;
+    constexpr int N_SPACES = 2;
 
-    print::out("{:{}}", nSpaces, "");
-    print::out("there must be {} spaces before this string\n", nSpaces);
+    {
+        char aBuff[128] {};
+        const isize n = print::toSpan(aBuff, "{:{}}", N_SPACES, "");
+        ADT_ASSERT_ALWAYS(StringView("  ") == StringView(aBuff, n), "{}", StringView(aBuff, n));
+    }
 
-    print::out("'{:>10}'{}\n", "10", 10);
+    {
+        char aBuff[128] {};
+        const isize n = print::toSpan(aBuff, "'{:>10}'{}", "10", 10);
+        ADT_ASSERT_ALWAYS(StringView(aBuff, n) == "'        10'10", "{}", StringView(aBuff, n));
+    }
 
-    print::out("'{:{}}'", 10, 1);
-    print::out("there must be a single quote before the word 'there'\n");
+    {
+        char aBuff[128] {};
+        const isize n = print::toSpan(aBuff, "{:{}}", 10, 1);
+        ADT_ASSERT_ALWAYS(StringView(aBuff, n) == "1         ", "{}", StringView(aBuff, n));
+    }
 
-    print::out("dec: {}, hex: {:#x}, bin: {:#b}\n", 13, 13, 13);
+    {
+        char aBuff[128] {};
+        const isize n = print::toSpan(aBuff, "dec: {}, hex: {:#x}, bin: {:#b}, oct: {:#o}", 13, 13, 13, 13);
+        ADT_ASSERT_ALWAYS(StringView(aBuff, n) == "dec: 13, hex: 0xd, bin: 0b1101, oct: o15", "{}", StringView(aBuff, n));
+    }
 
     print::out("precision: {}, float: {}, {:.10}\n", 10, math::PI64, math::PI64);
-
     print::out("{}\n", 10);
 
     Array<f64, 32> arr {1.1, 2.2, 3.3, 4.4, 5.5};
@@ -51,12 +64,13 @@ main()
     }
 
     {
+        constexpr isize PREALLOC = 32;
         auto* pStd = StdAllocator::inst();
 
         constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        const isize n = print::toFILE<32>(pStd, stdout, svLong);
-        print::out("\n");
-        print::out("preallocated size: {}, nWritten: {}, svLong: {}\n", 32, n, svLong.size());
+        const isize n = print::toFILE<PREALLOC>(pStd, stdout, svLong);
+        ADT_ASSERT_ALWAYS(n == svLong.size(), "{}", svLong.size());
+        print::out("\npreallocated size: {}, nWritten: {}, svLong: {}\n", PREALLOC, n, svLong.size());
     }
 
     constexpr isize BIG = 1000000;
