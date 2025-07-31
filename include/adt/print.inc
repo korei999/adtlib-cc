@@ -16,32 +16,27 @@ namespace adt::print
 
 enum class BASE : u8 { TWO = 2, EIGHT = 8, TEN = 10, SIXTEEN = 16 };
 
-enum class FMT_FLAGS : u8
-{
-    HASH = 1,
-    ALWAYS_SHOW_SIGN = 1 << 1,
-    ARG_IS_FMT = 1 << 2,
-    FLOAT_PRECISION_ARG = 1 << 3,
-    JUSTIFY_RIGHT = 1 << 4,
-    SQUARE_BRACKETS = 1 << 5,
-};
-ADT_ENUM_BITWISE_OPERATORS(FMT_FLAGS);
-
-enum class CONTEXT_FLAGS : u8
-{
-    NONE = 0,
-    UPDATE_FMT_ARGS = 1,
-};
-ADT_ENUM_BITWISE_OPERATORS(CONTEXT_FLAGS);
-
 struct FormatArgs
 {
+    enum class FLAGS
+    {
+        HASH = 1,
+        ALWAYS_SHOW_SIGN = 1 << 1,
+        ARG_IS_FMT = 1 << 2,
+        FLOAT_PRECISION_ARG = 1 << 3,
+        JUSTIFY_RIGHT = 1 << 4,
+        SQUARE_BRACKETS = 1 << 5,
+    };
+
+    /* */
+
     u16 maxLen = NPOS16;
     u8 maxFloatLen = NPOS8;
     BASE eBase = BASE::TEN;
-    FMT_FLAGS eFmtFlags {};
+    FLAGS eFmtFlags {};
     char filler {};
 };
+ADT_ENUM_BITWISE_OPERATORS(FormatArgs::FLAGS);
 
 struct Buffer
 {
@@ -64,12 +59,21 @@ struct Buffer
 
 struct Context
 {
+    enum class FLAGS : u8
+    {
+        NONE = 0,
+        UPDATE_FMT_ARGS = 1,
+    };
+
+    /* */
+
     StringView fmt {};
     isize fmtIdx {};
     Buffer* pBuffer {};
     FormatArgs prevFmtArgs {};
-    CONTEXT_FLAGS eFlags {};
+    FLAGS eFlags {};
 };
+ADT_ENUM_BITWISE_OPERATORS(Context::FLAGS);
 
 template<typename T>
 constexpr const StringView typeName();

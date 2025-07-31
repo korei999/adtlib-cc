@@ -231,7 +231,7 @@ template<typename T>
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const SplayTreeThreeNodes<T>& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.grand, x.parent, x.node);
 }
 

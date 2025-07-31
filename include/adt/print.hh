@@ -140,7 +140,7 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
         {
             clSkipUntil("}");
             pArgs->maxFloatLen = StringView(aBuff, buffIdx).toI64();
-            pArgs->eFmtFlags |= FMT_FLAGS::FLOAT_PRECISION_ARG;
+            pArgs->eFmtFlags |= FormatArgs::FLAGS::FLOAT_PRECISION_ARG;
         }
 
         if (bColon)
@@ -148,7 +148,7 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
             if (fmt[i] == '{')
             {
                 clSkipUntil("}");
-                pArgs->eFmtFlags |= FMT_FLAGS::ARG_IS_FMT;
+                pArgs->eFmtFlags |= FormatArgs::FLAGS::ARG_IS_FMT;
                 continue;
             }
             else if (fmt[i] == '.')
@@ -156,7 +156,7 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
                 if (clPeek() == '{')
                 {
                     clSkipUntil("}");
-                    pArgs->eFmtFlags |= FMT_FLAGS::ARG_IS_FMT;
+                    pArgs->eFmtFlags |= FormatArgs::FLAGS::ARG_IS_FMT;
                 }
 
                 bFloatPresicion = true;
@@ -175,7 +175,7 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
             }
             else if (fmt[i] == '#')
             {
-                pArgs->eFmtFlags |= FMT_FLAGS::HASH;
+                pArgs->eFmtFlags |= FormatArgs::FLAGS::HASH;
                 continue;
             }
             else if (fmt[i] == 'x')
@@ -195,12 +195,12 @@ parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept
             }
             else if (fmt[i] == '+')
             {
-                pArgs->eFmtFlags |= FMT_FLAGS::ALWAYS_SHOW_SIGN;
+                pArgs->eFmtFlags |= FormatArgs::FLAGS::ALWAYS_SHOW_SIGN;
                 continue;
             }
             else if (fmt[i] == '>')
             {
-                pArgs->eFmtFlags |= FMT_FLAGS::JUSTIFY_RIGHT;
+                pArgs->eFmtFlags |= FormatArgs::FLAGS::JUSTIFY_RIGHT;
                 continue;
             }
         }
@@ -259,7 +259,7 @@ intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
 
 #undef _ITOA_
  
-    if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::ALWAYS_SHOW_SIGN))
+    if (bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::ALWAYS_SHOW_SIGN))
     {
         if (bNegative)
         {
@@ -275,7 +275,7 @@ intToBuffer(INT_T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
         PUSH_OR_RET('-');
     }
 
-    if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::HASH))
+    if (bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::HASH))
     {
         if (fmtArgs.eBase == BASE::SIXTEEN)
         {
@@ -311,7 +311,7 @@ copyBackToContext(Context ctx, FormatArgs fmtArgs, const Span<char> spSrc) noexc
             if (ctx.pBuffer->push(spSrc[i]) < 0) break;
     };
 
-    if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::JUSTIFY_RIGHT))
+    if (bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::JUSTIFY_RIGHT))
     {
         /* leave space for the string */
         const isize nSpaces = fmtArgs.maxLen - strnlen(spSrc.data(), spSrc.size());
@@ -444,7 +444,7 @@ template<typename A, typename B>
 inline u32
 formatToContext(Context ctx, FormatArgs fmtArgs, const Pair<A, B>& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.first, x.second);
 }
 
@@ -454,7 +454,7 @@ formatToContext(Context ctx, FormatArgs fmtArgs, const T* const p) noexcept
 {
     if (p == nullptr) return formatToContext(ctx, fmtArgs, nullptr);
 
-    fmtArgs.eFmtFlags |= FMT_FLAGS::HASH;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::HASH;
     fmtArgs.eBase = BASE::SIXTEEN;
     return formatToContext(ctx, fmtArgs, usize(p));
 }
@@ -470,9 +470,9 @@ printArg(isize& rNWritten, isize& rI, bool& rbArg, Context& rCtx, const T& rArg)
     {
         FormatArgs fmtArgs {};
 
-        if (bool(rCtx.eFlags & CONTEXT_FLAGS::UPDATE_FMT_ARGS))
+        if (bool(rCtx.eFlags & Context::FLAGS::UPDATE_FMT_ARGS))
         {
-            rCtx.eFlags &= ~CONTEXT_FLAGS::UPDATE_FMT_ARGS;
+            rCtx.eFlags &= ~Context::FLAGS::UPDATE_FMT_ARGS;
 
             fmtArgs = rCtx.prevFmtArgs;
             isize addBuff = formatToContext(rCtx, fmtArgs, rArg);
@@ -499,16 +499,16 @@ printArg(isize& rNWritten, isize& rI, bool& rbArg, Context& rCtx, const T& rArg)
             isize addBuff = 0;
             const isize add = parseFormatArg(&fmtArgs, rCtx.fmt, rI);
 
-            if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::ARG_IS_FMT))
+            if (bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::ARG_IS_FMT))
             {
                 if constexpr (std::is_integral_v<std::remove_reference_t<decltype(rArg)>>)
                 {
-                    if (bool(fmtArgs.eFmtFlags & FMT_FLAGS::FLOAT_PRECISION_ARG))
+                    if (bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::FLOAT_PRECISION_ARG))
                         fmtArgs.maxFloatLen = rArg;
                     else fmtArgs.maxLen = rArg;
 
                     rCtx.prevFmtArgs = fmtArgs;
-                    rCtx.eFlags |= CONTEXT_FLAGS::UPDATE_FMT_ARGS;
+                    rCtx.eFlags |= Context::FLAGS::UPDATE_FMT_ARGS;
                 }
             }
             else
@@ -566,8 +566,8 @@ printArgs(Context ctx, const T& tFirst, const ARGS_T&... tArgs) noexcept
     bool bArg = false;
     isize i = ctx.fmtIdx;
 
-    /* NOTE: Ugly edge case, when we need to fill with spaces but fmt is out of range. */
-    if (bool(ctx.eFlags & CONTEXT_FLAGS::UPDATE_FMT_ARGS) && ctx.fmtIdx >= ctx.fmt.size())
+    /* NOTE: Edge case, when we need to fill but fmt is out of range. */
+    if (bool(ctx.eFlags & Context::FLAGS::UPDATE_FMT_ARGS) && ctx.fmtIdx >= ctx.fmt.size())
         return formatToContext(ctx, ctx.prevFmtArgs, tFirst);
     else if (ctx.fmtIdx >= ctx.fmt.size())
         return 0;
@@ -721,7 +721,7 @@ template<typename ...ARGS>
 inline isize
 formatToContextVariadic(Context ctx, FormatArgs fmtArgs, const ARGS&... args) noexcept
 {
-    const bool bSquareBrackets = bool(fmtArgs.eFmtFlags & FMT_FLAGS::SQUARE_BRACKETS);
+    const bool bSquareBrackets = bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::SQUARE_BRACKETS);
     isize n = 0;
 
     if (bSquareBrackets)

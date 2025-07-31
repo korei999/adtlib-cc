@@ -1527,35 +1527,35 @@ namespace adt::print
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const math::V2& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.x, x.y);
 }
 
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const math::V3& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.x, x.y, x.z);
 }
 
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const math::V4& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.x, x.y, x.z, x.w);
 }
 
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const math::IV4& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.x, x.y, x.z, x.w);
 }
 
 inline isize
 formatToContext(Context ctx, FormatArgs fmtArgs, const math::IV4u16& x)
 {
-    fmtArgs.eFmtFlags |= FMT_FLAGS::SQUARE_BRACKETS;
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
     return formatToContextVariadic(ctx, fmtArgs, x.x, x.y, x.z, x.w);
 }
 
