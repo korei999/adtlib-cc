@@ -2,7 +2,6 @@
 #include "adt/SplayTree.hh"
 #include "adt/Arena.hh"
 #include "adt/defer.hh"
-#include "adt/ScratchBuffer.hh"
 #include "adt/BufferAllocator.hh"
 
 using namespace adt;
