@@ -1,3 +1,30 @@
+/* Borrowed from OpenBSD's splay tree implementation. */
+
+/*
+ * Copyright 2002 Niels Provos <provos@citi.umich.edu>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #pragma once
 
 #include "IAllocator.hh"
@@ -42,18 +69,9 @@ struct SplayTreeNode
 };
 
 template<typename T>
-struct SplayTreeThreeNodes
-{
-    SplayTreeNode<T>* grand;
-    SplayTreeNode<T>* parent;
-    SplayTreeNode<T>* node;
-};
-
-template<typename T>
 struct SplayTree
 {
     using Node = SplayTreeNode<T>;
-    using Three = SplayTreeThreeNodes<T>;
     static_assert(std::is_same_v<Node, typename SplayTreeNode<T>::Node>);
 
     /* */
@@ -86,14 +104,20 @@ struct SplayTree
     Node* root() noexcept { return m_pRoot; }
 
     template<typename ...ARGS>
-    Three insert(IAllocator* pAlloc, ARGS&&... args);
+    Node* insert(IAllocator* pAlloc, ARGS&&... args);
+    Node* insertNode(Node* p) noexcept;
+    Node* search(const T& key) noexcept;
+
+    /* */
 
 protected:
+    void splay(const T& key) noexcept;
 
-    Three insertNode(Node* p) noexcept;
-    Node* splay(Node* p);
-    Node* rotateRight(Node** pp);
-    Node* rotateLeft(Node** pp);
+    static void rotateRight(SplayTree* head, Node* p) noexcept;
+    static void rotateLeft(SplayTree* head, Node* p) noexcept;
+    static void linkLeft(SplayTree* head, Node** p) noexcept;
+    static void linkRight(SplayTree* head, Node** p) noexcept;
+    static void assemble(SplayTree* head, Node* node, Node* left, Node* right) noexcept;
 };
 
 template<typename T>
@@ -104,92 +128,143 @@ SplayTreeNode<T>::print(IAllocator* pAlloc, FILE* pF, const StringView svPrefix)
 }
 
 template<typename T>
-inline SplayTree<T>::Three
+inline SplayTree<T>::Node*
 SplayTree<T>::insertNode(Node* p) noexcept
 {
     ADT_ASSERT(p != nullptr, "");
 
-    Node** ppWalk = &m_pRoot;
-    Node* pGrandParent = nullptr;
-    Node* pParent = nullptr;
-
-    while (*ppWalk)
+    if (!m_pRoot)
     {
-        isize cmp = utils::compare(p->m_data, (*ppWalk)->m_data);
-        pGrandParent = pParent;
-        pParent = *ppWalk;
-
-        if (cmp == 0) return Three {.grand = pGrandParent, .parent = pParent, .node = *ppWalk};
-        else if (cmp < 0) ppWalk = &(*ppWalk)->m_pLeft;
-        else ppWalk = &(*ppWalk)->m_pRight;
+        p->m_pLeft = p->m_pRight = nullptr;
     }
+    else
+    {
+        isize cmp;
+        splay(p->m_data);
+        cmp = utils::compare(p->m_data, m_pRoot->m_data);
+        if (cmp < 0)
+        {
+            p->m_pLeft = m_pRoot->m_pLeft;
+            p->m_pRight = m_pRoot;
+            m_pRoot->m_pLeft = nullptr;
+        }
+        else if (cmp > 0)
+        {
+            p->m_pRight = m_pRoot->m_pRight;
+            p->m_pLeft = m_pRoot;
+            m_pRoot->m_pRight = nullptr;
+        }
+        else
+        {
+            return m_pRoot;
+        }
+    }
+    m_pRoot = p;
+    return nullptr;
+}
 
-    *ppWalk = p;
+template<typename T>
+inline SplayTree<T>::Node*
+SplayTree<T>::search(const T& key) noexcept
+{
+    if (!m_pRoot) return nullptr;
 
-    return Three {
-        .grand = pGrandParent,
-        .parent = pParent,
-        .node = p,
-    };
+    splay(key);
+    if (utils::compare(key, m_pRoot->m_data) == 0) return m_pRoot;
+    else return nullptr;
 }
 
 template<typename T>
 template<typename ...ARGS>
-SplayTree<T>::Three
+inline SplayTree<T>::Node*
 SplayTree<T>::insert(IAllocator* pAlloc, ARGS&&... args)
 {
-    Three pInserted = insertNode(Node::alloc(pAlloc, std::forward<ARGS>(args)...));
-    /*m_pRoot = splay(pInserted);*/
-
-    return pInserted;
+    return insertNode(Node::alloc(pAlloc, std::forward<ARGS>(args)...));
 }
 
 template<typename T>
-inline SplayTree<T>::Node*
-SplayTree<T>::splay(Node* x)
+inline void
+SplayTree<T>::splay(const T& key) noexcept
 {
-    while (x->m_pParent)
+    Node node {}, * left {}, * right {}, * tmp {};
+    isize cmp;
+
+    left = right = &node;
+
+    while ((cmp = utils::compare(key, m_pRoot->m_data)))
     {
-        if (!x->m_pParent->m_pParent) /* Zig (near root) */
+        if (cmp < 0)
         {
-            if (x->m_pParent->m_pLeft == x)
-                x = rotateRight(&x->m_pParent);
-            else x = rotateLeft(&x->m_pParent);
+            tmp = m_pRoot->m_pLeft;
+            if (!tmp) break;
+
+            if (utils::compare(key, tmp->m_data) < 0)
+            {
+                rotateRight(this, tmp);
+                if (!m_pRoot->m_pLeft) break;
+            }
+            linkLeft(this, &right);
         }
-        else if (x->m_pParent->m_pRight == x) /* zig zag left y right z */
+        else if (cmp > 0)
         {
+            tmp = m_pRoot->m_pRight;
+            if (!tmp) break;
+
+            if (utils::compare(key, tmp->m_data) > 0)
+            {
+                rotateLeft(this, tmp);
+                if (!m_pRoot->m_pRight) break;
+            }
+            linkRight(this, &left);
         }
     }
-
-    return x;
+    assemble(this, &node, left, right);
 }
 
 template<typename T>
-inline SplayTree<T>::Node*
-SplayTree<T>::rotateRight(Node** pp)
+inline void
+SplayTree<T>::rotateRight(SplayTree* head, Node* p) noexcept
 {
-    Node* Y = (*pp);
-    Node* X = Y->m_pLeft;
-    Node* b = X->m_pRight;
-
-    Y->m_pLeft = b;
-    X->m_pRight = Y;
-
-    return *pp = X;
+    head->m_pRoot->m_pLeft = p->m_pRight;
+    p->m_pRight = head->m_pRoot;
+    head->m_pRoot = p;
 }
 
 template<typename T>
-inline SplayTree<T>::Node*
-SplayTree<T>::rotateLeft(Node** pp)
+inline void
+SplayTree<T>::rotateLeft(SplayTree* head, Node* p) noexcept
 {
-    Node* X = (*pp);
-    Node* Y = X->m_pRight;
-    Node* b = Y->m_pLeft;
+    head->m_pRoot->m_pRight = p->m_pLeft;
+    p->m_pLeft = head->m_pRoot;
+    head->m_pRoot = p;
+}
 
-    X->m_pRight = b;
-    Y->m_pLeft = X;
+template<typename T>
+inline void
+SplayTree<T>::linkLeft(SplayTree* head, Node** p) noexcept
+{
+    (*p)->m_pLeft = head->m_pRoot;
+    *p = head->m_pRoot;
+    head->m_pRoot = head->m_pRoot->m_pLeft;
+}
 
-    return *pp = Y;
+template<typename T>
+inline void
+SplayTree<T>::linkRight(SplayTree* head, Node** p) noexcept
+{
+    (*p)->m_pRight = head->m_pRoot;
+    *p = head->m_pRoot;
+    head->m_pRoot = head->m_pRoot->m_pRight;
+}
+
+template<typename T>
+inline void
+SplayTree<T>::assemble(SplayTree* head, Node* node, Node* left, Node* right) noexcept
+{
+    left->m_pRight = head->m_pRoot->m_pLeft;
+    right->m_pLeft = head->m_pRoot->m_pRight;
+    head->m_pRoot->m_pLeft = node->m_pRight;
+    head->m_pRoot->m_pRight = node->m_pLeft;
 }
 
 template<typename T>
@@ -211,7 +286,7 @@ SplayTree<T>::print(
         ADT_DEFER( pAlloc->free(sCat.m_pData) );
 
         print(pAlloc, pF, pNode->m_pLeft, sCat, true, pNode->m_pRight);
-        print(pAlloc, pF, pNode->m_pRight, sCat, false);
+        print(pAlloc, pF, pNode->m_pRight, sCat, false, false);
     }
 }
 
@@ -224,14 +299,6 @@ format(Context ctx, FormatArgs fmtArgs, const SplayTreeNode<T>* const x)
 {
     if (x) return format(ctx, fmtArgs, x->m_data);
     else return format(ctx, fmtArgs, nullptr);
-}
-
-template<typename T>
-inline isize
-format(Context ctx, FormatArgs fmtArgs, const SplayTreeThreeNodes<T>& x)
-{
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::SQUARE_BRACKETS;
-    return formatVariadic(ctx, fmtArgs, x.grand, x.parent, x.node);
 }
 
 } /* namespace format */
