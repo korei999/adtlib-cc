@@ -107,6 +107,7 @@ struct SplayTree
     Node* insert(IAllocator* pAlloc, ARGS&&... args);
     Node* insertNode(Node* p) noexcept;
     Node* search(const T& key) noexcept;
+    Node* remove(Node* p) noexcept;
 
     /* */
 
@@ -160,7 +161,7 @@ SplayTree<T>::insertNode(Node* p) noexcept
         }
     }
     m_pRoot = p;
-    return nullptr;
+    return m_pRoot;
 }
 
 template<typename T>
@@ -172,6 +173,32 @@ SplayTree<T>::search(const T& key) noexcept
     splay(key);
     if (utils::compare(key, m_pRoot->m_data) == 0) return m_pRoot;
     else return nullptr;
+}
+
+template<typename T>
+inline SplayTree<T>::Node*
+SplayTree<T>::remove(Node* p) noexcept
+{
+    Node* tmp;
+    if (!m_pRoot) return nullptr;
+
+    splay(p->m_data);
+    if (utils::compare(p->m_data, m_pRoot->m_data) == 0)
+    {
+        if (!m_pRoot->m_pLeft)
+        {
+            m_pRoot = m_pRoot->m_pRight;
+        }
+        else
+        {
+            tmp = m_pRoot->m_pRight;
+            m_pRoot = m_pRoot->m_pLeft;
+            splay(p->m_data);
+            m_pRoot->m_pRight = tmp;
+        }
+        return p;
+    }
+    return nullptr;
 }
 
 template<typename T>

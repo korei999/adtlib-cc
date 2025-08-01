@@ -24,23 +24,25 @@ main()
         st.insert(&arena, -2);
         st.insert(&arena, 10);
         st.insert(&arena, -1);
-        st.insert(&arena, 22);
+        st.insert(&arena, -22);
         st.insert(&arena, 2);
         st.insert(&arena, 1);
-        st.insert(&arena, -21);
+        auto* pM21 = st.insert(&arena, -21);
+        ADT_ASSERT_ALWAYS(pM21 == st.root(), "pM21: {}, root: {}", pM21, st.root());
+
+        st.remove(pM21);
 
         {
             auto* p10 = st.search(10);
             ADT_ASSERT_ALWAYS(p10 && p10 == st.root(), "p10: {}, root: {}", (void*)p10, (void*)st.root());
 
             auto* pM21 = st.search(-21);
-            ADT_ASSERT_ALWAYS(pM21 && pM21 == st.root(), "pM21: {}, root: {}", (void*)pM21, (void*)st.root());
+            ADT_ASSERT_ALWAYS(!pM21, "pM21: {}, root: {}", (void*)pM21, (void*)st.root());
 
             auto* p2 = st.search(2);
             ADT_ASSERT_ALWAYS(p2 && p2 == st.root(), "p2: {}, root: {}", (void*)p2, (void*)st.root());
 
             ADT_ASSERT_ALWAYS(p10 && p10->m_data == 10, "{}", p10);
-            ADT_ASSERT_ALWAYS(pM21 && pM21->m_data == -21, "{}", pM21);
             ADT_ASSERT_ALWAYS(p2 && p2->m_data == 2, "{}", p2);
         }
 
