@@ -308,10 +308,10 @@ RefCountedPtr<T>::weakUnref()
     m_pRC->weakUnref();
 }
 
-template<typename RCP_T>
+template<typename T>
 struct RefGuard
 {
-    RefGuard(RCP_T* p) noexcept
+    RefGuard(RefCountedPtr<T>* p) noexcept
     {
         ADT_ASSERT(p != nullptr, "");
         ADT_ASSERT(bool(*p), "count: {}, weakCount: {}", p->m_pRC->m_count, p->m_pRC->m_weakCount);
@@ -321,7 +321,23 @@ struct RefGuard
     ~RefGuard() { m_pRC->unref(); }
 
 protected:
-    RCP_T* m_pRC;
+    RefCountedPtr<T>* m_pRC;
+};
+
+template<typename T>
+struct WeakRefGuard
+{
+    WeakRefGuard(WeakPtr<T>* p) noexcept
+    {
+        ADT_ASSERT(p != nullptr, "");
+        ADT_ASSERT(bool(*p), "count: {}, weakCount: {}", p->m_pRC->m_count, p->m_pRC->m_weakCount);
+        m_pRC = &p->ref();
+    }
+
+    ~WeakRefGuard() { m_pRC->weakUnref(); }
+
+protected:
+    WeakPtr<T>* m_pRC;
 };
 
 } /* namespace adt */
