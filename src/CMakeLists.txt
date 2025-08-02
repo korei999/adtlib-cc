@@ -144,3 +144,8 @@ add_executable(
     SplayTree
     SplayTree.cc
 )
+
+add_executable(
+    RefCount
+    RefCount.cc
+)
