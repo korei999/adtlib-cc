@@ -27,7 +27,7 @@ main()
         st.insert(&arena, -22);
         st.insert(&arena, 2);
         st.insert(&arena, 1);
-        auto* pM21 = st.insert(&arena, -21);
+        SplayNode<int>* pM21 = st.insert(&arena, -21);
         ADT_ASSERT_ALWAYS(pM21 == st.root(), "pM21: {}, root: {}", pM21, st.root());
 
         st.remove(pM21);
