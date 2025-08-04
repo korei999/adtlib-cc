@@ -74,7 +74,7 @@ struct StringView
     constexpr const char* data() const { return m_pData; }
     constexpr char* data() { return m_pData; }
     constexpr isize size() const { return m_size; }
-    constexpr bool empty() const { return m_size == 0; }
+    constexpr bool empty() const { return m_size <= 0; }
     constexpr isize idx(const char* const pChar) const;
     [[nodiscard]] bool beginsWith(const StringView r) const;
     [[nodiscard]] bool endsWith(const StringView r) const;

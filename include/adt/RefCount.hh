@@ -69,13 +69,16 @@ struct RefCounterOneAlloc : IRefCounter
 
     /* */
 
-    virtual void destroyData() noexcept { /* noop */ }
+    virtual void
+    destroyData() noexcept
+    {
+        auto* pData = reinterpret_cast<T*>((u8*)this + sizeof(RefCounterOneAlloc));
+        pData->~T();
+    }
 
     virtual void
     destroy() noexcept
     {
-        auto* pData = reinterpret_cast<T*>((u8*)this + sizeof(RefCounterOneAlloc));
-        pData->~T();
         StdAllocator::inst()->free(this);
     }
 };
@@ -94,10 +97,15 @@ struct RefCounterOneAllocCustom : RefCounterOneAlloc<T>
     /* */
 
     virtual void
-    destroy() noexcept
+    destroyData() noexcept
     {
         auto* pData = reinterpret_cast<T*>((u8*)this + sizeof(RefCounterOneAllocCustom));
         m_clDeleter(pData);
+    }
+
+    virtual void
+    destroy() noexcept
+    {
         StdAllocator::inst()->free(this);
     }
 };
@@ -195,9 +203,11 @@ struct RefCountedPtr
     operator bool() const noexcept { return m_pRC && m_pRC->m_count > 0; }
 
     T* operator->() noexcept { ADT_ASSERT(bool(*this), ""); return m_pData; }
+    const T* operator->() const noexcept { ADT_ASSERT(bool(*this), ""); return m_pData; }
     T& operator*() noexcept { ADT_ASSERT(bool(*this), ""); return *m_pData; }
+    const T& operator*() const noexcept { ADT_ASSERT(bool(*this), ""); return *m_pData; }
 
-    T* data() noexcept { return bool(*this) ? m_pData : nullptr; }
+    T* ptr() noexcept { ADT_ASSERT(bool(*this), ""); return m_pData; }
     RefCountedPtr& ref() noexcept;
     WeakPtr<T> weakRef() noexcept;
     void unref();
