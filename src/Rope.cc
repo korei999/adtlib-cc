@@ -14,9 +14,17 @@ main()
         defer( r.destroy() );
 
         r.insert("Hello", 0);
-        /*r.insert("_", 5);*/
-        /*r.insert("wol", 6);*/
-        /*r.insert("ld", 9);*/
+        r.insert("_world", 5);
+        r.insert("_prepend_", 0);
+        r.insert("_2_", 2);
+        r.insert("|WHAZZUP|", 8);
+
+        r.printTree(StdAllocator::inst(), stdout);
+
+        print::out("\nfull: '");
+        for (isize i = 0; i < r.m_totalSize; ++i)
+            print::out("{}", r.charAt(i));
+        print::out("'\n");
     }
 
 

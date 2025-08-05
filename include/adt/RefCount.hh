@@ -208,6 +208,8 @@ struct RefCountedPtr
     const T& operator*() const noexcept { ADT_ASSERT(bool(*this), ""); return *m_pData; }
 
     T* ptr() noexcept { ADT_ASSERT(bool(*this), ""); return m_pData; }
+    const T* ptr() const noexcept { ADT_ASSERT(bool(*this), ""); return m_pData; }
+
     RefCountedPtr& ref() noexcept;
     WeakPtr<T> weakRef() noexcept;
     void unref();
