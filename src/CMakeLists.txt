@@ -149,3 +149,8 @@ add_executable(
     RefCount
     RefCount.cc
 )
+
+add_executable(
+    Rope
+    Rope.cc
+)
