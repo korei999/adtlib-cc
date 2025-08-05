@@ -3,8 +3,6 @@
 #include "String.hh"
 #include "RefCount.hh"
 
-#include "logs.hh"
-
 namespace adt
 {
 
@@ -47,6 +45,8 @@ struct Rope
 
     /* */
 
+    isize size() const noexcept { return m_totalSize; }
+
     Node* root() noexcept { return m_pRoot; }
     const Node* root() const noexcept { return m_pRoot; }
 
@@ -55,8 +55,6 @@ struct Rope
     Leaf* insert(const StringView sv, isize atI);
 
     Leaf* insert(Leaf* pNode, isize atI);
-
-    Pair<Leaf*, isize> iToLeaf(isize atI);
 
     void destroy() noexcept;
 
@@ -134,7 +132,6 @@ Rope::insert(Leaf* pNew, isize atI)
 {
     if (!m_pRoot)
     {
-        LOG_BAD("---ROOT CASE---: atI: {}\n", atI);
         ADT_ASSERT(atI == 0, "{}", atI);
         m_pRoot = reinterpret_cast<Node*>(pNew);
         return pNew;
@@ -178,12 +175,6 @@ Rope::insert(Leaf* pNew, isize atI)
     }
 
     return nullptr;
-}
-
-inline Pair<RopeLeaf*, isize>
-Rope::iToLeaf(isize atI)
-{
-    return {};
 }
 
 inline void

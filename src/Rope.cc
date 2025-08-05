@@ -14,10 +14,10 @@ main()
         defer( r.destroy() );
 
         r.insert("Hello", 0);
-        r.insert("_world", 5);
-        r.insert("_prepend_", 0);
-        r.insert("_2_", 2);
-        r.insert("|WHAZZUP|", 8);
+        r.insert("| |", 2);
+        r.insert("|EVEN|", r.size());
+        r.insert("_MORE_", r.size());
+        r.insert("<*>", 11);
 
         r.printTree(StdAllocator::inst(), stdout);
 
@@ -25,6 +25,12 @@ main()
         for (isize i = 0; i < r.m_totalSize; ++i)
             print::out("{}", r.charAt(i));
         print::out("'\n");
+
+        print::out("\n");
+        for (isize i = 0; i < r.size(); ++i)
+            print::out("({}){}{}", i, r.charAt(i), i < r.size() - 1 ? ", " : "");
+        print::out("\n");
+
     }
 
 
