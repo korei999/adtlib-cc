@@ -13,11 +13,17 @@ main()
         Rope r {};
         defer( r.destroy() );
 
-        r.insert("Hello", 0);
-        r.insert("| |", 2);
-        r.insert("|EVEN|", r.size());
-        r.insert("_MORE_", r.size());
-        r.insert("<*>", 11);
+        /*r.insert("Hello", 0);*/
+        /*r.insert("| |", 2);*/
+        /*r.insert("/----\\", r.size());*/
+        /*r.insert("_WORLD_", r.size());*/
+        /*r.insert("<*>", 11);*/
+
+        r.insert("hello", 0);
+        r.insert("_", r.size());
+        r.insert("wor", r.size());
+        r.insert("ld", r.size());
+        r.insert("||", 6);
 
         r.printTree(StdAllocator::inst(), stdout);
 

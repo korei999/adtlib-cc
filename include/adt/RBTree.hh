@@ -51,9 +51,9 @@ struct RBNode
 
     /* */
 
+    RBNode* m_parentColor {}; /* NOTE: color is the least significant bit */
     RBNode* m_left {};
     RBNode* m_right {};
-    RBNode* m_parentColor {}; /* NOTE: color is the least significant bit */
     ADT_NO_UNIQUE_ADDRESS T m_data {};
 
     /* */
