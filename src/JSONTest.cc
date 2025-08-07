@@ -1,6 +1,5 @@
 #include "adt/Arena.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
-#include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"

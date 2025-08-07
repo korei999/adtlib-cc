@@ -1,6 +1,5 @@
 #include "adt/logs.hh"
 #include "adt/Arena.hh"
-#include "adt/FreeList.hh"
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 
@@ -21,17 +20,11 @@ static void
 reallocZero()
 {
     StdAllocator os {};
-    FreeList fl(500);;
 
     errno = {};
     auto* what = os.realloc((void*)0, 0, 0, 0);
     os.free(what);
     LOG_ERR("what: {}\n", what);
-
-    errno = {};
-    auto* whatFl = fl.realloc(nullptr, 0, 0, 0);
-    fl.free(whatFl);
-    LOG_ERR("whatFl: {}\n", whatFl);
 }
 
 template<typename T>

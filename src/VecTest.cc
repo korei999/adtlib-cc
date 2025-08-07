@@ -1,4 +1,3 @@
-#include "adt/FreeList.hh" /* IWYU pragma: keep */
 #include "adt/logs.hh"
 #include "adt/Arena.hh"
 #include "adt/Vec.hh"
