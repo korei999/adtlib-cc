@@ -394,7 +394,7 @@ format(Context ctx, FormatArgs fmtArgs, const FLOAT_T x) noexcept
     std::to_chars_result res {};
     if (fmtArgs.maxFloatLen == NPOS8)
         res = std::to_chars(aBuff, aBuff + sizeof(aBuff), x);
-    else res = std::to_chars(aBuff, aBuff + sizeof(aBuff), x, std::chars_format::general, fmtArgs.maxFloatLen);
+    else res = std::to_chars(aBuff, aBuff + sizeof(aBuff), x, std::chars_format::fixed, fmtArgs.maxFloatLen);
 
     if (res.ptr) return copyBackToContext(ctx, fmtArgs, {aBuff, res.ptr - aBuff});
     else return copyBackToContext(ctx, fmtArgs, {aBuff});
