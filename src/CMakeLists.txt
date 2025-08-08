@@ -154,3 +154,8 @@ add_executable(
     Rope
     Rope.cc
 )
+
+add_executable(
+    FuncBuffer
+    FuncBuffer.cc
+)

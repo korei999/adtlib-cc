@@ -42,6 +42,14 @@ moveDestruct(T* pVal, ARGS&&... args)
         tmp.~T();
 }
 
+template<typename T>
+inline void
+destruct(T* p)
+{
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        p->~T();
+}
+
 /* bit number starts from 0 */
 inline constexpr isize
 setBit(isize num, isize bit, bool val)
