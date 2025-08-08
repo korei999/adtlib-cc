@@ -2,7 +2,6 @@
 
 #include "types.hh"
 
-#include <cstring>
 #include <type_traits>
 
 namespace adt
@@ -54,7 +53,7 @@ FuncBuffer<R, SIZE>::FuncBuffer(const CL& cl) noexcept
 {
     static_assert(std::is_same_v<decltype(cl()), R>, "fix lambda's return value");
 
-    ::memcpy(m_aArgBuff, &cl, sizeof(cl));
+    new(m_aArgBuff) CL {cl};
 }
 
 template<typename R, int SIZE>
@@ -64,7 +63,7 @@ inline
 FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), T arg) noexcept
     : m_pfn {pfn}
 {
-    ::memcpy(m_aArgBuff, &arg, sizeof(arg));
+    new(m_aArgBuff) T {arg};
 }
 
 } /* namespace adt */
