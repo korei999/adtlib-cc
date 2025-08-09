@@ -7,6 +7,7 @@
 #include "adt/logs.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
+#include "adt/time.hh"
 #include "adt/rng.hh"
 
 using namespace adt;
@@ -42,18 +43,18 @@ main()
             auto v1 = v0.clone();
             defer( v1.destroy() );
             {
-                const isize t0 = utils::timeNowUS();
+                const isize t0 = time::nowUS();
                 std::sort(v1.data(), v1.data() + v1.size());
-                const isize t1 = utils::timeNowUS() - t0;
+                const isize t1 = time::nowUS() - t0;
                 LOG_NOTIFY("std::sort(StringM): {} items in {} ms\n", v1.size(), t1 / 1000.0);
             }
 
             auto v2 = v0.clone();
             defer( v2.destroy() );
             {
-                const isize t0 = utils::timeNowUS();
+                const isize t0 = time::nowUS();
                 sort::quick(&v2);
-                const isize t1 = utils::timeNowUS() - t0;
+                const isize t1 = time::nowUS() - t0;
 
                 LOG_NOTIFY("sort::quick(StringM): {} items in {} ms\n", v2.size(), t1 / 1000.0);
             }
@@ -80,18 +81,18 @@ main()
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
-            const isize t0 = utils::timeNowUS();
+            const isize t0 = time::nowUS();
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
-            const isize t1 = utils::timeNowUS() - t0;
+            const isize t1 = time::nowUS() - t0;
             LOG_NOTIFY("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), t1 / 1000.0);
         }
 
         auto v2 = v0.clone();
         defer( v2.destroy() );
         {
-            const isize t0 = utils::timeNowUS();
+            const isize t0 = time::nowUS();
             sort::quickParallel(&tp, &v2);
-            const isize t1 = utils::timeNowUS() - t0;
+            const isize t1 = time::nowUS() - t0;
 
             LOG_NOTIFY("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), t1 / 1000.0);
         }
@@ -114,18 +115,18 @@ main()
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
-            const isize t0 = utils::timeNowUS();
+            const isize t0 = time::nowUS();
             std::sort(v1.data(), v1.data() + v1.size());
-            const isize t1 = utils::timeNowUS() - t0;
+            const isize t1 = time::nowUS() - t0;
             LOG_NOTIFY("std::sort(u32): {} items in {} ms\n", v1.size(), t1 / 1000.0);
         }
 
         auto v2 = v0.clone();
         defer( v2.destroy() );
         {
-            const isize t0 = utils::timeNowUS();
+            const isize t0 = time::nowUS();
             sort::quick(&v2);
-            const isize t1 = utils::timeNowUS() - t0;
+            const isize t1 = time::nowUS() - t0;
             LOG_NOTIFY("sort::quick(u32): {} items in {} ms\n", v2.size(), t1 / 1000.0);
         }
 

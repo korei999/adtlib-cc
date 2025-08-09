@@ -2,6 +2,7 @@
 #include "adt/Arena.hh"
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
+#include "adt/time.hh"
 
 #include <vector>
 #include <limits>
@@ -35,7 +36,7 @@ struct ArenaSTD
     Arena* m_pArena {};
 
     template<class U>
-    constexpr ArenaSTD(const ArenaSTD<U>& arena) noexcept {}
+    constexpr ArenaSTD([[maybe_unused]] const ArenaSTD<U>& arena) noexcept {}
 
     ArenaSTD(Arena* pArena) noexcept
         : m_pArena(pArena) {}
@@ -96,19 +97,19 @@ main()
     }
 
     {
-        f64 t0 = utils::timeNowMS();
+        f64 t0 = time::nowMS();
         for (int i = 0; i < big; ++i)
             vecStd.push_back(i);
-        f64 t1 = utils::timeNowMS() - t0;
+        f64 t1 = time::nowMS() - t0;
 
         LOG("vecStd: {}\n", t1);
     }
 
     // {
-    //    f64 t0 = utils::timeNowMS();
+    //    f64 t0 = time::nowMS();
     //     for (int i = 0; i < big; ++i)
     //         vecArena.push_back(i);
-    //     f64 t1 = utils::timeNowMS() - t0;
+    //     f64 t1 = time::nowMS() - t0;
 
     //     LOG("vecArena: {}\n", t1);
     // }

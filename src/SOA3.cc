@@ -1,10 +1,11 @@
+#include "adt/SOA.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Vec.hh"
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/math.hh"
-#include "adt/SOA.hh"
+#include "adt/time.hh"
 
 using namespace adt;
 
@@ -53,7 +54,7 @@ main()
 
         Entity acc {};
 
-        isize t0 = utils::timeNowUS();
+        isize t0 = time::nowUS();
         for (Entity::Bind en : v0)
         {
             acc.pos += en.pos;
@@ -62,7 +63,7 @@ main()
             acc.assetI += en.assetI;
         }
 
-        isize t1 = utils::timeNowUS() - t0;
+        isize t1 = time::nowUS() - t0;
         CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA time: {:.3} ms\n\n", t1 / 1'000.0);
@@ -88,7 +89,7 @@ main()
         auto* pVel = &v0[0].vel;
         auto* pAsset = &v0[0].assetI;
 
-        isize t0 = utils::timeNowUS();
+        isize t0 = time::nowUS();
         for (isize i = 0; i < v0.size(); ++i)
         {
             acc.pos += pPos[i];
@@ -97,7 +98,7 @@ main()
             acc.assetI += pAsset[i];
         }
 
-        isize t1 = utils::timeNowUS() - t0;
+        isize t1 = time::nowUS() - t0;
         CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA(offsets) time: {:.3} ms\n\n", t1 / 1'000.0);
@@ -115,7 +116,7 @@ main()
 
         Entity acc {};
 
-        isize t0 = utils::timeNowUS();
+        isize t0 = time::nowUS();
         for (isize i = 0; i < v0.size(); ++i)
         {
             acc.pos += v0[i].pos;
@@ -124,7 +125,7 @@ main()
             acc.assetI += v0[i].assetI;
         }
 
-        isize t1 = utils::timeNowUS() - t0;
+        isize t1 = time::nowUS() - t0;
         CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("AOS time: {:.3} ms\n\n", t1 / 1'000.0);

@@ -6,6 +6,7 @@
 #include "adt/StdAllocator.hh"
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
+#include "adt/time.hh"
 
 #include "Types.hh"
 
@@ -179,7 +180,7 @@ main()
     }
 
     {
-        f64 t0 = utils::timeNowMS();
+        f64 t0 = time::nowMS();
 
         StdAllocator a;
 
@@ -187,21 +188,21 @@ main()
         for (u32 i = 0; i < BIG; ++i)
             vec.emplace(&a, i, i);
 
-        f64 t1 = utils::timeNowMS();
+        f64 t1 = time::nowMS();
         LOG("adt: {} ms\n", t1 - t0);
 
         vec.destroy(&a);
     }
 
     {
-        f64 t0 = utils::timeNowMS();
+        f64 t0 = time::nowMS();
 
         std::vector<B> stdvec;
         /*stdvec.reserve(big);*/
         for (u32 i = 0; i < BIG; ++i)
             stdvec.emplace_back(i, i);
 
-        f64 t1 = utils::timeNowMS();
+        f64 t1 = time::nowMS();
         LOG("std: {} ms\n", t1 - t0);
     }
 

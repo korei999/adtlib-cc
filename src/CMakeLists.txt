@@ -159,3 +159,8 @@ add_executable(
     FuncBuffer
     FuncBuffer.cc
 )
+
+add_executable(
+    time
+    time.cc
+)

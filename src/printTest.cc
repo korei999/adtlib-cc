@@ -6,6 +6,7 @@
 #include "adt/List.hh" /* IWYU pragma: keep */
 #include "adt/String.hh" /* IWYU pragma: keep */
 #include "adt/math.hh" /* IWYU pragma: keep */
+#include "adt/time.hh"
 
 #include <format>
 
@@ -82,13 +83,13 @@ main()
     }
 
     {
-        const auto t0 = utils::timeNowUS();
+        const auto t0 = time::nowUS();
 
         char aBuff[64] {};
         for (isize i = 0; i < BIG; ++i)
             print::toSpan(aBuff, "{}, {}, {}, {}", i, i, f32(i), f64(i));
 
-        const auto t1 = utils::timeNowUS();
+        const auto t1 = time::nowUS();
 
         // print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
@@ -98,13 +99,13 @@ main()
     CERR("\n");
 
     {
-        const auto t0 = utils::timeNowUS();
+        const auto t0 = time::nowUS();
 
         char aBuff[64] {};
         for (isize i = 0; i < BIG; ++i)
             snprintf(aBuff, sizeof(aBuff) - 1, "%lld, %lld, %f, %lf", i, i, f32(i), f64(i));
 
-        const auto t1 = utils::timeNowUS();
+        const auto t1 = time::nowUS();
 
         // print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
@@ -114,13 +115,13 @@ main()
     CERR("\n");
 
     {
-        const auto t0 = utils::timeNowUS();
+        const auto t0 = time::nowUS();
 
         char aBuff[64] {};
         for (isize i = 0; i < BIG; ++i)
             std::format_to(aBuff, "{}, {}, {}, {}", i, i, f32(i), f64(i));
 
-        const auto t1 = utils::timeNowUS();
+        const auto t1 = time::nowUS();
         // print::out("aBuff: {}\n", aBuff);
 
         // LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);

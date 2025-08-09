@@ -5,6 +5,7 @@
 #include "adt/Map.hh"
 #include "adt/Span.hh"
 #include "adt/rng.hh"
+#include "adt/time.hh"
 
 #include <string_view>
 #include <unordered_map>
@@ -20,7 +21,7 @@ memeHash(const int& x)
     return usize(x);
 }
 
-static rng::PCG32 s_rng {usize(utils::timeNowUS())};
+static rng::PCG32 s_rng {usize(time::nowUS())};
 
 static String
 genRandomString(IAllocator* pAlloc)
@@ -58,7 +59,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            f64 t0 = utils::timeNowMS();
+            f64 t0 = time::nowMS();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -69,12 +70,12 @@ microBench()
                 }
             }
 
-            f64 t1 = utils::timeNowMS() - t0;
+            f64 t1 = time::nowMS() - t0;
             LOG("tryInsert {} items in {} ms\n", BIG, t1);
         }
 
         {
-            f64 t0 = utils::timeNowMS();
+            f64 t0 = time::nowMS();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -96,7 +97,7 @@ microBench()
                 }
             }
 
-            f64 t1 = utils::timeNowMS() - t0;
+            f64 t1 = time::nowMS() - t0;
             LOG("search {} items in {} ms\n", BIG, t1);
 
             for (auto& sv : vNotFoundStrings)
@@ -123,7 +124,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            f64 t0 = utils::timeNowMS();
+            f64 t0 = time::nowMS();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -132,12 +133,12 @@ microBench()
                     vNotFoundStrings.push(vStrings[i]);
             }
 
-            f64 t1 = utils::timeNowMS() - t0;
+            f64 t1 = time::nowMS() - t0;
             LOG("STL: try_emplace {} items in {} ms\n", BIG, t1);
         }
 
         {
-            f64 t0 = utils::timeNowMS();
+            f64 t0 = time::nowMS();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -159,7 +160,7 @@ microBench()
                 }
             }
 
-            f64 t1 = utils::timeNowMS() - t0;
+            f64 t1 = time::nowMS() - t0;
             LOG("STL: search {} items in {} ms\n", BIG, t1);
 
             for (auto& sv : vNotFoundStrings)
