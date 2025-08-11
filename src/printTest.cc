@@ -79,7 +79,9 @@ main()
         u8 aBuff[32] {};
         BufferAllocator buff {aBuff};
 
-        String s = print::toString(&buff, "\"({}): hello {} {}   \"", 666, "im", "toxic");
+        LOG_BAD("realCap: {}\n", buff.realCap());
+
+        String s = print::toString(&buff, buff.realCap(), "\"({}): hello {} {}   \"", 666, "im", "toxic");
         print::out("s({}): '{}'\n", s.size(), s);
         ADT_ASSERT_ALWAYS(s == "\"(666): hello im toxic   \"", "{}", s);
     }
