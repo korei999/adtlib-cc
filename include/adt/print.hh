@@ -39,7 +39,7 @@ Buffer::push(char c)
     {
         if (!m_pAlloc) return -1;
 
-        const int newCap = m_cap*2 + 1;
+        const int newCap = utils::max(isize(8), m_cap * 2);
         char* pNewData {};
 
         if (!m_bDataAllocated)
