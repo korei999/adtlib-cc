@@ -3,11 +3,11 @@
 #include "adt/logs.hh"
 #include "adt/Arena.hh"
 #include "adt/Map.hh"
-#include "adt/Span.hh"
+#include "adt/Span.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh"
 #include "adt/time.hh"
 
-#include <string_view>
+#include <string_view> /* IWYU pragma: keep */
 #include <string>
 #include <unordered_map>
 
@@ -53,6 +53,16 @@ microBench()
 
     for (isize i = 0; i < BIG; ++i)
         vStrings[i] = genRandomString(&arena);
+
+    {
+        MapM<int, int> map {};
+        defer( map.destroy() );
+        map.insert(1, 2);
+        map.insert(2, 3);
+        map.insert(3, 4);
+
+        LOG("map<int, int>: {}\n", map);
+    }
 
     {
         Map<StringView, int> map(&arena);
