@@ -1,11 +1,12 @@
 #include "adt/Arena.hh" /* IWYU pragma: keep */
 #include "adt/Array.hh"
-#include "adt/defer.hh" /* IWYU pragma: keep */
-#include "adt/logs.hh" /* IWYU pragma: keep */
-#include "adt/Vec.hh" /* IWYU pragma: keep */
-#include "adt/List.hh" /* IWYU pragma: keep */
+#include "adt/BufferAllocator.hh"
+#include "adt/List.hh"   /* IWYU pragma: keep */
 #include "adt/String.hh" /* IWYU pragma: keep */
-#include "adt/math.hh" /* IWYU pragma: keep */
+#include "adt/Vec.hh"    /* IWYU pragma: keep */
+#include "adt/defer.hh"  /* IWYU pragma: keep */
+#include "adt/logs.hh"   /* IWYU pragma: keep */
+#include "adt/math.hh"   /* IWYU pragma: keep */
 #include "adt/time.hh"
 
 #include <format>
@@ -72,6 +73,15 @@ main()
         const isize n = print::toFILE<PREALLOC>(pStd, stdout, svLong);
         ADT_ASSERT_ALWAYS(n == svLong.size(), "{}", svLong.size());
         print::out("\npreallocated size: {}, nWritten: {}, svLong: {}\n", PREALLOC, n, svLong.size());
+    }
+
+    {
+        u8 aBuff[32] {};
+        BufferAllocator buff {aBuff};
+
+        String s = print::toString(&buff, "\"({}): hello {} {}   \"", 666, "im", "toxic");
+        print::out("s({}): '{}'\n", s.size(), s);
+        ADT_ASSERT_ALWAYS(s == "\"(666): hello im toxic   \"", "{}", s);
     }
 
     constexpr isize BIG = 1000000;
