@@ -408,7 +408,7 @@ template<typename K, typename V, usize (*FN_HASH)(const K&)>
 inline void
 Map<K, V, FN_HASH>::destroy(IAllocator* p) noexcept
 {
-    if constexpr (!std::is_trivially_destructible_v<MapBucket<K, V>>)
+    if constexpr (!std::is_trivially_destructible_v<KeyVal<K, V>>)
         for (auto& e : *this)
             e.~KeyVal<K, V>();
 
