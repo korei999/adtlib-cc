@@ -8,6 +8,7 @@
 #include "adt/time.hh"
 
 #include <string_view>
+#include <string>
 #include <unordered_map>
 
 using namespace adt;
@@ -188,6 +189,18 @@ main()
         {
             CERR("kv: {}\n", kv);
         }
+    }
+
+    {
+        Map<std::string, int> map {&arena};
+        defer( map.destroy(&arena) );
+
+        map.insert(&arena, "one", 1);
+        map.insert(&arena, "two", 2);
+        map.insert(&arena, "three", 3);
+        map.insert(&arena, "four", 4);
+        map.insert(&arena, "five", 5);
+        map.insert(&arena, "six", 6);
     }
 
     Map<StringView, u32> map(&arena);
