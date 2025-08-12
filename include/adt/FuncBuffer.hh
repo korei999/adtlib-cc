@@ -29,6 +29,8 @@ struct FuncBuffer
 
     /* */
 
+    explicit operator bool() const noexcept { return bool(m_pfn); }
+
     [[nodiscard]] R operator()();
 };
 
@@ -44,9 +46,9 @@ template<typename CL>
 requires (sizeof(CL) <= SIZE)
 inline
 FuncBuffer<R, SIZE>::FuncBuffer(const CL& cl) noexcept
-    : m_pfn
-    {
-        [](void* p) -> R {
+    : m_pfn {
+        [](void* p) -> R
+        {
             return static_cast<CL*>(p)->operator()();
         }
     }

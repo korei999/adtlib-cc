@@ -17,6 +17,23 @@ struct IThreadPool
     {
         ThreadFn pfn {};
         void* pArg {};
+
+        /* */
+
+        explicit operator bool() const noexcept { return pfn; }
+        THREAD_STATUS operator()() noexcept { return pfn(pArg); }
+    };
+
+    struct Future
+    {
+        IThreadPool* m_pPool {};
+        Mutex m_mtx {};
+        CndVar m_cnd {};
+        bool bDone {};
+
+        /* */
+
+        Future() noexcept = default;
     };
 
     /* */
@@ -32,11 +49,11 @@ struct IThreadPool
 
     virtual const atomic::Int& nActiveTasks() const noexcept = 0;
 
-    virtual void wait() noexcept = 0;
+    virtual int nThreads() const noexcept = 0;
 
     virtual bool add(Task task) noexcept = 0;
 
-    virtual int nThreads() const noexcept = 0;
+    virtual void wait() noexcept = 0;
 
     bool add(ThreadFn pfn, void* pArg) noexcept { return add({pfn, pArg}); }
 
@@ -123,6 +140,10 @@ struct IThreadPool
 template<isize QUEUE_SIZE>
 struct ThreadPool : IThreadPool
 {
+    // using Task2 = FuncBuffer<THREAD_STATUS, 56>;
+
+    /* */
+
     Span<Thread> m_spThreads {};
     Mutex m_mtxQ {};
     CndVar m_cndQ {};
@@ -240,10 +261,10 @@ ThreadPool<QUEUE_SIZE>::loop()
             task = m_qTasks.popFront();
         }
 
-        if (task.pfn)
+        if (task)
         {
             m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::SEQ_CST);
-            task.pfn(task.pArg);
+            (void)task();
             m_atomNActiveTasks.fetchSub(1, atomic::ORDER::SEQ_CST);
         }
 
@@ -281,9 +302,30 @@ template<isize QUEUE_SIZE>
 inline void
 ThreadPool<QUEUE_SIZE>::wait() noexcept
 {
+again:
+    m_mtxQ.lock();
+    if (!m_qTasks.empty())
+    {
+        Task task = m_qTasks.popFront();
+        m_mtxQ.unlock();
+
+        if (task)
+        {
+            m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::SEQ_CST);
+            (void)task();
+            m_atomNActiveTasks.fetchSub(1, atomic::ORDER::SEQ_CST);
+        }
+
+        goto again;
+    }
+    else
+    {
+        m_mtxQ.unlock();
+    }
+
     LockGuard qLock {&m_mtxQ};
 
-    while (!m_qTasks.empty() || m_atomNActiveTasks.load(atomic::ORDER::RELAXED) > 0)
+    while (m_atomNActiveTasks.load(atomic::ORDER::RELAXED) > 0)
         m_cndWait.wait(&m_mtxQ);
 }
 
