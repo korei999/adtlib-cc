@@ -79,6 +79,10 @@ QueueMPMC<T, CAP>::QueueMPMC(InitFlag)
 {
     for (int i = 0; i < CAP; ++i)
         m_aBuff[i].sequence = atomic::Int(i);
+
+#ifndef NDEBUG
+    m_bInitialized = true;
+#endif
 }
 
 template<typename T, int CAP>

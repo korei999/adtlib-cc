@@ -53,7 +53,7 @@ struct IThreadPool
 
     virtual bool addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept = 0;
 
-    virtual void wait() noexcept = 0;
+    virtual void wait(bool bHelp) noexcept = 0;
 
     virtual Task tryStealTask() noexcept = 0;
 
@@ -184,7 +184,7 @@ struct ThreadPool : IThreadPool
 
     virtual const atomic::Int& nActiveTasks() const noexcept override { return m_atomNActiveTasks; }
 
-    virtual void wait() noexcept override;
+    virtual void wait(bool bHelp) noexcept override; /* bHelp: try to call still queued tasks on this thread. */
 
     void destroy(IAllocator* pAlloc) noexcept;
 
@@ -293,15 +293,15 @@ ThreadPool<QUEUE_SIZE>::start()
 
 template<isize QUEUE_SIZE>
 inline void
-ThreadPool<QUEUE_SIZE>::wait() noexcept
+ThreadPool<QUEUE_SIZE>::wait(bool bHelp) noexcept
 {
-again:
-    while (!m_qTasks.empty())
+    if (bHelp)
     {
-        Opt<Task> task = m_qTasks.pop();
-        if (task) task.value()();
-
-        goto again;
+        while (!m_qTasks.empty())
+        {
+            Opt<Task> task = m_qTasks.pop();
+            if (task) task.value()();
+        }
     }
 
     LockGuard qLock {&m_mtxQ};
@@ -313,7 +313,7 @@ template<isize QUEUE_SIZE>
 inline void
 ThreadPool<QUEUE_SIZE>::destroy(IAllocator* pAlloc) noexcept
 {
-    wait();
+    wait(true);
 
     {
         LockGuard qLock {&m_mtxQ};
@@ -406,7 +406,7 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
 
     virtual ScratchBuffer& scratchBuffer() override { return gtl_scratchBuff; }
     virtual const atomic::Int& nActiveTasks() const noexcept override { return m_base.nActiveTasks(); }
-    virtual void wait() noexcept override { m_base.wait(); }
+    virtual void wait(bool bHelp) noexcept override { m_base.wait(bHelp); }
     virtual bool addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept override { return m_base.addTask(pfn, pArg, argSize); }
     virtual int nThreads() const noexcept override { return m_base.nThreads(); }
     virtual Task tryStealTask() noexcept override { return m_base.tryStealTask(); }

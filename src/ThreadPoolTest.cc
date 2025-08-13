@@ -39,7 +39,7 @@ main()
     for (int i = 0; i < NTASKS; ++i)
         tp.addRetry(inc);
 
-    tp.wait();
+    tp.wait(true);
 
     IThreadPool::Future<int> f0 {&tp};
     IThreadPool::Future<int> f1 {&tp};

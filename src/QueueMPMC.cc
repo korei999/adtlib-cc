@@ -40,12 +40,12 @@ main()
     for (isize i = 0; i < BIG; ++i)
         tp.addRetry(clEnqueue);
 
-    tp.wait();
+    tp.wait(true);
 
     for (isize i = 0; i < BIG; ++i)
         tp.addRetry(clDequeue);
 
-    tp.wait();
+    tp.wait(true);
 
     ADT_ASSERT_ALWAYS(s_atomCounter.load(atomic::ORDER::RELAXED) == BIG, "{}", s_atomCounter.load(atomic::ORDER::RELAXED));
 
