@@ -89,6 +89,26 @@ asanCLANG()
     fi
 }
 
+tsan()
+{
+    _clean
+
+    if cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Tsan "$@"
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
+tsanCLANG()
+{
+    _clean
+
+    if CC=clang CXX=clang++ cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Tsan "$@"
+    then
+        cmake --build build/ -j -v
+    fi
+}
+
 build()
 {
     cmake --build build/ -j
@@ -151,6 +171,8 @@ case "$1" in
     debugCLANG) debugCLANG "${@:2}" ;;
     asan) asan "${@:2}" ;;
     asanCLANG) asanCLANG "${@:2}" ;;
+    tsan) tsan "${@:2}" ;;
+    tsanCLANG) tsanCLANG "${@:2}" ;;
     release) release "${@:2}";;
     releaseCLANG) releaseCLANG "${@:2}";;
     install) _install ;;
