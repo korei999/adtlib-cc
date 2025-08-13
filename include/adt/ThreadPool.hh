@@ -168,7 +168,7 @@ IThreadPool::Future::wait() noexcept
 {
     Task task;
     while ((task = m_pPool->tryStealTask()))
-        (void)task();
+        task();
 
     LockGuard lock {&m_mtx};
     while (!m_bDone) m_cnd.wait(&m_mtx);
@@ -306,15 +306,11 @@ ThreadPool<QUEUE_SIZE>::loop()
                 return 0;
 
             task = m_qTasks.popFront();
-            ADT_ASSERT(task, "");
+            m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::RELAXED);
         }
 
-        if (task)
-        {
-            m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::SEQ_CST);
-            (void)task();
-            m_atomNActiveTasks.fetchSub(1, atomic::ORDER::SEQ_CST);
-        }
+        if (task) task();
+        m_atomNActiveTasks.fetchSub(1, atomic::ORDER::RELEASE);
 
         {
             LockGuard qLock {&m_mtxQ};
@@ -358,7 +354,7 @@ again:
         m_mtxQ.unlock();
 
         ADT_ASSERT(task, "");
-        if (task) (void)task();
+        if (task) task();
 
         goto again;
     }

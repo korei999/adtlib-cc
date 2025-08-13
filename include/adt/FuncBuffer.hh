@@ -65,6 +65,8 @@ inline
 FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), T arg) noexcept
     : m_pfn {pfn}
 {
+    ADT_ASSERT(pfn != nullptr, "");
+
     new(m_aArgBuff) T {arg};
 }
 
@@ -73,7 +75,9 @@ inline
 FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), void* pArg, isize argSize) noexcept
     : m_pfn {pfn}
 {
+    ADT_ASSERT(pfn != nullptr, "");
     ADT_ASSERT(argSize <= SIZE, "can't fit, argSize: {}, SIZE; {}\n", argSize, SIZE);
+
     ::memcpy(m_aArgBuff, pArg, argSize);
 }
 
