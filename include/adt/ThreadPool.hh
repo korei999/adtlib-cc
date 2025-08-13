@@ -252,11 +252,6 @@ ThreadPool<QUEUE_SIZE>::loop()
 
         if (m_atomBPollMode.load(atomic::ORDER::RELAXED))
         {
-            LockGuard qLock {&m_mtxQ};
-
-            while (m_qTasks.empty() && !m_atomBDone.load(atomic::ORDER::ACQUIRE))
-                m_cndQ.wait(&m_mtxQ);
-
             if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 return 0;
 
@@ -265,6 +260,11 @@ ThreadPool<QUEUE_SIZE>::loop()
         }
         else
         {
+            LockGuard qLock {&m_mtxQ};
+
+            while (m_qTasks.empty() && !m_atomBDone.load(atomic::ORDER::ACQUIRE))
+                m_cndQ.wait(&m_mtxQ);
+
             if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 return 0;
 
