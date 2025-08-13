@@ -12,12 +12,13 @@ struct FuncBuffer
 
     /* */
 
-    R (*m_pfn)(void* p) {};
-    u8 m_aArgBuff[SIZE] {};
+    R (*m_pfn)(void* p);
+    u8 m_aArgBuff[SIZE];
 
     /* */
 
-    FuncBuffer() noexcept = default;
+    FuncBuffer() noexcept : m_pfn {}, m_aArgBuff {} {}
+    FuncBuffer(UninitFlag) noexcept {}
 
     template<typename CL> requires (sizeof(CL) <= SIZE)
     FuncBuffer(const CL& cl) noexcept;
@@ -51,7 +52,8 @@ FuncBuffer<R, SIZE>::FuncBuffer(const CL& cl) noexcept
         {
             return static_cast<CL*>(p)->operator()();
         }
-    }
+    },
+      m_aArgBuff {}
 {
     static_assert(std::is_same_v<decltype(cl()), R>, "fix lambda's return value");
 
@@ -63,7 +65,7 @@ template<typename T>
 requires (sizeof(T) <= SIZE)
 inline
 FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), T arg) noexcept
-    : m_pfn {pfn}
+    : m_pfn {pfn}, m_aArgBuff {}
 {
     ADT_ASSERT(pfn != nullptr, "");
 
@@ -73,7 +75,7 @@ FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), T arg) noexcept
 template<typename R, int SIZE>
 inline
 FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), void* pArg, isize argSize) noexcept
-    : m_pfn {pfn}
+    : m_pfn {pfn}, m_aArgBuff {}
 {
     ADT_ASSERT(pfn != nullptr, "");
     ADT_ASSERT(argSize <= SIZE, "can't fit, argSize: {}, SIZE; {}\n", argSize, SIZE);

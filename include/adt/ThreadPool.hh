@@ -16,12 +16,14 @@ struct IThreadPool
 {
     using Task = FuncBuffer<void, 56>; /* 64 bytes */
 
-    struct Future
+    template<typename T>
+    struct Future : adt::Future<T>
     {
+        using Base = adt::Future<T>;
+
+        /* */
+
         IThreadPool* m_pPool {};
-        Mutex m_mtx {};
-        CndVar m_cnd {};
-        bool m_bDone {};
 
         /* */
 
@@ -31,7 +33,7 @@ struct IThreadPool
         /* */
 
         void wait() noexcept;
-        void signal() noexcept;
+        decltype(auto) waitData() noexcept; /* decltype(auto) for <void> case. */
     };
 
     /* */
@@ -64,14 +66,21 @@ struct IThreadPool
         }, (void*)&cl, sizeof(cl));
     }
 
-    template<typename CL>
+    template<typename T, typename CL>
     bool
-    add(Future* pFut, CL& cl) noexcept
+    add(Future<T>* pFut, CL& cl) noexcept
     {
         auto cl2 = [pFut, cl]
         {
-            cl();
-            pFut->signal();
+            if constexpr (std::is_same_v<void, T>)
+            {
+                cl();
+                pFut->signal();
+            }
+            else
+            {
+                pFut->signalData(cl());
+            }
         };
 
         static_assert(sizeof(cl2) >= sizeof(cl) + sizeof(pFut));
@@ -84,8 +93,8 @@ struct IThreadPool
     template<typename CL>
     void addRetry(const CL& cl) noexcept { while (!add(cl)); }
 
-    template<typename CL>
-    void addRetry(Future* pFut, const CL& cl) noexcept { while (!add(pFut, cl)); }
+    template<typename T, typename CL>
+    void addRetry(Future<T>* pFut, const CL& cl) noexcept { while (!add(pFut, cl)); }
 
     template<typename CL>
     void
@@ -96,32 +105,35 @@ struct IThreadPool
     }
 };
 
+template<typename T>
 inline
-IThreadPool::Future::Future(IThreadPool* pPool) noexcept
-    : m_pPool {pPool}, m_mtx {INIT}, m_cnd {INIT}, m_bDone {false}
+IThreadPool::Future<T>::Future(IThreadPool* pPool) noexcept
+    : Base {INIT}, m_pPool {pPool}
 {
     ADT_ASSERT(pPool != nullptr, "");
 }
 
+template<typename T>
 inline void
-IThreadPool::Future::wait() noexcept
+IThreadPool::Future<T>::wait() noexcept
 {
-    Task task;
+    Task task {UNINIT};
     while ((task = m_pPool->tryStealTask()))
         task();
 
-    LockGuard lock {&m_mtx};
-    while (!m_bDone) m_cnd.wait(&m_mtx);
+    Base::wait();
 }
 
-inline void
-IThreadPool::Future::signal() noexcept
+template<typename T>
+inline decltype(auto)
+IThreadPool::Future<T>::waitData() noexcept
 {
-    {
-        LockGuard lock {&m_mtx};
-        m_bDone = true;
-    }
-    m_cnd.signal();
+    Task task {UNINIT};
+    while ((task = m_pPool->tryStealTask()))
+        task();
+
+    if constexpr (std::is_same_v<T, void>) Base::wait();
+    else return Base::waitData();
 }
 
 template<isize QUEUE_SIZE>
@@ -478,7 +490,7 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
  * 
  *  for (auto* pF : vFutures) pF->wait(); */
 template<typename THREAD_POOL_T, typename T, typename CL_PROC_BATCH>
-[[nodiscard]] inline Vec<Future<Span<T>>*>
+[[nodiscard]] inline Vec<IThreadPool::Future<Span<T>>*>
 parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH clProcBatch, isize minBatchSize = 1)
 {
     if (spData.size() < 0) return {};
@@ -494,30 +506,24 @@ parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH cl
 
     struct Arg
     {
-        Future<Span<T>> future {};
+        IThreadPool::Future<Span<T>> future {};
         Span<T> sp {};
         isize off {};
         decltype(clProcBatch) cl {};
     };
 
-    Vec<Future<Span<T>>*> vFutures {pArena, tailSize > 0 ? nThreads + 1 : nThreads};
+    Vec<IThreadPool::Future<Span<T>>*> vFutures {pArena, tailSize > 0 ? nThreads + 1 : nThreads};
 
     auto clBatch = [&](isize off, isize size) {
-        Arg* pArg = pArena->alloc<Arg>(INIT, Span<T> {spData.data() + off, size}, off, clProcBatch);
+        Arg* pArg = pArena->alloc<Arg>(pTp, Span<T> {spData.data() + off, size}, off, clProcBatch);
         pArg->future.data() = pArg->sp;
 
         vFutures.push(pArena, &pArg->future);
 
-        pTp->addRetry(
-            +[](void* p) -> THREAD_STATUS
-            {
-                Arg& arg = *static_cast<Arg*>(p);
-                arg.cl(arg.sp, arg.off);
-                arg.future.signal();
-                return THREAD_STATUS(0);
-            },
-            pArg
-        );
+        pTp->addRetry([pArg] {
+            pArg->cl(pArg->sp, pArg->off);
+            pArg->future.signal();
+        });
     };
 
     isize i = 0;

@@ -32,7 +32,7 @@ main()
     defer( tp.destroy(StdAllocator::inst()) );
 
     auto inc = [&] {
-        auto _ = i.fetchAdd(1, atomic::ORDER::RELAXED);
+        return i.fetchAdd(1, atomic::ORDER::RELAXED);
     };
 
     const int NTASKS = 50;
@@ -41,20 +41,21 @@ main()
 
     tp.wait();
 
-    IThreadPool::Future f0 {&tp};
-    IThreadPool::Future f1 {&tp};
-    IThreadPool::Future f2 {&tp};
-    IThreadPool::Future f3 {&tp};
+    IThreadPool::Future<int> f0 {&tp};
+    IThreadPool::Future<int> f1 {&tp};
+    IThreadPool::Future<int> f2 {&tp};
+    IThreadPool::Future<int> f3 {&tp};
 
     ADT_ASSERT_ALWAYS(tp.add(&f0, inc), "");
     ADT_ASSERT_ALWAYS(tp.add(&f1, inc), "");
     ADT_ASSERT_ALWAYS(tp.add(&f2, inc), "");
     ADT_ASSERT_ALWAYS(tp.add(&f3, inc), "");
 
-    f0.wait();
-    f1.wait();
-    f2.wait();
-    f3.wait();
+    auto i0 = f0.waitData();
+    auto i1 = f1.waitData();
+    auto i2 = f2.waitData();
+    auto i3 = f3.waitData();
+    LOG("{}, {}, {}, {}\n", i0, i1, i2, i3);
 
     {
         auto got = i.load(atomic::ORDER::RELAXED);
