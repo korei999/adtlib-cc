@@ -1,8 +1,6 @@
 #pragma once
 
-#include "types.hh"
-
-#include <type_traits>
+#include "assert.hh"
 
 namespace adt
 {
@@ -27,18 +25,20 @@ struct FuncBuffer
     template<typename T> requires (sizeof(T) <= SIZE)
     FuncBuffer(R (*pfn)(void*), T arg) noexcept;
 
+    FuncBuffer(R (*pfn)(void*), void* pArg, isize argSize) noexcept;
+
     /* */
 
     explicit operator bool() const noexcept { return bool(m_pfn); }
 
-    [[nodiscard]] R operator()();
+    [[nodiscard]] R operator()() const;
 };
 
 template<typename R, int SIZE>
 inline R
-FuncBuffer<R, SIZE>::operator()()
+FuncBuffer<R, SIZE>::operator()() const
 {
-    return m_pfn(reinterpret_cast<void*>(m_aArgBuff));
+    return m_pfn((void*)(m_aArgBuff));
 }
 
 template<typename R, int SIZE>
@@ -66,6 +66,15 @@ FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), T arg) noexcept
     : m_pfn {pfn}
 {
     new(m_aArgBuff) T {arg};
+}
+
+template<typename R, int SIZE>
+inline
+FuncBuffer<R, SIZE>::FuncBuffer(R (*pfn)(void*), void* pArg, isize argSize) noexcept
+    : m_pfn {pfn}
+{
+    ADT_ASSERT(argSize <= SIZE, "can't fit, argSize: {}, SIZE; {}\n", argSize, SIZE);
+    ::memcpy(m_aArgBuff, pArg, argSize);
 }
 
 } /* namespace adt */
