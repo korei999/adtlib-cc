@@ -91,7 +91,9 @@ main()
         defer( v2.destroy() );
         {
             const isize t0 = time::nowUS();
+            tp.enablePollMode();
             sort::quickParallel(&tp, &v2);
+            tp.disablePollMode();
             const isize t1 = time::nowUS() - t0;
 
             LOG_NOTIFY("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), t1 / 1000.0);

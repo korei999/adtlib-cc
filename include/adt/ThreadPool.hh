@@ -158,6 +158,7 @@ struct ThreadPool : IThreadPool
     atomic::Int m_atomNActiveTasks {};
     atomic::Int m_atomBDone {};
     atomic::Int m_atomIdCounter {};
+    atomic::Int m_atomBPollMode {};
     bool m_bStarted {};
     QueueMPMC<Task, QUEUE_SIZE> m_qTasks {};
 
@@ -186,13 +187,17 @@ struct ThreadPool : IThreadPool
 
     virtual void wait(bool bHelp) noexcept override; /* bHelp: try to call still queued tasks on this thread. */
 
-    void destroy(IAllocator* pAlloc) noexcept;
-
     virtual bool addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept override;
 
     virtual int nThreads() const noexcept override { return m_spThreads.size(); }
 
     virtual Task tryStealTask() noexcept override;
+
+    /* */
+
+    void destroy(IAllocator* pAlloc) noexcept;
+    void enablePollMode() noexcept { m_atomBPollMode.store(true, atomic::ORDER::RELAXED); }
+    void disablePollMode() noexcept { m_atomBPollMode.store(false, atomic::ORDER::RELAXED); }
 
 protected:
     void start();
@@ -245,12 +250,21 @@ ThreadPool<QUEUE_SIZE>::loop()
     {
         Opt<Task> task {};
 
+        if (m_atomBPollMode.load(atomic::ORDER::RELAXED))
         {
             LockGuard qLock {&m_mtxQ};
 
             while (m_qTasks.empty() && !m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 m_cndQ.wait(&m_mtxQ);
 
+            if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
+                return 0;
+
+            task = m_qTasks.pop();
+            m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::RELAXED);
+        }
+        else
+        {
             if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 return 0;
 
