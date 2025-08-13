@@ -14,7 +14,7 @@ namespace adt
 
 struct IThreadPool
 {
-    using Task = FuncBuffer<void, 56>;
+    using Task = FuncBuffer<void, 56>; /* 64 bytes */
 
     struct Future
     {
@@ -49,8 +49,6 @@ struct IThreadPool
 
     virtual int nThreads() const noexcept = 0;
 
-    virtual bool addTask(const Task& task) noexcept = 0;
-
     virtual bool addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept = 0;
 
     virtual void wait() noexcept = 0;
@@ -59,101 +57,43 @@ struct IThreadPool
 
     template<typename CL>
     bool
-    add(const CL& cl) noexcept
+    add(CL& cl) noexcept
     {
-        return addTask([cl] { cl(); });
+        return addTask([](void* p) {
+            static_cast<CL*>(p)->operator()();
+        }, (void*)&cl, sizeof(cl));
     }
 
     template<typename CL>
     bool
-    add(Future* pFut, const CL& cl) noexcept
+    add(Future* pFut, CL& cl) noexcept
     {
-        return addTask([pFut, cl] {
+        auto cl2 = [pFut, cl]
+        {
             cl();
             pFut->signal();
-        });
+        };
+
+        static_assert(sizeof(cl2) >= sizeof(cl) + sizeof(pFut));
+
+        return addTask([](void* p) {
+            static_cast<decltype(cl2)*>(p)->operator()();
+        }, &cl2, sizeof(cl2));
     }
 
-    // bool addTask(ThreadFn pfn, void* pArg) noexcept { return addTask({pfn, pArg}); }
+    template<typename CL>
+    void addRetry(const CL& cl) noexcept { while (!add(cl)); }
 
-    // template<typename LAMBDA>
-    // bool
-    // addLambda(LAMBDA& t) noexcept
-    // {
-    //     return addTask(+[](void* pArg) -> THREAD_STATUS
-    //         {
-    //             static_cast<LAMBDA*>(pArg)->operator()();
-    //             return 0;
-    //         },
-    //         (void*)(&t)
-    //     );
-    // }
+    template<typename CL>
+    void addRetry(Future* pFut, const CL& cl) noexcept { while (!add(pFut, cl)); }
 
-    // template<typename LAMBDA>
-    // void
-    // addLambdaRetry(LAMBDA& t) noexcept
-    // {
-    //     addRetry(+[](void* pArg) -> THREAD_STATUS
-    //         {
-    //             static_cast<LAMBDA*>(pArg)->operator()();
-    //             return 0;
-    //         },
-    //         (void*)(&t)
-    //     );
-    // }
-
-    // template<typename LAMBDA>
-    // bool
-    // addLambdaRetry(LAMBDA& t, int nRetries) noexcept
-    // {
-    //     return addRetry(+[](void* pArg) -> THREAD_STATUS
-    //         {
-    //             static_cast<LAMBDA*>(pArg)->operator()();
-    //             return 0;
-    //         },
-    //         (void*)(&t),
-    //         nRetries
-    //     );
-    // }
-
-    // template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
-    // [[deprecated("rvalue lambdas cause use after free")]] bool addLambda(LAMBDA&& t) = delete;
-
-    // void addRetry(Task task) noexcept { while (!addTask(task)); }
-
-    // bool
-    // addRetry(Task task, const int nRetries) noexcept
-    // {
-    //     int nTried = 0;
-    //     while (++nTried <= nRetries)
-    //         if (addTask(task)) return true;
-    //     return false;
-    // }
-
-    // void addRetry(ThreadFn pfn, void* pArg) noexcept { while (!addTask(pfn, pArg)); }
-
-    // bool addRetry(ThreadFn pfn, void* pArg, const int nRetries) noexcept { return addRetry({pfn, pArg}, nRetries); }
-
-    // void
-    // addRetryOrDo(ThreadFn pfn, void* pArg) noexcept
-    // {
-    //     if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) pfn(pArg);
-    //     else addRetry(pfn, pArg);
-    // }
-
-    // template<typename LAMBDA>
-    // void
-    // addLambdaRetryOrDo(LAMBDA& cl) noexcept
-    // {
-    //     if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) cl();
-    //     else addLambdaRetry(cl);
-    // }
-
-    // template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
-    // [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetryOrDo(LAMBDA&& cl) = delete;
-
-    // template<typename LAMBDA> requires(std::is_rvalue_reference_v<LAMBDA&&>)
-    // [[deprecated("rvalue lambdas cause use after free")]] void addLambdaRetry(LAMBDA&& t) = delete;
+    template<typename CL>
+    void
+    addRetryOrDo(CL& cl) noexcept
+    {
+        if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) cl();
+        else addRetry(cl);
+    }
 };
 
 inline
@@ -228,8 +168,6 @@ struct ThreadPool : IThreadPool
     virtual void wait() noexcept override;
 
     void destroy(IAllocator* pAlloc) noexcept;
-
-    virtual bool addTask(const Task& task) noexcept override;
 
     virtual bool addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept override;
 
@@ -395,27 +333,6 @@ ThreadPool<QUEUE_SIZE>::destroy(IAllocator* pAlloc) noexcept
 
 template<isize QUEUE_SIZE>
 inline bool
-ThreadPool<QUEUE_SIZE>::addTask(const Task& task) noexcept
-{
-    ADT_ASSERT(m_bStarted, "forgot to `start()` this ThreadPool: (m_bStarted: '{}')", m_bStarted);
-
-    isize i;
-    {
-        LockGuard lock {&m_mtxQ};
-        i = m_qTasks.pushBack(task);
-    }
-
-    if (i != -1)
-    {
-        m_cndQ.signal();
-        return true;
-    }
-
-    return false;
-}
-
-template<isize QUEUE_SIZE>
-inline bool
 ThreadPool<QUEUE_SIZE>::addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept
 {
     ADT_ASSERT(m_bStarted, "forgot to `start()` this ThreadPool: (m_bStarted: '{}')", m_bStarted);
@@ -511,7 +428,6 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
     virtual ScratchBuffer& scratchBuffer() override { return gtl_scratchBuff; }
     virtual const atomic::Int& nActiveTasks() const noexcept override { return m_base.nActiveTasks(); }
     virtual void wait() noexcept override { m_base.wait(); }
-    virtual bool addTask(const Task& task) noexcept override { return m_base.addTask(task); }
     virtual bool addTask(void (*pfn)(void*), void* pArg, isize argSize) noexcept override { return m_base.addTask(pfn, pArg, argSize); }
     virtual int nThreads() const noexcept override { return m_base.nThreads(); }
     virtual Task tryStealTask() noexcept override { return m_base.tryStealTask(); }

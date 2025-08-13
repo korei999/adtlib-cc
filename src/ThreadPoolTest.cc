@@ -39,12 +39,22 @@ main()
     for (int i = 0; i < NTASKS; ++i)
         ADT_ASSERT_ALWAYS(tp.add(inc), "");
 
-    ADT_ASSERT_ALWAYS(tp.add(inc), "");
-    ADT_ASSERT_ALWAYS(tp.add(inc), "");
-    ADT_ASSERT_ALWAYS(tp.add(inc), "");
-    ADT_ASSERT_ALWAYS(tp.add(inc), "");
-
     tp.wait();
+
+    IThreadPool::Future f0 {&tp};
+    IThreadPool::Future f1 {&tp};
+    IThreadPool::Future f2 {&tp};
+    IThreadPool::Future f3 {&tp};
+
+    ADT_ASSERT_ALWAYS(tp.add(&f0, inc), "");
+    ADT_ASSERT_ALWAYS(tp.add(&f1, inc), "");
+    ADT_ASSERT_ALWAYS(tp.add(&f2, inc), "");
+    ADT_ASSERT_ALWAYS(tp.add(&f3, inc), "");
+
+    f0.wait();
+    f1.wait();
+    f2.wait();
+    f3.wait();
 
     {
         auto got = i.load(atomic::ORDER::RELAXED);
