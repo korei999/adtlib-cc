@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FuncBuffer.hh"
-#include "QueueArray.hh"
+#include "QueueMPMC.hh"
 #include "ScratchBuffer.hh"
 #include "StdAllocator.hh"
 #include "Thread.hh"
@@ -103,6 +103,14 @@ struct IThreadPool
         if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) cl();
         else addRetry(cl);
     }
+
+    template<typename T, typename CL>
+    void
+    addRetryOrDo(Future<T>* pFut, CL& cl) noexcept
+    {
+        if (nActiveTasks().load(atomic::ORDER::ACQUIRE) >= nThreads()) cl();
+        else addRetry(pFut, cl);
+    }
 };
 
 template<typename T>
@@ -150,9 +158,8 @@ struct ThreadPool : IThreadPool
     atomic::Int m_atomNActiveTasks {};
     atomic::Int m_atomBDone {};
     atomic::Int m_atomIdCounter {};
-    atomic::Int m_atomBPollMode {};
     bool m_bStarted {};
-    QueueArray<Task, QUEUE_SIZE> m_qTasks {};
+    QueueMPMC<Task, QUEUE_SIZE> m_qTasks {};
 
     /* */
 
@@ -187,11 +194,6 @@ struct ThreadPool : IThreadPool
 
     virtual Task tryStealTask() noexcept override;
 
-    /* */
-
-    void enablePollMode() noexcept;
-    void disablePollMode() noexcept;
-
 protected:
     void start();
     THREAD_STATUS loop();
@@ -203,7 +205,8 @@ ThreadPool<QUEUE_SIZE>::ThreadPool(IAllocator* pAlloc, int nThreads)
     : m_spThreads(pAlloc->zallocV<Thread>(nThreads), nThreads),
       m_mtxQ(Mutex::TYPE::PLAIN),
       m_cndQ(INIT),
-      m_cndWait(INIT)
+      m_cndWait(INIT),
+      m_qTasks(INIT)
 {
     start();
 }
@@ -223,7 +226,8 @@ ThreadPool<QUEUE_SIZE>::ThreadPool(
       m_pfnLoopStart(pfnOnLoopStart),
       m_pLoopStartArg(pLoopStartArg),
       m_pfnLoopEnd(pfnOnLoopEnd),
-      m_pLoopEndArg(pLoopEndArg)
+      m_pLoopEndArg(pLoopEndArg),
+      m_qTasks(INIT)
 {
     start();
 }
@@ -239,27 +243,22 @@ ThreadPool<QUEUE_SIZE>::loop()
 
     while (true)
     {
-        Task task {};
+        Opt<Task> task {};
 
         {
             LockGuard qLock {&m_mtxQ};
 
-            while (m_atomBPollMode.load(atomic::ORDER::ACQUIRE) == false &&
-                m_qTasks.empty() &&
-                !m_atomBDone.load(atomic::ORDER::ACQUIRE)
-            )
-            {
+            while (m_qTasks.empty() && !m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 m_cndQ.wait(&m_mtxQ);
-            }
 
             if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 return 0;
 
-            task = m_qTasks.popFront();
+            task = m_qTasks.pop();
             m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::RELAXED);
         }
 
-        if (task) task();
+        if (task) task.value()();
         m_atomNActiveTasks.fetchSub(1, atomic::ORDER::RELEASE);
 
         {
@@ -297,24 +296,15 @@ inline void
 ThreadPool<QUEUE_SIZE>::wait() noexcept
 {
 again:
-    m_mtxQ.lock();
-    if (!m_qTasks.empty())
+    while (!m_qTasks.empty())
     {
-        Task task = m_qTasks.popFront();
-        m_mtxQ.unlock();
-
-        ADT_ASSERT(task, "");
-        if (task) task();
+        Opt<Task> task = m_qTasks.pop();
+        if (task) task.value()();
 
         goto again;
     }
-    else
-    {
-        m_mtxQ.unlock();
-    }
 
     LockGuard qLock {&m_mtxQ};
-
     while (!m_qTasks.empty() || m_atomNActiveTasks.load(atomic::ORDER::RELAXED) > 0)
         m_cndWait.wait(&m_mtxQ);
 }
@@ -349,13 +339,8 @@ ThreadPool<QUEUE_SIZE>::addTask(void (*pfn)(void*), void* pArg, isize argSize) n
 {
     ADT_ASSERT(m_bStarted, "forgot to `start()` this ThreadPool: (m_bStarted: '{}')", m_bStarted);
 
-    isize i;
-    {
-        LockGuard lock {&m_mtxQ};
-        i = m_qTasks.emplaceBack(pfn, pArg, argSize);
-    }
-
-    if (i != -1)
+    bool b = m_qTasks.emplace(pfn, pArg, argSize);
+    if (b)
     {
         m_cndQ.signal();
         return true;
@@ -368,33 +353,15 @@ template<isize QUEUE_SIZE>
 inline IThreadPool::Task
 ThreadPool<QUEUE_SIZE>::tryStealTask() noexcept
 {
-    m_mtxQ.lock();
-
     if (!m_qTasks.empty())
     {
-        Task task = m_qTasks.popFront();
-        m_mtxQ.unlock();
-        return task;
+        Opt<Task> task = m_qTasks.pop();
+        return task.value();
     }
     else
     {
-        m_mtxQ.unlock();
         return {};
     }
-}
-
-template<isize QUEUE_SIZE>
-inline void
-ThreadPool<QUEUE_SIZE>::enablePollMode() noexcept
-{
-    m_atomBPollMode.store(true, atomic::ORDER::RELEASE);
-}
-
-template<isize QUEUE_SIZE>
-inline void
-ThreadPool<QUEUE_SIZE>::disablePollMode() noexcept
-{
-    m_atomBPollMode.store(false, atomic::ORDER::RELEASE);
 }
 
 struct IThreadPoolWithMemory : IThreadPool
@@ -481,7 +448,7 @@ struct ThreadPoolWithMemory : IThreadPoolWithMemory
 };
 
 /* Usage example:
- * Vec<Future<Span<f32>>*> vFutures = parallelFor(&arena, &tp, Span<f32> {v},
+ * Vec<IThreadPool::Future<Span<f32>>*> vFutures = parallelFor(&arena, &tp, Span<f32> {v},
  *     [](Span<f32> spBatch, isize offFrom0)
  *     {
  *         for (auto& e : spBatch) r += 1 + offFrom0;

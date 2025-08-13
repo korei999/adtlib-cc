@@ -37,7 +37,7 @@ main()
 
     const int NTASKS = 50;
     for (int i = 0; i < NTASKS; ++i)
-        ADT_ASSERT_ALWAYS(tp.add(inc), "");
+        tp.addRetry(inc);
 
     tp.wait();
 
@@ -46,10 +46,10 @@ main()
     IThreadPool::Future<int> f2 {&tp};
     IThreadPool::Future<int> f3 {&tp};
 
-    ADT_ASSERT_ALWAYS(tp.add(&f0, inc), "");
-    ADT_ASSERT_ALWAYS(tp.add(&f1, inc), "");
-    ADT_ASSERT_ALWAYS(tp.add(&f2, inc), "");
-    ADT_ASSERT_ALWAYS(tp.add(&f3, inc), "");
+    tp.addRetry(&f0, inc);
+    tp.addRetry(&f1, inc);
+    tp.addRetry(&f2, inc);
+    tp.addRetry(&f3, inc);
 
     auto i0 = f0.waitData();
     auto i1 = f1.waitData();
