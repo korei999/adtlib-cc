@@ -14,7 +14,8 @@ namespace adt
 
 struct IThreadPool
 {
-    using Task = FuncBuffer<void, 56>; /* 64 bytes */
+    using Task = FuncBuffer<void, 48>;
+    static_assert(sizeof(Task) == 56);
 
     template<typename T>
     struct Future : adt::Future<T>
