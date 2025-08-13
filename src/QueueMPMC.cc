@@ -18,7 +18,6 @@ main()
 
     ThreadPool<128> tp {StdAllocator::inst()};
     defer( tp.destroy(StdAllocator::inst()) );
-    tp.enablePollMode();
 
     auto clEnqueue = [&]
     {

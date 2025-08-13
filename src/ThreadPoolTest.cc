@@ -32,7 +32,6 @@ main()
 
     ThreadPoolWithMemory<512> tp {StdAllocator::inst(), SIZE_1K};
     defer( tp.destroy(StdAllocator::inst()) );
-    tp.m_base.enablePollMode();
 
     auto inc = [&] {
         return i.fetchAdd(1, atomic::ORDER::RELAXED);
