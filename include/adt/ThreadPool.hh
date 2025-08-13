@@ -136,7 +136,7 @@ template<typename T>
 inline decltype(auto)
 IThreadPool::Future<T>::waitData() noexcept
 {
-    Task task {UNINIT};
+    Task task {};
     while ((task = m_pPool->tryStealTask()))
         task();
 
@@ -248,15 +248,15 @@ ThreadPool<QUEUE_SIZE>::loop()
 
     while (true)
     {
-        Opt<Task> task {};
+        Task task {};
 
-        if (m_atomBPollMode.load(atomic::ORDER::RELAXED))
+        if (!m_qTasks.empty() || m_atomBPollMode.load(atomic::ORDER::RELAXED))
         {
             if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 return 0;
 
-            task = m_qTasks.pop();
             m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::RELAXED);
+            task = m_qTasks.pop().value();
         }
         else
         {
@@ -268,11 +268,11 @@ ThreadPool<QUEUE_SIZE>::loop()
             if (m_atomBDone.load(atomic::ORDER::ACQUIRE))
                 return 0;
 
-            task = m_qTasks.pop();
             m_atomNActiveTasks.fetchAdd(1, atomic::ORDER::RELAXED);
+            task = m_qTasks.pop().value();
         }
 
-        if (task) task.value()();
+        if (task) task();
         m_atomNActiveTasks.fetchSub(1, atomic::ORDER::RELEASE);
 
         {
@@ -313,8 +313,8 @@ ThreadPool<QUEUE_SIZE>::wait(bool bHelp) noexcept
     {
         while (!m_qTasks.empty())
         {
-            Opt<Task> task = m_qTasks.pop();
-            if (task) task.value()();
+            Task task = m_qTasks.pop().value();
+            if (task) task();
         }
     }
 
@@ -367,15 +367,7 @@ template<isize QUEUE_SIZE>
 inline IThreadPool::Task
 ThreadPool<QUEUE_SIZE>::tryStealTask() noexcept
 {
-    if (!m_qTasks.empty())
-    {
-        Opt<Task> task = m_qTasks.pop();
-        return task.value();
-    }
-    else
-    {
-        return {};
-    }
+    return m_qTasks.pop().value();
 }
 
 struct IThreadPoolWithMemory : IThreadPool

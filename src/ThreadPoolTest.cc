@@ -28,8 +28,11 @@ static atomic::Int i {0};
 int
 main()
 {
+    LOG_NOTIFY("ThreadPool test...\n");
+
     ThreadPoolWithMemory<512> tp {StdAllocator::inst(), SIZE_1K};
     defer( tp.destroy(StdAllocator::inst()) );
+    tp.m_base.enablePollMode();
 
     auto inc = [&] {
         return i.fetchAdd(1, atomic::ORDER::RELAXED);
@@ -39,26 +42,17 @@ main()
     for (int i = 0; i < NTASKS; ++i)
         tp.addRetry(inc);
 
+    tp.addRetry(inc);
+    tp.addRetry(inc);
+    tp.addRetry(inc);
+    tp.addRetry(inc);
+
     tp.wait(true);
-
-    IThreadPool::Future<int> f0 {&tp};
-    IThreadPool::Future<int> f1 {&tp};
-    IThreadPool::Future<int> f2 {&tp};
-    IThreadPool::Future<int> f3 {&tp};
-
-    tp.addRetry(&f0, inc);
-    tp.addRetry(&f1, inc);
-    tp.addRetry(&f2, inc);
-    tp.addRetry(&f3, inc);
-
-    auto i0 = f0.waitData();
-    auto i1 = f1.waitData();
-    auto i2 = f2.waitData();
-    auto i3 = f3.waitData();
-    LOG("{}, {}, {}, {}\n", i0, i1, i2, i3);
 
     {
         auto got = i.load(atomic::ORDER::RELAXED);
         ADT_ASSERT_ALWAYS(got == NTASKS + 4, "expected: {}, got: {}, ({})", NTASKS + 4, got, i.load(atomic::ORDER::RELAXED));
     }
+
+    LOG_GOOD("ThreadPool test passed...\n");
 }
