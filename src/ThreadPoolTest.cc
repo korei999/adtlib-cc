@@ -30,7 +30,7 @@ main()
 {
     LOG_NOTIFY("ThreadPool test...\n");
 
-    ThreadPoolWithMemory<512> tp {StdAllocator::inst(), SIZE_1K};
+    ThreadPoolWithMemory tp {StdAllocator::inst(), 512, SIZE_1K};
     defer( tp.destroy(StdAllocator::inst()) );
 
     auto inc = [&] {

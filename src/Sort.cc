@@ -68,7 +68,7 @@ main()
     CERR("\n");
 
     {
-        ThreadPool<512> tp {StdAllocator::inst()};
+        ThreadPool tp {StdAllocator::inst(), 512};
         defer( tp.destroy(StdAllocator::inst()) );
 
         VecM<i64> v0 {BIG * 100};

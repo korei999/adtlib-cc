@@ -35,17 +35,26 @@ struct Queue
     isize cap() const;
     bool empty() const;
 
-    isize pushBack(IAllocator* pAlloc, const T& x);
-    isize pushFront(IAllocator* pAlloc, const T& x);
+    isize pushBack(IAllocator* pAlloc, const T& x) { return emplaceBack(pAlloc, x); }
+    isize pushBack(IAllocator* pAlloc, T&& x) { return emplaceBack(pAlloc, std::move(x)); }
+
+    isize pushFront(IAllocator* pAlloc, const T& x) { return emplaceFront(pAlloc, x); }
+    isize pushFront(IAllocator* pAlloc, T&& x) { return emplaceFront(pAlloc, std::move(x)); }
 
     T popFront();
     T popBack();
 
     template<typename ...ARGS>
-    isize emplaceFront(IAllocator* pAlloc, ARGS&&... args) { return pushFront(pAlloc, T(std::forward<ARGS>(args)...)); }
+    isize emplaceFront(IAllocator* pAlloc, ARGS&&... args);
 
     template<typename ...ARGS>
-    isize emplaceBack(IAllocator* pAlloc, ARGS&&... args) { return pushBack(pAlloc, T(std::forward<ARGS>(args)...)); }
+    isize emplaceFrontNoGrow(ARGS&&... args);
+
+    template<typename ...ARGS>
+    isize emplaceBack(IAllocator* pAlloc, ARGS&&... args);
+
+    template<typename ...ARGS>
+    isize emplaceBackNoGrow(ARGS&&... args);
 
     void destroy(IAllocator* pAlloc) noexcept;
     [[nodiscard]] Queue release() noexcept;
@@ -160,31 +169,62 @@ Queue<T>::empty() const
 }
 
 template<typename T>
+template<typename ...ARGS>
 inline isize
-Queue<T>::pushBack(IAllocator* pAlloc, const T& x)
+Queue<T>::emplaceBack(IAllocator* pAlloc, ARGS&&... args)
 {
-    if (m_size >= m_cap)
-        grow(pAlloc);
+    if (m_size >= m_cap) grow(pAlloc);
 
     isize nextTailI = nextI(m_tailI);
 
     const isize tmp = m_tailI;
     m_tailI = nextTailI;
 
-    new(m_pData + tmp) T(x);
+    new(m_pData + tmp) T(std::forward<ARGS>(args)...);
     ++m_size;
     return tmp;
 }
 
 template<typename T>
+template<typename ...ARGS>
 inline isize
-Queue<T>::pushFront(IAllocator* pAlloc, const T& x)
+Queue<T>::emplaceBackNoGrow(ARGS&&... args)
 {
-    if (m_size >= m_cap)
-        grow(pAlloc);
+    isize nextTailI = nextI(m_tailI);
+    if (nextTailI == m_headI) return -1;
+
+    const isize tmp = m_tailI;
+    m_tailI = nextTailI;
+
+    new(m_pData + tmp) T(std::forward<ARGS>(args)...);
+    ++m_size;
+    return tmp;
+}
+
+template<typename T>
+template<typename ...ARGS>
+inline isize
+Queue<T>::emplaceFront(IAllocator* pAlloc, ARGS&&... args)
+{
+    if (m_size >= m_cap) grow(pAlloc);
 
     m_headI = prevI(m_headI);
-    new(m_pData + m_headI) T(x);
+    new(m_pData + m_headI) T(std::forward<ARGS>(args)...);
+
+    ++m_size;
+    return m_headI;
+}
+
+template<typename T>
+template<typename ...ARGS>
+inline isize
+Queue<T>::emplaceFrontNoGrow(ARGS&&... args)
+{
+    isize nextHeadI = prevI(m_headI);
+    if (nextHeadI == m_tailI) return -1;
+
+    m_headI = nextHeadI;
+    new(m_pData + m_headI) T(std::forward<ARGS>(args)...);
 
     ++m_size;
     return m_headI;
@@ -306,13 +346,16 @@ struct QueueManaged : protected ALLOC_T, public Queue<T>
     const ALLOC_T& allocator() const { return *static_cast<ALLOC_T*>(this); }
 
     isize pushBack(const T& x) { return Base::pushBack(&allocator(), x); }
+    isize pushBack(T&& x) { return Base::pushBack(&allocator(), std::move(x)); }
+
     isize pushFront(const T& x) { return Base::pushFront(&allocator(), x); }
+    isize pushFront(T&& x) { return Base::pushFront(&allocator(), std::move(x)); }
 
     template<typename ...ARGS>
-    isize emplaceFront(ARGS&&... args) { return Base::pushFront(&allocator(), T(std::forward<ARGS>(args)...)); }
+    isize emplaceFront(ARGS&&... args) { return Base::emplaceFront(&allocator(), std::forward<ARGS>(args)...); }
 
     template<typename ...ARGS>
-    isize emplaceBack(ARGS&&... args) { return Base::pushBack(&allocator(), T(std::forward<ARGS>(args)...)); }
+    isize emplaceBack(ARGS&&... args) { return Base::emplaceBack(&allocator(), std::forward<ARGS>(args)...); }
 
     void destroy() noexcept { Base::destroy(&allocator()); }
     [[nodiscard]] QueueManaged release() noexcept { return utils::exchange(this, {}); }

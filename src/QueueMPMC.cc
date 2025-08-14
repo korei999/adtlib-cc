@@ -16,7 +16,7 @@ main()
 {
     LOG_NOTIFY("QueueMPMC test...\n");
 
-    ThreadPool<128> tp {StdAllocator::inst()};
+    ThreadPool tp {StdAllocator::inst(), 128};
     defer( tp.destroy(StdAllocator::inst()) );
 
     auto clEnqueue = [&]
