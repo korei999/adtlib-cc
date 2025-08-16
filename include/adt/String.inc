@@ -149,10 +149,6 @@ struct String : public StringView
 template<typename ALLOC_T = StdAllocatorNV>
 struct StringManaged : public String
 {
-    ADT_NO_UNIQUE_ADDRESS ALLOC_T m_alloc;
-
-    /* */
-
     StringManaged() = default;
     StringManaged(const char* pChars, isize size) : String {allocator(), pChars, size} {}
     StringManaged(const char* nts) : String {allocator(), nts} {}
