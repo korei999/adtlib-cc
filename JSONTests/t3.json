@@ -14,7 +14,7 @@
         "five": 4,
         "six": 6.666
     },
-    "arr": [3, "three", 3.01, {"three": true}],
+    "arr": [3, "three", 3.01, {"three": true, "hello": "hello", "one": 1}],
     "emptyArray": [],
     "emptyObject": {}
 }
