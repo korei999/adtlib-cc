@@ -16,6 +16,8 @@ using namespace adt;
 int
 main()
 {
+    LOG_NOTIFY("print test...\n");
+
     constexpr int N_SPACES = 2;
 
     {
@@ -79,7 +81,7 @@ main()
         u8 aBuff[32] {};
         BufferAllocator buff {aBuff};
 
-        LOG_BAD("realCap: {}\n", buff.realCap());
+        LOG("realCap: {}\n", buff.realCap());
 
         String s = print::toString(&buff, buff.realCap(), "\"({}): hello {} {}   \"", 666, "im", "toxic");
         print::out("s({}): '{}'\n", s.size(), s);
@@ -139,4 +141,6 @@ main()
         // LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
         printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
+
+    LOG_GOOD("print test passed\n");
 }
