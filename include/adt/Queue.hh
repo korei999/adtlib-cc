@@ -331,33 +331,32 @@ Queue<T>::operator[](isize i) const
 }
 
 template<typename T, typename ALLOC_T = StdAllocatorNV>
-struct QueueManaged : protected ALLOC_T, public Queue<T>
+struct QueueManaged : public Queue<T>
 {
     using Base = Queue<T>;
 
     /* */
 
     QueueManaged() = default;
-    QueueManaged(isize prealloc) : Base {&allocator(), prealloc} {}
+    QueueManaged(isize prealloc) : Base {allocator(), prealloc} {}
 
     /* */
 
-    ALLOC_T& allocator() { return *static_cast<ALLOC_T*>(this); }
-    const ALLOC_T& allocator() const { return *static_cast<ALLOC_T*>(this); }
+    auto* allocator() const { return ALLOC_T::inst(); }
 
-    isize pushBack(const T& x) { return Base::pushBack(&allocator(), x); }
-    isize pushBack(T&& x) { return Base::pushBack(&allocator(), std::move(x)); }
+    isize pushBack(const T& x) { return Base::pushBack(allocator(), x); }
+    isize pushBack(T&& x) { return Base::pushBack(allocator(), std::move(x)); }
 
-    isize pushFront(const T& x) { return Base::pushFront(&allocator(), x); }
-    isize pushFront(T&& x) { return Base::pushFront(&allocator(), std::move(x)); }
-
-    template<typename ...ARGS>
-    isize emplaceFront(ARGS&&... args) { return Base::emplaceFront(&allocator(), std::forward<ARGS>(args)...); }
+    isize pushFront(const T& x) { return Base::pushFront(allocator(), x); }
+    isize pushFront(T&& x) { return Base::pushFront(allocator(), std::move(x)); }
 
     template<typename ...ARGS>
-    isize emplaceBack(ARGS&&... args) { return Base::emplaceBack(&allocator(), std::forward<ARGS>(args)...); }
+    isize emplaceFront(ARGS&&... args) { return Base::emplaceFront(allocator(), std::forward<ARGS>(args)...); }
 
-    void destroy() noexcept { Base::destroy(&allocator()); }
+    template<typename ...ARGS>
+    isize emplaceBack(ARGS&&... args) { return Base::emplaceBack(allocator(), std::forward<ARGS>(args)...); }
+
+    void destroy() noexcept { Base::destroy(allocator()); }
     [[nodiscard]] QueueManaged release() noexcept { return utils::exchange(this, {}); }
 };
 
