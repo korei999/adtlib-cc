@@ -286,11 +286,11 @@ Queue<T>::grow(IAllocator* pAlloc)
     const isize newCap = utils::max(isize(2), m_cap * 2);
     m_pData = pAlloc->relocate<T>(m_pData, m_cap, newCap);
 
-    defer( m_cap = newCap );
+    ADT_DEFER( m_cap = newCap );
 
     if (m_size <= 0) return;
 
-    defer(
+    ADT_DEFER(
         m_headI = m_size;
         m_tailI = 0;
     );
