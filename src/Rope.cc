@@ -1,6 +1,7 @@
 #include "adt/logs.hh"
-#include "adt/Rope.hh"
 #include "adt/Arena.hh"
+
+#include "Rope.hh"
 
 using namespace adt;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "String.hh"
-#include "RefCount.hh"
+#include "adt/String.hh"
+#include "adt/RefCount.hh"
 
 namespace adt
 {
