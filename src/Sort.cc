@@ -68,7 +68,9 @@ main()
     CERR("\n");
 
     {
-        ThreadPool tp {StdAllocator::inst(), 512};
+        constexpr isize QSIZE = 2048;
+        static_assert(isPowerOf2(QSIZE));
+        ThreadPool tp {StdAllocator::inst(), QSIZE};
         defer( tp.destroy(StdAllocator::inst()) );
 
         VecM<i64> v0 {BIG * 100};
