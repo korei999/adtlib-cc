@@ -156,7 +156,7 @@ quickParallel(THREAD_POOL_T* pTPool, auto a[], isize l, isize r, CL_CMP clCmp)
         }
         else
         {
-            if (pTPool->addRetry(&fut, [=] { quickParallel(pTPool, a, l, j, clCmp); }), 10)
+            if (pTPool->add(&fut, [=] { quickParallel(pTPool, a, l, j, clCmp); }))
                 bSpawned = true;
             else quickParallel(pTPool, a, l, j, clCmp);
         }
