@@ -515,19 +515,14 @@ printArg(isize& rNWritten, isize& rI, bool& rbArg, Context& rCtx, const T& rArg)
         rI += svFmtUntilOpenBrace.size();
         rNWritten += svFmtUntilOpenBrace.size();
 
+        /* No '{' case. */
         if (rI >= rCtx.fmt.size()) break;
 
-        if (rCtx.fmt[rI] == '{')
+        rbArg = true;
+        if (rI + 1 < rCtx.fmt.size() && rCtx.fmt[rI + 1] == '{')
         {
-            if (rI + 1 < rCtx.fmt.size() && rCtx.fmt[rI + 1] == '{')
-            {
-                rI += 1, rNWritten += 1;
-                rbArg = false;
-            }
-            else
-            {
-                rbArg = true;
-            }
+            rI += 1, rNWritten += 1;
+            rbArg = false;
         }
 
         if (rbArg)
