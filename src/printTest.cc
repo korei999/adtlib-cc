@@ -91,17 +91,17 @@ main()
     constexpr isize BIG = 1000000;
 
     {
-        char aBuff[64] {};
+        char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            print::toSpan(aBuff, "{}, {}, {}, {}", i, i, f32(i), f64(i));
+            print::toSpan(aBuff, "some string here just taking a bunch of space: {}, {}, {}, {}", i, i, f32(i), f64(i));
     }
 
     {
         const auto t0 = time::nowUS();
 
-        char aBuff[64] {};
+        char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            print::toSpan(aBuff, "{}, {}, {}, {}", i, i, f32(i), f64(i));
+            print::toSpan(aBuff, "some string here just taking a bunch of space: {}, {}, {}, {}", i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
 
@@ -115,9 +115,9 @@ main()
     {
         const auto t0 = time::nowUS();
 
-        char aBuff[64] {};
+        char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            snprintf(aBuff, sizeof(aBuff) - 1, "%lld, %lld, %f, %lf", i, i, f32(i), f64(i));
+            snprintf(aBuff, sizeof(aBuff) - 1, "some string here just taking a bunch of space: %lld, %lld, %f, %lf", i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
 
@@ -131,9 +131,9 @@ main()
     {
         const auto t0 = time::nowUS();
 
-        char aBuff[64] {};
+        char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            std::format_to(aBuff, "{}, {}, {}, {}", i, i, f32(i), f64(i));
+            std::format_to(aBuff, "some string here just taking a bunch of space: {}, {}, {}, {}", i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
         // print::out("aBuff: {}\n", aBuff);
