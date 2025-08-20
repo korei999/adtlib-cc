@@ -146,7 +146,7 @@ Arena::malloc(usize mCount, usize mSize)
         );
 #endif
 
-    if (!pBlock) pBlock = prependBlock(utils::max(m_defaultCapacity, usize(realSize*1.3)));
+    if (!pBlock) pBlock = prependBlock(utils::max(m_defaultCapacity, usize(realSize*1.33)));
 
     auto* pRet = pBlock->pMem + pBlock->nBytesOccupied;
     ADT_ASSERT(pRet == pBlock->pLastAlloc + pBlock->lastAllocSize, " ");
