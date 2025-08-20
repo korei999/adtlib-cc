@@ -18,6 +18,12 @@ main()
 {
     LOG_NOTIFY("print test...\n");
 
+    {
+        char aBuff[64] {};
+        const isize n = print::toSpan(aBuff, "hello", 1);
+        ADT_ASSERT_ALWAYS(n == 5, "{}", n);
+    }
+
     constexpr int N_SPACES = 2;
 
     {
