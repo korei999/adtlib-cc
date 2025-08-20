@@ -16,6 +16,7 @@ struct MiMalloc : IAllocator
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     void virtual free(void* ptr) noexcept override final;
+    [[nodiscard]] virtual constexpr bool doesIndividualFree() const noexcept override final { return true; }
     /* virtual end */
 };
 
@@ -34,6 +35,8 @@ struct MiMallocNV : AllocatorHelperCRTP<MiMallocNV>
 
     static void free(void* ptr) noexcept
     { MiMalloc::inst()->free(ptr); }
+
+    [[nodiscard]] static constexpr bool doesIndividualFree() noexcept { return true; }
 };
 
 inline MiMalloc*
@@ -95,6 +98,7 @@ struct MiHeap : IArena
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     void virtual free(void* ptr) noexcept override final;
     void virtual freeAll() noexcept override final;
+    [[nodiscard]] virtual constexpr bool doesIndividualFree() const noexcept override final { return true; }
 
     /* */
 

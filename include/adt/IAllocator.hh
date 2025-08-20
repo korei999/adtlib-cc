@@ -118,6 +118,8 @@ struct IAllocator : AllocatorHelperCRTP<IAllocator>
     [[nodiscard]] virtual constexpr void* realloc(void* p, usize oldCount, usize newCount, usize mSize) noexcept(false) = 0; /* AllocException */
 
     virtual constexpr void free(void* ptr) noexcept = 0;
+
+    [[nodiscard]] virtual constexpr bool doesIndividualFree() const noexcept = 0;
 };
 
 struct IArena : IAllocator

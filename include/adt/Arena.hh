@@ -56,8 +56,11 @@ struct Arena : public IArena
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     virtual void free(void* ptr) noexcept override final;
     virtual void freeAll() noexcept override final;
-    void reset() noexcept;
+    [[nodiscard]] virtual constexpr bool doesIndividualFree() const noexcept override final { return false; }
 
+    /* */
+
+    void reset() noexcept;
     void shrinkToFirstBlock() noexcept;
     isize nBytesOccupied() const noexcept;
 
