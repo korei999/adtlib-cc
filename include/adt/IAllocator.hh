@@ -119,7 +119,8 @@ struct IAllocator : AllocatorHelperCRTP<IAllocator>
 
     virtual constexpr void free(void* ptr) noexcept = 0;
 
-    [[nodiscard]] virtual constexpr bool doesIndividualFree() const noexcept = 0;
+    [[nodiscard]] virtual constexpr bool doesFree() const noexcept = 0;
+    [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept = 0;
 };
 
 struct IArena : IAllocator

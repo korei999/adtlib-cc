@@ -56,7 +56,8 @@ struct Arena : public IArena
     [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     virtual void free(void* ptr) noexcept override final;
     virtual void freeAll() noexcept override final;
-    [[nodiscard]] virtual constexpr bool doesIndividualFree() const noexcept override final { return false; }
+    [[nodiscard]] virtual constexpr bool doesFree() const noexcept override final { return false; }
+    [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override final { return true; }
 
     /* */
 
