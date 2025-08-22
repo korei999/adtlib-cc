@@ -24,6 +24,25 @@ def StringView_SummaryProvider(valobj, internal_dict):
     else:
         return f"<error: {error.GetCString()}>"
 
+class VecSynthProvider:
+    def __init__(self, valobj, internal_dict):
+        self.valobj = valobj
+        self.data = valobj.GetChildMemberWithName("m_pData")
+        self.size = valobj.GetChildMemberWithName("m_size").GetValueAsSigned()
+
+    def num_children(self):
+        return int(self.size)
+
+    def get_child_at_index(self, idx):
+        element_type = self.data.GetType().GetPointeeType()
+        offset = idx * element_type.GetByteSize()
+        return self.data.CreateChildAtOffset(f"[{idx}]", offset, element_type)
+
+    def get_child_index(self, name):
+        if name.startswith('[') and name.endswith(']'):
+            return int(name[1:-1])
+        return -1
+
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand(
             'type summary add --python-function adt_formatters.StringView_SummaryProvider adt::StringView'
@@ -34,3 +53,8 @@ def __lldb_init_module(debugger, internal_dict):
             'type summary add --python-function adt_formatters.StringView_SummaryProvider adt::String'
     )
     print("Registered custom formatter for adt::String.")
+
+    debugger.HandleCommand(
+        'type synthetic add -l adt_formatters.VecSynthProvider adt::Vec<.*> --regex'
+    )
+    print("Registered custom formatter for adt::Vec.")
