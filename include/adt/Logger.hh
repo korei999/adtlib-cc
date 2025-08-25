@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Queue.hh"
-#include "Thread.hh"
+#include "print.hh"
 
 #define ADT_LOGGER_COL_NORM  "\x1b[0m"
 #define ADT_LOGGER_COL_RED  "\x1b[31m"
@@ -17,14 +16,7 @@ namespace adt
 
 struct ILogger
 {
-    enum class LEVEL : i8
-    {
-        NONE = -1,
-        ERROR = 0,
-        WARN,
-        INFO,
-        DEBUG,
-    };
+    enum class LEVEL : i8 {NONE = -1, ERROR = 0, WARN, INFO, DEBUG};
 
     /* */
 
@@ -38,12 +30,34 @@ struct ILogger
 
     /* */
 
-    virtual void pushString(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
+    virtual void add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
+    virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept = 0;
 
     /* */
 
     static bool isTTY(FILE* pFile) noexcept;
 };
+
+namespace print
+{
+
+inline isize
+format(Context ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
+{
+    constexpr StringView mapStrings[] {"", "ERROR", "WARN", "INFO", "DEBUG"};
+    ADT_ASSERT((int)x + 1 >= 0 && (int)x + 1 < utils::size(mapStrings), "{}", (int)x);
+    return format(ctx, fmtArgs, mapStrings[(int)x + 1]);
+}
+
+} /* namespace print */
+
+} /* namespace adt */
+
+#include "Queue.hh"
+#include "Thread.hh"
+
+namespace adt
+{
 
 inline bool
 ILogger::isTTY(FILE* pFile) noexcept
@@ -67,7 +81,7 @@ struct Log
 
         StringFixed<SIZE> msg;
         isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
-        pLogger->pushString(eLevel, loc, StringView{msg.data(), n});
+        pLogger->add(eLevel, loc, StringView{msg.data(), n});
     }
 };
 
@@ -75,28 +89,28 @@ template<isize SIZE = 512, typename ...ARGS>
 struct LogError : Log<SIZE, ARGS...>
 {
     LogError(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...> {ILogger::LEVEL::ERROR, pLogger, std::forward<ARGS>(args)..., loc} {}
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::ERROR, pLogger, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
 struct LogWarn : Log<SIZE, ARGS...>
 {
     LogWarn(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...> {ILogger::LEVEL::WARN, pLogger, std::forward<ARGS>(args)..., loc} {}
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::WARN, pLogger, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
 struct LogInfo : Log<SIZE, ARGS...>
 {
     LogInfo(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...> {ILogger::LEVEL::INFO, pLogger, std::forward<ARGS>(args)..., loc} {}
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::INFO, pLogger, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
 struct LogDebug : Log<SIZE, ARGS...>
 {
     LogDebug(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...> {ILogger::LEVEL::DEBUG, pLogger, std::forward<ARGS>(args)..., loc} {}
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::DEBUG, pLogger, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
@@ -141,11 +155,11 @@ struct Logger : ILogger
 
     /* */
 
-    virtual void pushString(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
+    virtual void add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
+    virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept override;
 
     /* */
 
-    isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept;
     void destroy() noexcept;
 
 protected:
@@ -192,7 +206,7 @@ Logger::loop() noexcept
 }
 
 inline void
-Logger::pushString(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept
+Logger::add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept
 {
     {
         LockGuard lock {&m_mtxQ};
@@ -253,26 +267,5 @@ Logger::destroy() noexcept
     m_mtxQ.destroy();
     m_cnd.destroy();
 }
-
-namespace print
-{
-
-inline isize
-format(Context ctx, FormatArgs fmtArgs, const ILogger::LEVEL x)
-{
-    constexpr StringView mapStrings[] {
-        "",
-        "ERROR",
-        "WARN",
-        "INFO",
-        "DEBUG",
-    };
-
-    ADT_ASSERT(static_cast<int>(x) + 1 >= 0 && static_cast<int>(x) + 1 < utils::size(mapStrings), "");
-
-    return format(ctx, fmtArgs, mapStrings[static_cast<int>(x) + 1]);
-}
-
-} /* namespace print */
 
 } /* namespace adt */

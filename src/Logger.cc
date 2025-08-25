@@ -1,6 +1,7 @@
 #include "adt/Logger.hh"
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
+#include "adt/math.hh"
 
 using namespace adt;
 
@@ -21,7 +22,7 @@ main(int argc, char** argv)
         for (isize i = 0; i < 30; ++i)
         {
             tp.add([i] {
-                LogDebug(&s_logger, "hello: {}\n", i);
+                LogDebug{&s_logger, "hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
             });
         }
     }
