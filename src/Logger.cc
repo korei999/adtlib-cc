@@ -13,7 +13,7 @@ main(int argc, char** argv)
     LOG_NOTIFY("Logger test...\n");
 
     {
-        new(&s_logger) Logger{ILogger::LEVEL::DEBUG, stderr, 1024};
+        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1024};
         defer( s_logger.destroy() );
 
         ThreadPool tp {StdAllocator::inst(), 1024};

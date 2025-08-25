@@ -20,13 +20,14 @@ struct ILogger
 
     /* */
 
+    FILE* m_pFile {};
     LEVEL m_eLevel = LEVEL::WARN;
     bool m_bTTY = false;
 
     /* */
 
     ILogger() noexcept = default;
-    ILogger(LEVEL eLevel, FILE* pFile) noexcept : m_eLevel {eLevel}, m_bTTY {isTTY(pFile)} {}
+    ILogger(FILE* pFile, LEVEL eLevel) noexcept : m_pFile {pFile}, m_eLevel {eLevel}, m_bTTY {isTTY(pFile)} {}
 
     /* */
 
@@ -144,13 +145,12 @@ struct Logger : ILogger
     Mutex m_mtxQ;
     CndVar m_cnd;
     bool m_bDone;
-    FILE* m_pFile;
     Thread m_thrd;
 
     /* */
 
-    Logger(ILogger::LEVEL eLevel, FILE* pFile, isize maxQueueSize);
-    Logger() noexcept : m_q {}, m_mtxQ {}, m_cnd {}, m_bDone {}, m_pFile {}, m_thrd {} {}
+    Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize);
+    Logger() noexcept : m_q {}, m_mtxQ {}, m_cnd {}, m_bDone {}, m_thrd {} {}
     Logger(UninitFlag) noexcept {}
 
     /* */
@@ -167,13 +167,12 @@ protected:
 };
 
 inline
-Logger::Logger(ILogger::LEVEL eLevel, FILE* pFile, isize maxQueueSize)
-    : ILogger {eLevel, pFile},
+Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize)
+    : ILogger {pFile, eLevel},
       m_q {maxQueueSize},
       m_mtxQ {Mutex::TYPE::PLAIN},
       m_cnd {INIT},
       m_bDone {false},
-      m_pFile {pFile},
       m_thrd {(ThreadFn)methodPointerNonVirtual(&Logger::loop), this}
 {
 }
