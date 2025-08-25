@@ -20,6 +20,10 @@ struct ILogger
 
     /* */
 
+    static inline ILogger* g_pInstance;
+
+    /* */
+
     FILE* m_pFile {};
     LEVEL m_eLevel = LEVEL::WARN;
     bool m_bTTY = false;
@@ -31,7 +35,7 @@ struct ILogger
 
     /* */
 
-    virtual void add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
+    virtual bool add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
     virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept = 0;
 
     /* */
@@ -78,11 +82,12 @@ struct Log
         ADT_ASSERT(eLevel >= ILogger::LEVEL::NONE && eLevel <= ILogger::LEVEL::DEBUG,
             "eLevel: {}, (min: {}, max: {})", (int)eLevel, (int)ILogger::LEVEL::NONE, (int)ILogger::LEVEL::DEBUG
         );
-        if (eLevel > pLogger->m_eLevel) return;
+        if (eLevel > pLogger->m_eLevel || !pLogger) return;
 
         StringFixed<SIZE> msg;
         isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
-        pLogger->add(eLevel, loc, StringView{msg.data(), n});
+        while (!pLogger->add(eLevel, loc, StringView{msg.data(), n}))
+            ;
     }
 };
 
@@ -133,10 +138,10 @@ struct Logger : ILogger
 {
     struct Msg
     {
-        StringFixed<512> sf;
         isize msgSize;
         LEVEL eLevel;
         std::source_location loc;
+        StringFixed<488> sf;
     };
 
     /* */
@@ -155,7 +160,7 @@ struct Logger : ILogger
 
     /* */
 
-    virtual void add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
+    virtual bool add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
     virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept override;
 
     /* */
@@ -204,14 +209,16 @@ Logger::loop() noexcept
     return THREAD_STATUS(0);
 }
 
-inline void
+inline bool
 Logger::add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept
 {
+    isize i;
     {
         LockGuard lock {&m_mtxQ};
-        m_q.emplaceBackNoGrow(sv, sv.size(), eLevel, loc);
+        i = m_q.emplaceBackNoGrow(sv.size(), eLevel, loc, sv);
     }
     m_cnd.signal();
+    return i != -1;
 }
 
 inline isize
@@ -248,7 +255,7 @@ Logger::formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) 
         svCol1 = ADT_LOGGER_COL_NORM;
     }
 
-    return print::toSpan(spBuff, "({}{}{}: {}, {}): ", svCol0, eLevel, svCol1, print::stripSourcePath(loc.file_name()), loc.line());
+    return print::toSpan(spBuff, "({}{}{}: {}, {}): ", svCol0, eLevel, svCol1, print::shorterSourcePath(loc.file_name()), loc.line());
 }
 
 inline void
