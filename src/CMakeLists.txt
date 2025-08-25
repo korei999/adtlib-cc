@@ -164,3 +164,8 @@ add_executable(
     time
     time.cc
 )
+
+add_executable(
+    Logger
+    Logger.cc
+)
