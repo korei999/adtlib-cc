@@ -3,6 +3,15 @@
 #include "Queue.hh"
 #include "Thread.hh"
 
+#define ADT_LOGGER_COL_NORM  "\x1b[0m"
+#define ADT_LOGGER_COL_RED  "\x1b[31m"
+#define ADT_LOGGER_COL_GREEN  "\x1b[32m"
+#define ADT_LOGGER_COL_YELLOW  "\x1b[33m"
+#define ADT_LOGGER_COL_BLUE  "\x1b[34m"
+#define ADT_LOGGER_COL_MAGENTA  "\x1b[35m"
+#define ADT_LOGGER_COL_CYAN  "\x1b[36m"
+#define ADT_LOGGER_COL_WHITE  "\x1b[37m"
+
 namespace adt
 {
 
@@ -20,16 +29,31 @@ struct ILogger
     /* */
 
     LEVEL m_eLevel = LEVEL::WARN;
+    bool m_bTTY = false;
 
     /* */
 
     ILogger() noexcept = default;
-    ILogger(LEVEL eLevel) noexcept : m_eLevel {eLevel} {}
+    ILogger(LEVEL eLevel, FILE* pFile) noexcept : m_eLevel {eLevel}, m_bTTY {isTTY(pFile)} {}
 
     /* */
 
     virtual void pushString(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
+
+    /* */
+
+    static bool isTTY(FILE* pFile) noexcept;
 };
+
+inline bool
+ILogger::isTTY(FILE* pFile) noexcept
+{
+#ifdef _MSC_VER
+    return _isatty(_fileno(pFile));
+#else
+    return isatty(fileno(pFile));
+#endif
+}
 
 template<isize SIZE = 512, typename ...ARGS>
 struct Log
@@ -42,9 +66,7 @@ struct Log
         if (eLevel > pLogger->m_eLevel) return;
 
         StringFixed<SIZE> msg;
-        isize n = 0;
-        // n += print::toBuffer(msg.data() + n, msg.cap() - n, "({}, {}): ", print::stripSourcePath(loc.file_name()), loc.line());
-        n += print::toBuffer(msg.data() + n, msg.cap() - n, std::forward<ARGS>(args)...);
+        isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
         pLogger->pushString(eLevel, loc, StringView{msg.data(), n});
     }
 };
@@ -123,6 +145,7 @@ struct Logger : ILogger
 
     /* */
 
+    isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept;
     void destroy() noexcept;
 
 protected:
@@ -131,7 +154,7 @@ protected:
 
 inline
 Logger::Logger(ILogger::LEVEL eLevel, FILE* pFile, isize maxQueueSize)
-    : ILogger {eLevel},
+    : ILogger {eLevel, pFile},
       m_q {maxQueueSize},
       m_mtxQ {Mutex::TYPE::PLAIN},
       m_cnd {INIT},
@@ -159,33 +182,7 @@ Logger::loop() noexcept
             msg = m_q.popFront();
         }
 
-        isize n = 0;
-        switch (msg.eLevel)
-        {
-            case LEVEL::NONE:
-            {
-            }
-            break;
-
-            case LEVEL::ERROR:
-            {
-            }
-            break;
-
-            case LEVEL::WARN:
-            {
-            }
-            break;
-
-            case LEVEL::INFO:
-            {
-            }
-            break;
-
-            case LEVEL::DEBUG:
-            n = print::toSpan(aBuff, "(DEBUG: {}, {}): ", print::stripSourcePath(msg.loc.file_name()), msg.loc.line());
-            break;
-        }
+        isize n = formatHeader(msg.eLevel, msg.loc, aBuff);
 
         fwrite(aBuff, n, 1, m_pFile);
         fwrite(msg.sf.data(), msg.msgSize, 1, m_pFile);
@@ -204,6 +201,43 @@ Logger::pushString(LEVEL eLevel, std::source_location loc, const StringView sv) 
     m_cnd.signal();
 }
 
+inline isize
+Logger::formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept
+{
+    if (eLevel == LEVEL::NONE) return 0;
+
+    StringView svCol0 {};
+    StringView svCol1 {};
+
+    if (m_bTTY)
+    {
+        switch (eLevel)
+        {
+            case LEVEL::NONE:
+            return 0;
+
+            case LEVEL::ERROR:
+            svCol0 = ADT_LOGGER_COL_RED;
+            break;
+
+            case LEVEL::WARN:
+            svCol0 = ADT_LOGGER_COL_YELLOW;
+            break;
+
+            case LEVEL::INFO:
+            svCol0 = ADT_LOGGER_COL_BLUE;
+            break;
+
+            case LEVEL::DEBUG:
+            svCol0 = ADT_LOGGER_COL_CYAN;
+            break;
+        }
+        svCol1 = ADT_LOGGER_COL_NORM;
+    }
+
+    return print::toSpan(spBuff, "({}{}{}: {}, {}): ", svCol0, eLevel, svCol1, print::stripSourcePath(loc.file_name()), loc.line());
+}
+
 inline void
 Logger::destroy() noexcept
 {
@@ -219,5 +253,26 @@ Logger::destroy() noexcept
     m_mtxQ.destroy();
     m_cnd.destroy();
 }
+
+namespace print
+{
+
+inline isize
+format(Context ctx, FormatArgs fmtArgs, const ILogger::LEVEL x)
+{
+    constexpr StringView mapStrings[] {
+        "",
+        "ERROR",
+        "WARN",
+        "INFO",
+        "DEBUG",
+    };
+
+    ADT_ASSERT(static_cast<int>(x) + 1 >= 0 && static_cast<int>(x) + 1 < utils::size(mapStrings), "");
+
+    return format(ctx, fmtArgs, mapStrings[static_cast<int>(x) + 1]);
+}
+
+} /* namespace print */
 
 } /* namespace adt */
