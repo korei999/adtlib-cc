@@ -13,7 +13,7 @@ using namespace adt;
 static void (*pluginLoggingFunc)() noexcept;
 static void (*pluginInit)(ILogger* p) noexcept;
 
-static LoggerNoSource s_logger;
+static Logger s_logger;
 
 atomic::Num<i64> s_i;
 
@@ -43,7 +43,7 @@ main(int argc, char** argv)
 #endif
 
     {
-        new(&s_logger) LoggerNoSource{stderr, ILogger::LEVEL::DEBUG, 1024 * 3};
+        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1024 * 3};
         ILogger::setGlobal(&s_logger);
         pluginInit(&s_logger);
         defer( s_logger.destroy() );
