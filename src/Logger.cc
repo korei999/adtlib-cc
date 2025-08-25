@@ -5,7 +5,7 @@
 
 #ifdef _MSC_VER
 #else
-#include <dlfcn.h>
+    #include <dlfcn.h>
 #endif
 
 using namespace adt;
@@ -30,7 +30,11 @@ main(int argc, char** argv)
     pluginInit = (decltype(pluginInit))GetProcAddress((HMODULE)hMod, "pluginInit");
     pluginLoggingFunc = (decltype(pluginLoggingFunc))GetProcAddress((HMODULE)hMod, "pluginLoggingFunc");
 #else
+#ifdef __APPLE__
+    void* pSo = dlopen("build/src/libLoggerUser.dylib", RTLD_NOW | RTLD_LOCAL);
+#else
     void* pSo = dlopen("build/src/libLoggerUser.so", RTLD_NOW | RTLD_LOCAL);
+#endif
     ADT_ASSERT_ALWAYS(pSo != nullptr, "");
     defer( dlclose(pSo) );
     pluginLoggingFunc = (decltype(pluginLoggingFunc))dlsym(pSo, "pluginLoggingFunc");
@@ -52,7 +56,7 @@ main(int argc, char** argv)
         for (isize i = 0; i < BIG; ++i)
         {
             tp.addRetry([i] {
-                LogError{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
+                LogInfo{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
                 s_i.fetchAdd(1, atomic::ORDER::RELAXED);
             });
         }

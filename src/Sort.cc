@@ -84,7 +84,11 @@ main()
         defer( v1.destroy() );
         {
             const isize t0 = time::nowUS();
+#ifdef __APPLE__
+            std::sort(v1.data(), v1.data() + v1.size());
+#else
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
+#endif
             const isize t1 = time::nowUS() - t0;
             LOG_NOTIFY("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), t1 / 1000.0);
         }
