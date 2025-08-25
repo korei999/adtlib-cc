@@ -30,8 +30,8 @@ main()
 {
     LOG_NOTIFY("ThreadPool test...\n");
 
-    ThreadPoolWithMemory tp {StdAllocator::inst(), 512, SIZE_1K};
-    defer( tp.destroy(StdAllocator::inst()) );
+    ThreadPoolWithMemory tp {512, SIZE_1K};
+    defer( tp.destroy() );
 
     auto inc = [&] {
         return i.fetchAdd(1, atomic::ORDER::RELAXED);

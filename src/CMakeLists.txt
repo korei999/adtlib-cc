@@ -169,3 +169,7 @@ add_executable(
     Logger
     Logger.cc
 )
+add_library(LoggerUser SHARED
+    LoggerUser.cc
+)
+# target_link_libraries(Logger PRIVATE LoggerUser)

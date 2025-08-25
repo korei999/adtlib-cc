@@ -70,8 +70,8 @@ main()
     {
         constexpr isize QSIZE = 2048;
         static_assert(isPowerOf2(QSIZE));
-        ThreadPool tp {StdAllocator::inst(), QSIZE};
-        defer( tp.destroy(StdAllocator::inst()) );
+        ThreadPool tp {QSIZE};
+        defer( tp.destroy() );
 
         VecM<i64> v0 {BIG * 100};
         defer( v0.destroy() );

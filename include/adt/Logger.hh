@@ -21,6 +21,7 @@ struct ILogger
     /* */
 
     static inline ILogger* g_pInstance;
+    static inline std::source_location g_loc;
 
     /* */
 
@@ -41,6 +42,8 @@ struct ILogger
     /* */
 
     static bool isTTY(FILE* pFile) noexcept;
+    static ILogger* inst() noexcept;
+    static void setGlobal(ILogger* pInst, std::source_location = std::source_location::current()) noexcept;
 };
 
 namespace print
@@ -74,14 +77,24 @@ ILogger::isTTY(FILE* pFile) noexcept
 #endif
 }
 
+inline ILogger*
+ILogger::inst() noexcept
+{
+    ADT_ASSERT(ILogger::g_pInstance != nullptr, "");
+    return ILogger::g_pInstance;
+}
+
 template<isize SIZE = 512, typename ...ARGS>
 struct Log
 {    
-    Log(ILogger::LEVEL eLevel, ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
+    Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source_location& loc = std::source_location::current())
     {
         ADT_ASSERT(eLevel >= ILogger::LEVEL::NONE && eLevel <= ILogger::LEVEL::DEBUG,
             "eLevel: {}, (min: {}, max: {})", (int)eLevel, (int)ILogger::LEVEL::NONE, (int)ILogger::LEVEL::DEBUG
         );
+
+        ILogger* pLogger = ILogger::inst();
+
         if (eLevel > pLogger->m_eLevel || !pLogger) return;
 
         StringFixed<SIZE> msg;
@@ -94,45 +107,72 @@ struct Log
 template<isize SIZE = 512, typename ...ARGS>
 struct LogError : Log<SIZE, ARGS...>
 {
-    LogError(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...>{ILogger::LEVEL::ERROR, pLogger, std::forward<ARGS>(args)..., loc} {}
+    LogError(ARGS&&... args, const std::source_location& loc = std::source_location::current())
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::ERROR, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
 struct LogWarn : Log<SIZE, ARGS...>
 {
-    LogWarn(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...>{ILogger::LEVEL::WARN, pLogger, std::forward<ARGS>(args)..., loc} {}
+    LogWarn(ARGS&&... args, const std::source_location& loc = std::source_location::current())
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::WARN, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
 struct LogInfo : Log<SIZE, ARGS...>
 {
-    LogInfo(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...>{ILogger::LEVEL::INFO, pLogger, std::forward<ARGS>(args)..., loc} {}
+    LogInfo(ARGS&&... args, const std::source_location& loc = std::source_location::current())
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::INFO, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
 struct LogDebug : Log<SIZE, ARGS...>
 {
-    LogDebug(ILogger* pLogger, ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...>{ILogger::LEVEL::DEBUG, pLogger, std::forward<ARGS>(args)..., loc} {}
+    LogDebug(ARGS&&... args, const std::source_location& loc = std::source_location::current())
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::DEBUG, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
-Log(ILogger::LEVEL eLevel, ILogger*, ARGS&&...) -> Log<SIZE, ARGS...>;
+Log(ILogger::LEVEL eLevel, ARGS&&...) -> Log<SIZE, ARGS...>;
 
 template<isize SIZE = 512, typename ...ARGS>
-LogError(ILogger*, ARGS&&...) -> LogError<SIZE, ARGS...>;
+LogError(ARGS&&...) -> LogError<SIZE, ARGS...>;
 
 template<isize SIZE = 512, typename ...ARGS>
-LogWarn(ILogger*, ARGS&&...) -> LogWarn<SIZE, ARGS...>;
+LogWarn(ARGS&&...) -> LogWarn<SIZE, ARGS...>;
 
 template<isize SIZE = 512, typename ...ARGS>
-LogInfo(ILogger*, ARGS&&...) -> LogInfo<SIZE, ARGS...>;
+LogInfo(ARGS&&...) -> LogInfo<SIZE, ARGS...>;
 
 template<isize SIZE = 512, typename ...ARGS>
-LogDebug(ILogger*, ARGS&&...) -> LogDebug<SIZE, ARGS...>;
+LogDebug(ARGS&&...) -> LogDebug<SIZE, ARGS...>;
+
+inline void
+ILogger::setGlobal(ILogger* pInst, std::source_location loc) noexcept
+{
+    std::source_location prevLoc = ILogger::g_loc;
+    bool bWasSet = ILogger::g_pInstance != nullptr;
+
+    ILogger::g_pInstance = pInst;
+    ILogger::g_loc = loc;
+
+    char aBuff[128] {};
+    isize n = 0;
+    if (bWasSet)
+    {
+        n = print::toSpan(aBuff, "(prev at: {}, {})",
+            print::shorterSourcePath(prevLoc.file_name()), prevLoc.line()
+        );
+    }
+    else
+    {
+        n = print::toSpan(aBuff, "(prev at: null)");
+    }
+
+    LogInfo("global logger set at: ({}, {}), {}\n",
+        print::shorterSourcePath(loc.file_name()), loc.line(), StringView{aBuff, n}
+    );
+}
 
 struct Logger : ILogger
 {

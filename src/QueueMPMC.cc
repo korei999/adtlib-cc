@@ -1,5 +1,4 @@
 #include "adt/QueueMPMC.hh"
-#include "adt/Thread.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
@@ -16,8 +15,8 @@ main()
 {
     LOG_NOTIFY("QueueMPMC test...\n");
 
-    ThreadPool tp {StdAllocator::inst(), 128};
-    defer( tp.destroy(StdAllocator::inst()) );
+    ThreadPool tp {128};
+    defer( tp.destroy() );
 
     auto clEnqueue = [&]
     {
