@@ -27,6 +27,7 @@ main(int argc, char** argv)
 #ifdef _MSC_VER
     HMODULE hMod = LoadLibraryA("build/src/LoggerUser.dll");
     ADT_ASSERT_ALWAYS(hMod != nullptr, "");
+    defer( FreeLibrary(hmod) );
     pluginInit = (decltype(pluginInit))GetProcAddress((HMODULE)hMod, "pluginInit");
     pluginLoggingFunc = (decltype(pluginLoggingFunc))GetProcAddress((HMODULE)hMod, "pluginLoggingFunc");
 #else
