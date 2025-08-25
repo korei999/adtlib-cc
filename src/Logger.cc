@@ -3,7 +3,10 @@
 #include "adt/ThreadPool.hh"
 #include "adt/math.hh" /* IWYU pragma: keep */
 
+#ifdef _MSC_VER
+#else
 #include <dlfcn.h>
+#endif
 
 using namespace adt;
 
@@ -21,10 +24,18 @@ main(int argc, char** argv)
 
     constexpr isize BIG = 30;
 
+#ifdef _MSC_VER
+    HMODULE hMod = LoadLibraryA("build/src/LoggerUser.dll");
+    ADT_ASSERT_ALWAYS(hMod != nullptr, "");
+    pluginInit = (decltype(pluginInit))GetProcAddress((HMODULE)hMod, "pluginInit");
+    pluginLoggingFunc = (decltype(pluginLoggingFunc))GetProcAddress((HMODULE)hMod, "pluginLoggingFunc");
+#else
     void* pSo = dlopen("build/src/libLoggerUser.so", RTLD_NOW | RTLD_LOCAL);
+    ADT_ASSERT_ALWAYS(pSo != nullptr, "");
     defer( dlclose(pSo) );
     pluginLoggingFunc = (decltype(pluginLoggingFunc))dlsym(pSo, "pluginLoggingFunc");
     pluginInit = (decltype(pluginInit))dlsym(pSo, "pluginInit");
+#endif
 
     {
         new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1024 * 3};
@@ -41,7 +52,7 @@ main(int argc, char** argv)
         for (isize i = 0; i < BIG; ++i)
         {
             tp.addRetry([i] {
-                LogInfo{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
+                LogError{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
                 s_i.fetchAdd(1, atomic::ORDER::RELAXED);
             });
         }

@@ -1,3 +1,9 @@
+#ifdef PLUGIN_SOURCE
+#error "must be defined by the plugin source"
+#endif
+
+#define PLUGIN_SOURCE
+
 #include "LoggerUser.hh"
 
 #include "adt/Logger.hh"
@@ -16,3 +22,5 @@ pluginLoggingFunc() noexcept
     auto pLogger = adt::ILogger::inst();
     LogWarn("hello from 'LoggerUser'\n");
 }
+
+#undef PLUGIN_SOURCE

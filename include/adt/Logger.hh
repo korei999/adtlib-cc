@@ -11,12 +11,16 @@
 #define ADT_LOGGER_COL_CYAN  "\x1b[36m"
 #define ADT_LOGGER_COL_WHITE  "\x1b[37m"
 
+#ifdef _MSC_VER
+    #include <io.h>
+#endif
+
 namespace adt
 {
 
 struct ILogger
 {
-    enum class LEVEL : i8 {NONE = -1, ERROR = 0, WARN, INFO, DEBUG};
+    enum class LEVEL : i8 {NONE = -1, ERR = 0, WARN, INFO, DEBUG};
 
     /* */
 
@@ -108,7 +112,7 @@ template<isize SIZE = 512, typename ...ARGS>
 struct LogError : Log<SIZE, ARGS...>
 {
     LogError(ARGS&&... args, const std::source_location& loc = std::source_location::current())
-        : Log<SIZE, ARGS...>{ILogger::LEVEL::ERROR, std::forward<ARGS>(args)..., loc} {}
+        : Log<SIZE, ARGS...>{ILogger::LEVEL::ERR, std::forward<ARGS>(args)..., loc} {}
 };
 
 template<isize SIZE = 512, typename ...ARGS>
@@ -276,7 +280,7 @@ Logger::formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) 
             case LEVEL::NONE:
             return 0;
 
-            case LEVEL::ERROR:
+            case LEVEL::ERR:
             svCol0 = ADT_LOGGER_COL_RED;
             break;
 
