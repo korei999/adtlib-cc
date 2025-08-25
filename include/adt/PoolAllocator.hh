@@ -60,12 +60,13 @@ struct PoolAllocator : public IArena
     ADT_WARN_IMPOSSIBLE_OPERATION virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
     void virtual free(void* ptr) noexcept override final;
     void virtual freeAll() noexcept override final;
-    [[nodiscard]] virtual constexpr bool doesFree() const noexcept override final { return true; }
-    [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override final { return false; }
+    [[nodiscard]] virtual bool doesFree() const noexcept override final { return true; }
+    [[nodiscard]] virtual bool doesRealloc() const noexcept override final { return false; }
 
     /* */
 
-    template<typename T> ADT_WARN_IMPOSSIBLE_OPERATION constexpr T*
+    template<typename T>
+    ADT_WARN_IMPOSSIBLE_OPERATION T*
     reallocV(T*, isize, isize)
     {
         ADT_ASSERT_ALWAYS(false, "can't realloc"); return nullptr;
