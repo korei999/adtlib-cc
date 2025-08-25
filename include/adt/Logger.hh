@@ -214,6 +214,48 @@ protected:
     THREAD_STATUS loop() noexcept;
 };
 
+struct LoggerNoSource : Logger
+{
+    using Logger::Logger;
+
+    virtual isize
+    formatHeader(LEVEL eLevel, std::source_location, Span<char> spBuff) noexcept override
+    {
+        if (eLevel == LEVEL::NONE) return 0;
+
+        StringView svCol0 {};
+        StringView svCol1 {};
+
+        if (m_bTTY)
+        {
+            switch (eLevel)
+            {
+                case LEVEL::NONE:
+                return 0;
+
+                case LEVEL::ERR:
+                svCol0 = ADT_LOGGER_COL_RED;
+                break;
+
+                case LEVEL::WARN:
+                svCol0 = ADT_LOGGER_COL_YELLOW;
+                break;
+
+                case LEVEL::INFO:
+                svCol0 = ADT_LOGGER_COL_BLUE;
+                break;
+
+                case LEVEL::DEBUG:
+                svCol0 = ADT_LOGGER_COL_CYAN;
+                break;
+            }
+            svCol1 = ADT_LOGGER_COL_NORM;
+        }
+
+        return print::toSpan(spBuff, "({}{}{}): ", svCol0, eLevel, svCol1);
+    }
+};
+
 inline
 Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize)
     : ILogger {pFile, eLevel},
