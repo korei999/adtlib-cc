@@ -45,9 +45,6 @@ main(int argc, char** argv)
     {
         new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1024 * 3};
         ILogger::setGlobal(&s_logger);
-        ILogger::setGlobal(&s_logger);
-        ILogger::setGlobal(&s_logger);
-
         pluginInit(&s_logger);
         defer( s_logger.destroy() );
 

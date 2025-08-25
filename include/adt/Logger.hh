@@ -84,7 +84,6 @@ ILogger::isTTY(FILE* pFile) noexcept
 inline ILogger*
 ILogger::inst() noexcept
 {
-    ADT_ASSERT(ILogger::g_pInstance != nullptr, "");
     return ILogger::g_pInstance;
 }
 
