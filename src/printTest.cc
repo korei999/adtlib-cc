@@ -10,6 +10,7 @@
 #include "adt/time.hh"
 
 #include <format>
+#include <tuple>
 
 #if defined __linux__ && __has_include(<fmt/core.h>)
     #define GOT_FMT
@@ -24,16 +25,30 @@ struct Hello
     int i;
     float f;
     Pair<StringView, int> p;
+    std::tuple<float, StringView, Array<StringView, 3>, std::tuple<int, int, int>> tup;
 };
 
 namespace adt::print
 {
+
+template<typename ...TS>
 [[maybe_unused]] static isize
-format(Context* ctx, FormatArgs fmtArgs, const Hello& x)
+format(Context* pCtx, FormatArgs fmtArgs, const std::tuple<TS...>& ts)
 {
     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-    return formatVariadic(ctx, fmtArgs, x.v, x.i, x.f, x.p);
+
+    return std::apply([pCtx, fmtArgs](const TS&... args) {
+        return formatVariadic(pCtx, fmtArgs, args...);
+    }, ts);
 }
+
+[[maybe_unused]] static isize
+format(Context* pCtx, FormatArgs fmtArgs, const Hello& x)
+{
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
+    return formatVariadic(pCtx, fmtArgs, x.v, x.i, x.f, x.p, x.tup);
+}
+
 } /* namespace adt::print */
 
 int
@@ -49,6 +64,7 @@ main()
         h.i = 565;
         h.f = 1245.4123f;
         h.p = {"Hi", 123};
+        h.tup = {123.123f, "Hello", {"one", "two", "three"}, {1, 2, 3}};
 
         print::out("Hello: '{}'\n", h);
     }
