@@ -56,7 +56,7 @@ namespace print
 {
 
 inline isize
-format(Context ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
+format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
 {
     constexpr StringView mapStrings[] {"", "ERROR", "WARN", "INFO", "DEBUG"};
     ADT_ASSERT((int)x + 1 >= 0 && (int)x + 1 < utils::size(mapStrings), "{}", (int)x);

@@ -29,11 +29,10 @@ namespace adt::print
 {
 
 inline isize
-format(Context ctx, FormatArgs, const EntityBind& x)
+format(Context* ctx, FormatArgs fmtArgs, const EntityBind& x)
 {
-    ctx.fmt = "[{}], [{}], [{}], {}";
-    ctx.fmtIdx = 0;
-    return printArgs(ctx, x.pos, x.rot, x.scale, x.id);
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
+    return formatVariadic(ctx, fmtArgs, x.pos, x.rot, x.id);
 }
 
 } /* namespace adt::print */

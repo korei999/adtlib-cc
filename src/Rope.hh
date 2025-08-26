@@ -125,7 +125,7 @@ Rope::insert(const StringView sv, isize atI)
 }
 
 inline RopeLeaf*
-Rope::remove(isize atI, isize size) noexcept
+Rope::remove(isize, isize) noexcept
 {
     return nullptr;
 }
@@ -274,7 +274,7 @@ Rope::insertSplit(Leaf** ppLeaf, Leaf* pNew, isize weightedKey)
  *                   /__\       /__\(pNew)
  *                (ppLeaf)                        */
 inline void
-Rope::insertAppend(Leaf** ppLeaf, Leaf* pNew, isize weightedKey)
+Rope::insertAppend(Leaf** ppLeaf, Leaf* pNew, isize)
 {
     Leaf* pLeaf = *ppLeaf;
     Node* pPar = pLeaf->m_parent;
@@ -313,7 +313,7 @@ Rope::insertAppend(Leaf** ppLeaf, Leaf* pNew, isize weightedKey)
  *                   /__\       /__\(ppLeaf)
  *                (pNew)                        */
 inline void
-Rope::insertPrepend(Leaf** ppLeaf, Leaf* pNew, isize weightedKey)
+Rope::insertPrepend(Leaf** ppLeaf, Leaf* pNew, isize)
 {
     Leaf* pLeaf = *ppLeaf;
     Node* pPar = pLeaf->m_parent;

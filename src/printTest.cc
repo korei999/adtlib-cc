@@ -13,10 +13,51 @@
 
 using namespace adt;
 
+struct Hello
+{
+    VecM<int> v;
+    int i;
+    float f;
+    Pair<StringView, int> p;
+};
+
+namespace adt::print
+{
+[[maybe_unused]] static isize
+format(Context* ctx, FormatArgs fmtArgs, const Hello& x)
+{
+    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
+    return formatVariadic(ctx, fmtArgs, x.v, x.i, x.f, x.p);
+}
+} /* namespace adt::print */
+
 int
 main()
 {
     LOG_NOTIFY("print test...\n");
+
+    {
+        Hello h;
+        h.v.push(1);
+        h.v.push(2);
+        h.v.push(3);
+        h.i = 565;
+        h.f = 1245.4123f;
+        h.p = {"Hi", 123};
+
+        print::out("Hello: '{}'\n", h);
+    }
+
+    {
+        using namespace adt::math;
+        M2 m2 = M2Iden();
+        M3 m3 = M3Iden();
+        M4 m4 = M4Iden() * M4RotXFrom(3*PI32/4);;
+
+        print::out("m2: {:.1}\n", m2);
+        print::out("m3: {}\n", m3);
+        print::out("m4: {:.3}\n", m4);
+    }
 
     {
         char aBuff[64] {};

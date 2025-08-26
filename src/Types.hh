@@ -49,19 +49,19 @@ namespace adt::print
 {
 
 inline isize
-format(Context ctx, FormatArgs fmtArgs, const What& x) noexcept
+format(Context* ctx, FormatArgs fmtArgs, const What& x) noexcept
 {
     return format(ctx, fmtArgs, *x.p);
 }
 
 inline isize
-format(Context ctx, FormatArgs fmtArgs, const Move& x) noexcept
+format(Context* ctx, FormatArgs fmtArgs, const Move& x) noexcept
 {
     return format(ctx, fmtArgs, *x.p);
 }
 
 inline isize
-format(Context ctx, FormatArgs fmtArgs, const V0& x) noexcept
+format(Context* ctx, FormatArgs fmtArgs, const V0& x) noexcept
 {
     if (x.p) return format(ctx, fmtArgs, *x.p);
     else return format(ctx, fmtArgs, "nullptr");

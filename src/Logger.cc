@@ -18,7 +18,7 @@ static Logger s_logger;
 atomic::Num<i64> s_i;
 
 int
-main(int argc, char** argv)
+main(int, char**)
 {
     LOG_NOTIFY("Logger test...\n");
 
