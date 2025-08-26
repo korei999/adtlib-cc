@@ -146,10 +146,15 @@ message(STATUS "CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
 if (NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(TBB REQUIRED tbb)
-    include_directories(BEFORE ${TBB_INCLUDE_DIRS})
+    pkg_check_modules(TBB tbb)
+    include_directories(${TBB_INCLUDE_DIRS})
     link_directories(${TBB_LIBRARY_DIRS})
     link_libraries(${TBB_LIBRARIES})
+
+    pkg_check_modules(FMT fmt)
+    include_directories(${FMT_INCLUDE_DIRS})
+    link_directories(${FMT_LIBRARY_DIRS})
+    link_libraries(${FMT_LIBRARIES})
 endif()
 
 # add_link_options(-lfmt)

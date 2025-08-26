@@ -11,6 +11,11 @@
 
 #include <format>
 
+#if defined __linux__ && __has_include(<fmt/core.h>)
+    #define GOT_FMT
+    #include <fmt/core.h>
+#endif
+
 using namespace adt;
 
 struct Hello
@@ -186,8 +191,25 @@ main()
         const auto t1 = time::nowUS();
 
         print::out("aBuff: {}\n", aBuff);
-        printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        printf("(std::format_to) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
+
+    CERR("\n");
+
+#ifdef GOT_FMT
+    {
+        const auto t0 = time::nowUS();
+
+        char aBuff[128] {};
+        for (isize i = 0; i < BIG; ++i)
+            fmt::format_to(aBuff, "some string here {:.5} just taking a bunch of space: {}, {}, {}, {}", std::string_view{svTest.data(), svTest.size()}, i, i, f32(i), f64(i));
+
+        const auto t1 = time::nowUS();
+
+        print::out("aBuff: {}\n", aBuff);
+        printf("(fmt::format_to) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+    }
+#endif
 
     LOG_GOOD("print test passed\n");
 }
