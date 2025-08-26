@@ -1,6 +1,7 @@
 #pragma once
 
-#include "print.hh"
+#include "print-inl.hh"
+#include "String.hh" /* IWYU pragma: keep */
 
 #define ADT_LOGGER_COL_NORM  "\x1b[0m"
 #define ADT_LOGGER_COL_RED  "\x1b[31m"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "String.inc"
+#include "String-inl.hh"
 #include "enum.hh"
 
 #include <type_traits>

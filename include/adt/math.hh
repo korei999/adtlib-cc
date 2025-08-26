@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math.inc"
+#include "math-inl.hh"
 
 #include "simd.hh"
 #include "utils.hh"
