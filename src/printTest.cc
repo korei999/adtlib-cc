@@ -136,11 +136,12 @@ main()
     }
 
     constexpr isize BIG = 1000000;
+    constexpr StringView svTest = "HHHHHHHHHHHHHHHH";
 
     {
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            print::toSpan(aBuff, "some string here just taking a bunch of space: {}, {}, {}, {}", i, i, f32(i), f64(i));
+            print::toSpan(aBuff, "some string here {:5} just taking a bunch of space: {}, {}, {}, {}", svTest, i, i, f32(i), f64(i));
     }
 
     {
@@ -148,11 +149,11 @@ main()
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            print::toSpan(aBuff, "some string here just taking a bunch of space: {}, {}, {}, {}", i, i, f32(i), f64(i));
+            print::toSpan(aBuff, "some string here {:5} just taking a bunch of space: {}, {}, {}, {}", svTest, i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
 
-        // print::out("aBuff: {}\n", aBuff);
+        print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
         printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
@@ -164,11 +165,11 @@ main()
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            snprintf(aBuff, sizeof(aBuff) - 1, "some string here just taking a bunch of space: %lld, %lld, %f, %lf", i, i, f32(i), f64(i));
+            snprintf(aBuff, sizeof(aBuff) - 1, "some string here %.*s just taking a bunch of space: %lld, %lld, %f, %lf", 5, svTest.data(), i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
 
-        // print::out("aBuff: {}\n", aBuff);
+        print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
         printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
@@ -180,12 +181,11 @@ main()
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            std::format_to(aBuff, "some string here just taking a bunch of space: {}, {}, {}, {}", i, i, f32(i), f64(i));
+            std::format_to(aBuff, "some string here {:.5} just taking a bunch of space: {}, {}, {}, {}", std::string_view{svTest.data(), svTest.size()}, i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
-        // print::out("aBuff: {}\n", aBuff);
 
-        // LOG_BAD("(std) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
+        print::out("aBuff: {}\n", aBuff);
         printf("(std) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
     }
 
