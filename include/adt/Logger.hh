@@ -32,11 +32,13 @@ struct ILogger
     FILE* m_pFile {};
     LEVEL m_eLevel = LEVEL::WARN;
     bool m_bTTY = false;
+    bool m_bForceColor = false;
 
     /* */
 
     ILogger() noexcept = default;
-    ILogger(FILE* pFile, LEVEL eLevel) noexcept : m_pFile {pFile}, m_eLevel {eLevel}, m_bTTY {isTTY(pFile)} {}
+    ILogger(FILE* pFile, LEVEL eLevel, bool bForceColor = false) noexcept
+        : m_pFile {pFile}, m_eLevel {eLevel}, m_bTTY {bForceColor || isTTY(pFile)}, m_bForceColor {bForceColor} {}
 
     /* */
 
@@ -197,7 +199,7 @@ struct Logger : ILogger
 
     /* */
 
-    Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize);
+    Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize, bool bForceColor = false);
     Logger() noexcept : m_q {}, m_mtxQ {}, m_cnd {}, m_bDone {}, m_thrd {} {}
     Logger(UninitFlag) noexcept {}
 
@@ -257,8 +259,8 @@ struct LoggerNoSource : Logger
 };
 
 inline
-Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize)
-    : ILogger {pFile, eLevel},
+Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize maxQueueSize, bool bForceColor)
+    : ILogger {pFile, eLevel, bForceColor},
       m_q {maxQueueSize},
       m_mtxQ {Mutex::TYPE::PLAIN},
       m_cnd {INIT},
