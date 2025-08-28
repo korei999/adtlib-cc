@@ -55,7 +55,7 @@ FlatArena::FlatArena(isize reserve, isize commit)
     [[maybe_unused]] int err = 0;
 
     const isize realReserved = alignUp(reserve, getPageSize());
-    void* pRes = mmap(nullptr, realReserved, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    void* pRes = mmap(nullptr, realReserved, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (pRes == MAP_FAILED) throw AllocException{"mmap() failed"};
 
     m_pData = pRes;
