@@ -7,6 +7,7 @@
 #include "adt/logs.hh"
 #include "json/Parser.hh"
 
+#include "Arena2.hh"
 // #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
 using namespace adt;
@@ -47,10 +48,10 @@ main(int argc, char* argv[])
         // FreeList al {SIZE_1G};
         // StdAllocator al;
         // MiMalloc al;
-        Arena al {SIZE_8M};
+        Arena2 al {SIZE_8G};
         // MiHeap al(0);
         defer(
-            LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
+            // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
             al.freeAll()
         );
 

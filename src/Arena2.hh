@@ -30,7 +30,6 @@ struct Arena2 : IArena
 
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override; /* AllocException */
 
-    /* pass oldCount to simpilify memcpy range */
     [[nodiscard]] virtual void* realloc(void* p, usize oldCount, usize newCount, usize mSize) noexcept(false) override; /* AllocException */
 
     virtual void free(void* ptr) noexcept override;
@@ -75,14 +74,14 @@ inline void*
 Arena2::malloc(usize mCount, usize mSize)
 {
     const isize realSize = alignUp8(mCount * mSize);
-    pdiff pRet = (pdiff)m_pData + m_off;
+    void* pRet = (void*)((u8*)m_pData + m_off);
 
     growIfNeeded(m_off + realSize);
 
-    m_pLastAlloc = (void*)pRet;
+    m_pLastAlloc = pRet;
     m_lastAllocSize = realSize;
 
-    return (void*)pRet;
+    return pRet;
 }
 
 inline void*
@@ -96,6 +95,8 @@ Arena2::zalloc(usize mCount, usize mSize)
 inline void*
 Arena2::realloc(void* p, usize oldCount, usize newCount, usize mSize)
 {
+    if (!p) return malloc(newCount, mSize);
+
     /* bump case */
     if (p == m_pLastAlloc)
     {
@@ -106,8 +107,10 @@ Arena2::realloc(void* p, usize oldCount, usize newCount, usize mSize)
         return p;
     }
 
+    if (newCount <= oldCount) return p;
+
     void* pMem = malloc(newCount, mSize);
-    ::memcpy(pMem, p, oldCount);
+    if (p) ::memcpy(pMem, p, oldCount * mSize);
     return pMem;
 }
 
