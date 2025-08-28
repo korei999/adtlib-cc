@@ -52,6 +52,8 @@ protected:
 inline
 Arena2::Arena2(isize reserve, isize commit)
 {
+    [[maybe_unused]] int err = 0;
+
     const isize realReserved = alignUp(reserve, getPageSize());
     void* pRes = mmap(nullptr, realReserved, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     if (pRes == MAP_FAILED) throw AllocException{"mmap() failed"};
@@ -64,8 +66,10 @@ Arena2::Arena2(isize reserve, isize commit)
     {
         const isize realCommit = alignUp(commit, getPageSize());
 
-        [[maybe_unused]] int err = mprotect(m_pData, realCommit, PROT_READ | PROT_WRITE);
+        err = mprotect(m_pData, realCommit, PROT_READ | PROT_WRITE);
         ADT_ASSERT(err != - 1, "mprotect: r: {} ({}), realCommit: {}", err, strerror(errno), realCommit);
+        err = madvise(m_pData, realCommit, MADV_WILLNEED);
+        ADT_ASSERT(err != - 1, "madvise: r: {} ({})", err, strerror(errno));
 
         m_commited = realCommit;
     }
