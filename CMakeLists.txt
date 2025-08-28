@@ -151,14 +151,8 @@ if (NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
     link_directories(${TBB_LIBRARY_DIRS})
     link_libraries(${TBB_LIBRARIES})
 
-    pkg_check_modules(FMT fmt)
-    include_directories(${FMT_INCLUDE_DIRS})
-    link_directories(${FMT_LIBRARY_DIRS})
-    link_libraries(${FMT_LIBRARIES})
-
     add_link_options(-lfmt)
     add_link_options(-lmimalloc)
-    include(FetchContent)
 endif()
 
 # include(FetchContent)
