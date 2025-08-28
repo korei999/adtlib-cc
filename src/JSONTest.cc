@@ -6,8 +6,8 @@
 #include "adt/file.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
+#include "adt/FlatArena.hh"
 
-#include "Arena2.hh"
 // #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
 using namespace adt;

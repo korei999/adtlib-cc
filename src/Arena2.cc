@@ -1,5 +1,4 @@
-#include "Arena2.hh"
-
+#include "adt/FlatArena.hh"
 #include "adt/Logger.hh"
 #include "adt/Vec.hh"
 
