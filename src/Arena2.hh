@@ -54,7 +54,7 @@ Arena2::Arena2(isize reserve, isize commit)
 {
     const isize realReserved = alignUp(reserve, getPageSize());
     void* pRes = mmap(nullptr, realReserved, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-    if (pRes == nullptr) throw AllocException{"mmap() failed"};
+    if (pRes == MAP_FAILED) throw AllocException{"mmap() failed"};
 
     m_pData = pRes;
     m_reserved = realReserved;
