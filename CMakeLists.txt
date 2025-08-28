@@ -155,12 +155,13 @@ if (NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
     include_directories(${FMT_INCLUDE_DIRS})
     link_directories(${FMT_LIBRARY_DIRS})
     link_libraries(${FMT_LIBRARIES})
+
+    add_link_options(-lfmt)
+    add_link_options(-lmimalloc)
+    include(FetchContent)
 endif()
 
-# add_link_options(-lfmt)
-# add_link_options(-lmimalloc)
 # include(FetchContent)
-# 
 # FetchContent_Declare(
 #     MIMALLOC
 #     GIT_REPOSITORY https://github.com/microsoft/mimalloc.git
