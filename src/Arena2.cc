@@ -20,15 +20,12 @@ main()
         defer( arena.freeAll() );
 
         {
-            Vec<int> v {};
+            Vec<isize> v {};
 
-            v.push(&arena, 0);
-            v.push(&arena, 1);
-            v.push(&arena, 2);
-            v.push(&arena, 3);
-            v.push(&arena, 4);
+            for (isize i = 0; i < 10000; ++i)
+                v.push(&arena, i);
 
-            LogDebug("v: {}\n", v);
+            print::toFILE(&arena, stdout, "v: {}\n", v);
         }
     }
     catch (const RuntimeException& ex)

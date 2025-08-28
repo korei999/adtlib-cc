@@ -1,21 +1,14 @@
 #pragma once
 
 #include "adt/IAllocator.hh"
-#include "adt/print.hh"
+#include "adt/assert.hh"
 
-#include <sys/mman.h>
-#include <unistd.h>
-
+#if __has_include(<sys/mman.h>)
+    #include <sys/mman.h>
+#endif
 
 namespace adt
 {
-
-inline isize
-getPageSize() noexcept
-{
-    static auto s_pageSize = getpagesize();
-    return s_pageSize;
-}
 
 struct Arena2 : IArena
 {
@@ -28,7 +21,7 @@ struct Arena2 : IArena
 
     /* */
 
-    Arena2(isize reserve, isize commit) noexcept(false); /* AllocException */
+    Arena2(isize reserve, isize commit = getPageSize()) noexcept(false); /* AllocException */
     Arena2() noexcept = default;
 
     /* */
@@ -139,20 +132,36 @@ Arena2::doesRealloc() const noexcept
 inline constexpr void
 Arena2::freeAll() noexcept
 {
-    int r = munmap(m_pData, m_reserved);
+    [[maybe_unused]] int r = munmap(m_pData, m_reserved);
     ADT_ASSERT(r != - 1, "munmap: {} ({})", r, strerror(errno));
+
+    *this = {};
 }
 
 inline void
 Arena2::reset() noexcept
 {
-    int r = mprotect(m_pData, m_commited, PROT_NONE);
+    [[maybe_unused]] int r = mprotect(m_pData, m_commited, PROT_NONE);
     ADT_ASSERT(r != - 1, "mprotect: {} ({})", r, strerror(errno));
-
     r = madvise(m_pData, m_commited, MADV_DONTNEED);
+    ADT_ASSERT(r != - 1, "madvise: {} ({})", r, strerror(errno));
 
     m_off = 0;
     m_commited = 0;
+    m_pLastAlloc = (void*)~0lu;
+    m_lastAllocSize = 0;
+}
+
+inline void
+Arena2::resetToFirstPage() noexcept
+{
+    // const isize prevCommited = m_commited;
+
+    [[maybe_unused]] int r = mprotect(m_pData, getPageSize(), PROT_READ | PROT_WRITE);
+    ADT_ASSERT(r != - 1, "mprotect: {} ({})", r, strerror(errno));
+
+    m_off = 0;
+    m_commited = getPageSize();
     m_pLastAlloc = (void*)~0lu;
     m_lastAllocSize = 0;
 }

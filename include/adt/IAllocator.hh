@@ -9,6 +9,11 @@
 #include <utility>
 #include <new> /* IWYU pragma: keep */
 
+#if __has_include(<unistd.h>)
+    #include <unistd.h>
+#elif defined _WIN32
+#endif
+
 namespace adt
 {
 
@@ -24,6 +29,23 @@ constexpr isize SIZE_1M = SIZE_1K * SIZE_1K;
 constexpr isize SIZE_8M = SIZE_1M * 8;
 constexpr isize SIZE_1G = SIZE_1M * SIZE_1K;
 constexpr isize SIZE_8G = SIZE_1G * 8;
+
+inline isize
+getPageSize() noexcept
+{
+#if __has_include(<unistd.h>)
+    static const auto s_pageSize = getpagesize();
+#elif defined _WIN32
+    static const DWORD s_pageSize = [] {
+        SYSTEM_INFO sysInfo;
+        GetSystemInfo(&sysInfo);
+        return sysInfo.dwPageSize;
+    }();
+#else
+    return SIZE_4K;
+#endif
+    return s_pageSize;
+}
 
 #define ADT_WARN_LEAK [[deprecated("warning: memory leak")]]
 #define ADT_WARN_USE_AFTER_FREE [[deprecated("warning: use after free")]]
