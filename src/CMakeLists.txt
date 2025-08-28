@@ -173,3 +173,11 @@ add_library(LoggerUser SHARED
     LoggerUser.cc
 )
 # target_link_libraries(Logger PRIVATE LoggerUser)
+
+add_executable(PieceList
+    PieceList.cc
+)
+
+add_executable(Arena2
+    Arena2.cc
+)
