@@ -177,4 +177,19 @@ struct AllocException : public IException
     virtual StringView getMsg() const override { return m_sfMsg; }
 };
 
+#define ADT_ALLOC_EXCEPTION(CND)                                                                                       \
+    if (!static_cast<bool>(CND))                                                                                       \
+        throw adt::AllocException(#CND);
+
+#define ADT_ALLOC_EXCEPTION_FMT(CND, ...)                                                                              \
+    if (!static_cast<bool>(CND))                                                                                       \
+    {                                                                                                                  \
+        adt::AllocException ex;                                                                                        \
+        auto& aMsgBuff = ex.m_sfMsg.data();                                                                            \
+        isize n = adt::print::toBuffer(aMsgBuff, sizeof(aMsgBuff) - 1, #CND);                                          \
+        n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, "\nMsg: ");                                  \
+        n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, __VA_ARGS__);                                \
+        throw ex;                                                                                                      \
+    }
+
 } /* namespace adt */

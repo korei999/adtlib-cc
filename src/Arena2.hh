@@ -42,8 +42,8 @@ struct Arena2 : IArena
 
     /* */
 
-    void reset() noexcept;
-    void resetToFirstPage() noexcept;
+    void reset();
+    void resetToFirstPage();
 
 protected:
     void growIfNeeded(isize newOff);
@@ -67,9 +67,9 @@ Arena2::Arena2(isize reserve, isize commit)
         const isize realCommit = alignUp(commit, getPageSize());
 
         err = mprotect(m_pData, realCommit, PROT_READ | PROT_WRITE);
-        ADT_ASSERT(err != - 1, "mprotect: r: {} ({}), realCommit: {}", err, strerror(errno), realCommit);
+        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: r: {} ({}), realCommit: {}", err, strerror(errno), realCommit);
         err = madvise(m_pData, realCommit, MADV_WILLNEED);
-        ADT_ASSERT(err != - 1, "madvise: r: {} ({})", err, strerror(errno));
+        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "madvise: r: {} ({})", err, strerror(errno));
 
         m_commited = realCommit;
     }
@@ -147,12 +147,12 @@ Arena2::freeAll() noexcept
 }
 
 inline void
-Arena2::reset() noexcept
+Arena2::reset()
 {
     [[maybe_unused]] int err = mprotect(m_pData, m_commited, PROT_NONE);
-    ADT_ASSERT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
+    ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
     err = madvise(m_pData, m_commited, MADV_DONTNEED);
-    ADT_ASSERT(err != - 1, "madvise: {} ({})", err, strerror(errno));
+    ADT_ALLOC_EXCEPTION_FMT(err != - 1, "madvise: {} ({})", err, strerror(errno));
 
     m_off = 0;
     m_commited = 0;
@@ -161,7 +161,7 @@ Arena2::reset() noexcept
 }
 
 inline void
-Arena2::resetToFirstPage() noexcept
+Arena2::resetToFirstPage()
 {
     const isize pageSize = getPageSize();
     [[maybe_unused]] int err = 0;
@@ -169,12 +169,12 @@ Arena2::resetToFirstPage() noexcept
     if (m_commited > pageSize)
     {
         err = mprotect((u8*)m_pData + pageSize, m_commited - pageSize, PROT_NONE);
-        ADT_ASSERT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
+        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
     }
     else if (m_commited < getPageSize())
     {
         err = mprotect((u8*)m_pData + m_commited, pageSize - m_commited, PROT_READ | PROT_WRITE);
-        ADT_ASSERT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
+        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
     }
 
     m_off = 0;
@@ -189,10 +189,10 @@ Arena2::growIfNeeded(isize newOff)
     if (newOff > m_commited)
     {
         isize newCommited = utils::max((isize)alignUp(newOff, getPageSize()), m_commited * 2);
-        ADT_RUNTIME_EXCEPTION_FMT(newCommited <= m_reserved, "[Arena2]: out of reserved memory, newOff: {}, m_reserved: {}", newCommited, m_reserved);
+        ADT_ALLOC_EXCEPTION_FMT(newCommited <= m_reserved, "[Arena2]: out of reserved memory, newOff: {}, m_reserved: {}", newCommited, m_reserved);
 
         [[maybe_unused]] int err = mprotect((u8*)m_pData + m_commited, newCommited - m_commited, PROT_READ | PROT_WRITE);
-        ADT_ASSERT(err != - 1, "mprotect: r: {} ({}), newCommited: {}", err, strerror(errno), newCommited);
+        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: r: {} ({}), newCommited: {}", err, strerror(errno), newCommited);
 
         m_commited = newCommited;
     }
