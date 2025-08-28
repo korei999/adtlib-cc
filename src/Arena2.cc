@@ -7,7 +7,7 @@ using namespace adt;
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::NONE, 1024, true};
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, 1024, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -35,7 +35,7 @@ main()
             print::toFILE(StdAllocator::inst(), stdout, "v1: {}\n", v1);
         }
     }
-    catch (const RuntimeException& ex)
+    catch (const IException& ex)
     {
         LogDebug("{}\n", ex.getMsg());
     }

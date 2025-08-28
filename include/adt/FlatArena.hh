@@ -5,7 +5,12 @@
 #include "utils.hh"
 
 #if __has_include(<sys/mman.h>)
+    #define ADT_FLAT_ARENA_MMAP
     #include <sys/mman.h>
+#elif defined _WIN32
+    #define ADT_FLAT_ARENA_WIN32
+#else
+    #warning "FlatArena in not implemented"
 #endif
 
 namespace adt
@@ -38,7 +43,7 @@ struct FlatArena : IArena
     [[nodiscard]] virtual constexpr bool doesFree() const noexcept override;
     [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override;
 
-    virtual constexpr void freeAll() noexcept override;
+    virtual void freeAll() noexcept override;
 
     /* */
 
@@ -55,21 +60,34 @@ FlatArena::FlatArena(isize reserve, isize commit)
     [[maybe_unused]] int err = 0;
 
     const isize realReserved = alignUp(reserve, getPageSize());
+
+#ifdef ADT_FLAT_ARENA_MMAP
     void* pRes = mmap(nullptr, realReserved, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (pRes == MAP_FAILED) throw AllocException{"mmap() failed"};
+#elif defined ADT_FLAT_ARENA_WIN32
+    void* pRes = VirtualAlloc(nullptr, realReserved, MEM_RESERVE, PAGE_READWRITE);
+    ADT_ALLOC_EXCEPTION_FMT(pRes, "VirtualAlloc() failed to reserve: {}", realReserved);
+#else
+#endif
 
     m_pData = pRes;
     m_reserved = realReserved;
-    m_pLastAlloc = (void*)~0lu;
+    m_pLastAlloc = (void*)~0llu;
 
     if (commit > 0)
     {
         const isize realCommit = alignUp(commit, getPageSize());
 
+#ifdef ADT_FLAT_ARENA_MMAP
         err = mprotect(m_pData, realCommit, PROT_READ | PROT_WRITE);
         ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: r: {} ({}), realCommit: {}", err, strerror(errno), realCommit);
         err = madvise(m_pData, realCommit, MADV_WILLNEED);
         ADT_ALLOC_EXCEPTION_FMT(err != - 1, "madvise: r: {} ({})", err, strerror(errno));
+#elif defined ADT_FLAT_ARENA_WIN32
+        void* pVirt = VirtualAlloc(m_pData, realCommit, MEM_COMMIT, PAGE_READWRITE);
+        ADT_ALLOC_EXCEPTION_FMT(pVirt, "VirtualAlloc: failed, realCommit: {}", realCommit);
+#else
+#endif
 
         m_commited = realCommit;
     }
@@ -137,11 +155,16 @@ FlatArena::doesRealloc() const noexcept
     return true;
 }
 
-inline constexpr void
+inline void
 FlatArena::freeAll() noexcept
 {
+#ifdef ADT_FLAT_ARENA_MMAP
     [[maybe_unused]] int err = munmap(m_pData, m_reserved);
     ADT_ASSERT(err != - 1, "munmap: {} ({})", err, strerror(errno));
+#elif defined ADT_FLAT_ARENA_WIN32
+    VirtualFree(m_pData, 0, MEM_RELEASE);
+#else
+#endif
 
     *this = {};
 }
@@ -149,14 +172,19 @@ FlatArena::freeAll() noexcept
 inline void
 FlatArena::reset()
 {
+#ifdef ADT_FLAT_ARENA_MMAP
     [[maybe_unused]] int err = mprotect(m_pData, m_commited, PROT_NONE);
     ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
     err = madvise(m_pData, m_commited, MADV_DONTNEED);
     ADT_ALLOC_EXCEPTION_FMT(err != - 1, "madvise: {} ({})", err, strerror(errno));
+#elif defined ADT_FLAT_ARENA_WIN32
+    ADT_ALLOC_EXCEPTION_FMT(VirtualFree(m_pData, m_commited, MEM_DECOMMIT), "VirtualFree: failed");
+#else
+#endif
 
     m_off = 0;
     m_commited = 0;
-    m_pLastAlloc = (void*)~0lu;
+    m_pLastAlloc = (void*)~0llu;
     m_lastAllocSize = 0;
 }
 
@@ -168,18 +196,28 @@ FlatArena::resetToFirstPage()
 
     if (m_commited > pageSize)
     {
+#ifdef ADT_FLAT_ARENA_MMAP
         err = mprotect((u8*)m_pData + pageSize, m_commited - pageSize, PROT_NONE);
         ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
+#elif defined ADT_FLAT_ARENA_WIN32
+        ADT_ALLOC_EXCEPTION_FMT(VirtualFree((u8*)m_pData + pageSize, m_commited - pageSize, MEM_DECOMMIT), "");
+#else
+#endif
     }
     else if (m_commited < getPageSize())
     {
+#ifdef ADT_FLAT_ARENA_MMAP
         err = mprotect((u8*)m_pData + m_commited, pageSize - m_commited, PROT_READ | PROT_WRITE);
         ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
+#elif defined ADT_FLAT_ARENA_WIN32
+        ADT_ALLOC_EXCEPTION_FMT(VirtualAlloc((u8*)m_pData + m_commited, pageSize - m_commited, MEM_COMMIT, PAGE_READWRITE), "");
+#else
+#endif
     }
 
     m_off = 0;
     m_commited = pageSize;
-    m_pLastAlloc = (void*)~0lu;
+    m_pLastAlloc = (void*)~0llu;
     m_lastAllocSize = 0;
 }
 
@@ -189,10 +227,15 @@ FlatArena::growIfNeeded(isize newOff)
     if (newOff > m_commited)
     {
         isize newCommited = utils::max((isize)alignUp(newOff, getPageSize()), m_commited * 2);
-        ADT_ALLOC_EXCEPTION_FMT(newCommited <= m_reserved, "[Arena2]: out of reserved memory, newOff: {}, m_reserved: {}", newCommited, m_reserved);
+        ADT_ALLOC_EXCEPTION_FMT(newCommited <= m_reserved, "out of reserved memory, newOff: {}, m_reserved: {}", newCommited, m_reserved);
 
+#ifdef ADT_FLAT_ARENA_MMAP
         [[maybe_unused]] int err = mprotect((u8*)m_pData + m_commited, newCommited - m_commited, PROT_READ | PROT_WRITE);
         ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: r: {} ({}), newCommited: {}", err, strerror(errno), newCommited);
+#elif defined ADT_FLAT_ARENA_WIN32
+        ADT_ALLOC_EXCEPTION_FMT(VirtualAlloc((u8*)m_pData + m_commited, newCommited - m_commited, MEM_COMMIT, PAGE_READWRITE), "");
+#else
+#endif
 
         m_commited = newCommited;
     }
