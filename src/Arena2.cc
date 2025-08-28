@@ -16,7 +16,7 @@ main()
 
     try
     {
-        Arena2 arena {SIZE_8G, 0};
+        FlatArena arena {SIZE_8G, 0};
         defer( arena.freeAll() );
 
         {

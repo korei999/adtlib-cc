@@ -11,7 +11,7 @@
 namespace adt
 {
 
-struct Arena2 : IArena
+struct FlatArena : IArena
 {
     void* m_pData {};
     isize m_off {};
@@ -22,8 +22,8 @@ struct Arena2 : IArena
 
     /* */
 
-    Arena2(isize reserve, isize commit = getPageSize()) noexcept(false); /* AllocException */
-    Arena2() noexcept = default;
+    FlatArena(isize reserve, isize commit = getPageSize()) noexcept(false); /* AllocException */
+    FlatArena() noexcept = default;
 
     /* */
 
@@ -50,7 +50,7 @@ protected:
 };
 
 inline
-Arena2::Arena2(isize reserve, isize commit)
+FlatArena::FlatArena(isize reserve, isize commit)
 {
     [[maybe_unused]] int err = 0;
 
@@ -76,7 +76,7 @@ Arena2::Arena2(isize reserve, isize commit)
 }
 
 inline void*
-Arena2::malloc(usize mCount, usize mSize)
+FlatArena::malloc(usize mCount, usize mSize)
 {
     const isize realSize = alignUp8(mCount * mSize);
     void* pRet = (void*)((u8*)m_pData + m_off);
@@ -90,7 +90,7 @@ Arena2::malloc(usize mCount, usize mSize)
 }
 
 inline void*
-Arena2::zalloc(usize mCount, usize mSize)
+FlatArena::zalloc(usize mCount, usize mSize)
 {
     void* pMem = malloc(mCount, mSize);
     ::memset(pMem, 0, mCount * mSize);
@@ -98,7 +98,7 @@ Arena2::zalloc(usize mCount, usize mSize)
 }
 
 inline void*
-Arena2::realloc(void* p, usize oldCount, usize newCount, usize mSize)
+FlatArena::realloc(void* p, usize oldCount, usize newCount, usize mSize)
 {
     if (!p) return malloc(newCount, mSize);
 
@@ -120,25 +120,25 @@ Arena2::realloc(void* p, usize oldCount, usize newCount, usize mSize)
 }
 
 inline void
-Arena2::free(void*) noexcept
+FlatArena::free(void*) noexcept
 {
     /* noop */
 }
 
 inline constexpr bool
-Arena2::doesFree() const noexcept
+FlatArena::doesFree() const noexcept
 {
     return false;
 }
 
 inline constexpr bool
-Arena2::doesRealloc() const noexcept
+FlatArena::doesRealloc() const noexcept
 {
     return true;
 }
 
 inline constexpr void
-Arena2::freeAll() noexcept
+FlatArena::freeAll() noexcept
 {
     [[maybe_unused]] int err = munmap(m_pData, m_reserved);
     ADT_ASSERT(err != - 1, "munmap: {} ({})", err, strerror(errno));
@@ -147,7 +147,7 @@ Arena2::freeAll() noexcept
 }
 
 inline void
-Arena2::reset()
+FlatArena::reset()
 {
     [[maybe_unused]] int err = mprotect(m_pData, m_commited, PROT_NONE);
     ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
@@ -161,7 +161,7 @@ Arena2::reset()
 }
 
 inline void
-Arena2::resetToFirstPage()
+FlatArena::resetToFirstPage()
 {
     const isize pageSize = getPageSize();
     [[maybe_unused]] int err = 0;
@@ -184,7 +184,7 @@ Arena2::resetToFirstPage()
 }
 
 inline void
-Arena2::growIfNeeded(isize newOff)
+FlatArena::growIfNeeded(isize newOff)
 {
     if (newOff > m_commited)
     {

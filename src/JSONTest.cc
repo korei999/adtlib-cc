@@ -48,7 +48,7 @@ main(int argc, char* argv[])
         // FreeList al {SIZE_1G};
         // StdAllocator al;
         // MiMalloc al;
-        Arena2 al {SIZE_8G};
+        FlatArena al {SIZE_8G};
         // MiHeap al(0);
         defer(
             // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
