@@ -7,6 +7,8 @@
 #include "LoggerUser.hh"
 
 #include "adt/Logger.hh"
+#include "adt/ThreadPool.hh"
+#include "adt/BufferAllocator.hh"
 
 using namespace adt;
 
@@ -20,6 +22,17 @@ PLUGIN_API void
 pluginLoggingFunc() noexcept
 {
     LogWarn("hello from 'LoggerUser'\n");
+}
+
+PLUGIN_API void
+pluginThreadLocalThing(IThreadPoolWithMemory* p) noexcept
+{
+    BufferAllocator al {p->scratchBuffer().nextMem<char>()};
+    defer( p->scratchBuffer().reset() );
+
+    Span sp {al.zallocV<char>(101), 100};
+    const isize n = print::toSpan(sp, "hello from threadId: {}\n", p->threadId());
+    LogInfo{StringView{sp.data(), n}};
 }
 
 #undef PLUGIN_SOURCE

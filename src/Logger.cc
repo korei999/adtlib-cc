@@ -12,6 +12,7 @@ using namespace adt;
 
 static void (*pluginLoggingFunc)() noexcept;
 static void (*pluginInit)(ILogger* p) noexcept;
+static void (*pluginThreadLocalThing)(IThreadPoolWithMemory*) noexcept;
 
 static Logger s_logger;
 
@@ -30,6 +31,7 @@ main(int, char**)
     defer( FreeLibrary(hMod) );
     pluginInit = (decltype(pluginInit))GetProcAddress((HMODULE)hMod, "pluginInit");
     pluginLoggingFunc = (decltype(pluginLoggingFunc))GetProcAddress((HMODULE)hMod, "pluginLoggingFunc");
+    pluginThreadLocalThing = (decltype(pluginThreadLocalThing))GetProcAddress((HMODULE)hMod, "pluginThreadLocalThing");
 #else
 #ifdef __APPLE__
     void* pSo = dlopen("build/src/libLoggerUser.dylib", RTLD_NOW | RTLD_LOCAL);
@@ -40,6 +42,7 @@ main(int, char**)
     defer( dlclose(pSo) );
     pluginLoggingFunc = (decltype(pluginLoggingFunc))dlsym(pSo, "pluginLoggingFunc");
     pluginInit = (decltype(pluginInit))dlsym(pSo, "pluginInit");
+    pluginThreadLocalThing = (decltype(pluginThreadLocalThing))dlsym(pSo, "pluginThreadLocalThing");
 #endif
 
     {
@@ -48,14 +51,15 @@ main(int, char**)
         pluginInit(&s_logger);
         defer( s_logger.destroy() );
 
-        ThreadPool tp {s_logger.m_q.cap()};
+        ThreadPoolWithMemory tp {s_logger.m_q.cap(), SIZE_1K*4};
         defer( tp.destroy() );
 
         for (isize i = 0; i < BIG; ++i)
         {
-            tp.addRetry([i] {
+            tp.addRetry([i, &tp] {
                 LogInfo{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
                 s_i.fetchAdd(1, atomic::ORDER::RELAXED);
+                pluginThreadLocalThing(&tp);
             });
         }
 

@@ -13,7 +13,9 @@
 namespace adt
 {
 struct ILogger;
+struct IThreadPoolWithMemory;
 }
 
 PLUGIN_API void pluginInit(adt::ILogger* p) noexcept;
 PLUGIN_API void pluginLoggingFunc() noexcept;
+PLUGIN_API void pluginThreadLocalThing(adt::IThreadPoolWithMemory*) noexcept;
