@@ -1,5 +1,5 @@
 #include "adt/logs.hh"
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/Vec.hh"
 #include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
@@ -68,7 +68,7 @@ main()
         auto a = alignUp8(123);
         LOG("a: {}\n", a);
 
-        Arena arena(SIZE_1K);
+        ArenaList arena(SIZE_1K);
         defer( arena.freeAll() );
 
         Vec<int> vec {&arena};
@@ -109,7 +109,7 @@ main()
         LOG_NOTIFY("v: {}\n", v);
     }
 
-    Vec<Arena> aArenas(StdAllocator::inst(), 1);
+    Vec<ArenaList> aArenas(StdAllocator::inst(), 1);
     defer( aArenas.destroy(StdAllocator::inst()) );
 
     aArenas.push(StdAllocator::inst(), {SIZE_1M});
@@ -172,7 +172,7 @@ main()
     };
 
     {
-        Arena a(sizeof(u32) * BIG);
+        ArenaList a(sizeof(u32) * BIG);
         Vec<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
             vec.push(&a, {(int)i, 0});

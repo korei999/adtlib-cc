@@ -1,4 +1,4 @@
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
@@ -6,7 +6,7 @@
 #include "adt/file.hh"
 #include "adt/logs.hh"
 #include "json/Parser.hh"
-#include "adt/FlatArena.hh"
+#include "adt/Arena.hh"
 
 // #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
@@ -25,7 +25,7 @@ main(int argc, char* argv[])
 
     if (argc >= 1 && StringView(argv[1]) == "-e")
     {
-        Arena al(SIZE_1K);
+        ArenaList al(SIZE_1K);
         defer( al.freeAll() );
 
         auto jObj = json::makeObject(&al, ""); /* root object usually has no name, this json parser allows to have it */
@@ -48,7 +48,7 @@ main(int argc, char* argv[])
         // FreeList al {SIZE_1G};
         // StdAllocator al;
         // MiMalloc al;
-        FlatArena al {SIZE_8G};
+        Arena al {SIZE_8G};
         // MiHeap al(0);
         defer(
             // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());

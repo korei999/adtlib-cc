@@ -1,5 +1,5 @@
 #include "adt/logs.hh"
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/time.hh"
@@ -33,12 +33,12 @@ struct ArenaSTD
 {
     using value_type = T;
 
-    Arena* m_pArena {};
+    ArenaList* m_pArena {};
 
     template<class U>
     constexpr ArenaSTD([[maybe_unused]] const ArenaSTD<U>& arena) noexcept {}
 
-    ArenaSTD(Arena* pArena) noexcept
+    ArenaSTD(ArenaList* pArena) noexcept
         : m_pArena(pArena) {}
 
     T*
@@ -73,7 +73,7 @@ main()
         pEx.printErrorMsg(stderr);
     }
 
-    Arena arena(SIZE_1K);
+    ArenaList arena(SIZE_1K);
     /*FreeList arena(SIZE_1K);*/
     defer( arena.freeAll() );
 

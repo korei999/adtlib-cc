@@ -1,7 +1,7 @@
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/logs.hh"
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/Map.hh"
 #include "adt/Span.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh"
@@ -43,7 +43,7 @@ genRandomString(IAllocator* pAlloc)
 static void
 microBench()
 {
-    Arena arena(SIZE_8M * 10);
+    ArenaList arena(SIZE_8M * 10);
     defer( arena.freeAll() );
 
     constexpr isize BIG = 1000000;
@@ -185,7 +185,7 @@ microBench()
 int
 main()
 {
-    Arena arena(SIZE_1K);
+    ArenaList arena(SIZE_1K);
     defer( arena.freeAll() );
 
     ADT_ASSERT_ALWAYS(hash::func("]e") == hash::func(StringView("]e")), "");

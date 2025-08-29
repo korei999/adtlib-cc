@@ -1,4 +1,4 @@
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/logs.hh"
@@ -9,7 +9,7 @@ using namespace adt;
 int
 main()
 {
-    Arena arena(SIZE_1K);
+    ArenaList arena(SIZE_1K);
     defer( arena.freeAll() );
 
     Heap<long> h(&arena);

@@ -1,7 +1,7 @@
 #include "adt/logs.hh"
 #include "adt/RefCount.hh"
 #include "adt/math.hh"
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "Types.hh"
 
 using namespace adt;
@@ -77,21 +77,21 @@ main()
     }
 
     {
-        auto clDeleter = [](Arena* p) noexcept {
+        auto clDeleter = [](ArenaList* p) noexcept {
             p->freeAll();
         };
 
-        auto rcpArena = RefCountedPtr<Arena>::allocWithDeleter(clDeleter, Arena{SIZE_1K});
+        auto rcpArena = RefCountedPtr<ArenaList>::allocWithDeleter(clDeleter, ArenaList{SIZE_1K});
         defer( rcpArena.unref() );
     }
 
     {
-        auto clDeleter = [](Arena* p) noexcept {
+        auto clDeleter = [](ArenaList* p) noexcept {
             p->freeAll();
             ::free(p);
         };
 
-        RefCountedPtr<Arena> rpcArena {clDeleter, StdAllocator::inst()->alloc<Arena>(SIZE_1K)};
+        RefCountedPtr<ArenaList> rpcArena {clDeleter, StdAllocator::inst()->alloc<ArenaList>(SIZE_1K)};
         defer( rpcArena.unref() );
     }
 

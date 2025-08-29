@@ -1,6 +1,6 @@
 #include "adt/Vec.hh"
 #include "adt/logs.hh"
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/math.hh"
 #include "adt/ThreadPool.hh"
 
@@ -11,7 +11,7 @@ main()
 {
     LOG_NOTIFY("ParallelFor test...\n");
 
-    Arena arena {SIZE_1K * 3};
+    ArenaList arena {SIZE_1K * 3};
     defer( arena.freeAll() );
 
     ThreadPool tp {128};

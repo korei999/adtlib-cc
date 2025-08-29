@@ -1,4 +1,4 @@
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/ReverseIt.hh"
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
@@ -27,7 +27,7 @@ struct Entity
 int
 main()
 {
-    Arena arena(SIZE_1K);
+    ArenaList arena(SIZE_1K);
     defer( arena.freeAll() );
 
     VecSOA<Entity, Entity::Bind, &Entity::pos, &Entity::scale, &Entity::assetI> vec(&arena);

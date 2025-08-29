@@ -2,7 +2,7 @@
 #include <execution>
 
 #include "adt/sort.hh"
-#include "adt/Arena.hh" /* IWYU pragma: keep */
+#include "adt/ArenaList.hh" /* IWYU pragma: keep */
 #include "adt/logs.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"

@@ -1,4 +1,4 @@
-#include "adt/FlatArena.hh"
+#include "adt/Arena.hh"
 #include "adt/Logger.hh"
 #include "adt/Vec.hh"
 
@@ -15,7 +15,7 @@ main()
 
     try
     {
-        FlatArena arena {SIZE_8G, 0};
+        Arena arena {SIZE_8G, 0};
         defer( arena.freeAll() );
 
         {

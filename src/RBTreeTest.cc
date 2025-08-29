@@ -1,4 +1,4 @@
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/Map.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
@@ -17,7 +17,7 @@ using namespace adt;
 int
 main()
 {
-    Arena arena {SIZE_1K};
+    ArenaList arena {SIZE_1K};
     defer( arena.freeAll() );
 
     {
@@ -75,7 +75,7 @@ main()
         t0.insert(&arena, false, "long string should allocate                          1");
 
         static_assert(ConvertsToStringView<std::string>);
-        static_assert(!ConvertsToStringView<Arena>);
+        static_assert(!ConvertsToStringView<ArenaList>);
 
         RBTree<std::string>::printNodes(StdAllocator::inst(), t0.root(), stdout);
 

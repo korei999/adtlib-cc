@@ -1,6 +1,6 @@
 #include "adt/logs.hh"
 #include "adt/SplayTree.hh"
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/BufferAllocator.hh"
 
@@ -15,7 +15,7 @@ main()
 
     LOG_NOTIFY("SplayTree test...\n");
 
-    Arena arena {SIZE_1K};
+    ArenaList arena {SIZE_1K};
     defer( arena.freeAll() );
 
     {

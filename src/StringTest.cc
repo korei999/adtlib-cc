@@ -1,4 +1,4 @@
-#include "adt/Arena.hh"
+#include "adt/ArenaList.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
@@ -25,7 +25,7 @@ main()
 
     setlocale(LC_ALL, "");
 
-    Arena arena(SIZE_1K);
+    ArenaList arena(SIZE_1K);
     defer( arena.freeAll() );
 
     String sHello = String(&arena, "What is this");

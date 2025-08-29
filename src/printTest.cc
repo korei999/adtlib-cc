@@ -1,4 +1,4 @@
-#include "adt/Arena.hh" /* IWYU pragma: keep */
+#include "adt/ArenaList.hh" /* IWYU pragma: keep */
 #include "adt/Array.hh"
 #include "adt/BufferAllocator.hh"
 #include "adt/List.hh"   /* IWYU pragma: keep */
