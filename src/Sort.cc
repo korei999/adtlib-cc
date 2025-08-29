@@ -84,7 +84,7 @@ main()
         defer( v1.destroy() );
         {
             const isize t0 = time::nowUS();
-#ifdef __APPLE__
+#if defined __APPLE__ || defined __OpenBSD__
             std::sort(v1.data(), v1.data() + v1.size());
 #else
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
