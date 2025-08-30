@@ -1,0 +1,46 @@
+#include "adt/ArgvParser.hh"
+
+#include "adt/Logger.hh"
+#include "adt/Arena.hh"
+#include "adt/logs.hh"
+
+using namespace adt;
+
+int
+main(int argc, char** argv)
+{
+    LOG_NOTIFY("ArgvParser test...\n");
+
+    {
+        Arena arena {SIZE_1G};
+        defer( arena.freeAll() );
+
+        ArgvParser cmd {&arena, argc, argv, {
+            {
+                .bNeedsValue = false,
+                .sOneDash = "h",
+                .sTwoDashes = "help",
+                .sUsage = "display help text",
+                .pfn = [](void* pAny, const StringView svKey, const StringView svVal) {
+                    print::out("Showing some help text here (key: '{}', val: '{}')\n", svKey, svVal);
+                    return true;
+                },
+                .pAnyData {}
+            },
+            {
+                .bNeedsValue = true,
+                .sOneDash = "c",
+                .sTwoDashes = "config",
+                .sUsage = "config file and stuff",
+                .pfn = [](void* pAny, const StringView svKey, const StringView svVal) {
+                    print::out("setting fake config file (key: '{}', val: '{}')\n", svKey, svVal);
+                    return true;
+                },
+                .pAnyData {}
+            },
+        }};
+        cmd.parse();
+    }
+
+    LOG_GOOD("ArgvParser test passed\n");
+}

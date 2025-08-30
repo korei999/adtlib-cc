@@ -51,7 +51,7 @@ getPageSize() noexcept
 #define ADT_WARN_USE_AFTER_FREE [[deprecated("warning: use after free")]]
 
 template<typename BASE>
-struct AllocatorHelperCRTP
+struct AllocatorHelperCRTP /* FIXME: mixed size types (usize/isize) in IAllocator and CRTP helper. */
 {
     template<typename T, typename ...ARGS> requires(std::is_constructible_v<T, ARGS...>)
     [[nodiscard]] constexpr T*

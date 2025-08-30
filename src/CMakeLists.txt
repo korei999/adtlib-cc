@@ -182,6 +182,6 @@ add_executable(Arena2
     Arena2.cc
 )
 
-add_executable(CmdArgs
-    CmdArgs.cc
+add_executable(ArgvParser
+    ArgvParser.cc
 )
