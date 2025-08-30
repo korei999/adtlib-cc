@@ -1,7 +1,7 @@
 #include "adt/ArgvParser.hh"
 
-#include "adt/Logger.hh"
 #include "adt/Arena.hh"
+#include "adt/StdAllocator.hh"
 #include "adt/logs.hh"
 
 using namespace adt;
@@ -12,10 +12,10 @@ main(int argc, char** argv)
     LOG_NOTIFY("ArgvParser test...\n");
 
     {
-        Arena arena {SIZE_1G};
-        defer( arena.freeAll() );
+        // Arena arena {SIZE_1G};
+        // defer( arena.freeAll() );
 
-        ArgvParser cmd {&arena, argc, argv, {
+        ArgvParser cmd {StdAllocator::inst(), "(more usage...)", argc, argv, {
             {
                 .bNeedsValue = false,
                 .sOneDash = "h",
@@ -39,6 +39,8 @@ main(int argc, char** argv)
                 .pAnyData {}
             },
         }};
+        defer( cmd.destroy() );
+
         cmd.parse();
     }
 

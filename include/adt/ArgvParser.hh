@@ -29,28 +29,41 @@ struct ArgvParser
     Vec<Arg<String>> m_vArgParsers {};
     Map<StringView, isize> m_mStringToArgI {};
     String m_sFirst {};
+    String m_sUsage {};
     int m_argc {};
     char** m_argv {};
 
     /* */
 
     ArgvParser() noexcept = default;
-    ArgvParser(IAllocator* pAlloc, int argc, char** argv, std::initializer_list<Arg<StringView>> lParsers);
+    ArgvParser(
+        IAllocator* pAlloc,
+        const StringView svUsage,
+        int argc,
+        char** argv,
+        std::initializer_list<Arg<StringView>> lParsers
+    );
 
     /* */
 
     void destroy() noexcept;
     bool parse();
+    void printUsage();
 
 protected:
     Pair<bool /*bSuccess*/, bool /* bIncArgc */> parseArg(isize i, const StringView svKey);
 };
 
 inline
-ArgvParser::ArgvParser(IAllocator* pAlloc, int argc, char** argv, std::initializer_list<Arg<StringView>> lParsers)
-    : m_pAlloc{pAlloc}, m_vArgParsers{pAlloc, argc}, m_mStringToArgI{pAlloc, argc}, m_argc{argc}, m_argv{argv}
+ArgvParser::ArgvParser(IAllocator* pAlloc, const StringView svUsage, int argc, char** argv, std::initializer_list<Arg<StringView>> lParsers)
+    : m_pAlloc{pAlloc},
+      m_vArgParsers{pAlloc, argc},
+      m_mStringToArgI{pAlloc, argc},
+      m_sUsage{pAlloc, svUsage},
+      m_argc{argc},
+      m_argv{argv}
 {
-    m_sFirst = {pAlloc, argv[0]};
+    if (argc > 0) m_sFirst = {pAlloc, argv[0]};
 
     for (auto& e : lParsers)
     {
@@ -85,6 +98,8 @@ ArgvParser::destroy() noexcept
     }
     m_vArgParsers.destroy(m_pAlloc);
     m_mStringToArgI.destroy(m_pAlloc);
+    m_sFirst.destroy(m_pAlloc);
+    m_sUsage.destroy(m_pAlloc);
 }
 
 inline bool
@@ -135,21 +150,24 @@ ArgvParser::parse()
     }
 
 done:
-    if (!bAllSuccess)
-    {
-        print::err("Usage: {} <args>...\n", m_sFirst);
-        for (auto& p : m_vArgParsers)
-        {
-            print::err("\t{}{}" "{}" "{}{} : {}\n",
-                p.sOneDash ? "-" : "", p.sOneDash,
-                p.sOneDash && p.sTwoDashes ? "|" : "",
-                p.sTwoDashes ? "--" : "", p.sTwoDashes,
-                p.sUsage
-            );
-        }
-    }
+    if (!bAllSuccess) printUsage();
 
     return bAllSuccess;
+}
+
+inline void
+ArgvParser::printUsage()
+{
+    print::err("Usage: {} <args>... {}\n\n", m_sFirst, m_sUsage);
+    for (auto& p : m_vArgParsers)
+    {
+        print::err("    {}{}" "{}" "{}{}\n        {}\n\n",
+            p.sOneDash ? "-" : "", p.sOneDash,
+            p.sOneDash && p.sTwoDashes ? ", " : "",
+            p.sTwoDashes ? "--" : "", p.sTwoDashes,
+            p.sUsage
+        );
+    }
 }
 
 inline Pair<bool, bool>
