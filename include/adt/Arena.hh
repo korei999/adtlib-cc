@@ -57,29 +57,44 @@ protected:
     void decommit(void* p, isize size);
 };
 
-struct ArenaPushGuard
+struct ArenaOffsets
 {
-    Arena* m_pArena {};
     isize m_off {};
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
 
     /* */
 
-    ArenaPushGuard(Arena* p) noexcept;
-    ~ArenaPushGuard() noexcept;
+    void restore(Arena* pArena) noexcept;
 };
 
-inline
-ArenaPushGuard::ArenaPushGuard(Arena* p) noexcept
-    : m_pArena{p}, m_off{p->m_off}, m_pLastAlloc{p->m_pLastAlloc}, m_lastAllocSize{p->m_lastAllocSize} {}
+struct ArenaStateGuard
+{
+    Arena* m_pArena {};
+    ArenaOffsets m_offsets {};
+
+    /* */
+
+    ArenaStateGuard(Arena* p) noexcept;
+    ~ArenaStateGuard() noexcept;
+};
+
+inline void
+ArenaOffsets::restore(Arena* pArena) noexcept
+{
+    pArena->m_off = m_off;
+    pArena->m_pLastAlloc = m_pLastAlloc;
+    pArena->m_lastAllocSize = m_lastAllocSize;
+}
 
 inline
-ArenaPushGuard::~ArenaPushGuard() noexcept
+ArenaStateGuard::ArenaStateGuard(Arena* p) noexcept
+    : m_pArena{p}, m_offsets{.m_off = p->m_off, .m_pLastAlloc = p->m_pLastAlloc, .m_lastAllocSize = p->m_lastAllocSize} {}
+
+inline
+ArenaStateGuard::~ArenaStateGuard() noexcept
 {
-    m_pArena->m_off = m_off;
-    m_pArena->m_pLastAlloc = m_pLastAlloc;
-    m_pArena->m_lastAllocSize = m_lastAllocSize;
+    m_offsets.restore(m_pArena);
 }
 
 inline
