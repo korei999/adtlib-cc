@@ -254,7 +254,7 @@ struct LoggerNoSource : Logger
                 break;
 
                 case LEVEL::DEBUG:
-                svCol0 = ADT_LOGGER_COL_CYAN;
+                svCol0 = ADT_LOGGER_COL_GREEN;
                 break;
             }
             svCol1 = ADT_LOGGER_COL_NORM;
@@ -342,7 +342,7 @@ Logger::formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) 
             break;
 
             case LEVEL::DEBUG:
-            svCol0 = ADT_LOGGER_COL_CYAN;
+            svCol0 = ADT_LOGGER_COL_GREEN;
             break;
         }
         svCol1 = ADT_LOGGER_COL_NORM;
