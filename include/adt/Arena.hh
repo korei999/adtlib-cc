@@ -243,7 +243,7 @@ Arena::growIfNeeded(isize newOff)
     if (newOff > m_commited)
     {
         isize newCommited = utils::max((isize)alignUp(newOff, getPageSize()), m_commited * 2);
-        ADT_ALLOC_EXCEPTION_FMT(newCommited <= m_reserved, "out of reserved memory, newOff: {}, m_reserved: {}", newCommited, m_reserved);
+        ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(newCommited <= m_reserved, "out of reserved memory, newOff: {}, m_reserved: {}", newCommited, m_reserved);
         commit((u8*)m_pData + m_commited, newCommited - m_commited);
         m_commited = newCommited;
     }
@@ -256,9 +256,9 @@ Arena::commit(void* p, isize size)
 {
 #ifdef ADT_FLAT_ARENA_MMAP
     [[maybe_unused]] int err = mprotect(p, size, PROT_READ | PROT_WRITE);
-    ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: r: {} ({}), size: {}", err, strerror(errno), size);
+    ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(err != - 1, "mprotect: r: {} ({}), size: {}", err, strerror(errno), size);
 #elif defined ADT_FLAT_ARENA_WIN32
-    ADT_ALLOC_EXCEPTION_FMT(VirtualAlloc(p, size, MEM_COMMIT, PAGE_READWRITE), "p: {}, size: {}", p, size);
+    ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(VirtualAlloc(p, size, MEM_COMMIT, PAGE_READWRITE), "p: {}, size: {}", p, size);
 #else
 #endif
 }
@@ -268,11 +268,11 @@ Arena::decommit(void* p, isize size)
 {
 #ifdef ADT_FLAT_ARENA_MMAP
         [[maybe_unused]] int err = mprotect(p, size, PROT_NONE);
-        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
+        ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(err != - 1, "mprotect: {} ({})", err, strerror(errno));
         err = madvise(p, size, MADV_DONTNEED);
-        ADT_ALLOC_EXCEPTION_FMT(err != - 1, "madvise: {} ({})", err, strerror(errno));
+        ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(err != - 1, "madvise: {} ({})", err, strerror(errno));
 #elif defined ADT_FLAT_ARENA_WIN32
-        ADT_ALLOC_EXCEPTION_FMT(VirtualFree(p, size, MEM_DECOMMIT), "");
+        ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(VirtualFree(p, size, MEM_DECOMMIT), "");
 #else
 #endif
 }

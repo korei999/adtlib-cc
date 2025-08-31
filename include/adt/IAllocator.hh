@@ -192,4 +192,15 @@ struct AllocException : public IException
         throw ex;                                                                                                      \
     }
 
+#define ADT_ALLOC_EXCEPTION_UNLIKELY_FMT(CND, ...)                                                                     \
+    [[unlikely]] if (!static_cast<bool>(CND))                                                                          \
+    {                                                                                                                  \
+        adt::AllocException ex;                                                                                        \
+        auto& aMsgBuff = ex.m_sfMsg.data();                                                                            \
+        isize n = adt::print::toBuffer(aMsgBuff, sizeof(aMsgBuff) - 1, #CND);                                          \
+        n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, "\nMsg: ");                                  \
+        n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, __VA_ARGS__);                                \
+        throw ex;                                                                                                      \
+    }
+
 } /* namespace adt */

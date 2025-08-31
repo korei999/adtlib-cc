@@ -31,8 +31,15 @@ main()
             for (auto e : v0) ADT_ASSERT_ALWAYS(e & 1, "e: {}", e);
             for (auto e : v1) ADT_ASSERT_ALWAYS(!(e & 1), "e: {}", e);
 
-            print::toFILE(StdAllocator::inst(), stdout, "v0: {}\n", v0);
-            print::toFILE(StdAllocator::inst(), stdout, "v1: {}\n", v1);
+            {
+                ArenaStateGuard pushed {&arena};
+                print::toFILE(StdAllocator::inst(), stdout, "v0: {}\n", v0);
+            }
+
+            {
+                ArenaStateGuard pushed {&arena};
+                print::toFILE(StdAllocator::inst(), stdout, "v1: {}\n", v1);
+            }
         }
     }
     catch (const IException& ex)
