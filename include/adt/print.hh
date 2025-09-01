@@ -791,10 +791,7 @@ toString(IAllocator* pAlloc, isize prealloc, const StringView fmt, const ARGS_T&
 #endif
         if (buff.m_size > 0)
         {
-            if (buff.m_size < buff.m_cap)
-                buff.m_pData[buff.m_size] = '\0';
-            else buff.m_pData[buff.m_size - 1] = '\0';
-
+            buff.m_pData[buff.m_size - 1] = '\0';
             buff.m_size -= 1;
         }
         else
@@ -826,10 +823,7 @@ toPrintBuffer(Buffer* pBuffer, const StringView fmt, const ARGS_T&... tArgs)
 #endif
         if (pBuffer->m_size > 0)
         {
-            if (pBuffer->m_size < pBuffer->m_cap)
-                pBuffer->m_pData[pBuffer->m_size] = '\0';
-            else pBuffer->m_pData[pBuffer->m_size - 1] = '\0';
-
+            pBuffer->m_pData[pBuffer->m_size - 1] = '\0';
             pBuffer->m_size -= 1;
         }
         else
