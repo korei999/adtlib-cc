@@ -11,7 +11,7 @@
 #elif defined _WIN32
     #define ADT_FLAT_ARENA_WIN32
 #else
-    #warning "FlatArena in not implemented"
+    #warning "Arena in not implemented"
 #endif
 
 namespace adt
