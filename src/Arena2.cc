@@ -49,8 +49,6 @@ main()
         {
             static int i = 0;
             {
-                LogWarn("offset before push: {}\n", arena.m_off);
-                ArenaStateGuard pushed {&arena};
                 struct Destructive
                 {
                     int m_i;
@@ -65,21 +63,31 @@ main()
                     void sayHi() noexcept { LogDebug{"{} says hi\n", m_i}; }
                 };
 
-                Arena::Owned<Destructive> pp0 = arena.allocOwned<Destructive>();
+                Arena::Owned<Destructive> pp0 = arena.allocOwnedWithDeleter<Destructive>([](Arena*, void* pD) {
+                    auto& r = (*(Destructive*)pD);
+                    LogWarn("({}) custom deleter in top frame\n", r.m_i);
+                    r.~Destructive();
+                });
+                pp0->sayHi();
+
+                LogWarn("offset before push: {}\n", arena.m_off);
+                ArenaStateGuard pushed {&arena};
+
                 Arena::Owned<Destructive> pp1 = arena.allocOwned<Destructive>();
-                Arena::Owned<Destructive> pp2 = arena.allocOwnedWithDeleter<Destructive>([](Arena*, void* pD) {
+                Arena::Owned<Destructive> pp2 = arena.allocOwned<Destructive>();
+                Arena::Owned<Destructive> pp3 = arena.allocOwnedWithDeleter<Destructive>([](Arena*, void* pD) {
                     auto& r = (*(Destructive*)pD);
                     LogDebug("({}) custom deleter\n", r.m_i);
                     r.~Destructive();
                 });
 
-                pp0->sayHi();
                 pp1->sayHi();
                 pp2->sayHi();
+                pp3->sayHi();
             }
             LogDebug("offset after pop: {}\n", arena.m_off);
 
-            ADT_ASSERT_ALWAYS(i == 0, "i: {}\n", i);
+            ADT_ASSERT_ALWAYS(i == 1, "i: {}\n", i);
         }
     }
     catch (const IException& ex)
