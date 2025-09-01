@@ -52,11 +52,13 @@ main()
             struct Destructive
             {
                 int m_i;
-                Destructive() noexcept { m_i = ++i; LogDebug{"m_i: {}\n", m_i}; }
+                const StringView m_sv;
+
+                Destructive(const StringView sv) noexcept : m_sv{sv} { m_i = ++i; LogDebug{"({}) m_i: {}\n", sv, m_i}; }
 
                 ~Destructive() noexcept
                 {
-                    LogDebug{"{} dies...\n", m_i};
+                    LogDebug{"({}) {} dies...\n", m_sv, m_i};
                     --i;
                 };
 
@@ -68,17 +70,11 @@ main()
             {
                 ArenaStateGuard pushed {&arena};
 
-                new(&pp) Arena::Ptr<Destructive> {&arena};
-                arena.addToDestructList(&pp);
+                new(&pp) Arena::Ptr<Destructive> {&arena, "pp"};
 
-                Arena::Ptr<Destructive> pp0 {&arena};
-                arena.addToDestructList(&pp0);
-
-                Arena::Ptr<Destructive> pp1 {&arena};
-                arena.addToDestructList(&pp1);
-
-                Arena::Ptr<Destructive> pp2 {&arena};
-                arena.addToDestructList(&pp2);
+                Arena::Ptr<Destructive> pp0 {&arena, "pp0"};
+                Arena::Ptr<Destructive> pp1 {&arena, "pp1"};
+                Arena::Ptr<Destructive> pp2 {&arena, "pp2"};
 
                 pp0->sayHi();
                 pp1->sayHi();
@@ -86,15 +82,20 @@ main()
             }
             LogDebug("offset after pop: {}\n", arena.m_off);
 
-            Arena::Ptr<Destructive> pp3 {&arena};
-            arena.addToDestructList(&pp3);
+            Arena::Ptr<Destructive> pp3 {[](Arena*, void** ppObj) {
+                ((Destructive*)*ppObj)->~Destructive();
+                *((Destructive**)ppObj) = nullptr;
+            }, &arena, "pp3"};
 
             pp3->sayHi();
 
-            ADT_ASSERT_ALWAYS(!(bool)pp, "(bool)pp: {}\n", (bool)pp);
+            ADT_ASSERT_ALWAYS(!pp, "!pp: {}", !pp);
             if (pp) pp->sayHi();
 
-            ADT_ASSERT_ALWAYS(i == 1, "i: {}\n", i);
+            ADT_ASSERT_ALWAYS(i == 1, "i: {}", i);
+
+            arena.reset();
+            ADT_ASSERT_ALWAYS(!pp3, "!pp: {}", !pp3);
         }
     }
     catch (const IException& ex)
