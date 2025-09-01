@@ -38,7 +38,7 @@ struct Arena : IArena
 
         /* */
 
-        Owned() noexcept : m_ppData{g_null} {}
+        Owned() noexcept : m_ppData{} {}
         Owned(UninitFlag) noexcept {}
         Owned(T** ppData) noexcept : m_ppData{ppData} {}
 
@@ -323,6 +323,8 @@ Arena::reset() noexcept
 inline void
 Arena::resetDecommit()
 {
+    destructOwned();
+
     decommit(m_pData, m_commited);
 
     m_off = 0;
@@ -334,6 +336,8 @@ Arena::resetDecommit()
 inline void
 Arena::resetToFirstPage()
 {
+    destructOwned();
+
     const isize pageSize = getPageSize();
     [[maybe_unused]] int err = 0;
 
@@ -354,7 +358,7 @@ Arena::destructOwned() noexcept
     for (auto e : *m_pTargetList)
     {
         e.pfnDestruct(this, *e.ppObj);
-        *e.ppObj = g_null; /* point to global null object */
+        *e.ppObj = nullptr;
     }
     m_pTargetList->m_pHead = nullptr;
 }
