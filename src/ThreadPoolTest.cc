@@ -30,7 +30,7 @@ main()
 {
     LOG_NOTIFY("ThreadPool test...\n");
 
-    ThreadPoolWithMemory tp {512, SIZE_1K};
+    ThreadPool tp {512, SIZE_1G};
     defer( tp.destroy() );
 
     auto inc = [&] {

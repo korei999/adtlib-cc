@@ -36,13 +36,13 @@ main()
             {
                 ArenaStateGuard pushed {&arena};
                 print::toFILE(&arena, stdout, "v0: {}\n", v0);
-                LogInfo("off before pop: {}\n", arena.m_off);
+                LogInfo("off before pop: {}\n", arena.m_pos);
             }
 
             {
                 ArenaStateGuard pushed {&arena};
                 print::toFILE(&arena, stdout, "v1: {}\n", v1);
-                LogInfo("off before pop: {}\n", arena.m_off);
+                LogInfo("off before pop: {}\n", arena.m_pos);
             }
         }
 
@@ -80,7 +80,7 @@ main()
                 p1->sayHi();
                 p2->sayHi();
             }
-            LogDebug("offset after pop: {}\n", arena.m_off);
+            LogDebug("offset after pop: {}\n", arena.m_pos);
 
             Arena::Ptr<Destructive> p3 {[](Arena*, Arena::Ptr<Destructive>* pPtr) {
                 pPtr->m_pData->~Destructive();

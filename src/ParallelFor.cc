@@ -14,7 +14,7 @@ main()
     ArenaList arena {SIZE_1K * 3};
     defer( arena.freeAll() );
 
-    ThreadPool tp {128};
+    ThreadPool tp {128, SIZE_8G};
     defer( tp.destroy() );
 
     Vec<f32> v;

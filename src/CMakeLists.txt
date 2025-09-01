@@ -185,3 +185,7 @@ add_executable(Arena2
 add_executable(ArgvParser
     ArgvParser.cc
 )
+
+add_executable(ThreadPool
+    ThreadPool.cc
+)

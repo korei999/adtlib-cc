@@ -25,12 +25,12 @@ pluginLoggingFunc() noexcept
 }
 
 PLUGIN_API void
-pluginThreadLocalThing(IThreadPoolWithMemory* p) noexcept
+pluginThreadLocalThing(IThreadPool* p) noexcept
 {
-    BufferAllocator al {p->scratchBuffer().nextMem<char>()};
-    defer( p->scratchBuffer().reset() );
+    Arena* pArena = p->arena();
+    ArenaStateGuard pushed {pArena};
 
-    Span sp {al.zallocV<char>(101), 100};
+    Span sp {pArena->zallocV<char>(101), 100};
     const isize n = print::toSpan(sp, "hello from threadId: {}\n", p->threadId());
     LogInfo{StringView{sp.data(), n}};
 }

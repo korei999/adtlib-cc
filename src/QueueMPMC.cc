@@ -15,7 +15,7 @@ main()
 {
     LOG_NOTIFY("QueueMPMC test...\n");
 
-    ThreadPool tp {128};
+    ThreadPool tp {128, SIZE_8G};
     defer( tp.destroy() );
 
     auto clEnqueue = [&]

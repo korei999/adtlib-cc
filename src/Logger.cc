@@ -12,7 +12,7 @@ using namespace adt;
 
 static void (*pluginLoggingFunc)() noexcept;
 static void (*pluginInit)(ILogger* p) noexcept;
-static void (*pluginThreadLocalThing)(IThreadPoolWithMemory*) noexcept;
+static void (*pluginThreadLocalThing)(IThreadPool*) noexcept;
 
 static Logger s_logger;
 
@@ -51,7 +51,7 @@ main(int, char**)
         pluginInit(&s_logger);
         defer( s_logger.destroy() );
 
-        ThreadPoolWithMemory tp {s_logger.m_q.cap(), SIZE_1K*4};
+        ThreadPool tp {s_logger.m_q.cap(), SIZE_1G};
         defer( tp.destroy() );
 
         for (isize i = 0; i < BIG; ++i)
