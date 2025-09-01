@@ -146,6 +146,16 @@ main()
     }
 
     {
+        print::Buffer buff {StdAllocator::inst(), 128};
+        defer( buff.destroy() );
+
+        print::toPrintBuffer(&buff, "hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});
+        StringView s1 = print::toPrintBuffer(&buff, "|(More Here: {})", "another string");
+        print::out("{}\n", s1);
+        ADT_ASSERT_ALWAYS(s1 == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", s1);
+    }
+
+    {
         u8 aBuff[32] {};
         BufferAllocator buff {aBuff};
 
