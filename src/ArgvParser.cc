@@ -21,7 +21,7 @@ main(int argc, char** argv)
                 .sOneDash = "h",
                 .sTwoDashes = "help",
                 .sUsage = "display help text",
-                .pfn = [](void* pAny, const StringView svKey, const StringView svVal) {
+                .pfn = [](void*, const StringView svKey, const StringView svVal) {
                     print::out("Showing some help text here (key: '{}', val: '{}')\n", svKey, svVal);
                     return true;
                 },
@@ -32,7 +32,7 @@ main(int argc, char** argv)
                 .sOneDash = "c",
                 .sTwoDashes = "config",
                 .sUsage = "config file and stuff",
-                .pfn = [](void* pAny, const StringView svKey, const StringView svVal) {
+                .pfn = [](void*, const StringView svKey, const StringView svVal) {
                     print::out("setting fake config file (key: '{}', val: '{}')\n", svKey, svVal);
                     return true;
                 },

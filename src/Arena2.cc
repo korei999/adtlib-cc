@@ -19,6 +19,8 @@ main()
         defer( arena.freeAll() );
 
         {
+            ArenaStateGuard pushedTop {&arena};
+
             Vec<isize> v0 {};
             Vec<isize> v1 {};
 
@@ -33,13 +35,51 @@ main()
 
             {
                 ArenaStateGuard pushed {&arena};
-                print::toFILE(StdAllocator::inst(), stdout, "v0: {}\n", v0);
+                print::toFILE(&arena, stdout, "v0: {}\n", v0);
+                LogInfo("off before pop: {}\n", arena.m_off);
             }
 
             {
                 ArenaStateGuard pushed {&arena};
-                print::toFILE(StdAllocator::inst(), stdout, "v1: {}\n", v1);
+                print::toFILE(&arena, stdout, "v1: {}\n", v1);
+                LogInfo("off before pop: {}\n", arena.m_off);
             }
+        }
+
+        {
+            static int i = 0;
+            {
+                LogWarn("offset before push: {}\n", arena.m_off);
+                ArenaStateGuard pushed {&arena};
+                struct Destructive
+                {
+                    int m_i;
+                    Destructive() noexcept { m_i = ++i; LogDebug{"m_i: {}\n", m_i}; }
+
+                    ~Destructive() noexcept
+                    {
+                        LogDebug{"{} dies...\n", m_i};
+                        --i;
+                    };
+
+                    void sayHi() noexcept { LogDebug{"{} says hi\n", m_i}; }
+                };
+
+                Arena::Owned<Destructive> pp0 = arena.allocOwned<Destructive>();
+                Arena::Owned<Destructive> pp1 = arena.allocOwned<Destructive>();
+                Arena::Owned<Destructive> pp2 = arena.allocOwnedWithDeleter<Destructive>([](Arena*, void* pD) {
+                    auto& r = (*(Destructive*)pD);
+                    LogDebug("({}) custom deleter\n", r.m_i);
+                    r.~Destructive();
+                });
+
+                pp0->sayHi();
+                pp1->sayHi();
+                pp2->sayHi();
+            }
+            LogDebug("offset after pop: {}\n", arena.m_off);
+
+            ADT_ASSERT_ALWAYS(i == 0, "i: {}\n", i);
         }
     }
     catch (const IException& ex)
