@@ -57,7 +57,7 @@ struct Arena : IArena
         /* */
 
         static void
-        defaultDeleter(Arena*, void** ppObj)
+        defaultDeleter(Arena*, void** ppObj) noexcept
         {
             if constexpr (!std::is_trivially_destructible_v<T>)
                 ((T*)*ppObj)->~T();
