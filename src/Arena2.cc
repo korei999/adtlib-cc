@@ -82,9 +82,9 @@ main()
             }
             LogDebug("offset after pop: {}\n", arena.m_off);
 
-            Arena::Ptr<Destructive> p3 {[](Arena*, void** ppObj) {
-                ((Destructive*)*ppObj)->~Destructive();
-                *((Destructive**)ppObj) = nullptr;
+            Arena::Ptr<Destructive> p3 {[](Arena*, Arena::Ptr<Destructive>* pPtr) {
+                pPtr->m_pData->~Destructive();
+                pPtr->m_pData = nullptr;
             }, &arena, "p3"};
 
             p3->sayHi();

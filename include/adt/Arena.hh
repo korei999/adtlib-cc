@@ -44,31 +44,31 @@ struct Arena : IArena
         Ptr(Arena* pArena, ARGS&&... args)
             : m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
         {
-            pArena->addToDestructList(this, nullptrDeleter);
+            pArena->addToDestructList(this, (void(*)(Arena*, void**))nullptrDeleter);
         }
 
         template<typename ...ARGS>
-        Ptr(void (*pfn)(Arena*, void**), Arena* pArena, ARGS&&... args)
+        Ptr(void (*pfn)(Arena*, Ptr*), Arena* pArena, ARGS&&... args)
             : m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
         {
-            pArena->addToDestructList(this, pfn);
+            pArena->addToDestructList(this, (void(*)(Arena*, void**))pfn);
         }
 
         /* */
 
         static void
-        nullptrDeleter(Arena*, void** ppObj) noexcept
+        nullptrDeleter(Arena*, Ptr* pPtr) noexcept
         {
             if constexpr (!std::is_trivially_destructible_v<T>)
-                ((T*)*ppObj)->~T();
-            *((T**)ppObj) = nullptr;
+                pPtr->m_pData->~T();
+            pPtr->m_pData = nullptr;
         };
 
         static void
-        simpleDeleter(Arena*, void** ppObj) noexcept
+        simpleDeleter(Arena*, Ptr* pPtr) noexcept
         {
             if constexpr (!std::is_trivially_destructible_v<T>)
-                ((T*)*ppObj)->~T();
+                pPtr->m_pData->~T();
         };
 
         /* */
@@ -289,7 +289,7 @@ template<typename T>
 inline void
 Arena::addToDestructList(Ptr<T>* pPtr, void (*pfn)(Arena* pArena, void** ppObj)) noexcept
 {
-    pPtr->data.ppObj = (void**)&pPtr->m_pData;
+    pPtr->data.ppObj = (void**)pPtr;
     pPtr->data.pfnDestruct = pfn;
     m_pTargetList->insert(static_cast<ListNodeType*>(pPtr));
 }
