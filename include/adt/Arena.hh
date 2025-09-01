@@ -44,7 +44,7 @@ struct Arena : IArena
         Ptr(Arena* pArena, ARGS&&... args)
             : m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
         {
-            pArena->addToDestructList(this, defaultDeleter);
+            pArena->addToDestructList(this, nullptrDeleter);
         }
 
         template<typename ...ARGS>
@@ -57,11 +57,18 @@ struct Arena : IArena
         /* */
 
         static void
-        defaultDeleter(Arena*, void** ppObj) noexcept
+        nullptrDeleter(Arena*, void** ppObj) noexcept
         {
             if constexpr (!std::is_trivially_destructible_v<T>)
                 ((T*)*ppObj)->~T();
             *((T**)ppObj) = nullptr;
+        };
+
+        static void
+        simpleDeleter(Arena*, void** ppObj) noexcept
+        {
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                ((T*)*ppObj)->~T();
         };
 
         /* */

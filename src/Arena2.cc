@@ -52,9 +52,9 @@ main()
             struct Destructive
             {
                 int m_i;
-                const StringView m_sv;
+                const char* m_sv;
 
-                Destructive(const StringView sv) noexcept : m_sv{sv} { m_i = ++i; LogDebug{"({}) m_i: {}\n", sv, m_i}; }
+                Destructive(const char* nts) noexcept : m_sv{nts} { m_i = ++i; LogDebug{"({}) m_i: {}\n", nts, m_i}; }
 
                 ~Destructive() noexcept
                 {
@@ -65,37 +65,37 @@ main()
                 void sayHi() noexcept { LogDebug{"{} says hi\n", m_i}; }
             };
 
-            Arena::Ptr<Destructive> pp;
+            Arena::Ptr<Destructive> p;
 
             {
                 ArenaStateGuard pushed {&arena};
 
-                new(&pp) Arena::Ptr<Destructive> {&arena, "pp"};
+                new(&p) Arena::Ptr<Destructive> {&arena, "p"};
 
-                Arena::Ptr<Destructive> pp0 {&arena, "pp0"};
-                Arena::Ptr<Destructive> pp1 {&arena, "pp1"};
-                Arena::Ptr<Destructive> pp2 {&arena, "pp2"};
+                Arena::Ptr<Destructive> p0 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p0"};
+                Arena::Ptr<Destructive> p1 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p1"};
+                Arena::Ptr<Destructive> p2 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p2"};
 
-                pp0->sayHi();
-                pp1->sayHi();
-                pp2->sayHi();
+                p0->sayHi();
+                p1->sayHi();
+                p2->sayHi();
             }
             LogDebug("offset after pop: {}\n", arena.m_off);
 
-            Arena::Ptr<Destructive> pp3 {[](Arena*, void** ppObj) {
+            Arena::Ptr<Destructive> p3 {[](Arena*, void** ppObj) {
                 ((Destructive*)*ppObj)->~Destructive();
                 *((Destructive**)ppObj) = nullptr;
-            }, &arena, "pp3"};
+            }, &arena, "p3"};
 
-            pp3->sayHi();
+            p3->sayHi();
 
-            ADT_ASSERT_ALWAYS(!pp, "!pp: {}", !pp);
-            if (pp) pp->sayHi();
+            ADT_ASSERT_ALWAYS(!p, "!p: {}", !p);
+            if (p) p->sayHi();
 
             ADT_ASSERT_ALWAYS(i == 1, "i: {}", i);
 
             arena.reset();
-            ADT_ASSERT_ALWAYS(!pp3, "!pp: {}", !pp3);
+            ADT_ASSERT_ALWAYS(!p3, "!p: {}", !p3);
         }
     }
     catch (const IException& ex)
