@@ -38,7 +38,7 @@ struct Arena : IArena
 
         /* */
 
-        Owned() noexcept : m_ppData{} {}
+        Owned() noexcept : m_ppData{g_null} {}
         Owned(UninitFlag) noexcept {}
         Owned(T** ppData) noexcept : m_ppData{ppData} {}
 
