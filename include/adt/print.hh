@@ -789,15 +789,8 @@ toString(IAllocator* pAlloc, isize prealloc, const StringView fmt, const ARGS_T&
 #ifdef ADT_DBG_MEMORY
         ex.printErrorMsg(stderr);
 #endif
-        if (buff.m_size > 0)
-        {
-            buff.m_pData[buff.m_size - 1] = '\0';
-            buff.m_size -= 1;
-        }
-        else
-        {
-            return {};
-        }
+        if (buff.m_size > 0) buff.m_pData[--buff.m_size] = '\0';
+        else return {};
     }
 
     return String(buff);
@@ -821,15 +814,8 @@ toPrintBuffer(Buffer* pBuffer, const StringView fmt, const ARGS_T&... tArgs)
 #ifdef ADT_DBG_MEMORY
         ex.printErrorMsg(stderr);
 #endif
-        if (pBuffer->m_size > 0)
-        {
-            pBuffer->m_pData[pBuffer->m_size - 1] = '\0';
-            pBuffer->m_size -= 1;
-        }
-        else
-        {
-            return {};
-        }
+        if (pBuffer->m_size > 0) pBuffer->m_pData[--pBuffer->m_size] = '\0';
+        else return {};
     }
 
     return StringView(*pBuffer);
