@@ -6,12 +6,15 @@ using namespace adt;
 static void
 usesThreadLocalArena(Arena* pArena)
 {
+    Vec<StringView> v {};
     for (isize i = 0; i < 10000; ++i)
     {
         Span sp = {pArena->zallocV<char>(100), 100};
-        const isize n  = print::toSpan(sp, "{}, {}, {}, {}, {}, {}, {}, {}", 1, 2, 3, 4, 5, 6.6, 7.7, "HELLO");
-        ADT_ASSERT_ALWAYS(StringView(sp.data(), n) == "1, 2, 3, 4, 5, 6.6, 7.7, HELLO", "{}", StringView(sp.data(), n));
+        const isize n  = print::toSpan(sp, "{}, {}, {}", 1, 2.2, "HELLO");
+        v.emplace(pArena, sp, n);
     }
+
+    for (auto sv : v) ADT_ASSERT_ALWAYS(sv == "1, 2.2, HELLO", "{}", sv);
 }
 
 int
