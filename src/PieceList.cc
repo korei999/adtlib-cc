@@ -23,6 +23,13 @@ test()
     pl.insert(pl.size(), "[*]");
     pl.insert(pl.size() - 2, "{^}");
 
+    {
+        ArenaStateGuard sg {&arena};
+        String s = pl.toString(&arena);
+        LogDebug("s: '{}'\n", s);
+        ADT_ASSERT_ALWAYS(s == "(+)Hello|INS<--->ERT|World[{^}*]", "s: '{}'", s);
+    }
+
     int i = 0;
 
     isize r0 = 1, r1 = 22;
@@ -50,18 +57,20 @@ test()
         ArenaStateGuard sg {&arena};
         String sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
+        ADT_ASSERT_ALWAYS(sDefragmented == "(rld[{^}*]", "");
     }
 
     pl.insert(4, "|%|");
 
     i = 0;
     for (auto& e : pl.m_lPieces)
-        LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
+        LogInfo("(4, |%|: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
         ArenaStateGuard sg {&arena};
         String sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
+        ADT_ASSERT_ALWAYS(sDefragmented == "(rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
     }
 }
 
