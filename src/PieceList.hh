@@ -40,6 +40,8 @@ struct PieceList
     void defragment();
 
     [[nodiscard]] String toString(IAllocator* pAlloc);
+
+    void posToNode(Node*** pppStart, isize* pPos) noexcept;
 };
 
 inline
@@ -53,14 +55,9 @@ inline void
 PieceList::insert(isize pos, const StringView sv)
 {
     Node** ppNode = &m_lPieces.m_pHead;
+    posToNode(&ppNode, &pos);
 
-    while (*ppNode && pos >= (*ppNode)->data.m_size)
-    {
-        pos -= (*ppNode)->data.m_size;
-        ppNode = &(*ppNode)->pNext;
-    }
-
-    auto* pNode = *ppNode;
+    Node* pNode = *ppNode;
 
     auto clNewNode = [&] -> Node* {
         return Node::alloc(StdAllocator::inst(), Piece{
@@ -98,8 +95,8 @@ PieceList::insert(isize pos, const StringView sv)
     }
     else /* prepend case */
     {
-        Node* pNew = clNewNode();
         ADT_ASSERT(pos == 0, "pos: {}", pos);
+        Node* pNew = clNewNode();
         pNew->pNext = pNode;
         *ppNode = pNew;
     }
@@ -115,12 +112,7 @@ PieceList::remove(isize pos, isize size)
     ADT_ASSERT(pos >= 0 && pos < m_size && size > 0 && (pos + size) <= m_size, "m_size: {}, pos: {}, size: {}", m_size, pos, size);
 
     Node** ppNode = &m_lPieces.m_pHead;
-
-    while (*ppNode && pos >= (*ppNode)->data.m_size)
-    {
-        pos -= (*ppNode)->data.m_size;
-        ppNode = &(*ppNode)->pNext;
-    }
+    posToNode(&ppNode, &pos);
 
     const isize fullSize = size;
 
@@ -244,6 +236,18 @@ PieceList::toString(IAllocator* pAlloc)
     sRet.m_pData[i] = '\0';
 
     return sRet;
+}
+
+inline void
+PieceList::posToNode(Node*** pppNode, isize* pPos) noexcept
+{
+    Node** ppNode = *pppNode;
+    while (*ppNode && *pPos >= (*ppNode)->data.m_size)
+    {
+        *pPos -= (*ppNode)->data.m_size;
+        ppNode = &(*ppNode)->pNext;
+    }
+    *pppNode = ppNode;
 }
 
 } /* namespace adt */
