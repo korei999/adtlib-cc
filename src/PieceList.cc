@@ -1,12 +1,16 @@
 #include "PieceList.hh"
 
 #include "adt/Logger.hh"
+#include "adt/Arena.hh"
 
 using namespace adt;
 
 static void
 test()
 {
+    Arena arena {SIZE_1G};
+    defer( arena.freeAll() );
+
     auto rcp = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, "HelloWorld");
     defer( rcp.unref() );
 
@@ -21,7 +25,7 @@ test()
 
     int i = 0;
 
-    isize r0 = 1, r1 = 15;
+    isize r0 = 1, r1 = 22;
     LogDebug("before remove ({}, {})\n", r0, r1);
 
     i = 0;
@@ -35,17 +39,15 @@ test()
     for (auto e : pl.m_lPieces)
         LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
 
-    LogDebug("before defragment()\n");
-    i = 0;
-    for (auto e : pl.m_lPieces)
-        LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
-
     pl.defragment();
 
     LogDebug("after defragment()\n");
     i = 0;
     for (auto e : pl.m_lPieces)
         LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
+
+    String sDefragmented = pl.toString(&arena);
+    LogInfo("sDefragmented: '{}'\n", sDefragmented);
 }
 
 int

@@ -38,6 +38,8 @@ struct PieceList
     void insert(isize pos, const StringView sv);
     void remove(isize pos, isize size);
     void defragment();
+
+    [[nodiscard]] String toString(IAllocator* pAlloc);
 };
 
 inline
@@ -120,6 +122,8 @@ PieceList::remove(isize pos, isize size)
         ppNode = &(*ppNode)->pNext;
     }
 
+    const isize fullSize = size;
+
     if (pos == 0)
     {
         Piece& rPiece = (*ppNode)->data;
@@ -155,7 +159,7 @@ PieceList::remove(isize pos, isize size)
             pNode->data.m_pos += (pos + size);
             pNode->data.m_size -= (pos + size);
 
-            m_size -= size;
+            m_size -= fullSize;
             return;
         }
         else if (size >= rPiece.m_size - pos)
@@ -186,7 +190,7 @@ PieceList::remove(isize pos, isize size)
         }
     }
 
-    m_size -= size;
+    m_size -= fullSize;
 }
 
 inline void
@@ -219,6 +223,25 @@ PieceList::defragment()
     });
 
     m_lPieces.insert(piece);
+}
+
+inline String
+PieceList::toString(IAllocator* pAlloc)
+{
+    if (m_size <= 0) return {};
+
+    StringM sRet;
+    sRet.m_pData = pAlloc->zallocV<char>(m_size + 1);
+    sRet.m_size = m_size;
+
+    isize i = 0;
+    for (auto e : m_lPieces)
+    {
+        ::memcpy(sRet.m_pData + i, e.view().m_pData, e.m_size);
+        i+= e.m_size;
+    }
+
+    return sRet;
 }
 
 } /* namespace adt */
