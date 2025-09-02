@@ -21,7 +21,7 @@ test()
 
     int i = 0;
 
-    isize r0 = 1, r1 = 13;
+    isize r0 = 1, r1 = 15;
     LogDebug("before remove ({}, {})\n", r0, r1);
 
     i = 0;
@@ -45,7 +45,7 @@ test()
     LogDebug("after defragment()\n");
     i = 0;
     for (auto e : pl.m_lPieces)
-        LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
+        LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 }
 
 int

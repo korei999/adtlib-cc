@@ -1,4 +1,3 @@
-#include "adt/String-inl.hh"
 #include "adt/RefCount.hh"
 #include "adt/SList.hh"
 
@@ -45,7 +44,7 @@ inline
 PieceList::PieceList(RefCountedPtr<StringM> rcpS)
 {
     m_lPieces.insert({.m_rcpS = rcpS.ref(), .m_pos = 0, .m_size = rcpS->m_size});
-    m_size += rcpS->m_size;
+    m_size = rcpS->m_size;
 }
 
 inline void
@@ -61,16 +60,18 @@ PieceList::insert(isize pos, const StringView sv)
 
     auto* pNode = *ppNode;
 
-    Node* pNew = Node::alloc(StdAllocator::inst(), Piece{
-        .m_rcpS = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sv),
-        .m_pos = 0,
-        .m_size = sv.m_size,
-    });
-    m_size += sv.m_size;
+    auto clNewNode = [&] -> Node* {
+        return Node::alloc(StdAllocator::inst(), Piece{
+            .m_rcpS = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sv),
+            .m_pos = 0,
+            .m_size = sv.m_size,
+        });
+    };
 
     if (!pNode) /* append case */
     {
-        *ppNode = pNew;
+        *ppNode = clNewNode();
+        m_size += sv.m_size;
         return;
     }
 
@@ -79,6 +80,7 @@ PieceList::insert(isize pos, const StringView sv)
 
     if (pos > 0) /* split case */
     {
+        Node* pNew = clNewNode();
         pNew->pNext = pNode;
 
         Node* pLeftNode = Node::alloc(StdAllocator::inst(), Piece{
@@ -94,10 +96,13 @@ PieceList::insert(isize pos, const StringView sv)
     }
     else /* prepend case */
     {
+        Node* pNew = clNewNode();
         ADT_ASSERT(pos == 0, "pos: {}", pos);
         pNew->pNext = pNode;
         *ppNode = pNew;
     }
+
+    m_size += sv.m_size;
 }
 
 
@@ -114,8 +119,6 @@ PieceList::remove(isize pos, isize size)
         pos -= (*ppNode)->data.m_size;
         ppNode = &(*ppNode)->pNext;
     }
-
-    m_size -= size;
 
     if (pos == 0)
     {
@@ -151,6 +154,8 @@ PieceList::remove(isize pos, isize size)
 
             pNode->data.m_pos += (pos + size);
             pNode->data.m_size -= (pos + size);
+
+            m_size -= size;
             return;
         }
         else if (size >= rPiece.m_size - pos)
@@ -180,12 +185,15 @@ PieceList::remove(isize pos, isize size)
             StdAllocator::inst()->free(pNode);
         }
     }
+
+    m_size -= size;
 }
 
 inline void
 PieceList::destroy() noexcept
 {
     m_lPieces.destroy([](Piece* p) { p->m_rcpS.unref(); });
+    m_size = 0;
 }
 
 inline void
