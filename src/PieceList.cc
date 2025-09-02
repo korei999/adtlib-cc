@@ -29,25 +29,40 @@ test()
     LogDebug("before remove ({}, {})\n", r0, r1);
 
     i = 0;
-    for (auto e : pl.m_lPieces)
+    for (auto& e : pl.m_lPieces)
         LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     pl.remove(r0, r1);
 
     LogDebug("after remove ({}, {})\n", r0, r1);
     i = 0;
-    for (auto e : pl.m_lPieces)
+    for (auto& e : pl.m_lPieces)
         LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     pl.defragment();
 
     LogDebug("after defragment()\n");
     i = 0;
-    for (auto e : pl.m_lPieces)
+    for (auto& e : pl.m_lPieces)
         LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
-    String sDefragmented = pl.toString(&arena);
-    LogInfo("sDefragmented: '{}'\n", sDefragmented);
+    {
+        ArenaStateGuard sg {&arena};
+        String sDefragmented = pl.toString(&arena);
+        LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
+    }
+
+    pl.insert(4, "|%|");
+
+    i = 0;
+    for (auto& e : pl.m_lPieces)
+        LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
+
+    {
+        ArenaStateGuard sg {&arena};
+        String sDefragmented = pl.toString(&arena);
+        LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
+    }
 }
 
 int

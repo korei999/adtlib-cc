@@ -205,22 +205,23 @@ PieceList::defragment()
 {
     if (m_size <= 0) return;
 
-    StringM s;
-    s.m_pData = StdAllocator::inst()->zallocV<char>(m_size + 1);
-    s.m_size = m_size;
+    StringM sRet;
+    sRet.m_pData = StdAllocator::inst()->mallocV<char>(m_size + 1);
+    sRet.m_size = m_size;
 
     Piece piece {
-        .m_rcpS = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, s),
+        .m_rcpS = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sRet),
         .m_pos = 0,
         .m_size = m_size,
     };
 
     isize i = 0;
     m_lPieces.destroy([&](Piece* p) {
-        ::memcpy(s.m_pData + i, p->view().m_pData, p->m_size);
+        ::memcpy(sRet.m_pData + i, p->view().m_pData, p->m_size);
         i += p->m_size;
         p->m_rcpS.unref();
     });
+    sRet.m_pData[i] = '\0';
 
     m_lPieces.insert(piece);
 }
@@ -231,15 +232,16 @@ PieceList::toString(IAllocator* pAlloc)
     if (m_size <= 0) return {};
 
     StringM sRet;
-    sRet.m_pData = pAlloc->zallocV<char>(m_size + 1);
+    sRet.m_pData = pAlloc->mallocV<char>(m_size + 1);
     sRet.m_size = m_size;
 
     isize i = 0;
-    for (auto e : m_lPieces)
+    for (auto& e : m_lPieces)
     {
         ::memcpy(sRet.m_pData + i, e.view().m_pData, e.m_size);
         i+= e.m_size;
     }
+    sRet.m_pData[i] = '\0';
 
     return sRet;
 }
