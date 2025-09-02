@@ -19,12 +19,33 @@ test()
     pl.insert(pl.size(), "[*]");
     pl.insert(pl.size() - 2, "{^}");
 
+    int i = 0;
+
+    isize r0 = 1, r1 = 13;
+    LogDebug("before remove ({}, {})\n", r0, r1);
+
+    i = 0;
+    for (auto e : pl.m_lPieces)
+        LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
+
+    pl.remove(r0, r1);
+
+    LogDebug("after remove ({}, {})\n", r0, r1);
+    i = 0;
+    for (auto e : pl.m_lPieces)
+        LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
+
+    LogDebug("before defragment()\n");
+    i = 0;
+    for (auto e : pl.m_lPieces)
+        LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
+
     pl.defragment();
 
-    int i = 0;
+    LogDebug("after defragment()\n");
+    i = 0;
     for (auto e : pl.m_lPieces)
-        print::out("({}): '{}'\n", i++, e.view());
-    print::out("\n");
+        LogInfo("({}, {}): '{}'\n", i++, e.m_size, e.view());
 }
 
 int
@@ -34,9 +55,9 @@ main()
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
-    LogInfo{"PieceList test...\n"};
+    LogDebug{"PieceList test...\n"};
     {
         test();
     }
-    LogInfo{"PieceList test passed\n"};
+    LogDebug{"PieceList test passed\n"};
 }

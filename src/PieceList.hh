@@ -35,8 +35,9 @@ struct PieceList
     /* */
 
     isize size() const noexcept { return m_size; }
-    void insert(isize pos, const StringView sv);
     void destroy() noexcept;
+    void insert(isize pos, const StringView sv);
+    void remove(isize pos, isize size);
     void defragment();
 };
 
@@ -50,16 +51,12 @@ PieceList::PieceList(RefCountedPtr<StringM> rcpS)
 inline void
 PieceList::insert(isize pos, const StringView sv)
 {
-    auto** ppNode = &m_lPieces.m_pHead;
-    SList<Piece>::Node* pPrev = nullptr;
+    Node** ppNode = &m_lPieces.m_pHead;
 
-again:
-    if (auto* p = *ppNode; *ppNode && pos >= p->data.m_size)
+    while (*ppNode && pos >= (*ppNode)->data.m_size)
     {
-        pos -= p->data.m_size;
-        pPrev = p;
-        ppNode = &p->pNext;
-        goto again;
+        pos -= (*ppNode)->data.m_size;
+        ppNode = &(*ppNode)->pNext;
     }
 
     auto* pNode = *ppNode;
@@ -94,15 +91,94 @@ again:
 
         rPiece.m_size -= pos;
         rPiece.m_pos += pos;
-
-        if (pPrev) pPrev->pNext = pLeftNode;
     }
     else /* prepend case */
     {
         ADT_ASSERT(pos == 0, "pos: {}", pos);
         pNew->pNext = pNode;
-        if (pPrev) pPrev->pNext = pNew;
         *ppNode = pNew;
+    }
+}
+
+
+inline void
+PieceList::remove(isize pos, isize size)
+{
+    ADT_ASSERT(!m_lPieces.empty(), "");
+    ADT_ASSERT(pos >= 0 && pos < m_size && size > 0 && (pos + size) <= m_size, "m_size: {}, pos: {}, size: {}", m_size, pos, size);
+
+    Node** ppNode = &m_lPieces.m_pHead;
+
+    while (*ppNode && pos >= (*ppNode)->data.m_size)
+    {
+        pos -= (*ppNode)->data.m_size;
+        ppNode = &(*ppNode)->pNext;
+    }
+
+    m_size -= size;
+
+    if (pos == 0)
+    {
+        Piece& rPiece = (*ppNode)->data;
+
+        const isize nShed = utils::min(rPiece.m_size, size);
+        rPiece.m_size -= nShed;
+
+        size -= nShed;
+
+        if (rPiece.m_size <= 0)
+        {
+            Node* pNode = *ppNode;
+            *ppNode = pNode->pNext;
+            rPiece.m_rcpS.unref();
+            StdAllocator::inst()->free(pNode);
+        }
+    }
+    else
+    {
+        Piece& rPiece = (*ppNode)->data;
+
+        if (size < rPiece.m_size - pos) /* split case */
+        {
+            Node* pLeftNode = Node::alloc(StdAllocator::inst(), Piece{
+                .m_rcpS = rPiece.m_rcpS.ref(),
+                .m_pos = rPiece.m_pos,
+                .m_size = pos,
+            });
+            Node* pNode = *ppNode;
+            *ppNode = pLeftNode;
+            pLeftNode->pNext = pNode;
+
+            pNode->data.m_pos += (pos + size);
+            pNode->data.m_size -= (pos + size);
+            return;
+        }
+        else if (size >= rPiece.m_size - pos)
+        {
+            size -= rPiece.m_size - pos;
+            rPiece.m_size = pos;
+            ppNode = &(*ppNode)->pNext;
+        }
+    }
+
+    while (size > 0)
+    {
+        Piece& rPiece = (*ppNode)->data;
+
+        const isize nShed = utils::min(rPiece.m_size, size);
+        rPiece.m_size -= nShed;
+        rPiece.m_pos += nShed;
+
+        size -= nShed;
+
+        if (rPiece.m_size <= 0)
+        {
+            Node* pNode = *ppNode;
+            *ppNode = pNode->pNext;
+
+            rPiece.m_rcpS.unref();
+            StdAllocator::inst()->free(pNode);
+        }
     }
 }
 
@@ -115,6 +191,8 @@ PieceList::destroy() noexcept
 inline void
 PieceList::defragment()
 {
+    if (m_size <= 0) return;
+
     StringM s;
     s.m_pData = StdAllocator::inst()->zallocV<char>(m_size + 1);
     s.m_size = m_size;
