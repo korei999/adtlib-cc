@@ -88,6 +88,7 @@ PieceList::insert(isize pos, const StringView sv)
 inline PieceList::Node*
 PieceList::insert(isize pos, isize size, Node* pNode)
 {
+    Node* pRet = nullptr;
     Node* pNew = nullptr;
 
     try
@@ -97,6 +98,8 @@ PieceList::insert(isize pos, isize size, Node* pNode)
             .m_pos = 0,
             .m_size = size,
         });
+
+        pRet = insertFinal(pos, size, pNew);
     }
     catch (const AllocException& ex)
     {
@@ -106,7 +109,7 @@ PieceList::insert(isize pos, isize size, Node* pNode)
         pNode->data.m_rcpS.unref();
     }
 
-    return insertFinal(pos, size, pNew);
+    return pRet;
 }
 
 inline void
