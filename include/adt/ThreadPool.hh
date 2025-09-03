@@ -278,7 +278,7 @@ ThreadPool::ThreadPool(
     void (*pfnOnLoopStart)(void*), void* pLoopStartArg,
     void (*pfnOnLoopEnd)(void*), void* pLoopEndArg,
     isize qSize,
-    isize arenaReserve, 
+    isize arenaReserve,
     int nThreads
 )
     : m_spThreads(StdAllocator::inst()->zallocV<Thread>(nThreads), nThreads),
