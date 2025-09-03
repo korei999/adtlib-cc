@@ -17,8 +17,8 @@ struct PieceList
         StringView view() noexcept { return {m_rcpS->data() + m_pos, m_size}; }
     };
 
-    using List = List<Piece>;
-    using Node = List::Node;
+    using ListType = List<Piece>;
+    using Node = ListType::Node;
 
     /* */
 
@@ -201,7 +201,7 @@ PieceList::defragment()
     });
     sRet.m_pData[i] = '\0';
 
-    static_cast<List&>(m_lPieces).pushBack(Node::alloc(StdAllocator::inst(), piece));
+    static_cast<ListType&>(m_lPieces).pushBack(Node::alloc(StdAllocator::inst(), piece));
 }
 
 inline String
@@ -253,7 +253,7 @@ PieceList::insertFinal(isize pos, isize size, Node* pNew)
     if (!m_lPieces.m_pFirst)
     {
         pNew->data.m_rcpS.ref();
-        static_cast<List&>(m_lPieces).pushBack(pNew);
+        static_cast<ListType&>(m_lPieces).pushBack(pNew);
 
         m_size += fullSize;
         return pNew;
