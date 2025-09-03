@@ -26,6 +26,7 @@ struct ArgvParser
     /* */
 
     IAllocator* m_pAlloc {};
+    FILE* m_pFile {};
     Vec<Arg<String>> m_vArgParsers {};
     Map<StringView, isize> m_mStringToArgI {};
     String m_sFirst {};
@@ -38,6 +39,7 @@ struct ArgvParser
     ArgvParser() noexcept = default;
     ArgvParser(
         IAllocator* pAlloc,
+        FILE* pFile,
         const StringView svUsage,
         int argc,
         char** argv,
@@ -48,15 +50,16 @@ struct ArgvParser
 
     void destroy() noexcept;
     bool parse();
-    void printUsage();
+    void printUsage(IAllocator* pAlloc);
 
 protected:
     Pair<bool /*bSuccess*/, bool /* bIncArgc */> parseArg(isize i, const StringView svKey);
 };
 
 inline
-ArgvParser::ArgvParser(IAllocator* pAlloc, const StringView svUsage, int argc, char** argv, std::initializer_list<Arg<StringView>> lParsers)
+ArgvParser::ArgvParser(IAllocator* pAlloc, FILE* pFile, const StringView svUsage, int argc, char** argv, std::initializer_list<Arg<StringView>> lParsers)
     : m_pAlloc{pAlloc},
+      m_pFile{pFile},
       m_vArgParsers{pAlloc, argc},
       m_mStringToArgI{pAlloc, argc},
       m_sUsage{pAlloc, svUsage},
@@ -138,7 +141,7 @@ ArgvParser::parse()
                 {
                     if (svKey.size() != 1)
                     {
-                        print::err("expected value after '{}' but its used in a pack\n", rChar);
+                        print::toFILE(m_pFile, "expected value after '{}' but its used in a pack\n", rChar);
                         bAllSuccess = false;
                         goto done;
                     }
@@ -150,18 +153,17 @@ ArgvParser::parse()
     }
 
 done:
-    if (!bAllSuccess) printUsage();
-
     return bAllSuccess;
 }
 
 inline void
-ArgvParser::printUsage()
+ArgvParser::printUsage(IAllocator* pAlloc)
 {
-    print::err("Usage: {} {}\n\n", m_sFirst, m_sUsage);
+    print::toFILE(pAlloc, m_pFile, "Usage: {} {}\n\n", m_sFirst, m_sUsage);
     for (auto& p : m_vArgParsers)
     {
-        print::err("    {}{}" "{}" "{}{}\n        {}\n\n",
+        print::toFILE(pAlloc, m_pFile,
+            "    {}{}" "{}" "{}{}\n        {}\n\n",
             p.sOneDash ? "-" : "", p.sOneDash,
             p.sOneDash && p.sTwoDashes ? ", " : "",
             p.sTwoDashes ? "--" : "", p.sTwoDashes,
@@ -177,7 +179,7 @@ ArgvParser::parseArg(isize i, const StringView svKey)
 
     if (!res)
     {
-        print::err("unhandled argument: '{}'\n", svKey);
+        print::toFILE(m_pFile, "unhandled argument: '{}'\n", svKey);
         return {false, false};
     }
 
@@ -189,7 +191,7 @@ ArgvParser::parseArg(isize i, const StringView svKey)
     {
         if (i + 1 >= m_argc)
         {
-            print::err("expected value after '{}'\n", svKey);
+            print::toFILE(m_pFile, "expected value after '{}'\n", svKey);
             bSuccess = false;
             goto done;
         }
@@ -205,7 +207,7 @@ ArgvParser::parseArg(isize i, const StringView svKey)
     }
 
 done:
-    if (!bSuccess) print::err("failed to parse '{}' argument (usage: '{}')\n", svKey, parser.sUsage);
+    if (!bSuccess) print::toFILE(m_pFile, "failed to parse '{}' argument (usage: '{}')\n", svKey, parser.sUsage);
 
     return {bSuccess, parser.bNeedsValue};
 }
