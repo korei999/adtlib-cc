@@ -232,7 +232,7 @@ struct ThreadPool : IThreadPool
         void (*pfnOnLoopEnd)(void*),
         void* pLoopEndArg,
         isize qSize,
-        isize arenaReserve, 
+        isize arenaReserve,
         int nThreads = optimalThreadCount()
     );
 
