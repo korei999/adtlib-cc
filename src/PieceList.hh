@@ -104,7 +104,6 @@ PieceList::insert(isize pos, isize size, Node* pNode)
         ex.printErrorMsg(stderr);
 #endif
         pNode->data.m_rcpS.unref();
-        StdAllocator::inst()->free(pNew);
     }
 
     return insertFinal(pos, size, pNew);
