@@ -110,7 +110,6 @@ PieceList::insert(isize pos, const StringView sv)
     m_size += sv.m_size;
 }
 
-
 inline void
 PieceList::remove(isize pos, isize size)
 {
