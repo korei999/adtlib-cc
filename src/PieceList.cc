@@ -60,7 +60,10 @@ test()
         ADT_ASSERT_ALWAYS(sDefragmented == "(rld[{^}*]", "");
     }
 
-    pl.insert(4, "|%|");
+    {
+        PieceList::Node* p = pl.insert(4, "|%|");
+        pl.insert(0, p->data.m_size, p);
+    }
 
     i = 0;
     for (auto& e : pl.m_lPieces)
@@ -70,7 +73,7 @@ test()
         ArenaStateGuard sg {&arena};
         String sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
-        ADT_ASSERT_ALWAYS(sDefragmented == "(rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
+        ADT_ASSERT_ALWAYS(sDefragmented == "|%|(rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
     }
 
     pl.remove(1, pl.size() - 2);
@@ -79,7 +82,7 @@ test()
         ArenaStateGuard sg {&arena};
         String s = pl.toString(&arena);
         LogInfo("({}): s: '{}'\n", s.size(), s);
-        ADT_ASSERT_ALWAYS(s == "(]", "s: '{}'", s);
+        ADT_ASSERT_ALWAYS(s == "|]", "s: '{}'", s);
     }
 
     pl.remove(0, pl.size());

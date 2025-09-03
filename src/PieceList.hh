@@ -35,13 +35,17 @@ struct PieceList
 
     isize size() const noexcept { return m_size; }
     void destroy() noexcept;
-    void insert(isize pos, const StringView sv);
+    Node* insert(isize pos, const StringView sv);
+    Node* insert(isize pos, isize size, Node* pNode);
     void remove(isize pos, isize size);
     void defragment();
 
     [[nodiscard]] String toString(IAllocator* pAlloc);
 
-    [[nodiscard]] Node* posToNode2(isize* pPos) noexcept;
+    [[nodiscard]] Node* posToNode(isize* pPos) noexcept;
+
+protected:
+    Node* insertFinal(isize pos, isize size, Node* pNew);
 };
 
 inline
@@ -51,7 +55,7 @@ PieceList::PieceList(RefCountedPtr<StringM> rcpS)
     m_size = rcpS->m_size;
 }
 
-inline void
+inline PieceList::Node*
 PieceList::insert(isize pos, const StringView sv)
 {
     auto clNewNode = [&] -> Node* {
@@ -62,52 +66,34 @@ PieceList::insert(isize pos, const StringView sv)
         });
     };
 
-    if (!m_lPieces.m_pFirst)
-    {
-        Node* pNew = clNewNode();
-        static_cast<List&>(m_lPieces).pushBack(pNew);
+    Node* pNew = clNewNode();
+    Node* pRet = nullptr;
 
-        m_size += sv.m_size;
-        return;
+    try
+    {
+        pRet = insertFinal(pos, sv.size(), pNew);
+    }
+    catch (const AllocException& ex)
+    {
+#ifdef ADT_DBG_MEMORY
+        ex.printErrorMsg(stderr);
+#endif
+        pNew->data.m_rcpS.unref();
+        StdAllocator::inst()->free(pNew);
     }
 
-    Node* pNode = posToNode2(&pos);
+    return pRet;
+}
 
-    if (pNode->data.m_size == pos) /* append case */
-    {
-        Node* pNew = clNewNode();
-        m_lPieces.insertAfter(pNode, pNew);
-
-        m_size += sv.m_size;
-        return;
-    }
-
-    auto& rPiece = pNode->data;
-    ADT_ASSERT(pos >= 0 && pos < rPiece.m_size, "pos: {}, rPiece.size: {}", pos, rPiece.m_size);
-
-    if (pos > 0) /* split case */
-    {
-        Node* pLeftNode = Node::alloc(StdAllocator::inst(), Piece{
-            .m_rcpS = rPiece.m_rcpS.ref(),
-            .m_pos = rPiece.m_pos,
-            .m_size = pos,
-        });
-        m_lPieces.insertBefore(pNode, pLeftNode);
-
-        Node* pNew = clNewNode();
-        m_lPieces.insertAfter(pLeftNode, pNew);
-
-        rPiece.m_size -= pos;
-        rPiece.m_pos += pos;
-    }
-    else /* prepend case */
-    {
-        ADT_ASSERT(pos == 0, "pos: {}", pos);
-        Node* pNew = clNewNode();
-        m_lPieces.insertBefore(pNode, pNew);
-    }
-
-    m_size += sv.m_size;
+inline PieceList::Node*
+PieceList::insert(isize pos, isize size, Node* pNode)
+{
+    Node* pNew = Node::alloc(StdAllocator::inst(), Piece{
+        .m_rcpS = pNode->data.m_rcpS.ref(),
+        .m_pos = 0,
+        .m_size = size,
+    });
+    return insertFinal(pos, size, pNew);
 }
 
 inline void
@@ -116,7 +102,7 @@ PieceList::remove(isize pos, isize size)
     ADT_ASSERT(!m_lPieces.empty(), "");
     ADT_ASSERT(pos >= 0 && pos < m_size && size > 0 && (pos + size) <= m_size, "m_size: {}, pos: {}, size: {}", m_size, pos, size);
 
-    Node *pNode = posToNode2(&pos);
+    Node *pNode = posToNode(&pos);
     const isize fullSize = size;
 
     if (pos == 0)
@@ -244,7 +230,7 @@ PieceList::toString(IAllocator* pAlloc)
 }
 
 inline PieceList::Node*
-PieceList::posToNode2(isize* pPos) noexcept
+PieceList::posToNode(isize* pPos) noexcept
 {
     ADT_ASSERT(!m_lPieces.empty(), "");
 
@@ -256,6 +242,61 @@ PieceList::posToNode2(isize* pPos) noexcept
     }
 
     return pNode;
+}
+
+inline PieceList::Node*
+PieceList::insertFinal(isize pos, isize size, Node* pNew)
+{
+    Node* pRet;
+    const isize fullSize = size;
+
+    if (!m_lPieces.m_pFirst)
+    {
+        pNew->data.m_rcpS.ref();
+        static_cast<List&>(m_lPieces).pushBack(pNew);
+
+        m_size += fullSize;
+        return pNew;
+    }
+
+    Node* pNode = posToNode(&pos);
+
+    if (pNode->data.m_size == pos) /* append case */
+    {
+        m_lPieces.insertAfter(pNode, pNew);
+
+        m_size += fullSize;
+        return pNew;
+    }
+
+    auto& rPiece = pNode->data;
+    ADT_ASSERT(pos >= 0 && pos < rPiece.m_size, "pos: {}, rPiece.size: {}", pos, rPiece.m_size);
+
+    if (pos > 0) /* split case */
+    {
+        Node* pLeftNode = Node::alloc(StdAllocator::inst(), Piece{
+            .m_rcpS = rPiece.m_rcpS.ref(),
+            .m_pos = rPiece.m_pos,
+            .m_size = pos,
+        });
+        m_lPieces.insertBefore(pNode, pLeftNode);
+
+        m_lPieces.insertAfter(pLeftNode, pNew);
+
+        rPiece.m_size -= pos;
+        rPiece.m_pos += pos;
+
+        pRet = pNew;
+    }
+    else /* prepend case */
+    {
+        ADT_ASSERT(pos == 0, "pos: {}", pos);
+        m_lPieces.insertBefore(pNode, pNew);
+        pRet = pNew;
+    }
+
+    m_size += fullSize;
+    return pRet;
 }
 
 } /* namespace adt */
