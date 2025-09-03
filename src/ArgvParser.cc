@@ -15,7 +15,7 @@ main(int argc, char** argv)
         // Arena arena {SIZE_1G};
         // defer( arena.freeAll() );
 
-        ArgvParser cmd {StdAllocator::inst(), "(more usage...)", argc, argv, {
+        ArgvParser cmd {StdAllocator::inst(), "[options...]", argc, argv, {
             {
                 .bNeedsValue = false,
                 .sOneDash = "h",
