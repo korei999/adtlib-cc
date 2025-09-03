@@ -87,7 +87,7 @@ test()
 
     pl.remove(0, pl.size());
 
-    ADT_ASSERT_ALWAYS(pl.size() == 0 && pl.m_lPieces.empty(), "size: {}, empty: {}", pl.size(), pl.m_lPieces.empty());
+    ADT_ASSERT_ALWAYS(pl.size() == 0 && pl.empty(), "size: {}, empty: {}", pl.size(), pl.empty());
 }
 
 int

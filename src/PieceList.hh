@@ -34,6 +34,7 @@ struct PieceList
     /* */
 
     isize size() const noexcept { return m_size; }
+    bool empty() const noexcept { return m_lPieces.empty(); }
     void destroy() noexcept;
     Node* insert(isize pos, const StringView sv);
     Node* insert(isize pos, isize size, Node* pNode);
@@ -58,19 +59,18 @@ PieceList::PieceList(RefCountedPtr<StringM> rcpS)
 inline PieceList::Node*
 PieceList::insert(isize pos, const StringView sv)
 {
-    auto clNewNode = [&] -> Node* {
-        return Node::alloc(StdAllocator::inst(), Piece{
-            .m_rcpS = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sv),
-            .m_pos = 0,
-            .m_size = sv.m_size,
-        });
-    };
-
-    Node* pNew = clNewNode();
+    Node* pNew = nullptr;
     Node* pRet = nullptr;
+    RefCountedPtr<StringM> rcp {};
 
     try
     {
+        rcp = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sv);
+        pNew = Node::alloc(StdAllocator::inst(), Piece{
+            .m_rcpS = rcp,
+            .m_pos = 0,
+            .m_size = sv.m_size,
+        });
         pRet = insertFinal(pos, sv.size(), pNew);
     }
     catch (const AllocException& ex)
@@ -78,7 +78,7 @@ PieceList::insert(isize pos, const StringView sv)
 #ifdef ADT_DBG_MEMORY
         ex.printErrorMsg(stderr);
 #endif
-        pNew->data.m_rcpS.unref();
+        if (rcp) rcp.unref();
         StdAllocator::inst()->free(pNew);
     }
 
@@ -88,11 +88,24 @@ PieceList::insert(isize pos, const StringView sv)
 inline PieceList::Node*
 PieceList::insert(isize pos, isize size, Node* pNode)
 {
-    Node* pNew = Node::alloc(StdAllocator::inst(), Piece{
-        .m_rcpS = pNode->data.m_rcpS.ref(),
-        .m_pos = 0,
-        .m_size = size,
-    });
+    Node* pNew = nullptr;
+
+    try
+    {
+        pNew = Node::alloc(StdAllocator::inst(), Piece{
+            .m_rcpS = pNode->data.m_rcpS.ref(),
+            .m_pos = 0,
+            .m_size = size,
+        });
+    }
+    catch (const AllocException& ex)
+    {
+#ifdef ADT_DBG_MEMORY
+        ex.printErrorMsg(stderr);
+#endif
+        pNode->data.m_rcpS.unref();
+    }
+
     return insertFinal(pos, size, pNew);
 }
 
