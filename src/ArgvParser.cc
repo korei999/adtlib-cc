@@ -15,15 +15,15 @@ main(int argc, char** argv)
         // Arena arena {SIZE_1G};
         // defer( arena.freeAll() );
 
-        ArgvParser cmd {StdAllocator::inst(), stderr, "[options...]", argc, argv, {
+        ArgvParser cmd {StdAllocator::inst(), stderr, "(more usage...)", argc, argv, {
             {
                 .bNeedsValue = false,
                 .sOneDash = "h",
                 .sTwoDashes = "help",
                 .sUsage = "display help text",
-                .pfn = [](void*, const StringView svKey, const StringView svVal) {
+                .pfn = [](ArgvParser*, void*, const StringView svKey, const StringView svVal) {
                     print::out("Showing some help text here (key: '{}', val: '{}')\n", svKey, svVal);
-                    return true;
+                    return ArgvParser::RESULT::SHOW_ALL_USAGE;
                 },
                 .pAnyData {}
             },
@@ -32,17 +32,17 @@ main(int argc, char** argv)
                 .sOneDash = "c",
                 .sTwoDashes = "config",
                 .sUsage = "config file and stuff",
-                .pfn = [](void*, const StringView svKey, const StringView svVal) {
+                .pfn = [](ArgvParser*, void*, const StringView svKey, const StringView svVal) {
                     print::out("setting fake config file (key: '{}', val: '{}')\n", svKey, svVal);
-                    return true;
+                    return ArgvParser::RESULT::GOOD;
                 },
                 .pAnyData {}
             },
         }};
         defer( cmd.destroy() );
 
-        if (!cmd.parse())
-            cmd.printUsage(StdAllocator::inst());
+        cmd.parse();
+        // cmd.printUsage(StdAllocator::inst());
     }
 
     LOG_GOOD("ArgvParser test passed\n");
