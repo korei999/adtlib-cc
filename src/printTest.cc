@@ -152,7 +152,7 @@ main()
         print::toBuilder(&buff, "hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});
         StringView s1 = print::toBuilder(&buff, "|(More Here: {})", "another string");
         print::out("{}\n", s1);
-        ADT_ASSERT_ALWAYS(s1 == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", s1);
+        ADT_ASSERT_ALWAYS(StringView(buff) == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", StringView(buff));
     }
 
     {
