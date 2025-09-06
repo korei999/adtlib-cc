@@ -6,6 +6,7 @@
 #include "adt/Span.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh"
 #include "adt/time.hh"
+#include "adt/Arena.hh"
 
 #include <string_view> /* IWYU pragma: keep */
 #include <string>
@@ -185,7 +186,7 @@ microBench()
 int
 main()
 {
-    ArenaList arena(SIZE_1K);
+    Arena arena {SIZE_1G};
     defer( arena.freeAll() );
 
     ADT_ASSERT_ALWAYS(hash::func("]e") == hash::func(StringView("]e")), "");
@@ -211,6 +212,29 @@ main()
         map.insert(&arena, "four", 4);
         map.insert(&arena, "five", 5);
         map.insert(&arena, "six", 6);
+    }
+
+    {
+        ArenaStateGuard astate {&arena};
+        MapM<StringView, u32> mapWithInitializerList {
+            {"one", 1},
+            {"two", 2},
+            {"three", 3},
+            {"four", 4},
+            {"five", 5},
+            {"six", 6},
+            {"seven", 7},
+        };
+
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("one").value() == 1, "");
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("two").value() == 2, "");
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("three").value() == 3, "");
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("four").value() == 4, "");
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("five").value() == 5, "");
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("six").value() == 6, "");
+        ADT_ASSERT_ALWAYS(mapWithInitializerList.search("seven").value() == 7, "");
+
+        print::out("mapWithInitializerList: {}\n", mapWithInitializerList);
     }
 
     Map<StringView, u32> map(&arena);

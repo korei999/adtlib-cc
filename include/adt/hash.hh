@@ -26,6 +26,7 @@
 #include "assert.hh"
 #include "types.hh"
 
+#include <cstring>
 #include <nmmintrin.h>
 
 namespace adt::hash
@@ -181,7 +182,7 @@ func(const STRING_T& x)
 }
 
 template<typename T>
-requires (sizeof(T) == 8)
+requires (sizeof(T) == 8 && !ConvertsToStringView<T>) 
 ADT_NO_UB inline usize
 func(const T& x)
 {

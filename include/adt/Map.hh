@@ -13,7 +13,6 @@ namespace adt
 {
 
 constexpr f32 MAP_DEFAULT_LOAD_FACTOR = 0.5f;
-constexpr f32 MAP_DEFAULT_LOAD_FACTOR_INV = 1.0f / MAP_DEFAULT_LOAD_FACTOR;
 
 enum class MAP_RESULT_STATUS : u8 { NOT_FOUND, FOUND, INSERTED };
 
@@ -107,6 +106,7 @@ struct Map
 
     Map() = default;
     Map(IAllocator* pAllocator, isize prealloc = SIZE_MIN, f32 loadFactor = MAP_DEFAULT_LOAD_FACTOR);
+    Map(IAllocator* pAllocator, std::initializer_list<Pair<K, V>> lPairs);
 
     /* */
 
@@ -523,6 +523,17 @@ Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc, f32 loadFactor)
     m_vBuckets.setSize(pAllocator, m_vBuckets.cap());
 }
 
+template<typename K, typename V, usize (*FN_HASH)(const K&)>
+Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, std::initializer_list<Pair<K, V>> lPairs)
+    : m_vBuckets {pAllocator, nextPowerOf2(isize(lPairs.size() / MAP_DEFAULT_LOAD_FACTOR))},
+      m_nOccupied {},
+      m_maxLoadFactor {MAP_DEFAULT_LOAD_FACTOR}
+{
+    m_vBuckets.setSize(pAllocator, m_vBuckets.cap());
+    for (auto& pair : lPairs)
+        emplace(pAllocator, pair.first, pair.second);
+}
+
 template<typename K, typename V, typename ALLOC_T = StdAllocatorNV, usize (*FN_HASH)(const K&) = hash::func<K>>
 struct MapManaged : public Map<K, V, FN_HASH>
 {
@@ -531,8 +542,8 @@ struct MapManaged : public Map<K, V, FN_HASH>
     /* */
 
     MapManaged() = default;
-    MapManaged(isize prealloc, f32 loadFactor = MAP_DEFAULT_LOAD_FACTOR)
-        : Base::Map(allocator(), prealloc, loadFactor) {}
+    MapManaged(isize prealloc, f32 loadFactor = MAP_DEFAULT_LOAD_FACTOR) : Base::Map(allocator(), prealloc, loadFactor) {}
+    MapManaged(std::initializer_list<Pair<K, V>> lPairs) : Base::Map(allocator(), lPairs) {}
 
     /* */
 
