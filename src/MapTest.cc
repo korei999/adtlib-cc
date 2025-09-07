@@ -237,6 +237,29 @@ main()
         print::out("mapWithInitializerList: {}\n", mapWithInitializerList);
     }
 
+    {
+        ArenaStateGuard guard {&arena};
+        MapM<char const*, int, hash::nullTermStringFunc> mapNtsToInt {
+            {"one", 1},
+            {"two", 2},
+            {"three", 3},
+            {"four", 4},
+            {"five", 5},
+            {"six", 6},
+            {"seven", 7},
+        };
+
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("one").value() == 1, "");
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("two").value() == 2, "");
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("three").value() == 3, "");
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("four").value() == 4, "");
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("five").value() == 5, "");
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("six").value() == 6, "");
+        ADT_ASSERT_ALWAYS(mapNtsToInt.search("seven").value() == 7, "");
+
+        print::out("mapNtsToInt: {}\n", mapNtsToInt);
+    }
+
     Map<StringView, u32> map(&arena);
 
     map.insert(&arena, "ThirdyTwo", 32);
