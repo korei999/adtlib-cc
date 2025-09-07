@@ -458,13 +458,7 @@ Map<K, V, FN_HASH>::searchHashed(const K& key, usize keyHash) const
 {
     MapResult<K, V> res {.eStatus = MAP_RESULT_STATUS::NOT_FOUND};
 
-    if (m_nOccupied == 0)
-    {
-#ifndef NDEBUG
-        print::err("[Map::search]: m_nOccupied: {}\n", m_nOccupied);
-#endif
-        return res;
-    }
+    if (m_nOccupied == 0) return res;
 
     isize idx = isize(keyHash & usize(m_vBuckets.cap() - 1));
     res.hash = keyHash;
