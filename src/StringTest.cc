@@ -123,11 +123,30 @@ main()
 
         i = 0;
         COUT("graphemes...\n");
+        /* 🇺🇦 should be one grapheme but obviously this iterator isn't really working... */
         for (const StringView sv : StringGraphemeIt(s))
         {
             int width = 0;
             for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
             COUT("grapheme #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
+        }
+    }
+
+    {
+        /* even better */
+        constexpr StringView sv = "Tëst 👨‍👩‍👦 🇺🇸 नी நி";
+        COUT("({}) even better graphemes...\n", sv);
+        int i = 0;
+        for (const StringView sv : StringGraphemeIt(sv))
+        {
+            int width = 0;
+            for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
+            COUT("grapheme #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
+        }
+        COUT("glyphs...\n");
+        for (const wchar_t& g : StringWCharIt(sv))
+        {
+            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
         }
     }
 
