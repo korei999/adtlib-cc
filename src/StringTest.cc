@@ -113,7 +113,7 @@ main()
     }
 
     {
-        constexpr StringView s = "🇺🇦КВИТКИ";
+        constexpr StringView s = "🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
         int i = 0;
         COUT("glyphs...\n");
         for (const wchar_t& g : StringWCharIt(s))
@@ -125,7 +125,9 @@ main()
         COUT("graphemes...\n");
         for (const StringView sv : StringGraphemeIt(s))
         {
-            COUT("grapheme #{}: '{}' (size: {})\n", i++, sv, sv.size());
+            int width = 0;
+            for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
+            COUT("grapheme #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
         }
     }
 
