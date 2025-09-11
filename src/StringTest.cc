@@ -113,18 +113,12 @@ main()
     }
 
     {
-        constexpr StringView s = "🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
+        constexpr StringView sv = "Re̾ͬh̾̑e͗ar̾̚s̆͗al͋̽̎ D̽̉em͐ŏ͆ ͊̄2̊̔003";
         int i = 0;
-        COUT("glyphs...\n");
-        for (const wchar_t& g : StringWCharIt(s))
-        {
+        COUT("{}\n", sv);
+        for (const wchar_t& g : StringWCharIt(sv))
             COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
-        }
-
-        i = 0;
-        COUT("graphemes...\n");
-        /* 🇺🇦 should be one grapheme but obviously this iterator isn't really working... */
-        for (const StringView sv : StringGraphemeIt(s))
+        for (const StringView sv : StringGlyphIt(sv))
         {
             int width = 0;
             for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
@@ -132,18 +126,45 @@ main()
         }
     }
 
+    COUT("\n");
+
     {
-        /* even better */
-        constexpr StringView sv = "Tëst 👨‍👩‍👦 🇺🇸 नी நி";
-        COUT("({}) even better graphemes...\n", sv);
+        constexpr StringView sv = "🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
         int i = 0;
-        for (const StringView sv : StringGraphemeIt(sv))
+        COUT("({}) glyphs...\n", sv);
+        for (const wchar_t& g : StringWCharIt(sv))
+        {
+            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
+        }
+
+        i = 0;
+        COUT("glyphs...\n");
+        /* 🇺🇦 should be one grapheme but obviously this iterator isn't really working... */
+        for (const StringView sv : StringGlyphIt(sv))
         {
             int width = 0;
             for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
-            COUT("grapheme #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
+            COUT("glyph #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
         }
-        COUT("glyphs...\n");
+        for (const StringView sv : StringGlyphIt(sv))
+            COUT("{}", sv);
+        COUT("\n");
+    }
+
+    COUT("\n");
+
+    {
+        /* even better */
+        constexpr StringView sv = "Tëst 👨‍👩‍👦 🇺🇸 नी நி";
+        COUT("({}) even better...\n", sv);
+        int i = 0;
+        for (const StringView sv : StringGlyphIt(sv))
+        {
+            int width = 0;
+            for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
+            COUT("glyph #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
+        }
+        COUT("wchars...\n");
         for (const wchar_t& g : StringWCharIt(sv))
         {
             COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
