@@ -144,7 +144,7 @@ main()
         COUT("wchars...\n");
         for (const wchar_t& g : StringWCharIt(sv))
         {
-            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
+            COUT("({}): '{}' ({} / {:#x}), width: {}\n", i++, g, u32(g), u32(g), wcWidth(g));
         }
     }
 
