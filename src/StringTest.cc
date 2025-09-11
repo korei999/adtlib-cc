@@ -6,6 +6,7 @@
 #include "adt/rng.hh"
 #include "adt/Thread.hh"
 #include "adt/sort.hh"
+#include "adt/utf8.hh"
 
 #include <clocale>
 #include <string>
@@ -113,42 +114,24 @@ main()
     }
 
     {
-        constexpr StringView sv = "Re̾ͬh̾̑e͗ar̾̚s̆͗al͋̽̎ D̽̉em͐ŏ͆ ͊̄2̊̔003";
+        constexpr StringView sv = "Z̤͔ͧ̑̓ä͖̭̈̇lͮ̒ͫǧ̗͚̚o̙̔ͮ̇͐̇";
         int i = 0;
         COUT("{}\n", sv);
         for (const wchar_t& g : StringWCharIt(sv))
             COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
-        for (const StringView sv : StringGlyphIt(sv))
-        {
-            int width = 0;
-            for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
-            COUT("grapheme #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
-        }
     }
 
     COUT("\n");
 
     {
-        constexpr StringView sv = "🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
+        constexpr StringView sv = "| 🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
+        COUT("width of '{}': {}\n", "🇺🇦", utf8::computeWidth("🇺🇦"));
         int i = 0;
         COUT("({}) glyphs...\n", sv);
         for (const wchar_t& g : StringWCharIt(sv))
         {
             COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
         }
-
-        i = 0;
-        COUT("glyphs...\n");
-        /* 🇺🇦 should be one grapheme but obviously this iterator isn't really working... */
-        for (const StringView sv : StringGlyphIt(sv))
-        {
-            int width = 0;
-            for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
-            COUT("glyph #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
-        }
-        for (const StringView sv : StringGlyphIt(sv))
-            COUT("{}", sv);
-        COUT("\n");
     }
 
     COUT("\n");
@@ -158,12 +141,6 @@ main()
         constexpr StringView sv = "Tëst 👨‍👩‍👦 🇺🇸 नी நி";
         COUT("({}) even better...\n", sv);
         int i = 0;
-        for (const StringView sv : StringGlyphIt(sv))
-        {
-            int width = 0;
-            for (wchar_t wc : StringWCharIt(sv)) width += wcWidth(wc);
-            COUT("glyph #{}: '{}' (size: {}, width: {})\n", i++, sv, sv.size(), width);
-        }
         COUT("wchars...\n");
         for (const wchar_t& g : StringWCharIt(sv))
         {
