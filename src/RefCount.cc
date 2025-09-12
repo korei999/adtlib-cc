@@ -1,7 +1,8 @@
 #include "adt/logs.hh"
 #include "adt/RefCount.hh"
-#include "adt/math.hh"
 #include "adt/ArenaList.hh"
+#include "adt/math.hh"
+
 #include "Types.hh"
 
 using namespace adt;

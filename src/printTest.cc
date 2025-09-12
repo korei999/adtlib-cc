@@ -6,8 +6,8 @@
 #include "adt/Vec.hh"    /* IWYU pragma: keep */
 #include "adt/defer.hh"  /* IWYU pragma: keep */
 #include "adt/logs.hh"   /* IWYU pragma: keep */
-#include "adt/math.hh"   /* IWYU pragma: keep */
 #include "adt/time.hh"
+#include "adt/math.hh"   /* IWYU pragma: keep */
 
 #include <format>
 #include <tuple>

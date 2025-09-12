@@ -189,3 +189,7 @@ add_executable(ArgvParser
 add_executable(ThreadPool
     ThreadPool.cc
 )
+
+add_executable(math
+    math.cc
+)

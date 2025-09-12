@@ -49,7 +49,7 @@ main()
         {
             f32 fi = f32(i);
             v0.push(&alloc, {
-                .pos {fi, fi, fi}, .scale {fi, fi, fi}, .vel {fi, fi, fi}, .assetI = int(i)});
+                .pos {{fi, fi, fi}}, .scale {{fi, fi, fi}}, .vel {{fi, fi, fi}}, .assetI = int(i)});
         }
 
         Entity acc {};
@@ -79,7 +79,7 @@ main()
         for (isize i = 0; i < SIZE; ++i)
         {
             f32 fi = f32(i);
-            v0.push(&alloc, {.pos {fi, fi, fi}, .scale {fi, fi, fi}, .vel {fi, fi, fi}, .assetI = int(i)});
+            v0.push(&alloc, {.pos {{fi, fi, fi}}, .scale {{fi, fi, fi}}, .vel {{fi, fi, fi}}, .assetI = int(i)});
         }
 
         Entity acc {};
@@ -111,7 +111,7 @@ main()
         for (isize i = 0; i < SIZE; ++i)
         {
             f32 fi = f32(i);
-            v0.push({.pos {fi, fi, fi}, .scale {fi, fi, fi}, .vel {fi, fi, fi}, .assetI = int(i)});
+            v0.push({.pos {{fi, fi, fi}}, .scale {{fi, fi, fi}}, .vel {{fi, fi, fi}}, .assetI = int(i)});
         }
 
         Entity acc {};
