@@ -13,43 +13,54 @@
 using namespace adt;
 
 static void
-insertion2(auto* p, isize l, isize h, isize (*pfnCmp)(const void* l, const void* r))
+insertion2(void* pArray, isize l, isize h, void* pSpace, isize mSize, isize (*pfnCmp)(const void* l, const void* r))
 {
+    u8* p = (u8*)pArray;
+
     for (isize i = l + 1; i < h + 1; ++i)
     {
-        auto key = p[i];
+        memcpy(pSpace, &p[i * mSize], mSize);
         isize j = i;
-        for (; j > l && pfnCmp(&p[j - 1], &key) > 0; --j)
-            p[j] = p[j - 1];
+        for (; j > l && pfnCmp(&p[(j - 1) * mSize], pSpace) > 0; --j)
+            memcpy(&p[j * mSize], &p[(j - 1) * mSize], mSize);
 
-        p[j] = key;
+        memcpy(&p[j * mSize], pSpace, mSize);
     }
 }
 
 static void
-quick2(auto a[], isize l, isize r, isize (*pfnCmp)(const void* l, const void* r))
+quick2(void* pArray, isize l, isize r, void* pSpace, void* pSwap, isize mSize, isize (*pfnCmp)(const void* l, const void* r))
 {
+    u8* a = (u8*)pArray;
+
     if (l < r)
     {
         if ((r - l + 1) <= 32)
         {
-            insertion2(a, l, r, pfnCmp);
+            insertion2(a, l, r, pSpace, mSize, pfnCmp);
             return;
         }
 
-        auto pivot = a[ sort::median3(l, (l + r) / 2, r) ];
+        memcpy(pSpace, &a[ sort::median3(l, (l + r) / 2, r) * mSize ], mSize);
         isize i = l, j = r;
 
         while (i <= j)
         {
-            while (pfnCmp(&a[i], &pivot) < 0) ++i;
-            while (pfnCmp(&a[j], &pivot) > 0) --j;
+            while (pfnCmp(&a[i * mSize], pSpace) < 0) ++i;
+            while (pfnCmp(&a[j * mSize], pSpace) > 0) --j;
 
-            if (i <= j) utils::swap(&a[i++], &a[j--]);
+            if (i <= j)
+            {
+                memcpy(pSwap, &a[i * mSize], mSize);
+                memcpy(&a[i * mSize], &a[j * mSize], mSize);
+                memcpy(&a[j * mSize], pSwap, mSize);
+
+                ++i, --j;
+            }
         }
 
-        quick2(a, l, j, pfnCmp);
-        quick2(a, i, r, pfnCmp);
+        quick2(a, l, j, pSpace, pSwap, mSize, pfnCmp);
+        quick2(a, i, r, pSpace, pSwap, mSize, pfnCmp);
     }
 }
 
@@ -116,7 +127,9 @@ main()
             defer( v4.destroy() );
             {
                 const isize t0 = time::nowUS();
-                quick2(v4.data(), 0, v4.size() - 1, [](const void* pl, const void* pr) {
+                u8 aBuff0[sizeof(*v4.data())] {};
+                u8 aBuff1[sizeof(*v4.data())] {};
+                quick2(v4.data(), 0, v4.size() - 1, aBuff0, aBuff1, sizeof(aBuff0), [](const void* pl, const void* pr) {
                     return utils::compare(*(StringM*)pl, *(StringM*)pr);
                 });
                 const isize t1 = time::nowUS() - t0;
