@@ -622,7 +622,7 @@ formatVariadicStacked(Context* pCtx, FormatArgs fmtArgs, const T& first, const A
     return n + details::formatVariadicStacked(pCtx, fmtArgs, args...);
 }
 
-template<typename T>
+template<typename T> requires std::is_floating_point_v<T>
 inline isize
 formatFloat(Context* pCtx, FormatArgs fmtArgs, const T x)
 {
