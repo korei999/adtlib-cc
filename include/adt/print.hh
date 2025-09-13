@@ -626,7 +626,7 @@ template<typename T> requires std::is_floating_point_v<T>
 inline isize
 formatFloat(Context* pCtx, FormatArgs fmtArgs, const T x)
 {
-    char aBuff[64] {};
+    char aBuff[32] {};
     std::to_chars_result res {};
     if (fmtArgs.maxFloatLen == NPOS8)
         res = std::to_chars(aBuff, aBuff + sizeof(aBuff), x);

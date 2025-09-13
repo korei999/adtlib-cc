@@ -479,7 +479,7 @@ V4::operator/(f32 r) const
 #ifdef ADT_SSE4_2
 
     return V4(
-        simd::f32x4(*this) / r
+        simd::f32x4(*this) / simd::f32x4{r}
     );
 
 #else
