@@ -12,6 +12,47 @@
 
 using namespace adt;
 
+static void
+insertion2(auto* p, isize l, isize h, isize (*pfnCmp)(const void* l, const void* r))
+{
+    for (isize i = l + 1; i < h + 1; ++i)
+    {
+        auto key = p[i];
+        isize j = i;
+        for (; j > l && pfnCmp(&p[j - 1], &key) > 0; --j)
+            p[j] = p[j - 1];
+
+        p[j] = key;
+    }
+}
+
+static void
+quick2(auto a[], isize l, isize r, isize (*pfnCmp)(const void* l, const void* r))
+{
+    if (l < r)
+    {
+        if ((r - l + 1) <= 32)
+        {
+            insertion2(a, l, r, pfnCmp);
+            return;
+        }
+
+        auto pivot = a[ sort::median3(l, (l + r) / 2, r) ];
+        isize i = l, j = r;
+
+        while (i <= j)
+        {
+            while (pfnCmp(&a[i], &pivot) < 0) ++i;
+            while (pfnCmp(&a[j], &pivot) > 0) --j;
+
+            if (i <= j) utils::swap(&a[i++], &a[j--]);
+        }
+
+        quick2(a, l, j, pfnCmp);
+        quick2(a, i, r, pfnCmp);
+    }
+}
+
 int
 main()
 {
@@ -59,9 +100,36 @@ main()
                 LOG_NOTIFY("sort::quick(StringM): {} items in {} ms\n", v2.size(), t1 / 1000.0);
             }
 
+            auto v3 = v0.clone();
+            defer( v3.destroy() );
+            {
+                const isize t0 = time::nowUS();
+                qsort(v3.data(), v3.size(), sizeof(*v3.data()), [](const void* pl, const void* pr) -> int {
+                    return utils::compare(*(StringM*)pl, *(StringM*)pr);
+                });
+                const isize t1 = time::nowUS() - t0;
+
+                LOG_NOTIFY("qsort(StringM): {} items in {} ms\n", v3.size(), t1 / 1000.0);
+            }
+
+            auto v4 = v0.clone();
+            defer( v4.destroy() );
+            {
+                const isize t0 = time::nowUS();
+                quick2(v4.data(), 0, v4.size() - 1, [](const void* pl, const void* pr) {
+                    return utils::compare(*(StringM*)pl, *(StringM*)pr);
+                });
+                const isize t1 = time::nowUS() - t0;
+
+                LOG_NOTIFY("quick2(StringM): {} items in {} ms\n", v4.size(), t1 / 1000.0);
+            }
+
             ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");
             for (isize i = 0; i < v1.size(); ++i)
                 ADT_ASSERT_ALWAYS(v1[i] == v2[i], "(i: {}): {}, {}", i, v1[i], v2[i]);
+
+            for (isize i = 0; i < v3.size(); ++i)
+                ADT_ASSERT_ALWAYS(v3[i] == v4[i], "(i: {}): {}, {}", i, v3[i], v4[i]);
         }
     }
 
