@@ -1,6 +1,7 @@
 #include "adt/defer.hh"
 #include "adt/logs.hh"
 #include "adt/Pool.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

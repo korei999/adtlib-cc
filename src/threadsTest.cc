@@ -2,6 +2,7 @@
 #include "adt/print.hh"
 #include "adt/Thread.hh"
 #include "adt/defer.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

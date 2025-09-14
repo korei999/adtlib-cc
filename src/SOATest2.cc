@@ -3,6 +3,7 @@
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
 #include "adt/math.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

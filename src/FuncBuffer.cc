@@ -1,5 +1,6 @@
 #include "adt/FuncBuffer.hh"
 #include "adt/logs.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

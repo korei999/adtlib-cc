@@ -1,5 +1,6 @@
 #include "adt/logs.hh"
 #include "adt/ArenaList.hh"
+#include "adt/Logger.hh"
 
 #include "Rope.hh"
 

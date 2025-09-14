@@ -1,4 +1,5 @@
 #include "adt/print.hh"
+#include "adt/Logger.hh"
 
 static const char* ntsExample =
 R"(/* NOTE: MSVC needs '/Zc:preprocessor'. */

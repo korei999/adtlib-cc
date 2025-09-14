@@ -2,6 +2,7 @@
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
+#include "adt/Logger.hh"
 #include "adt/time.hh"
 
 #include <vector>

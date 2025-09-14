@@ -4,6 +4,7 @@
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/Span2D.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

@@ -193,3 +193,7 @@ add_executable(ThreadPool
 add_executable(math
     math.cc
 )
+
+add_executable(STLAllocator
+    STLAllocator.cc
+)

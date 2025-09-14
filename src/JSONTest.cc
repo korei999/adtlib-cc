@@ -7,6 +7,7 @@
 #include "adt/logs.hh"
 #include "json/Parser.hh"
 #include "adt/Arena.hh"
+#include "adt/Logger.hh"
 
 // #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
