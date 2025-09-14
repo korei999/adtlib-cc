@@ -25,7 +25,7 @@
 namespace adt::simd
 {
 
-/* 128 bit */
+#ifdef ADT_SSE4_2
 
 struct f32x4;
 
@@ -382,7 +382,7 @@ i16Fillx8(Span<i16> src, const i16 x)
         src[i] = x;
 }
 
-/* 128 bit end */
+#endif /* ADT_SSE4_2 */
 
 #if defined ADT_AVX2
 

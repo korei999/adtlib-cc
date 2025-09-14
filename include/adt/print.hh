@@ -390,7 +390,7 @@ copyBackToContext(Context* pCtx, FormatArgs fmtArgs, const StringView sv)
         const isize nSpaces = fmtArgs.maxLen - sv.size();
         isize j = 0;
 
-        if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen > i && nSpaces > 0)
+        if (fmtArgs.maxLen != std::numeric_limits<isize>::max() && fmtArgs.maxLen > i && nSpaces > 0)
         {
             if (pCtx->pBuilder->pushN(filler, nSpaces) != -1)
                 j += nSpaces;
@@ -404,7 +404,7 @@ copyBackToContext(Context* pCtx, FormatArgs fmtArgs, const StringView sv)
     {
         clCopySpan();
 
-        if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen > i)
+        if (fmtArgs.maxLen != std::numeric_limits<isize>::max() && fmtArgs.maxLen > i)
         {
             if (pCtx->pBuilder->pushN(filler, fmtArgs.maxLen - i) != -1)
                 i += fmtArgs.maxLen;
@@ -673,7 +673,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const T x)
 {
     char aBuff[64] {};
     const isize n = intToBuffer(x, {aBuff}, fmtArgs);
-    if (fmtArgs.maxLen != NPOS16 && fmtArgs.maxLen < utils::size(aBuff) - 1)
+    if (fmtArgs.maxLen != std::numeric_limits<isize>::max() && fmtArgs.maxLen < utils::size(aBuff) - 1)
         aBuff[fmtArgs.maxLen] = '\0';
 
     return copyBackToContext(pCtx, fmtArgs, {aBuff, n});
