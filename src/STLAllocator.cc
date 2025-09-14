@@ -90,14 +90,12 @@ main()
     {
         ArenaPmr arena {adt::SIZE_8G};
 
-        std::pmr::monotonic_buffer_resource mbr;
+        std::pmr::vector<adt::Pair<char, char>> v {&arena};
 
-        std::pmr::vector<int> v {&arena};
-
-        v.push_back(1);
-        v.push_back(2);
-        v.push_back(3);
-        v.push_back(4);
+        v.push_back({1, 2});
+        v.push_back({1, 2});
+        v.push_back({1, 2});
+        v.push_back({1, 2});
 
         adt::print::out("v: {}\n", v);
     }
