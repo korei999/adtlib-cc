@@ -72,7 +72,7 @@ struct Log
 
         StringFixed<SIZE> msg;
         isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
-        while (!pLogger->add(eLevel, loc, StringView{msg.data(), n}))
+        while (pLogger->add(eLevel, loc, StringView{msg.data(), n}) == ILogger::ADD_STATUS::FAILED)
             ;
     }
 #else
@@ -177,7 +177,7 @@ struct Logger : ILogger
 
     /* */
 
-    virtual bool add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
+    virtual ADD_STATUS add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
     virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept override;
     virtual void destroy() noexcept override;
 
@@ -265,16 +265,18 @@ Logger::loop() noexcept
     return THREAD_STATUS(0);
 }
 
-inline bool
+inline ILogger::ADD_STATUS
 Logger::add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept
 {
     isize i;
     {
         LockGuard lock {&m_mtxQ};
+        if (m_bDone) return ADD_STATUS::DESTROYED;
+
         i = m_q.emplaceBackNoGrow(sv.size(), eLevel, loc, sv);
     }
     m_cnd.signal();
-    return i != -1;
+    return i == -1 ? ADD_STATUS::FAILED : ADD_STATUS::GOOD;
 }
 
 inline isize

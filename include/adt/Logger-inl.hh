@@ -19,6 +19,7 @@ namespace adt
 struct ILogger
 {
     enum class LEVEL : i8 {NONE = -1, ERR = 0, WARN, INFO, DEBUG};
+    enum class ADD_STATUS : i8 {GOOD, FAILED, DESTROYED};
 
     /* */
 
@@ -40,7 +41,7 @@ struct ILogger
 
     /* */
 
-    virtual bool add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
+    virtual ADD_STATUS add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
     virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept = 0;
     virtual void destroy() noexcept = 0;
 
