@@ -19,7 +19,7 @@ main()
         defer( arena.freeAll() );
 
         {
-            ArenaStateGuard pushedTop {&arena};
+            ArenaPushScope pushedTop {&arena};
 
             Vec<isize> v0 {};
             Vec<isize> v1 {};
@@ -34,13 +34,13 @@ main()
             for (auto e : v1) ADT_ASSERT_ALWAYS(!(e & 1), "e: {}", e);
 
             {
-                ArenaStateGuard pushed {&arena};
+                ArenaPushScope pushed {&arena};
                 print::toFILE(&arena, stdout, "v0: {}\n", v0);
                 LogInfo("off before pop: {}\n", arena.m_pos);
             }
 
             {
-                ArenaStateGuard pushed {&arena};
+                ArenaPushScope pushed {&arena};
                 print::toFILE(&arena, stdout, "v1: {}\n", v1);
                 LogInfo("off before pop: {}\n", arena.m_pos);
             }
@@ -68,7 +68,7 @@ main()
             Arena::Ptr<Destructive> p;
 
             {
-                ArenaStateGuard pushed {&arena};
+                ArenaPushScope pushed {&arena};
 
                 new(&p) Arena::Ptr<Destructive> {&arena, "p"};
 

@@ -216,7 +216,7 @@ main()
     }
 
     {
-        ArenaStateGuard astate {&arena};
+        ArenaPushScope astate {&arena};
         MapM<StringView, u32> mapWithInitializerList {
             {"one", 1},
             {"two", 2},
@@ -239,7 +239,7 @@ main()
     }
 
     {
-        ArenaStateGuard guard {&arena};
+        ArenaPushScope arenaScope {&arena};
         MapM<char const*, int, hash::nullTermStringFunc> mapNtsToInt {
             {"one", 1},
             {"two", 2},

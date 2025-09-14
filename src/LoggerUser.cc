@@ -28,7 +28,7 @@ PLUGIN_API void
 pluginThreadLocalThing(IThreadPool* p) noexcept
 {
     Arena* pArena = p->arena();
-    ArenaStateGuard pushed {pArena};
+    ArenaPushScope pushed {pArena};
 
     Span sp {pArena->zallocV<char>(101), 100};
     const isize n = print::toSpan(sp, "hello from threadId: {}\n", p->threadId());

@@ -34,7 +34,7 @@ main()
         {
             tp.addRetry([&] {
                 {
-                    ArenaStateGuard pushed {tp.arena()};
+                    ArenaPushScope pushed {tp.arena()};
                     usesThreadLocalArena(tp.arena());
                 }
                 ADT_ASSERT_ALWAYS(tp.arena()->memoryUsed() == 0, "{}", tp.arena()->memoryUsed());

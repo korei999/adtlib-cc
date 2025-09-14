@@ -16,7 +16,7 @@ show(RefCountedPtr<T> rcp)
         LOG_WARN("!rcp\n");
         return;
     }
-    RefGuard refGuard {&rcp};
+    RefScope refScope {&rcp};
 
     LOG_GOOD("rcp: {}\n", *rcp);
 }
