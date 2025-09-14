@@ -7,6 +7,8 @@
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/time.hh"
+#include "adt/assert.hh"
+#include "adt/Logger.hh"
 
 #include "Types.hh"
 

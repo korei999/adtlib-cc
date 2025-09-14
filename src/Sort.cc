@@ -9,6 +9,7 @@
 #include "adt/time.hh"
 #include "adt/rng.hh"
 #include "adt/ThreadPool.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

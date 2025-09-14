@@ -2,6 +2,7 @@
 #include "adt/SList.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/defer.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

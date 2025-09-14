@@ -7,6 +7,7 @@
 #include "adt/Thread.hh"
 #include "adt/sort.hh"
 #include "adt/utf8.hh"
+#include "adt/Logger.hh"
 
 #include <clocale>
 #include <string>

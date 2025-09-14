@@ -1,6 +1,6 @@
 #pragma once
 
-#include "print-inl.hh"
+#include "Logger-inl.hh"
 #include "String.hh" /* IWYU pragma: keep */
 
 #define ADT_LOGGER_COL_NORM  "\x1b[0m"
@@ -18,40 +18,6 @@
 
 namespace adt
 {
-
-struct ILogger
-{
-    enum class LEVEL : i8 {NONE = -1, ERR = 0, WARN, INFO, DEBUG};
-
-    /* */
-
-    static inline ILogger* g_pInstance;
-    static inline std::source_location g_loc;
-
-    /* */
-
-    FILE* m_pFile {};
-    LEVEL m_eLevel = LEVEL::WARN;
-    bool m_bTTY = false;
-    bool m_bForceColor = false;
-
-    /* */
-
-    ILogger() noexcept = default;
-    ILogger(FILE* pFile, LEVEL eLevel, bool bForceColor = false) noexcept
-        : m_pFile {pFile}, m_eLevel {eLevel}, m_bTTY {bForceColor || isTTY(pFile)}, m_bForceColor {bForceColor} {}
-
-    /* */
-
-    virtual bool add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept = 0;
-    virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept = 0;
-
-    /* */
-
-    static bool isTTY(FILE* pFile) noexcept;
-    static ILogger* inst() noexcept;
-    static void setGlobal(ILogger* pInst, std::source_location = std::source_location::current()) noexcept;
-};
 
 namespace print
 {
@@ -213,10 +179,7 @@ struct Logger : ILogger
 
     virtual bool add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
     virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept override;
-
-    /* */
-
-    void destroy() noexcept;
+    virtual void destroy() noexcept override;
 
 protected:
     THREAD_STATUS loop() noexcept;

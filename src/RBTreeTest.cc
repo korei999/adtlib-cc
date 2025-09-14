@@ -7,6 +7,7 @@
 #include "adt/defer.hh"
 #include "adt/time.hh"
 #include "adt/logs.hh"
+#include "adt/Logger.hh"
 
 #include "Types.hh"
 

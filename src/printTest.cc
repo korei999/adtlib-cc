@@ -8,6 +8,7 @@
 #include "adt/logs.hh"   /* IWYU pragma: keep */
 #include "adt/time.hh"
 #include "adt/math.hh"   /* IWYU pragma: keep */
+#include "adt/Logger.hh" /* IWYU pragma: keep */
 
 #include <format>
 #include <tuple>

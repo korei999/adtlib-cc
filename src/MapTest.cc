@@ -7,6 +7,7 @@
 #include "adt/rng.hh"
 #include "adt/time.hh"
 #include "adt/Arena.hh"
+#include "adt/Logger.hh"
 
 #include <string_view> /* IWYU pragma: keep */
 #include <string>

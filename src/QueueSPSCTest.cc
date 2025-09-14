@@ -2,6 +2,7 @@
 #include "adt/Thread.hh"
 #include "adt/defer.hh"
 #include "adt/logs.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

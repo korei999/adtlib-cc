@@ -4,6 +4,7 @@
 #include "adt/StdAllocator.hh"
 #include "adt/Array.hh"
 #include "adt/time.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

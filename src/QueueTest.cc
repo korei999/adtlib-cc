@@ -3,6 +3,7 @@
 #include "adt/defer.hh"
 #include "adt/ArenaList.hh"
 #include "adt/Queue.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

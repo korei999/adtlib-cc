@@ -1,6 +1,7 @@
 #include "adt/Pipeline.hh"
 #include "adt/logs.hh"
 #include "adt/Vec.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

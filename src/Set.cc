@@ -2,6 +2,7 @@
 #include "adt/Set.hh"
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 

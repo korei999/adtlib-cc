@@ -2,6 +2,7 @@
 #include "adt/StdAllocator.hh"
 #include "adt/logs.hh"
 #include "adt/sort.hh"
+#include "adt/Logger.hh"
 
 #include "Types.hh"
 

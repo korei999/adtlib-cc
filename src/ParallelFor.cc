@@ -3,6 +3,7 @@
 #include "adt/ArenaList.hh"
 #include "adt/math.hh"
 #include "adt/ThreadPool.hh"
+#include "adt/Logger.hh"
 
 using namespace adt;
 
