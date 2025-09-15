@@ -92,7 +92,7 @@ constexpr const StringView typeName();
 
 inline const char* shorterSourcePath(const char* ntsSourcePath);
 
-inline isize printArgs(Context pCtx);
+inline isize parsePrintArgs(Context* pCtx);
 
 inline isize parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtIdx) noexcept;
 
@@ -133,7 +133,7 @@ template<typename T>
 inline isize format(Context* pCtx, FormatArgs fmtArgs, const T* const p);
 
 template<typename T, typename ...ARGS_T>
-inline constexpr isize printArgs(Context* pCtx, const T& tFirst, const ARGS_T&... tArgs);
+inline constexpr isize parsePrintArgs(Context* pCtx, const T& tFirst, const ARGS_T&... tArgs);
 
 template<isize SIZE = 512, typename ...ARGS_T>
 inline isize toFILE(FILE* fp, const StringView fmt, const ARGS_T&... tArgs);
