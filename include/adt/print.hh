@@ -56,6 +56,32 @@ Builder::reset() noexcept
     m_size = 0;
 }
 
+template<typename ...ARGS_T>
+inline StringView
+Builder::print(const StringView fmt, const ARGS_T&... args)
+{
+    const isize savedPos = m_size;
+    isize nWritten = 0;
+
+    try
+    {
+        Context pCtx {.fmt = fmt, .pBuilder = this};
+        nWritten = parsePrintArgs(&pCtx, args...);
+        push('\0');
+        m_size -= 1;
+    }
+    catch (const AllocException& ex)
+    {
+#ifdef ADT_DBG_MEMORY
+        ex.printErrorMsg(stderr);
+#endif
+        if (m_size > 0) m_pData[--m_size] = '\0';
+        else return {};
+    }
+
+    return StringView(*this).subString(savedPos, nWritten);
+}
+
 inline void
 Builder::destroy() noexcept
 {
@@ -435,6 +461,26 @@ format(Context* pCtx, FormatArgs fmtArgs, const char* str)
     return format(pCtx, fmtArgs, StringView(str));
 }
 
+template<isize SIZE>
+inline isize
+format(Context* pCtx, FormatArgs fmtArgs, wchar_t const(&wstr)[SIZE])
+{
+    isize n = 0;
+    for (isize i = 0; i < SIZE && wstr[i]; ++i)
+        n += format(pCtx, fmtArgs, wstr[i]);
+    return n;
+}
+
+inline isize
+format(Context* pCtx, FormatArgs fmtArgs, const wchar_t* wstr)
+{
+    isize size = wcslen(wstr);
+    isize n = 0;
+    for (isize i = 0; i < size && wstr[i]; ++i)
+        n += format(pCtx, fmtArgs, wstr[i]);
+    return n;
+}
+
 inline isize
 format(Context* pCtx, FormatArgs fmtArgs, char* const& pNullTerm)
 {
@@ -489,7 +535,7 @@ format(Context* pCtx, FormatArgs fmtArgs, Empty)
 
 template<typename T>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const T* const p)
+format(Context* pCtx, FormatArgs fmtArgs, const T* const& p)
 {
     if (p == nullptr) return format(pCtx, fmtArgs, nullptr);
 
@@ -798,34 +844,6 @@ toString(IAllocator* pAlloc, isize prealloc, const StringView fmt, const ARGS_T&
     }
 
     return String(builder);
-}
-
-template<typename ...ARGS_T>
-inline StringView
-toBuilder(Builder* pBuilder, const StringView fmt, const ARGS_T&... tArgs)
-{
-    ADT_ASSERT(pBuilder != nullptr, "");
-
-    const isize savedPos = pBuilder->m_size;
-    isize nWritten = 0;
-
-    try
-    {
-        Context pCtx {.fmt = fmt, .pBuilder = pBuilder};
-        nWritten = parsePrintArgs(&pCtx, tArgs...);
-        pBuilder->push('\0');
-        pBuilder->m_size -= 1;
-    }
-    catch (const AllocException& ex)
-    {
-#ifdef ADT_DBG_MEMORY
-        ex.printErrorMsg(stderr);
-#endif
-        if (pBuilder->m_size > 0) pBuilder->m_pData[--pBuilder->m_size] = '\0';
-        else return {};
-    }
-
-    return StringView(*pBuilder).subString(savedPos, nWritten);
 }
 
 template<typename ...ARGS_T>
