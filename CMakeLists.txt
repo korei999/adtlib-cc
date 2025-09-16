@@ -99,6 +99,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Asan")
     add_compile_options(-O0 -g3 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address)
     add_link_options(-fsanitize=undefined -fsanitize=address)
 
+    add_definitions("-DADT_ASAN")
     add_definitions("-DMI_TRACK_ASAN=ON")
     add_definitions("-DMI_TRACK_VALGRIND=ON")
 endif()

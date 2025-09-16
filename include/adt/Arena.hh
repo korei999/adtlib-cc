@@ -14,6 +14,10 @@
     #warning "Arena in not implemented"
 #endif
 
+#ifdef ADT_ASAN
+    #include "sanitizer/asan_interface.h"
+#endif
+
 namespace adt
 {
 
@@ -203,6 +207,8 @@ Arena::Arena(isize reserveSize, isize commitSize)
     m_reserved = realReserved;
     m_pLastAlloc = (void*)INVALID_PTR;
 
+    ASAN_POISON_MEMORY_REGION(m_pData, realReserved);
+
     if (commitSize > 0)
     {
         const isize realCommit = alignUpPO2(commitSize, getPageSize());
@@ -294,6 +300,8 @@ Arena::reset() noexcept
 {
     runDeleters();
 
+    ASAN_POISON_MEMORY_REGION(m_pData, m_pos);
+
     m_pos = 0;
     m_pLastAlloc = (void*)INVALID_PTR;
     m_lastAllocSize = 0;
@@ -305,6 +313,8 @@ Arena::resetDecommit()
     runDeleters();
 
     decommit(m_pData, m_commited);
+
+    ASAN_POISON_MEMORY_REGION(m_pData, m_pos);
 
     m_pos = 0;
     m_commited = 0;
@@ -357,6 +367,7 @@ Arena::growIfNeeded(isize newPos)
     }
 
     m_pos = newPos;
+    ASAN_UNPOISON_MEMORY_REGION(m_pData, m_pos);
 }
 
 inline void
