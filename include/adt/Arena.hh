@@ -335,6 +335,8 @@ Arena::resetToFirstPage()
     else if (m_commited < getPageSize())
         commit((u8*)m_pData + m_commited, pageSize - m_commited);
 
+    ASAN_POISON_MEMORY_REGION(m_pData, m_pos);
+
     m_pos = 0;
     m_commited = pageSize;
     m_pLastAlloc = (void*)INVALID_PTR;
