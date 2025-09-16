@@ -293,6 +293,7 @@ Arena::freeAll() noexcept
 #endif
 
     *this = {};
+    ASAN_UNPOISON_MEMORY_REGION(m_pData, m_reserved);
 }
 
 inline void
