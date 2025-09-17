@@ -59,6 +59,7 @@ main()
 
     {
         Hello h;
+        defer( h.v.destroy() );
         h.v.push(1);
         h.v.push(2);
         h.v.push(3);
