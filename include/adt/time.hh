@@ -125,9 +125,13 @@ Counter::frequency() noexcept
 {
 #ifdef _MSC_VER
 
-    LARGE_INTEGER Result;
-    QueryPerformanceFrequency(&Result);
-    return Result.QuadPart;
+    static const LARGE_INTEGER s_freq = []
+    {
+        LARGE_INTEGER t;
+        QueryPerformanceFrequency(&t);
+        return t;
+    }();
+    return s_freq.QuadPart;
 
 #elif __has_include(<unistd.h>)
 
@@ -141,13 +145,9 @@ Counter::time() noexcept
 {
 #ifdef _MSC_VER
 
-    static const LARGE_INTEGER s_freq = []
-    {
-        LARGE_INTEGER t;
-        QueryPerformanceFrequency(&t);
-        return t;
-    }();
-    return s_freq.QuadPart;
+    LARGE_INTEGER ret;
+    QueryPerformanceCounter(&ret);
+    return ret.QuadPart;
 
 #elif __has_include(<unistd.h>)
 
