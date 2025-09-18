@@ -198,7 +198,7 @@ main()
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
-            snprintf(aBuff, sizeof(aBuff) - 1, "some string here %.*s just taking a bunch of space: %lld, %lld, %f, %lf", 5, svTest.data(), i, i, f32(i), f64(i));
+            snprintf(aBuff, sizeof(aBuff) - 1, "some string here %.*s just taking a bunch of space: %lld, %lld, %g, %g", 5, svTest.data(), i, i, f32(i), f64(i));
 
         const auto t1 = time::nowUS();
 
