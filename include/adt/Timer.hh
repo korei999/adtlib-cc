@@ -36,12 +36,19 @@ struct Timer
 
     Timer() = default;
     Timer(InitFlag) noexcept : m_start{getTime()} {}
+    Timer(u64 time) noexcept : m_start{time} {}
 
     /* */
 
     void start() noexcept;
+    void reset(u64 newTime) noexcept;
+
     f64 sElapsed() noexcept;
+    f64 sElapsed(u64 time) noexcept;
+
+    f64 msElapsed(u64 time) noexcept;
     f64 msElapsed() noexcept;
+
     u64 elapsed() noexcept;
 
     /* */
@@ -72,6 +79,24 @@ Timer::msElapsed() noexcept
 Timer::elapsed() noexcept
 {
     return getTime() - m_start;
+}
+
+inline void
+Timer::reset(u64 newTime) noexcept
+{
+    m_start = newTime;
+}
+
+inline f64
+Timer::sElapsed(u64 time) noexcept
+{
+    return (f64)(time - m_start) / (f64)frequency();
+}
+
+inline f64
+Timer::msElapsed(u64 time) noexcept
+{
+    return sElapsed(time) * 1000.0;
 }
 
 inline u64
