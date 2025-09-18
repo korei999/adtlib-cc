@@ -24,7 +24,7 @@ memeHash(const int& x)
     return usize(x);
 }
 
-static rng::PCG32 s_rng {Timer::getTime()};
+static rng::PCG32 s_rng {(u64)Timer::getTime()};
 
 static String
 genRandomString(IAllocator* pAlloc)
