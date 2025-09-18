@@ -80,4 +80,82 @@ addNSToTimespec(timespec* const pTs, const isize nsec)
     }
     else pTs->tv_nsec += nsec;
 }
+
+struct Counter
+{
+    u64 m_start {};
+
+    /* */
+
+    Counter() = default;
+    Counter(InitFlag) noexcept : m_start{time()} {}
+
+    /* */
+
+    void start() noexcept;
+    f64 secondsElapsed() noexcept;
+    u64 elapsed() noexcept;
+
+    /* */
+
+    static u64 frequency() noexcept;
+    static u64 time() noexcept;
+};
+
+inline void
+Counter::start() noexcept
+{
+    m_start = time();
+}
+
+[[nodiscard]] inline f64
+Counter::secondsElapsed() noexcept
+{
+    return (f64)(time() - m_start) / (f64)frequency();
+}
+
+[[nodiscard]] inline u64
+Counter::elapsed() noexcept
+{
+    return time() - m_start;
+}
+
+inline u64
+Counter::frequency() noexcept
+{
+#ifdef _MSC_VER
+
+    LARGE_INTEGER Result;
+    QueryPerformanceFrequency(&Result);
+    return Result.QuadPart;
+
+#elif __has_include(<unistd.h>)
+
+    return 1000000000ull;
+
+#endif
+}
+
+inline u64
+Counter::time() noexcept
+{
+#ifdef _MSC_VER
+
+    static const LARGE_INTEGER s_freq = []
+    {
+        LARGE_INTEGER t;
+        QueryPerformanceFrequency(&t);
+        return t;
+    }();
+    return s_freq.QuadPart;
+
+#elif __has_include(<unistd.h>)
+
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ((u64)ts.tv_sec * 1000000000ull) + (u64)ts.tv_nsec;
+
+#endif
+}
+
 } /* namespace adt::time */
