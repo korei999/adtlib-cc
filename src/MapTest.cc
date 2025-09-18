@@ -5,7 +5,7 @@
 #include "adt/Map.hh"
 #include "adt/Span.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh"
-#include "adt/time.hh"
+#include "adt/Timer.hh"
 #include "adt/Arena.hh"
 #include "adt/Logger.hh"
 
@@ -24,7 +24,7 @@ memeHash(const int& x)
     return usize(x);
 }
 
-static rng::PCG32 s_rng {usize(time::nowUS())};
+static rng::PCG32 s_rng {Timer::getTime()};
 
 static String
 genRandomString(IAllocator* pAlloc)
@@ -72,7 +72,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            f64 t0 = time::nowMS();
+            Timer timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -83,12 +83,11 @@ microBench()
                 }
             }
 
-            f64 t1 = time::nowMS() - t0;
-            LOG("tryInsert {} items in {} ms\n", BIG, t1);
+            LOG("tryInsert {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
         }
 
         {
-            f64 t0 = time::nowMS();
+            Timer timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -110,8 +109,7 @@ microBench()
                 }
             }
 
-            f64 t1 = time::nowMS() - t0;
-            LOG("search {} items in {} ms\n", BIG, t1);
+            LOG("search {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
 
             for (auto& sv : vNotFoundStrings)
             {
@@ -137,7 +135,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            f64 t0 = time::nowMS();
+            Timer timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -146,12 +144,11 @@ microBench()
                     vNotFoundStrings.push(vStrings[i]);
             }
 
-            f64 t1 = time::nowMS() - t0;
-            LOG("STL: try_emplace {} items in {} ms\n", BIG, t1);
+            LOG("STL: try_emplace {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
         }
 
         {
-            f64 t0 = time::nowMS();
+            Timer timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -173,8 +170,7 @@ microBench()
                 }
             }
 
-            f64 t1 = time::nowMS() - t0;
-            LOG("STL: search {} items in {} ms\n", BIG, t1);
+            LOG("STL: search {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
 
             for (auto& sv : vNotFoundStrings)
             {

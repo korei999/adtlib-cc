@@ -3,7 +3,7 @@
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Logger.hh"
-#include "adt/time.hh"
+#include "adt/Timer.hh"
 
 #include <vector>
 #include <limits>
@@ -98,12 +98,10 @@ main()
     }
 
     {
-        f64 t0 = time::nowMS();
+        Timer timer {INIT};
         for (int i = 0; i < big; ++i)
             vecStd.push_back(i);
-        f64 t1 = time::nowMS() - t0;
-
-        LOG("vecStd: {}\n", t1);
+        LOG("vecStd: {}\n", timer.sElapsed());
     }
 
     // {

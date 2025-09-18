@@ -6,7 +6,7 @@
 #include "adt/Vec.hh"    /* IWYU pragma: keep */
 #include "adt/defer.hh"  /* IWYU pragma: keep */
 #include "adt/logs.hh"   /* IWYU pragma: keep */
-#include "adt/time.hh"
+#include "adt/Timer.hh"
 #include "adt/math.hh"   /* IWYU pragma: keep */
 #include "adt/Logger.hh" /* IWYU pragma: keep */
 
@@ -178,64 +178,64 @@ main()
     }
 
     {
-        const auto t0 = time::nowUS();
+        Timer timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             print::toSpan(aBuff, "some string here {:5} just taking a bunch of space: {}, {}, {}, {}", svTest, i, i, f32(i), f64(i));
 
-        const auto t1 = time::nowUS();
+        const auto t1 = timer.msElapsed();
 
         print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        printf("(adt::print) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        printf("(adt::print) formatted %lld in %g ms\n", BIG, t1);
     }
 
     CERR("\n");
 
     {
-        const auto t0 = time::nowUS();
+        Timer timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             snprintf(aBuff, sizeof(aBuff) - 1, "some string here %.*s just taking a bunch of space: %lld, %lld, %g, %g", 5, svTest.data(), i, i, f32(i), f64(i));
 
-        const auto t1 = time::nowUS();
+        const auto t1 = timer.msElapsed();
 
         print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
-        printf("(snprintf) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        printf("(snprintf) formatted %lld in %g ms\n", BIG, t1);
     }
 
     CERR("\n");
 
     {
-        const auto t0 = time::nowUS();
+        Timer timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             std::format_to(aBuff, "some string here {:.5} just taking a bunch of space: {}, {}, {}, {}", std::string_view{svTest.data(), svTest.size()}, i, i, f32(i), f64(i));
 
-        const auto t1 = time::nowUS();
+        const auto t1 = timer.msElapsed();
 
         print::out("aBuff: {}\n", aBuff);
-        printf("(std::format_to) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        printf("(std::format_to) formatted %lld in %g ms\n", BIG, t1);
     }
 
     CERR("\n");
 
 #ifdef GOT_FMT
     {
-        const auto t0 = time::nowUS();
+        Timer timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             fmt::format_to(aBuff, "some string here {:.5} just taking a bunch of space: {}, {}, {}, {}", std::string_view{svTest.data(), svTest.size()}, i, i, f32(i), f64(i));
 
-        const auto t1 = time::nowUS();
+        const auto t1 = timer.msElapsed();
 
         print::out("aBuff: {}\n", aBuff);
-        printf("(fmt::format_to) formatted %lld in %lld ms\n", BIG, (t1 - t0) / 1000);
+        printf("(fmt::format_to) formatted %lld in %g ms\n", BIG, t1);
     }
 #endif
 

@@ -3,7 +3,7 @@
 #include "adt/logs.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Array.hh"
-#include "adt/time.hh"
+#include "adt/Timer.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -20,14 +20,13 @@ main()
     for (isize i = 0; i < SIZE; ++i)
         v[i] = i + 1;
 
-    const f64 t0 = time::nowMS();
+    Timer timer {INIT};
     for (int e : v)
     {
         isize f = utils::binarySearchI(v, e);
         ADT_ASSERT_ALWAYS(f != NPOS && f + 1 == e, "f: {}, f + 1: {}, e: {}", f, f + 1, e);
     }
-    const f64 t1 = time::nowMS();
-    COUT("time: {}\n", t1 - t0);
+    COUT("time: {}\n", timer.msElapsed());
 
     return 0;
 }

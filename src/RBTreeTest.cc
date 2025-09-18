@@ -5,7 +5,7 @@
 #include "adt/ReverseIt.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/defer.hh"
-#include "adt/time.hh"
+#include "adt/Timer.hh"
 #include "adt/logs.hh"
 #include "adt/Logger.hh"
 
@@ -145,17 +145,16 @@ main()
         }
 
         {
-            auto time0 = time::nowUS();
+            Timer timer {INIT};
             isize total = 0;
             for (auto& e : t0) total += e;
-            auto time1 = time::nowUS() - time0;
 
-            LOG("for loop: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            LOG("for loop: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
             CERR("\n");
         }
 
         {
-            auto time0 = time::nowUS();
+            Timer timer {INIT};
             isize total = 0;
             RBTree<int>::traverseIn(t0.root(), [&](RBTree<int>::Node* p)
                 {
@@ -163,14 +162,13 @@ main()
                     return false;
                 }
             );
-            auto time1 = time::nowUS() - time0;
 
-            LOG("traverseIn: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            LOG("traverseIn: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
             CERR("\n");
         }
 
         {
-            auto time0 = time::nowUS();
+            Timer timer {INIT};
             isize total = 0;
             RBTree<int>::traversePost(t0.root(), [&](RBTree<int>::Node* p)
                 {
@@ -178,14 +176,12 @@ main()
                     return false;
                 }
             );
-            auto time1 = time::nowUS() - time0;
-
-            LOG("traversePost: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            LOG("traversePost: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
             CERR("\n");
         }
 
         {
-            auto time0 = time::nowUS();
+            Timer timer {INIT};
             isize total = 0;
             RBTree<int>::traversePre(t0.root(), [&](RBTree<int>::Node* p)
                 {
@@ -193,9 +189,7 @@ main()
                     return false;
                 }
             );
-            auto time1 = time::nowUS() - time0;
-
-            LOG("traversePre: time: {:.3} ms, totalSum: {}\n", time1 * 0.001, total);
+            LOG("traversePre: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
             CERR("\n");
         }
     }
