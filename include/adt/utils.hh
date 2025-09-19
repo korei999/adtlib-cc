@@ -1,5 +1,9 @@
 #pragma once
 
+#if __has_include(<unistd.h>)
+    #include <unistd.h>
+#endif
+
 #include "Pair.hh"
 #include "assert.hh"
 
