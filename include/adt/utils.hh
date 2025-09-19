@@ -1,26 +1,5 @@
 #pragma once
 
-#if __has_include(<unistd.h>)
-    #include <unistd.h>
-#elif _WIN32
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN 1
-    #endif
-    #ifndef NOMINMAX
-        #define NOMINMAX
-    #endif
-    #include <windows.h>
-    #undef near
-    #undef far
-    #undef NEAR
-    #undef FAR
-    #undef min
-    #undef max
-    #undef MIN
-    #undef MAX
-    #include <sysinfoapi.h>
-#endif
-
 #include "Pair.hh"
 #include "assert.hh"
 
