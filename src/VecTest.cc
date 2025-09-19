@@ -190,7 +190,7 @@ main()
         for (u32 i = 0; i < BIG; ++i)
             vec.emplace(&a, i, i);
 
-        LOG("adt: {:.3} ms\n", timer.sElapsed() * 1000.0);
+        LOG("adt: {:.3} ms\n", timer.elapsedSec() * 1000.0);
 
         vec.destroy(&a);
     }
@@ -203,7 +203,7 @@ main()
         for (u32 i = 0; i < BIG; ++i)
             stdvec.emplace_back(i, i);
 
-        LOG("std: {:.3} ms\n", timer.sElapsed() * 1000.0);
+        LOG("std: {:.3} ms\n", timer.elapsedSec() * 1000.0);
     }
 
     {

@@ -149,7 +149,7 @@ main()
             isize total = 0;
             for (auto& e : t0) total += e;
 
-            LOG("for loop: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
+            LOG("for loop: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
             CERR("\n");
         }
 
@@ -163,7 +163,7 @@ main()
                 }
             );
 
-            LOG("traverseIn: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
+            LOG("traverseIn: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
             CERR("\n");
         }
 
@@ -176,7 +176,7 @@ main()
                     return false;
                 }
             );
-            LOG("traversePost: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
+            LOG("traversePost: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
             CERR("\n");
         }
 
@@ -189,7 +189,7 @@ main()
                     return false;
                 }
             );
-            LOG("traversePre: time: {:.3} ms, totalSum: {}\n", timer.msElapsed(), total);
+            LOG("traversePre: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
             CERR("\n");
         }
     }

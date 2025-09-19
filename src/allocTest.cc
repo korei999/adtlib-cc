@@ -101,7 +101,7 @@ main()
         Timer timer {INIT};
         for (int i = 0; i < big; ++i)
             vecStd.push_back(i);
-        LOG("vecStd: {}\n", timer.sElapsed());
+        LOG("vecStd: {}\n", timer.elapsedSec());
     }
 
     // {

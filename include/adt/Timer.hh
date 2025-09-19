@@ -28,28 +28,42 @@
 namespace adt
 {
 
-struct Timer
+struct Timer /* In microseconds. */
 {
-    i64 m_start {};
+    static constexpr i64 USEC = 1;
+    static constexpr i64 MSEC = 1'000;
+    static constexpr i64 SEC = 1'000'000;
+    static constexpr i64 MIN = SEC * 60;
+    static constexpr i64 HOUR = MIN * 60;
+    static constexpr i64 DAY = HOUR * 24;
+    static constexpr i64 WEEK = DAY * 7;
+    static constexpr i64 YEAR = DAY * 365;
+
+    /* */
+
+    i64 m_startTime {};
 
     /* */
 
     Timer() = default;
-    Timer(InitFlag) noexcept : m_start{getTime()} {}
-    Timer(i64 time) noexcept : m_start{time} {}
+    explicit Timer(InitFlag) noexcept : m_startTime{getTime()} {}
+    explicit Timer(i64 time) noexcept : m_startTime{time} {}
 
     /* */
+
+    i64 value() const noexcept { return m_startTime; }
 
     void reset() noexcept;
     void reset(i64 newTime) noexcept;
 
-    f64 sElapsed() noexcept;
-    f64 sElapsed(i64 time) noexcept;
-
-    f64 msElapsed(i64 time) noexcept;
-    f64 msElapsed() noexcept;
-
     i64 elapsed() noexcept;
+    i64 elapsed(i64) noexcept;
+
+    f64 elapsedSec() noexcept;
+    f64 elapsedSec(i64 time) noexcept;
+
+    f64 elapsedMSec(i64 time) noexcept;
+    f64 elapsedMSec() noexcept;
 
     /* */
 
@@ -60,44 +74,60 @@ struct Timer
 inline void
 Timer::reset() noexcept
 {
-    m_start = getTime();
+    m_startTime = getTime();
 }
 
 [[nodiscard]] inline f64
-Timer::sElapsed() noexcept
+Timer::elapsedSec() noexcept
 {
-    return (f64)(getTime() - m_start) / (f64)frequency();
+    return (f64)(getTime() - m_startTime) / (f64)frequency();
 }
 
 [[nodiscard]] inline f64
-Timer::msElapsed() noexcept
+Timer::elapsedMSec() noexcept
 {
-    const i64 diff = getTime() - m_start;
+    const i64 diff = getTime() - m_startTime;
     return ((f64)(diff) * 1000.0) / (f64)frequency();
 }
 
 [[nodiscard]] inline i64
 Timer::elapsed() noexcept
 {
-    return getTime() - m_start;
+    return elapsed(getTime());
+}
+
+[[nodiscard]] inline i64
+Timer::elapsed(i64 time) noexcept
+{
+    const i64 diff = time - m_startTime;
+
+#ifdef _MSC_VER
+
+    return diff * 1000000ll / frequency();
+
+#elif __has_include(<unistd.h>)
+
+    return diff / 1000ll;
+
+#endif
 }
 
 inline void
 Timer::reset(i64 newTime) noexcept
 {
-    m_start = newTime;
+    m_startTime = newTime;
 }
 
 inline f64
-Timer::sElapsed(i64 time) noexcept
+Timer::elapsedSec(i64 time) noexcept
 {
-    return (f64)(time - m_start) / (f64)frequency();
+    return (f64)(time - m_startTime) / (f64)frequency();
 }
 
 inline f64
-Timer::msElapsed(i64 time) noexcept
+Timer::elapsedMSec(i64 time) noexcept
 {
-    const i64 diff = getTime() - time;
+    const i64 diff = time - m_startTime;
     return ((f64)(diff) * 1000.0) / (f64)frequency();
 }
 

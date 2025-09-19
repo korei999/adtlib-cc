@@ -19,7 +19,7 @@ main()
             char aBuff[512] {};
             print::toSpan(aBuff, "{}, {}, {}", i, float(i), double(i));
         }
-        LogInfo{"elapsed: {:.3} sec\n", timer.sElapsed()};
+        LogInfo{"elapsed: {:.3} sec\n", timer.elapsedSec()};
 
         LogDebug{"time test passed\n"};
     }

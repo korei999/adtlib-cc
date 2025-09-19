@@ -83,7 +83,7 @@ microBench()
                 }
             }
 
-            LOG("tryInsert {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
+            LOG("tryInsert {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
         }
 
         {
@@ -109,7 +109,7 @@ microBench()
                 }
             }
 
-            LOG("search {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
+            LOG("search {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
 
             for (auto& sv : vNotFoundStrings)
             {
@@ -144,7 +144,7 @@ microBench()
                     vNotFoundStrings.push(vStrings[i]);
             }
 
-            LOG("STL: try_emplace {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
+            LOG("STL: try_emplace {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
         }
 
         {
@@ -170,7 +170,7 @@ microBench()
                 }
             }
 
-            LOG("STL: search {} items in {:.3} ms\n", BIG, timer.sElapsed() * 1000.0);
+            LOG("STL: search {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
 
             for (auto& sv : vNotFoundStrings)
             {

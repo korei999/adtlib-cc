@@ -64,7 +64,7 @@ main()
             acc.assetI += en.assetI;
         }
 
-        auto t1 = timer.msElapsed();
+        auto t1 = timer.elapsedMSec();
         CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA time: {:.3} ms\n\n", t1);
@@ -99,7 +99,7 @@ main()
             acc.assetI += pAsset[i];
         }
 
-        auto t1 = timer.msElapsed();
+        auto t1 = timer.elapsedMSec();
         CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("SOA(offsets) time: {:.3} ms\n\n", t1);
@@ -126,7 +126,7 @@ main()
             acc.assetI += v0[i].assetI;
         }
 
-        auto t1 = timer.msElapsed();
+        auto t1 = timer.elapsedMSec();
         CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LOG_NOTIFY("AOS time: {:.3} ms\n\n", t1);

@@ -26,7 +26,7 @@ main()
         isize f = utils::binarySearchI(v, e);
         ADT_ASSERT_ALWAYS(f != NPOS && f + 1 == e, "f: {}, f + 1: {}, e: {}", f, f + 1, e);
     }
-    COUT("time: {}\n", timer.msElapsed());
+    COUT("time: {}\n", timer.elapsedMSec());
 
     return 0;
 }
