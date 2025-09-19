@@ -114,7 +114,7 @@ Timer::frequency() noexcept
 
 #elif __has_include(<unistd.h>)
 
-    return 1000000000ull;
+    return 1000000000ll;
 
 #endif
 }
@@ -132,7 +132,7 @@ Timer::getTime() noexcept
 
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ((i64)ts.tv_sec * 1000000000ull) + (i64)ts.tv_nsec;
+    return ((i64)ts.tv_sec * 1000000000ll) + (i64)ts.tv_nsec;
 
 #endif
 }
