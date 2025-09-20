@@ -13,9 +13,10 @@
 #include <format>
 #include <tuple>
 
-#if defined __linux__ && __has_include(<fmt/core.h>)
+#if __has_include(<fmt/core.h>)
     #define GOT_FMT
-    #include <fmt/core.h>
+    #define FMT_HEADER_ONLY
+    #include <fmt/format.h>
 #endif
 
 using namespace adt;

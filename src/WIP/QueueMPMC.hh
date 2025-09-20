@@ -21,9 +21,8 @@
 
 #pragma once
 
-#include "Opt.hh"
-#include "types.hh"
-#include "atomic.hh"
+#include "adt/Opt.hh"
+#include "adt/atomic.hh"
 
 namespace adt
 {

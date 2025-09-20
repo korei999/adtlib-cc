@@ -153,7 +153,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     link_directories(${TBB_LIBRARY_DIRS})
     link_libraries(${TBB_LIBRARIES})
 
-    add_link_options(-lfmt)
     add_link_options(-lmimalloc)
 endif()
 
