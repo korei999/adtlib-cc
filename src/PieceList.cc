@@ -93,13 +93,13 @@ test()
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, 1024, true};
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, 1 << 12, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
-    LogDebug{"PieceList test...\n"};
+    LogWarn{"PieceList test...\n"};
     {
         test();
     }
-    LogDebug{"PieceList test passed\n"};
+    LogWarn{"PieceList test passed\n"};
 }

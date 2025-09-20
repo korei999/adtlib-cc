@@ -46,12 +46,12 @@ main(int, char**)
 #endif
 
     {
-        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1024 * 3};
+        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1 << 10};
         ILogger::setGlobal(&s_logger);
         pluginInit(&s_logger);
         defer( s_logger.destroy() );
 
-        ThreadPool tp {s_logger.m_q.cap(), SIZE_1G};
+        ThreadPool tp {1024, SIZE_1M * 64};
         defer( tp.destroy() );
 
         for (isize i = 0; i < BIG; ++i)
@@ -64,6 +64,14 @@ main(int, char**)
         }
 
         pluginLoggingFunc();
+
+        {
+            LogDebug{"log1\n"};
+            LogDebug{"log2\n"};
+            LogDebug{"log3\n"};
+            LogDebug{"log4\n"};
+            LogDebug{"log5\n"};
+        }
     }
 
     {
