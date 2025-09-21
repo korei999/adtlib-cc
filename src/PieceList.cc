@@ -2,14 +2,14 @@
 
 #include "adt/Logger.hh"
 #include "adt/Arena.hh"
+#include "adt/ThreadPool.hh"
 
 using namespace adt;
 
 static void
 test()
 {
-    Arena arena {SIZE_1G};
-    defer( arena.freeAll() );
+    Arena& arena = *IThreadPool::inst()->arena();
 
     auto rcp = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, "HelloWorld");
     defer( rcp.unref() );
@@ -93,6 +93,10 @@ test()
 int
 main()
 {
+    ThreadPool ztp {SIZE_1M * 64};
+    IThreadPool::setGlobal(&ztp);
+    defer( ztp.destroy() );
+
     Logger logger {stderr, ILogger::LEVEL::DEBUG, 1 << 12, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );

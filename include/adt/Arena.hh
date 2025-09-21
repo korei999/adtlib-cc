@@ -113,10 +113,14 @@ struct Arena : IArena
 
     /* */
 
+    template<typename T, typename ...ARGS> void initPtr(Ptr<T>* pPtr, ARGS&&... args);
+
     void reset() noexcept;
     void resetDecommit();
     void resetToPage(isize nthPage);
-    isize memoryUsed() noexcept;
+    isize memoryUsed() const noexcept { return m_pos; }
+    isize memoryReserved() const noexcept { return m_reserved; }
+    isize memoryCommited() const noexcept { return m_commited; }
 
 protected:
     ADT_NO_UB void runDeleters() noexcept; /* Type casting function pointers here. */
@@ -287,6 +291,13 @@ Arena::freeAll() noexcept
     ADT_ASAN_UNPOISON(m_pData, m_reserved);
 }
 
+template<typename T, typename ...ARGS>
+inline void
+Arena::initPtr(Ptr<T>* pPtr, ARGS&&... args)
+{
+    new(pPtr) Arena::Ptr<T>(this, std::forward<ARGS>(args)...);
+}
+
 inline void
 Arena::reset() noexcept
 {
@@ -333,12 +344,6 @@ Arena::resetToPage(isize nthPage)
     m_commited = commitSize;
     m_pLastAlloc = (void*)INVALID_PTR;
     m_lastAllocSize = 0;
-}
-
-inline isize
-Arena::memoryUsed() noexcept
-{
-    return m_pos;
 }
 
 inline void

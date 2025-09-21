@@ -78,6 +78,8 @@ struct ThreadPool : IThreadPool
 
     ThreadPool() = default;
 
+    ThreadPool(isize arenaReserve);
+
     ThreadPool(isize qSize, isize arenaReserve, int nThreads = optimalThreadCount());
 
     ThreadPool(
@@ -108,6 +110,13 @@ protected:
     void start();
     THREAD_STATUS loop();
 };
+
+inline
+ThreadPool::ThreadPool(isize arenaReserve)
+    : m_arenaReserved{arenaReserve}
+{
+    start();
+}
 
 inline
 ThreadPool::ThreadPool(isize qSize, isize arenaReserve, int nThreads)
@@ -151,7 +160,7 @@ ThreadPool::loop()
 
     new(&gtl_arena) Arena {m_arenaReserved};
     ADT_DEFER( gtl_arena.freeAll() );
-    gtl_threadId = 1 + m_atomIdCounter.fetchAdd(1, atomic::ORDER::RELAXED);
+    gtl_threadId = m_atomIdCounter.fetchAdd(1, atomic::ORDER::RELAXED);
 
     while (true)
     {
@@ -187,6 +196,7 @@ ThreadPool::loop()
 inline void
 ThreadPool::start()
 {
+    m_atomIdCounter.fetchAdd(1, atomic::ORDER::RELAXED); /* Id 0 for the main thread. */
     for (auto& thread : m_spThreads)
     {
         thread = Thread(
@@ -199,12 +209,8 @@ ThreadPool::start()
 
     m_bStarted = true;
 
-    while (m_atomIdCounter.load(atomic::ORDER::RELAXED) < m_spThreads.size())
+    while (m_atomIdCounter.load(atomic::ORDER::RELAXED) <= m_spThreads.size())
         Thread::yield();
-
-#ifndef NDEBUG
-    print::err("[ThreadPool]: new pool with {} threads\n", m_spThreads.size());
-#endif
 }
 
 inline void
@@ -236,25 +242,28 @@ again:
 inline void
 ThreadPool::destroy() noexcept
 {
-    wait(true);
-
+    if (!m_spThreads.empty())
     {
-        LockScope qLock {&m_mtxQ};
-        m_atomBDone.store(true, atomic::ORDER::RELEASE);
+        wait(true);
+
+        {
+            LockScope qLock {&m_mtxQ};
+            m_atomBDone.store(true, atomic::ORDER::RELEASE);
+        }
+
+        m_cndQ.broadcast();
+
+        for (auto& thread : m_spThreads)
+            thread.join();
+
+        ADT_ASSERT(m_atomNActiveTasks.load(atomic::ORDER::ACQUIRE) == 0, "{}", m_atomNActiveTasks.load(atomic::ORDER::RELAXED));
+
+        StdAllocator::inst()->free(m_spThreads.data());
+        m_qTasks.destroy();
+        m_mtxQ.destroy();
+        m_cndQ.destroy();
+        m_cndWait.destroy();
     }
-
-    m_cndQ.broadcast();
-
-    for (auto& thread : m_spThreads)
-        thread.join();
-
-    ADT_ASSERT(m_atomNActiveTasks.load(atomic::ORDER::ACQUIRE) == 0, "{}", m_atomNActiveTasks.load(atomic::ORDER::RELAXED));
-
-    StdAllocator::inst()->free(m_spThreads.data());
-    m_qTasks.destroy();
-    m_mtxQ.destroy();
-    m_cndQ.destroy();
-    m_cndWait.destroy();
 
     gtl_arena.freeAll();
 }

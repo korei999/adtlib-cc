@@ -23,7 +23,6 @@ include_directories(BEFORE "include")
 add_definitions("-DADT_LOGS")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 add_definitions("-DADT_DEFER_LESS_TYPING")
-add_definitions("-DADT_ASSERT_USE_LOGGER")
 # add_definitions("-DADT_LOGGER_DISABLE")
 # add_definitions("-DADT_STD_TYPES")
 

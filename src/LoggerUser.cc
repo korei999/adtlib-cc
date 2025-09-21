@@ -26,14 +26,9 @@ pluginLoggingFunc() noexcept
 }
 
 PLUGIN_API void
-pluginThreadLocalThing(IThreadPool* p) noexcept
+pluginThreadLocalThing() noexcept
 {
-    Arena* pArena = p->arena();
-    ArenaPushScope pushed {pArena};
-
-    Span sp {pArena->zallocV<char>(101), 100};
-    const isize n = print::toSpan(sp, "hello from threadId: {}\n", p->threadId());
-    LogInfo{StringView{sp.data(), n}};
+    LogInfo{"hello from threadId: {}\n", IThreadPool::inst()->threadId()};
 }
 
 #undef PLUGIN_SOURCE

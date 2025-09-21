@@ -11,8 +11,8 @@
 using namespace adt;
 
 static void (*pluginLoggingFunc)() noexcept;
-static void (*pluginInit)(ILogger* p) noexcept;
-static void (*pluginThreadLocalThing)(IThreadPool*) noexcept;
+static void (*pluginInit)(IThreadPool* pTp, ILogger* pLogger) noexcept;
+static void (*pluginThreadLocalThing)() noexcept;
 
 static Logger s_logger;
 
@@ -46,21 +46,22 @@ main(int, char**)
 #endif
 
     {
+        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1 << 10};
+        ILogger::setGlobal(&s_logger);
+        defer( s_logger.destroy() );
+
         ThreadPool tp {1024, SIZE_1M * 64};
         IThreadPool::setGlobal(&tp);
         defer( tp.destroy() );
 
-        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1 << 10};
-        ILogger::setGlobal(&s_logger);
-        pluginInit(&s_logger);
-        defer( s_logger.destroy() );
+        pluginInit(&tp, &s_logger);
 
         for (isize i = 0; i < BIG; ++i)
         {
-            tp.addRetry([i, &tp] {
+            tp.addRetry([i] {
                 LogInfo{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
                 s_i.fetchAdd(1, atomic::ORDER::RELAXED);
-                pluginThreadLocalThing(&tp);
+                pluginThreadLocalThing();
             });
         }
 
@@ -78,6 +79,7 @@ main(int, char**)
     {
         atomic::Int::Type i = s_i.load(atomic::ORDER::RELAXED);
         ADT_ASSERT_ALWAYS(i == BIG, "s_i: {}", i);
+        LOG_GOOD("i: {}\n", i);
     }
 
     LOG_GOOD("Logger test passed.\n");

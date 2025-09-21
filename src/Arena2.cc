@@ -1,12 +1,17 @@
 #include "adt/Arena.hh"
 #include "adt/Logger.hh"
 #include "adt/Vec.hh"
+#include "adt/ThreadPool.hh"
 
 using namespace adt;
 
 int
 main()
 {
+    ThreadPool ztp {SIZE_1M * 64};
+    IThreadPool::setGlobal(&ztp);
+    defer( ztp.destroy() );
+
     Logger logger {stderr, ILogger::LEVEL::DEBUG, 1024, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
@@ -15,11 +20,12 @@ main()
 
     try
     {
-        Arena arena {SIZE_8G, 0};
-        defer( arena.freeAll() );
+        Arena& arena = *IThreadPool::inst()->arena();
 
         {
             ArenaPushScope pushedTop {&arena};
+
+            LogInfo{"start off: {}\n", arena.memoryUsed()};
 
             Vec<isize> v0 {};
             Vec<isize> v1 {};
@@ -33,16 +39,16 @@ main()
             for (auto e : v0) ADT_ASSERT_ALWAYS(e & 1, "e: {}", e);
             for (auto e : v1) ADT_ASSERT_ALWAYS(!(e & 1), "e: {}", e);
 
+            LogInfo{"after push off: {}\n", arena.memoryUsed()};
+
             {
-                ArenaPushScope pushed {&arena};
-                print::toFILE(&arena, stdout, "v0: {}\n", v0);
-                LogInfo("off before pop: {}\n", arena.m_pos);
+                LogInfo{"v0: {}\n", v0};
+                LogInfo("off before pop: {}\n", arena.memoryUsed());
             }
 
             {
-                ArenaPushScope pushed {&arena};
-                print::toFILE(&arena, stdout, "v1: {}\n", v1);
-                LogInfo("off before pop: {}\n", arena.m_pos);
+                LogInfo("v1: {}\n", v1);
+                LogInfo("off before pop: {}\n", arena.memoryUsed());
             }
         }
 
@@ -70,7 +76,7 @@ main()
             {
                 ArenaPushScope pushed {&arena};
 
-                new(&p) Arena::Ptr<Destructive> {&arena, "p"};
+                arena.initPtr(&p, "p");
 
                 Arena::Ptr<Destructive> p0 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p0"};
                 Arena::Ptr<Destructive> p1 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p1"};
@@ -80,7 +86,7 @@ main()
                 p1->sayHi();
                 p2->sayHi();
             }
-            LogDebug("offset after pop: {}\n", arena.m_pos);
+            LogDebug("offset after pop: {}\n", arena.memoryUsed());
 
             Arena::Ptr<Destructive> p3 {[](Arena*, Arena::Ptr<Destructive>* pPtr) {
                 pPtr->m_pData->~Destructive();

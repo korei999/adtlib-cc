@@ -57,8 +57,8 @@ ILogger::inst() noexcept
     return ILogger::g_pInstance;
 }
 
-template<isize SIZE, typename ...ARGS>
-Log<SIZE, ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source_location& loc)
+template<typename ...ARGS>
+Log<ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source_location& loc)
 {
 #ifndef ADT_LOGGER_DISABLE
     ADT_ASSERT(eLevel >= ILogger::LEVEL::NONE && eLevel <= ILogger::LEVEL::DEBUG,
@@ -73,8 +73,9 @@ Log<SIZE, ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source
     if (pTp)
     {
         Arena* pArena = pTp->arena();
-        ArenaPushScope arenaScope {pArena};
+        if (pArena->memoryReserved() <= 0) goto fallbackToFixedBuffer;
 
+        ArenaPushScope arenaScope {pArena};
         print::Builder pb {pArena, 512};
         StringView sv = pb.print(std::forward<ARGS>(args)...);
         while (pLogger->add(eLevel, loc, sv) == ILogger::ADD_STATUS::FAILED)
@@ -82,7 +83,8 @@ Log<SIZE, ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source
     }
     else
     {
-        StringFixed<SIZE> msg;
+fallbackToFixedBuffer:
+        StringFixed<512> msg;
         isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
         while (pLogger->add(eLevel, loc, StringView{msg.data(), n}) == ILogger::ADD_STATUS::FAILED)
             ;
@@ -95,12 +97,12 @@ Log<SIZE, ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source
 }
 
 inline void
-ILogger::setGlobal(ILogger* pInst, std::source_location loc) noexcept
+ILogger::setGlobal(ILogger* pLogger, std::source_location loc) noexcept
 {
     std::source_location prevLoc = ILogger::g_loc;
     bool bWasSet = ILogger::g_pInstance != nullptr;
 
-    ILogger::g_pInstance = pInst;
+    ILogger::g_pInstance = pLogger;
     ILogger::g_loc = loc;
 
     char aBuff[128] {};
@@ -180,8 +182,8 @@ struct Logger : ILogger
 
     RingBuffer m_ring {};
     char* m_pDrainBuff {};
-    Mutex m_mtx {};
-    CndVar m_cnd {};
+    Mutex m_mtxRing {};
+    CndVar m_cndRing {};
     Thread m_thrd {};
     bool m_bDead {};
 
@@ -238,7 +240,7 @@ Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize ringBufferSize, bool bF
     : ILogger{pFile, eLevel, bForceColor},
       m_ring{ringBufferSize},
       m_pDrainBuff{StdAllocator::inst()->zallocV<char>(m_ring.m_cap)},
-      m_mtx{INIT}, m_cnd{INIT},
+      m_mtxRing{INIT}, m_cndRing{INIT},
       m_thrd{(ThreadFn)methodPointerNonVirtual(&Logger::loop), this}
 {
 }
@@ -248,11 +250,11 @@ Logger::add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcep
 {
     ADD_STATUS eStatus;
     {
-        LockScope lock {&m_mtx};
+        LockScope lock {&m_mtxRing};
         if (m_bDead) return ADD_STATUS::DESTROYED;
         eStatus = m_ring.push(eLevel, loc, sv);
     }
-    if (eStatus == ADD_STATUS::GOOD) m_cnd.signal();
+    if (eStatus == ADD_STATUS::GOOD) m_cndRing.signal();
     return eStatus;
 }
 
@@ -298,18 +300,24 @@ Logger::formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) 
 inline void
 Logger::destroy() noexcept
 {
+    {
+        IThreadPool* pTp = IThreadPool::inst();
+        if (pTp) pTp->wait(true);
+    }
+
     LogDebug{"destroying logger...\n"};
     {
         {
-            LockScope lock {&m_mtx};
+            LockScope lock {&m_mtxRing};
             m_bDead = true;
-            m_cnd.signal();
+            m_cndRing.signal();
         }
     }
 
     m_thrd.join();
-    m_mtx.destroy();
-    m_cnd.destroy();
+
+    m_mtxRing.destroy();
+    m_cndRing.destroy();
     m_ring.destroy();
     StdAllocator::inst()->free(m_pDrainBuff);
 }
@@ -323,10 +331,10 @@ Logger::loop() noexcept
     {
         RingBuffer::Popped p {};
         {
-            LockScope lock {&m_mtx};
+            LockScope lock {&m_mtxRing};
 
             while (!m_bDead && m_ring.m_size <= 0)
-                m_cnd.wait(&m_mtx);
+                m_cndRing.wait(&m_mtxRing);
 
             if (m_bDead && m_ring.m_size <= 0) break;
 
@@ -402,7 +410,6 @@ Logger::RingBuffer::pop() noexcept
     if (m_firstI >= m_lastI)
     {
         const isize nUntilEnd = m_cap - m_firstI;
-        const isize nMsgFirst = utils::min((isize)sizeof(msg), nUntilEnd);
         if ((isize)sizeof(msg) >= nUntilEnd)
         {
             ::memcpy(&msg, m_pData + m_firstI, nUntilEnd);
