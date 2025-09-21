@@ -201,3 +201,7 @@ add_executable(STLAllocator
 add_executable(Context
     Context.cc
 )
+
+add_executable(String2
+    String2.cc
+)

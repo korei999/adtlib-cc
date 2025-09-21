@@ -295,8 +295,8 @@ PieceList::insertFinal(isize pos, isize size, Node* pNew)
             .m_pos = rPiece.m_pos,
             .m_size = pos,
         });
-        m_lPieces.insertBefore(pNode, pLeftNode);
 
+        m_lPieces.insertBefore(pNode, pLeftNode);
         m_lPieces.insertAfter(pLeftNode, pNew);
 
         rPiece.m_size -= pos;

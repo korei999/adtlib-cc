@@ -78,7 +78,7 @@ Log<ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source_locat
         ArenaPushScope arenaScope {pArena};
         print::Builder pb {pArena, 512};
         StringView sv = pb.print(std::forward<ARGS>(args)...);
-        while (pLogger->add(eLevel, loc, sv) == ILogger::ADD_STATUS::FAILED)
+        while (pLogger->add(eLevel, loc, nullptr, sv) == ILogger::ADD_STATUS::FAILED)
             ;
     }
     else
@@ -86,7 +86,7 @@ Log<ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source_locat
 fallbackToFixedBuffer:
         StringFixed<256> msg;
         isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
-        while (pLogger->add(eLevel, loc, StringView{msg.data(), n}) == ILogger::ADD_STATUS::FAILED)
+        while (pLogger->add(eLevel, loc, nullptr, StringView{msg.data(), n}) == ILogger::ADD_STATUS::FAILED)
             ;
     }
 
@@ -136,8 +136,8 @@ struct Logger : ILogger
 
     /* */
 
-    virtual ADD_STATUS add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept override;
-    virtual isize formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept override;
+    virtual ADD_STATUS add(LEVEL eLevel, std::source_location loc, void* pExtra, const StringView sv) noexcept override;
+    virtual isize formatHeader(LEVEL eLevel, std::source_location loc, void* pExtra, Span<char> spBuff) noexcept override;
     virtual void destroy() noexcept override;
 
     /* */
@@ -146,6 +146,7 @@ struct Logger : ILogger
     {
         LEVEL eLevel {};
         std::source_location loc {};
+        void* pExtra {};
         isize size {}; /* Bytes after this header, so that the total msg size is sizeof(MsgHeader) + size. */
     };
 
@@ -155,6 +156,7 @@ struct Logger : ILogger
         {
             LEVEL eLevel {};
             std::source_location loc {};
+            void* pExtra {};
             StringView sv0 {};
             StringView sv1 {};
         };
@@ -199,7 +201,7 @@ struct LoggerNoSource : Logger
     using Logger::Logger;
 
     virtual isize
-    formatHeader(LEVEL eLevel, std::source_location, Span<char> spBuff) noexcept override
+    formatHeader(LEVEL eLevel, std::source_location, void* pExtra, Span<char> spBuff) noexcept override
     {
         if (eLevel == LEVEL::NONE) return 0;
 
@@ -247,7 +249,7 @@ Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize ringBufferSize, bool bF
 }
 
 inline ILogger::ADD_STATUS
-Logger::add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcept
+Logger::add(LEVEL eLevel, std::source_location loc, void*, const StringView sv) noexcept
 {
     ADD_STATUS eStatus;
     {
@@ -260,7 +262,7 @@ Logger::add(LEVEL eLevel, std::source_location loc, const StringView sv) noexcep
 }
 
 inline isize
-Logger::formatHeader(LEVEL eLevel, std::source_location loc, Span<char> spBuff) noexcept
+Logger::formatHeader(LEVEL eLevel, std::source_location loc, void*, Span<char> spBuff) noexcept
 {
     if (eLevel == LEVEL::NONE) return 0;
 
@@ -345,7 +347,7 @@ Logger::loop() noexcept
             if (p.sv1) ::memcpy(m_pDrainBuff + p.sv0.size(), p.sv1.data(), p.sv1.size());
         }
 
-        const isize n = formatHeader(p.eLevel, p.loc, aHeaderBuff);
+        const isize n = formatHeader(p.eLevel, p.loc, p.pExtra, aHeaderBuff);
         fwrite(aHeaderBuff, n, 1, m_pFile);
         fwrite(m_pDrainBuff, p.sv0.m_size + p.sv1.m_size, 1, m_pFile);
     }

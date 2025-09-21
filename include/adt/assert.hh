@@ -49,7 +49,7 @@ assertionFailed(const char* cnd, const char* msg, const char* file, int line, co
         ILogger* pLog = ILogger::inst();
         if (pLog)
         {
-            pLog->add(ILogger::LEVEL::ERR, {}, {aBuff, n});
+            pLog->add(ILogger::LEVEL::ERR, {}, nullptr, {aBuff, n});
             pLog->destroy();
         }
     }
