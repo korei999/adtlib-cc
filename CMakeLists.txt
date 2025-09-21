@@ -23,6 +23,7 @@ include_directories(BEFORE "include")
 add_definitions("-DADT_LOGS")
 add_definitions("-DADT_LOGS_LESS_TYPING")
 add_definitions("-DADT_DEFER_LESS_TYPING")
+add_definitions("-DADT_LOGGER_LEVEL=3")
 # add_definitions("-DADT_LOGGER_DISABLE")
 # add_definitions("-DADT_STD_TYPES")
 
@@ -137,6 +138,12 @@ else()
     endif()
 
     # add_definitions("-DADT_USE_MIMALLOC")
+endif()
+
+if (CMAKE_BUILD_TYPE MATCHES "Release")
+    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        add_compile_options(-g3)
+    endif()
 endif()
 
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)

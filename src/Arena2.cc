@@ -53,22 +53,23 @@ main()
         }
 
         {
-            static int i = 0;
+            static int s_i = 0;
+            static int s_magic = 0;
 
             struct Destructive
             {
                 int m_i;
                 const char* m_sv;
 
-                Destructive(const char* nts) noexcept : m_sv{nts} { m_i = ++i; LogDebug{"({}) m_i: {}\n", nts, m_i}; }
+                Destructive(const char* nts) noexcept : m_sv{nts} { m_i = ++s_i; LogWarn{"({}) m_i: {}\n", nts, m_i}; }
 
                 ~Destructive() noexcept
                 {
                     LogDebug{"({}) {} dies...\n", m_sv, m_i};
-                    --i;
+                    --s_i;
                 };
 
-                void sayHi() noexcept { LogDebug{"{} says hi\n", m_i}; }
+                void sayHi() noexcept { s_magic = 666; LogWarn{"{} says hi\n", m_i}; }
             };
 
             Arena::Ptr<Destructive> p;
@@ -95,13 +96,21 @@ main()
 
             p3->sayHi();
 
+            /* BUG?: this assertion fails with DADT_LOGGER_LEVEL=-1 when compiling with clang -03,
+             * (trying to elimitate dead code too aggressively?). */
+            if (p)
+            {
+                LogError("p.m_pData: {}\n", p.m_pData);
+                p->sayHi();
+            }
             ADT_ASSERT_ALWAYS(!p, "!p: {}", !p);
-            if (p) p->sayHi();
 
-            ADT_ASSERT_ALWAYS(i == 1, "i: {}", i);
+            ADT_ASSERT_ALWAYS(s_i == 1, "i: {}", s_i);
 
             arena.reset();
             ADT_ASSERT_ALWAYS(!p3, "!p: {}", !p3);
+
+            ADT_ASSERT_ALWAYS(s_magic == 666, "{}", s_magic);
         }
     }
     catch (const IException& ex)
