@@ -13,9 +13,10 @@
 using namespace adt;
 
 PLUGIN_API void
-pluginInit(adt::ILogger* p) noexcept
+pluginInit(adt::IThreadPool* pTp, adt::ILogger* pLogger) noexcept
 {
-    adt::ILogger::setGlobal(p);
+    adt::IThreadPool::setGlobal(pTp);
+    adt::ILogger::setGlobal(pLogger);
 }
 
 PLUGIN_API void

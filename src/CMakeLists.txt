@@ -197,3 +197,7 @@ add_executable(math
 add_executable(STLAllocator
     STLAllocator.cc
 )
+
+add_executable(Context
+    Context.cc
+)

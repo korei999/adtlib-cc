@@ -34,7 +34,7 @@ struct Arena : IArena
     using ListNodeType = SList<DeleterNode>::Node;
 
     template<typename T>
-    struct Ptr : ListNodeType
+    struct Ptr : protected ListNodeType
     {
         T* m_pData {};
 
@@ -104,16 +104,11 @@ struct Arena : IArena
     /* */
 
     [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override; /* AllocException */
-
     [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override; /* AllocException */
-
     [[nodiscard]] virtual void* realloc(void* p, usize oldCount, usize newCount, usize mSize) noexcept(false) override; /* AllocException */
-
     virtual void free(void* ptr) noexcept override;
-
     [[nodiscard]] virtual constexpr bool doesFree() const noexcept override;
     [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override;
-
     virtual void freeAll() noexcept override;
 
     /* */

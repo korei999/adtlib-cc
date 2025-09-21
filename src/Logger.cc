@@ -46,13 +46,14 @@ main(int, char**)
 #endif
 
     {
+        ThreadPool tp {1024, SIZE_1M * 64};
+        IThreadPool::setGlobal(&tp);
+        defer( tp.destroy() );
+
         new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1 << 10};
         ILogger::setGlobal(&s_logger);
         pluginInit(&s_logger);
         defer( s_logger.destroy() );
-
-        ThreadPool tp {1024, SIZE_1M * 64};
-        defer( tp.destroy() );
 
         for (isize i = 0; i < BIG; ++i)
         {

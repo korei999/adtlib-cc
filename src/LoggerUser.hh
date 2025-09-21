@@ -16,6 +16,6 @@ struct ILogger;
 struct IThreadPool;
 }
 
-PLUGIN_API void pluginInit(adt::ILogger* p) noexcept;
+PLUGIN_API void pluginInit(adt::IThreadPool* pTp, adt::ILogger* pLogger) noexcept;
 PLUGIN_API void pluginLoggingFunc() noexcept;
 PLUGIN_API void pluginThreadLocalThing(adt::IThreadPool*) noexcept;

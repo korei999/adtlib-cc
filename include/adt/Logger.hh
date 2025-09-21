@@ -34,8 +34,9 @@ format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
 
 } /* namespace adt */
 
-#include "Thread.hh"
 #include "StdAllocator.hh"
+#include "IThreadPool.hh"
+#include "Arena.hh"
 
 namespace adt
 {
@@ -68,10 +69,24 @@ Log<SIZE, ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source
 
     if (!pLogger || eLevel > pLogger->m_eLevel) return;
 
-    StringFixed<SIZE> msg;
-    isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
-    while (pLogger->add(eLevel, loc, StringView{msg.data(), n}) == ILogger::ADD_STATUS::FAILED)
-        ;
+    IThreadPool* pTp = IThreadPool::inst();
+    if (pTp)
+    {
+        Arena* pArena = pTp->arena();
+        ArenaPushScope arenaScope {pArena};
+
+        print::Builder pb {pArena, 512};
+        StringView sv = pb.print(std::forward<ARGS>(args)...);
+        while (pLogger->add(eLevel, loc, sv) == ILogger::ADD_STATUS::FAILED)
+            ;
+    }
+    else
+    {
+        StringFixed<SIZE> msg;
+        isize n = print::toSpan(msg.data(), std::forward<ARGS>(args)...);
+        while (pLogger->add(eLevel, loc, StringView{msg.data(), n}) == ILogger::ADD_STATUS::FAILED)
+            ;
+    }
 #else
     (void)eLevel;
     ((void)args, ...);
