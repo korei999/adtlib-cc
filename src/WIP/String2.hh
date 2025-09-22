@@ -23,8 +23,8 @@ struct String2
     String2() = default;
     String2(IAllocator* pAlloc, const StringView sv);
 
-    explicit operator StringView() noexcept { return StringView(data(), size()); }
-    explicit operator const StringView() const noexcept { return StringView(const_cast<char*>(data()), size()); }
+    operator StringView() noexcept { return StringView(data(), size()); }
+    operator const StringView() const noexcept { return StringView(const_cast<char*>(data()), size()); }
 
     /* */
 
