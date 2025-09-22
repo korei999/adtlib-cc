@@ -13,7 +13,12 @@ test()
     String2 s0 {pStd, "ooh my"};
     defer( s0.destroy(pStd) );
 
-    s0.push(pStd, " honey");
+    s0.push(pStd, ' ');
+    s0.push(pStd, 'h');
+    s0.push(pStd, 'o');
+    s0.push(pStd, 'n');
+    s0.push(pStd, 'e');
+    s0.push(pStd, 'y');
     ADT_ASSERT(StringView(s0) == "ooh my honey", "{}", s0);
 
     s0.push(pStd, " you got me");
