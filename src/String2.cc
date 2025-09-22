@@ -36,6 +36,9 @@ test()
     LogInfo("s0: ({}) '{}'\n", s0.size(), s0);
 
     ADT_ASSERT(utils::compare(s0, s0) == 0, "{}", s0);
+
+    s0.destroy();
+    ADT_ASSERT(StringView(s0).empty(), "{}", s0);
 }
 
 int
