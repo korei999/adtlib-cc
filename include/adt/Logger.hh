@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger-inl.hh"
+#include "ILogger.hh"
 #include "String.hh" /* IWYU pragma: keep */
 
 #define ADT_LOGGER_COL_NORM  "\x1b[0m"

@@ -28,6 +28,14 @@ test()
     ADT_ASSERT(StringView(s0) == "ooh my honey you got me working day n night...", "{}", s0);
 
     LogInfo{"s0: ({}) '{}'\n", s0.size(), s0};
+
+    s0.reallocWith(pStd, "asdf\r\n\r\n");
+    ADT_ASSERT(StringView(s0) == "asdf\r\n\r\n", "{}", s0);
+
+    s0.removeNLEnd(true);
+    ADT_ASSERT(StringView(s0) == "asdf", "{}", s0);
+
+    LogInfo("s0: ({}) '{}'\n", s0.size(), s0);
 }
 
 int

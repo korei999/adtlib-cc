@@ -1,6 +1,7 @@
 #pragma once
 
-#include "adt/String.hh"
+#include "adt/IAllocator.hh"
+#include "adt/assert.hh"
 
 namespace adt
 {
@@ -37,6 +38,9 @@ struct String2
 
     isize push(IAllocator* pAlloc, char c);
     isize push(IAllocator* pAlloc, const StringView sv);
+
+    void reallocWith(IAllocator* pAlloc, const StringView sv);
+    void removeNLEnd(bool bDestructive) noexcept;
 
 protected:
     void grow(IAllocator* pAlloc, isize newCap);
@@ -96,6 +100,7 @@ String2::String2(IAllocator* pAlloc, const StringView sv)
 inline isize
 String2::push(IAllocator* pAlloc, char c)
 {
+    ADT_ASSERT(m_cap >= 16, "{}", m_cap);
     if (m_cap == 16)
     {
         const isize firstSize = m_sf.size();
@@ -130,6 +135,7 @@ String2::push(IAllocator* pAlloc, char c)
 inline isize
 String2::push(IAllocator* pAlloc, const StringView sv)
 {
+    ADT_ASSERT(m_cap >= 16, "{}", m_cap);
     if (m_cap == 16)
     {
         const isize firstSize = m_sf.size();
@@ -164,6 +170,65 @@ String2::push(IAllocator* pAlloc, const StringView sv)
         m_size += sv.m_size;
         return ret;
     }
+}
+
+inline void
+String2::reallocWith(IAllocator* pAlloc, const StringView sv)
+{
+    ADT_ASSERT(m_cap >= 16, "{}", m_cap);
+    if (m_cap <= 16)
+    {
+        const isize firstSize = m_sf.size();
+        if (sv.m_size > 15)
+        {
+            const isize newCap = nextPowerOf2(sv.m_size + 1);
+            char* pNew = pAlloc->zallocV<char>(newCap);
+            ::memcpy(pNew, sv.m_pData, sv.m_size);
+            m_pData = pNew;
+            m_size = sv.m_size;
+            m_cap = newCap;
+
+            return;
+        }
+
+        ::memcpy(m_sf.data(), sv.m_pData, sv.m_size);
+        m_sf.data()[sv.m_size] = '\0';
+    }
+    else
+    {
+        if (sv.m_size + 1 > m_cap) grow(pAlloc, nextPowerOf2(sv.m_size + 1));
+        ::memcpy(m_pData, sv.m_pData, sv.m_size);
+        m_pData[sv.m_size] = '\0';
+        m_size = sv.m_size;
+    }
+}
+
+inline void
+String2::removeNLEnd(bool bDestructive) noexcept
+{
+    ADT_ASSERT(m_cap >= 16, "{}", m_cap);
+
+    isize size;
+    char* pData;
+
+    if (m_cap <= 16)
+    {
+        size = m_sf.size();
+        pData = m_sf.data();
+    }
+    else
+    {
+        pData = m_pData;
+        size = m_size;
+    }
+
+    while (size > 0 && (pData[size - 1] == '\n' || pData[size - 1] == '\r'))
+    {
+        if (bDestructive) pData[size - 1] = '\0';
+        --size;
+    }
+
+    if (m_cap > 16) m_size = size;
 }
 
 inline void

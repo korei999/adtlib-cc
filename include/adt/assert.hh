@@ -2,7 +2,7 @@
 
 #include "types.hh"
 
-#include "Logger-inl.hh"
+#include "ILogger.hh"
 
 #if __has_include(<unistd.h>)
     #include <unistd.h>
