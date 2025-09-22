@@ -8,28 +8,26 @@ using namespace adt;
 static void
 test()
 {
-    auto* pStd = StdAllocator::inst();
+    String2M s0 {"ooh my"};
+    defer( s0.destroy() );
 
-    String2 s0 {pStd, "ooh my"};
-    defer( s0.destroy(pStd) );
-
-    s0.push(pStd, ' ');
-    s0.push(pStd, 'h');
-    s0.push(pStd, 'o');
-    s0.push(pStd, 'n');
-    s0.push(pStd, 'e');
-    s0.push(pStd, 'y');
+    s0.push(' ');
+    s0.push('h');
+    s0.push('o');
+    s0.push('n');
+    s0.push('e');
+    s0.push('y');
     ADT_ASSERT(StringView(s0) == "ooh my honey", "{}", s0);
 
-    s0.push(pStd, " you got me");
+    s0.push(" you got me");
     ADT_ASSERT(StringView(s0) == "ooh my honey you got me", "{}", s0);
 
-    s0.push(pStd, " working day n night...");
+    s0.push(" working day n night...");
     ADT_ASSERT(StringView(s0) == "ooh my honey you got me working day n night...", "{}", s0);
 
     LogInfo{"s0: ({}) '{}'\n", s0.size(), s0};
 
-    s0.reallocWith(pStd, "asdf\r\n\r\n");
+    s0.reallocWith("asdf\r\n\r\n");
     ADT_ASSERT(StringView(s0) == "asdf\r\n\r\n", "{}", s0);
 
     s0.removeNLEnd(true);

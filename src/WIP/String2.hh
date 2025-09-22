@@ -46,6 +46,25 @@ protected:
     void grow(IAllocator* pAlloc, isize newCap);
 };
 
+template<typename ALLOC_T = StdAllocatorNV>
+struct String2Managed : String2
+{
+    using Base = String2;
+
+    String2Managed() = default;
+    String2Managed(const StringView sv) : Base{ALLOC_T::inst(), sv} {}
+
+    /* */
+
+    auto* allocator() const noexcept { return ALLOC_T::inst(); }
+    void destroy() noexcept { Base::destroy(allocator()); }
+    isize push(char c) { return Base::push(allocator(), c); }
+    isize push(const StringView sv) { return Base::push(allocator(), sv); }
+    void reallocWith(const StringView sv) { Base::reallocWith(allocator(), sv); }
+};
+
+using String2M = String2Managed<>;
+
 inline void
 String2::destroy(IAllocator* pAlloc) noexcept
 {
