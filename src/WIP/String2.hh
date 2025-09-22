@@ -10,7 +10,7 @@ namespace adt
 struct String2
 {
     union {
-        StringFixed<16> m_sf {};
+        char m_aBuff[16] {};
         struct {
             char* m_pData;
             isize m_size;
@@ -46,6 +46,8 @@ protected:
     void grow(IAllocator* pAlloc, isize newCap);
 };
 
+static_assert(sizeof(String2) == 24);
+
 template<typename ALLOC_T = StdAllocatorNV>
 struct String2Managed : String2
 {
@@ -70,27 +72,27 @@ String2::destroy(IAllocator* pAlloc) noexcept
 {
     if (m_cap >= 17) pAlloc->free(m_pData);
     m_cap = 16;
-    m_sf.destroy();
+    ::memset(m_aBuff, 0, 16);
 }
 
 inline char*
 String2::data() noexcept
 {
-    if (m_cap <= 16) return m_sf.data();
+    if (m_cap <= 16) return m_aBuff;
     else return m_pData;
 }
 
 inline const char*
 String2::data() const noexcept
 {
-    if (m_cap <= 16) return m_sf.data();
+    if (m_cap <= 16) return m_aBuff;
     else return m_pData;
 }
 
 inline isize
 String2::size() const noexcept
 {
-    if (m_cap <= 16) return m_sf.size();
+    if (m_cap <= 16) return ::strnlen(m_aBuff, 16);
     else return m_size;
 }
 
@@ -105,8 +107,8 @@ String2::String2(IAllocator* pAlloc, const StringView sv)
 {
     if (sv.m_size <= 15)
     {
-        ::memcpy(m_sf.data(), sv.m_pData, sv.m_size);
-        m_sf.data()[sv.m_size] = '\0';
+        ::memcpy(m_aBuff, sv.m_pData, sv.m_size);
+        m_aBuff[sv.m_size] = '\0';
     }
     else
     {
@@ -124,12 +126,12 @@ String2::push(IAllocator* pAlloc, char c)
     ADT_ASSERT(m_cap >= 16, "{}", m_cap);
     if (m_cap == 16)
     {
-        const isize firstSize = m_sf.size();
+        const isize firstSize = ::strnlen(m_aBuff, 16);
         if (firstSize + 1 >= 16)
         {
             const isize newCap = m_cap * 2;
             char* pNew = pAlloc->zallocV<char>(newCap);
-            ::memcpy(pNew, m_sf.data(), firstSize);
+            ::memcpy(pNew, m_aBuff, firstSize);
             pNew[firstSize] = c;
 
             m_pData = pNew;
@@ -139,7 +141,7 @@ String2::push(IAllocator* pAlloc, char c)
             return firstSize;
         }
 
-        m_sf.data()[firstSize] = c;
+        m_aBuff[firstSize] = c;
         return firstSize;
     }
     else
@@ -159,12 +161,12 @@ String2::push(IAllocator* pAlloc, const StringView sv)
     ADT_ASSERT(m_cap >= 16, "{}", m_cap);
     if (m_cap == 16)
     {
-        const isize firstSize = m_sf.size();
+        const isize firstSize = ::strnlen(m_aBuff, 16);
         if (sv.m_size + firstSize + 1 > 16)
         {
             const isize newCap = nextPowerOf2(sv.m_size + firstSize + 1);
             char* pNew = pAlloc->zallocV<char>(newCap);
-            ::memcpy(pNew, m_sf.data(), firstSize);
+            ::memcpy(pNew, m_aBuff, firstSize);
             ::memcpy(pNew + firstSize, sv.m_pData, sv.m_size);
 
             m_pData = pNew;
@@ -175,7 +177,7 @@ String2::push(IAllocator* pAlloc, const StringView sv)
         }
         else
         {
-            ::memcpy(m_sf.data() + firstSize, sv.m_pData, sv.m_size);
+            ::memcpy(m_aBuff + firstSize, sv.m_pData, sv.m_size);
             return firstSize;
         }
     }
@@ -199,7 +201,7 @@ String2::reallocWith(IAllocator* pAlloc, const StringView sv)
     ADT_ASSERT(m_cap >= 16, "{}", m_cap);
     if (m_cap <= 16)
     {
-        const isize firstSize = m_sf.size();
+        const isize firstSize = ::strnlen(m_aBuff, 16);
         if (sv.m_size > 15)
         {
             const isize newCap = nextPowerOf2(sv.m_size + 1);
@@ -212,8 +214,8 @@ String2::reallocWith(IAllocator* pAlloc, const StringView sv)
             return;
         }
 
-        ::memcpy(m_sf.data(), sv.m_pData, sv.m_size);
-        m_sf.data()[sv.m_size] = '\0';
+        ::memcpy(m_aBuff, sv.m_pData, sv.m_size);
+        m_aBuff[sv.m_size] = '\0';
     }
     else
     {
@@ -234,8 +236,8 @@ String2::removeNLEnd(bool bDestructive) noexcept
 
     if (m_cap <= 16)
     {
-        size = m_sf.size();
-        pData = m_sf.data();
+        size = ::strnlen(m_aBuff, 16);
+        pData = m_aBuff;
     }
     else
     {
