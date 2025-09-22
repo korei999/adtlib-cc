@@ -211,4 +211,66 @@ struct StringFixed
     void destroy() noexcept;
 };
 
+/* Vec like, small string optimized String class. */
+struct VString
+{
+    union {
+        char m_aBuff[16] {};
+        struct {
+            char* m_pData;
+            isize m_size;
+        };
+    };
+    isize m_cap = 16;
+
+    /* */
+
+    VString() = default;
+    VString(IAllocator* pAlloc, const StringView sv);
+
+    operator StringView() noexcept { return StringView(data(), size()); }
+    operator const StringView() const noexcept { return StringView(const_cast<char*>(data()), size()); }
+
+    /* */
+
+    void destroy(IAllocator* pAlloc) noexcept;
+
+    char* data() noexcept;
+    const char* data() const noexcept;
+
+    bool empty() const noexcept;
+    isize size() const noexcept;
+    isize cap() const noexcept;
+
+    isize push(IAllocator* pAlloc, char c);
+    isize push(IAllocator* pAlloc, const StringView sv);
+
+    void reallocWith(IAllocator* pAlloc, const StringView sv);
+    void removeNLEnd(bool bDestructive) noexcept;
+
+protected:
+    void grow(IAllocator* pAlloc, isize newCap);
+};
+
+static_assert(sizeof(VString) == 24);
+
+template<typename ALLOC_T = StdAllocatorNV>
+struct VStringManaged : VString
+{
+    using Base = VString;
+
+    VStringManaged() = default;
+    VStringManaged(const StringView sv) : Base{ALLOC_T::inst(), sv} {}
+
+    /* */
+
+    auto* allocator() const noexcept { return ALLOC_T::inst(); }
+    void destroy() noexcept { Base::destroy(allocator()); }
+    isize push(char c) { return Base::push(allocator(), c); }
+    isize push(const StringView sv) { return Base::push(allocator(), sv); }
+    void reallocWith(const StringView sv) { Base::reallocWith(allocator(), sv); }
+};
+
+using VStringM = VStringManaged<>;
+
 } /* namespace adt */

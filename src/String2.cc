@@ -1,5 +1,3 @@
-#include "WIP/String2.hh"
-
 #include "adt/ThreadPool.hh"
 #include "adt/Logger.hh"
 
@@ -8,7 +6,7 @@ using namespace adt;
 static void
 test()
 {
-    String2M s0 {"ooh my"};
+    VStringM s0 {"ooh my"};
     defer( s0.destroy() );
 
     s0.push(' ');
