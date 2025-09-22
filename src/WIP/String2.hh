@@ -50,6 +50,8 @@ inline void
 String2::destroy(IAllocator* pAlloc) noexcept
 {
     if (m_cap >= 17) pAlloc->free(m_pData);
+    m_cap = 16;
+    m_sf.destroy();
 }
 
 inline char*
