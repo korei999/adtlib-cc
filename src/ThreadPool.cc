@@ -4,8 +4,11 @@
 using namespace adt;
 
 static void
-usesThreadLocalArena(Arena* pArena)
+usesThreadLocalArena()
 {
+    Arena* pArena = IThreadPool::inst()->arena();
+    ArenaPushScope arenaScope {pArena};
+
     Vec<StringView> v {};
     for (isize i = 0; i < 10000; ++i)
     {
@@ -20,6 +23,10 @@ usesThreadLocalArena(Arena* pArena)
 int
 main()
 {
+    ThreadPool tp {1 << 11, SIZE_8G};
+    IThreadPool::setGlobal(&tp);
+    defer( tp.destroy() );
+
     Logger logger {stderr, ILogger::LEVEL::DEBUG, 1024, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
@@ -27,16 +34,11 @@ main()
     LogInfo{"ThreadPool test...\n"};
     {
 
-        ThreadPool tp {1 << 11, SIZE_8G};
-        defer( tp.destroy() );
-
         for (isize i = 0; i < 10000; ++i)
         {
-            tp.addRetry([&] {
-                {
-                    ArenaPushScope pushed {tp.arena()};
-                    usesThreadLocalArena(tp.arena());
-                }
+            tp.addRetry([] {
+                usesThreadLocalArena();
+                auto& tp = *IThreadPool::inst();
                 ADT_ASSERT_ALWAYS(tp.arena()->memoryUsed() == 0, "{}", tp.arena()->memoryUsed());
             });
         }

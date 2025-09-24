@@ -198,8 +198,8 @@ add_executable(STLAllocator
     STLAllocator.cc
 )
 
-add_executable(Context
-    Context.cc
+add_executable(Runtime
+    Runtime.cc
 )
 
 add_executable(String2
