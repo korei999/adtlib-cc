@@ -254,8 +254,9 @@ map(const char* ntsPath)
 namespace adt::print
 {
 
+template<>
 inline isize
-format(Context* pCtx, FormatArgs fArgs, file::TYPE e)
+format(Context* pCtx, FormatArgs fArgs, const file::TYPE& e)
 {
     static const char* map[] { "UNHANDLED", "FILE", "DIRECTORY", "ESIZE" };
     ADT_ASSERT((int)e <= (int)file::TYPE::ESIZE, "{}", (int)e);

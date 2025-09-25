@@ -66,7 +66,8 @@ private:
 namespace adt::print
 {
 
-inline u32
+template<>
+inline isize
 format(Context* pCtx, FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
 {
     char aBuff[256] {};

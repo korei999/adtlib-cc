@@ -567,8 +567,9 @@ using MapM = MapManaged<K, V, StdAllocatorNV, FN_HASH>;
 namespace print
 {
 
+template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const MAP_RESULT_STATUS eStatus)
+format(Context* ctx, FormatArgs fmtArgs, const MAP_RESULT_STATUS& eStatus)
 {
     constexpr StringView map[] {
         "NOT_FOUND", "FOUND", "INSERTED"

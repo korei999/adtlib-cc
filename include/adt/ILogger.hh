@@ -47,7 +47,7 @@ struct ILogger
 namespace print
 {
 
-inline isize format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x);
+template<> inline isize format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x);
 
 } /* namespace print */
 

@@ -22,6 +22,7 @@ namespace adt
 namespace print
 {
 
+template<>
 inline isize
 format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
 {
