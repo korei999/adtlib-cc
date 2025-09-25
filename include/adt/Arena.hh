@@ -96,8 +96,16 @@ struct Arena : IArena
 
     /* */
 
+    Arena() = default;
     Arena(isize reserveSize, isize commitSize = getPageSize()) noexcept(false); /* AllocException */
-    Arena() noexcept = default;
+
+    Arena(Arena&&) noexcept;
+    Arena& operator=(Arena&&) noexcept;
+
+    Arena(Arena&) = delete;
+    void operator=(Arena&) = delete;
+
+    ~Arena() noexcept;
 
     /* */
 
@@ -215,6 +223,39 @@ Arena::Arena(isize reserveSize, isize commitSize)
     }
 }
 
+inline
+Arena::Arena(Arena&& x) noexcept
+    : m_pData{utils::exchange(&x.m_pData, nullptr)},
+      m_pos{utils::exchange(&x.m_pos, 0)},
+      m_reserved{utils::exchange(&x.m_reserved, 0)},
+      m_pLastAlloc{utils::exchange(&x.m_pLastAlloc, nullptr)},
+      m_lDeleters{utils::exchange(&x.m_lDeleters, {})},
+      m_pLCurrentDeleters{utils::exchange(&x.m_pLCurrentDeleters, nullptr)}
+{
+}
+
+inline Arena&
+Arena::operator=(Arena&& x) noexcept
+{
+    if (this != &x)
+    {
+        m_pData = utils::exchange(&x.m_pData, nullptr);
+        m_pos = utils::exchange(&x.m_pos, 0);
+        m_reserved = utils::exchange(&x.m_reserved, 0);
+        m_pLastAlloc = utils::exchange(&x.m_pLastAlloc, nullptr);
+        m_lDeleters = utils::exchange(&x.m_lDeleters, {});
+        m_pLCurrentDeleters = utils::exchange(&x.m_pLCurrentDeleters, nullptr);
+    }
+
+    return *this;
+}
+
+inline
+Arena::~Arena() noexcept
+{
+    freeAll();
+}
+
 inline void*
 Arena::malloc(usize mCount, usize mSize)
 {
@@ -280,6 +321,8 @@ Arena::doesRealloc() const noexcept
 inline void
 Arena::freeAll() noexcept
 {
+    if (m_pData == nullptr) return;
+
     runDeleters();
 
 #ifdef ADT_ARENA_MMAP
@@ -290,8 +333,16 @@ Arena::freeAll() noexcept
 #else
 #endif
 
-    *this = {};
     ADT_ASAN_UNPOISON(m_pData, m_reserved);
+
+    m_pData = nullptr;
+    m_pos = 0;
+    m_reserved = 0;
+    m_commited = 0;
+    m_pLastAlloc = nullptr;
+    m_lastAllocSize = 0;
+    m_lDeleters.m_pHead = nullptr;
+    m_pLCurrentDeleters = nullptr;
 }
 
 template<typename T, typename ...ARGS>
