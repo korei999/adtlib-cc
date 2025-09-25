@@ -23,7 +23,7 @@ struct Arena : IArena
 {
     friend ArenaScope;
 
-    using PfnDeleter = void(*)(Arena*, void**);
+    using PfnDeleter = void(*)(void**);
 
     struct DeleterNode
     {
@@ -51,7 +51,7 @@ struct Arena : IArena
         }
 
         template<typename ...ARGS>
-        Ptr(void (*pfn)(Arena*, Ptr*), Arena* pArena, ARGS&&... args)
+        Ptr(void (*pfn)(Ptr*), Arena* pArena, ARGS&&... args)
             : ListNodeType{nullptr, {(void**)this, (PfnDeleter)pfn}},
               m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
         {
@@ -61,18 +61,16 @@ struct Arena : IArena
         /* */
 
         static void
-        nullptrDeleter(Arena*, Ptr* pPtr) noexcept
+        nullptrDeleter(Ptr* pPtr) noexcept
         {
-            if constexpr (!std::is_trivially_destructible_v<T>)
-                pPtr->m_pData->~T();
+            utils::destruct(pPtr->m_pData);
             pPtr->m_pData = nullptr;
         };
 
         static void
-        simpleDeleter(Arena*, Ptr* pPtr) noexcept
+        simpleDeleter(Ptr* pPtr) noexcept
         {
-            if constexpr (!std::is_trivially_destructible_v<T>)
-                pPtr->m_pData->~T();
+            utils::destruct(pPtr->m_pData);
         };
 
         /* */
@@ -360,7 +358,7 @@ inline void
 Arena::runDeleters() noexcept
 {
     for (auto e : *m_pLCurrentDeleters)
-        e.pfnDelete(this, e.ppObj);
+        e.pfnDelete(e.ppObj);
 
     m_pLCurrentDeleters->m_pHead = nullptr;
 }

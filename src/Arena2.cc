@@ -86,7 +86,7 @@ main()
             }
             LogDebug("offset after pop: {}\n", arena.memoryUsed());
 
-            Arena::Ptr<Destructive> p3 {[](Arena*, Arena::Ptr<Destructive>* pPtr) {
+            Arena::Ptr<Destructive> p3 {[](Arena::Ptr<Destructive>* pPtr) {
                 pPtr->m_pData->~Destructive();
                 pPtr->m_pData = nullptr;
             }, &arena, "p3"};
