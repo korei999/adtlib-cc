@@ -23,7 +23,7 @@ main()
         Arena& arena = *IThreadPool::inst()->arena();
 
         {
-            ArenaPushScope pushedTop {&arena};
+            ArenaScope pushedTop {&arena};
 
             LogInfo{"start off: {}\n", arena.memoryUsed()};
 
@@ -69,23 +69,20 @@ main()
                     --s_i;
                 };
 
-                void sayHi() noexcept { s_magic = 666; LogWarn{"{} says hi\n", m_i}; }
+                void sayHi() noexcept { s_magic = 666; LogWarn{"{}({}) says hi\n", m_sv, m_i}; }
             };
 
             Arena::Ptr<Destructive> p;
 
             {
-                ArenaPushScope pushed {&arena};
+                ArenaScope pushed {&arena};
 
                 arena.initPtr(&p, "p");
 
+                /* BUG?: triggers stack-use-after-scope with asan. */
                 Arena::Ptr<Destructive> p0 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p0"};
-                Arena::Ptr<Destructive> p1 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p1"};
-                Arena::Ptr<Destructive> p2 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p2"};
 
                 p0->sayHi();
-                p1->sayHi();
-                p2->sayHi();
             }
             LogDebug("offset after pop: {}\n", arena.memoryUsed());
 

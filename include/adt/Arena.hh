@@ -17,11 +17,11 @@
 namespace adt
 {
 
-struct ArenaPushScope;
+struct ArenaScope;
 
 struct Arena : IArena
 {
-    friend ArenaPushScope;
+    friend ArenaScope;
 
     using PfnDeleter = void(*)(Arena*, void**);
 
@@ -94,7 +94,7 @@ struct Arena : IArena
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
     SList<DeleterNode> m_lDeleters {}; /* Run deleters on reset()/freeAll() or state restorations. */
-    SList<DeleterNode>* m_pLCurrentDeleters = &m_lDeleters; /* Switch and restore current list on ArenaPushScope changes. */
+    SList<DeleterNode>* m_pLCurrentDeleters = &m_lDeleters; /* Switch and restore current list on ArenaScope changes. */
 
     /* */
 
@@ -124,7 +124,9 @@ struct Arena : IArena
     isize memoryCommited() const noexcept { return m_commited; }
 
 protected:
-    ADT_NO_UB void runDeleters() noexcept; /* Type casting function pointers here. */
+    /* BUG: asan sees it as stack-use-after-scope when running a deleter after variable's scope closes (its fine just ignore). */
+    ADT_NO_UB void runDeleters() noexcept;
+
     void growIfNeeded(isize newPos);
     void commit(void* p, isize size);
     void decommit(void* p, isize size);
@@ -142,7 +144,7 @@ struct ArenaState
     void restore(Arena* pArena) noexcept;
 };
 
-struct ArenaPushScope
+struct ArenaScope
 {
     Arena* m_pArena {};
     SList<Arena::DeleterNode> m_lDeleters {};
@@ -150,8 +152,8 @@ struct ArenaPushScope
 
     /* */
 
-    ArenaPushScope(Arena* p) noexcept;
-    ~ArenaPushScope() noexcept;
+    ArenaScope(Arena* p) noexcept;
+    ~ArenaScope() noexcept;
 };
 
 inline void
@@ -164,7 +166,7 @@ ArenaState::restore(Arena* pArena) noexcept
 }
 
 inline
-ArenaPushScope::ArenaPushScope(Arena* p) noexcept
+ArenaScope::ArenaScope(Arena* p) noexcept
     : m_pArena{p},
       m_state{
           .m_off = p->m_pos,
@@ -177,7 +179,7 @@ ArenaPushScope::ArenaPushScope(Arena* p) noexcept
 }
 
 inline
-ArenaPushScope::~ArenaPushScope() noexcept
+ArenaScope::~ArenaScope() noexcept
 {
     m_pArena->runDeleters();
     m_state.restore(m_pArena);

@@ -7,10 +7,7 @@
     #include <io.h>
 #endif
 
-namespace adt
-{
-
-namespace print
+namespace adt::print
 {
 
 template<>
@@ -22,9 +19,7 @@ format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
     return format(ctx, fmtArgs, mapStrings[(int)x + 1]);
 }
 
-} /* namespace print */
-
-} /* namespace adt */
+} /* namespace adt::print */
 
 #include "StdAllocator.hh"
 #include "IThreadPool.hh"
@@ -67,7 +62,7 @@ Log<ARGS...>::Log(ILogger::LEVEL eLevel, ARGS&&... args, const std::source_locat
         Arena* pArena = pTp->arena();
         if (pArena->memoryReserved() <= 0) goto fallbackToFixedBuffer;
 
-        ArenaPushScope arenaScope {pArena};
+        ArenaScope arenaScope {pArena};
         print::Builder pb {pArena, 512};
         StringView sv = pb.print(std::forward<ARGS>(args)...);
         while (pLogger->add(eLevel, loc, nullptr, sv) == ILogger::ADD_STATUS::FAILED)

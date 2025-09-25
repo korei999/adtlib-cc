@@ -24,7 +24,7 @@ test()
     pl.insert(pl.size() - 2, "{^}");
 
     {
-        ArenaPushScope sg {&arena};
+        ArenaScope sg {&arena};
         String s = pl.toString(&arena);
         LogDebug("s: '{}'\n", s);
         ADT_ASSERT_ALWAYS(s == "(+)Hello|INS<--->ERT|World[{^}*]", "s: '{}'", s);
@@ -54,7 +54,7 @@ test()
         LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
-        ArenaPushScope sg {&arena};
+        ArenaScope sg {&arena};
         String sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
         ADT_ASSERT_ALWAYS(sDefragmented == "(rld[{^}*]", "");
@@ -70,7 +70,7 @@ test()
         LogInfo("(4, |%|: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
-        ArenaPushScope sg {&arena};
+        ArenaScope sg {&arena};
         String sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
         ADT_ASSERT_ALWAYS(sDefragmented == "(|%rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
@@ -79,7 +79,7 @@ test()
     pl.remove(1, pl.size() - 2);
 
     {
-        ArenaPushScope sg {&arena};
+        ArenaScope sg {&arena};
         String s = pl.toString(&arena);
         LogInfo("({}): s: '{}'\n", s.size(), s);
         ADT_ASSERT_ALWAYS(s == "(]", "s: '{}'", s);
