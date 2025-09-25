@@ -222,7 +222,7 @@ struct LoggerNoSource : Logger
     using Logger::Logger;
 
     virtual isize
-    formatHeader(LEVEL eLevel, std::source_location, void* pExtra, Span<char> spBuff) noexcept override
+    formatHeader(LEVEL eLevel, std::source_location, void*, Span<char> spBuff) noexcept override
     {
         if (eLevel == LEVEL::NONE) return 0;
 

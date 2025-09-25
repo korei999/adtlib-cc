@@ -21,6 +21,10 @@ const isize BIG = 10000000;
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     {
         VecM<std::unique_ptr<Virtual>> v0;
         defer(

@@ -311,7 +311,7 @@ Map<K, V, FN_HASH>::emplaceHashed(IAllocator* p, const K& key, const usize keyHa
         };
     }
 
-    if constexpr (!std::is_trivially_destructible_v<K>) bucket.key.~K();
+    utils::destruct(&bucket.key);
     new(&bucket.key) K(key);
 
     ++m_nOccupied;
@@ -343,12 +343,10 @@ Map<K, V, FN_HASH>::remove(isize i)
 {
     auto& bucket = m_vBuckets[i];
 
-    if constexpr (!std::is_trivially_destructible_v<K>)
-        bucket.key.~K();
+    utils::destruct(&bucket.key);
     new(&bucket.key) K {};
 
-    if constexpr (!std::is_trivially_destructible_v<V>)
-        bucket.val.~V();
+    utils::destruct(&bucket.val);
     new(&bucket.val) V {};
 
     bucket.eFlags = MAP_BUCKET_FLAGS::DELETED;
@@ -513,7 +511,7 @@ Map<K, V, FN_HASH>::Map(IAllocator* pAllocator, isize prealloc, f32 loadFactor)
       m_nOccupied {},
       m_maxLoadFactor {loadFactor}
 {
-    ADT_ASSERT(isPowerOf2(m_vBuckets.cap()), "");
+    ADT_ASSERT(isPowerOf2(m_vBuckets.cap()), "{}", m_vBuckets.cap());
     m_vBuckets.setSize(pAllocator, m_vBuckets.cap());
 }
 

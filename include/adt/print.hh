@@ -112,7 +112,7 @@ Builder::push(const Span<const char> sp)
     {
         if (!m_pAlloc) return -1;
 
-        grow(utils::max(isize(8), nextPowerOf2(m_cap + sp.size())));
+        grow(utils::max(isize(8), 2 * (m_cap + sp.size())));
     }
 
     ::memcpy(m_pData + m_size, sp.data(), sp.size());
@@ -135,7 +135,7 @@ Builder::pushN(const char c, const isize nTimes)
     {
         if (!m_pAlloc) return -1;
 
-        grow(utils::max(isize(8), nextPowerOf2(m_cap + nTimes)));
+        grow(utils::max(isize(8), 2 * (m_cap + nTimes)));
     }
 
     ::memset(m_pData + m_size, c, nTimes);

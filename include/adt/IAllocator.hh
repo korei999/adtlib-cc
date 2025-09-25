@@ -23,6 +23,7 @@
     #define ADT_ASAN_UNPOISON(...) (void)0
 #endif
 
+/* HACK: Prevent destructor call for stack objects. */
 #define ADT_ALLOCA(Type, var, ...)                                                                                     \
     alignas(Type) adt::u8 var##Storage[sizeof(Type)];                                                                  \
     Type& var = *::new(static_cast<void*>(var##Storage)) Type {__VA_ARGS__}

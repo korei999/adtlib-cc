@@ -132,7 +132,7 @@ protected:
 
 struct ArenaState
 {
-    isize m_off {};
+    isize m_pos {};
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
     SList<Arena::DeleterNode>* m_pLCurrentDeleters {};
@@ -157,7 +157,8 @@ struct ArenaScope
 inline void
 ArenaState::restore(Arena* pArena) noexcept
 {
-    pArena->m_pos = m_off;
+    ADT_ASAN_POISON((u8*)pArena->m_pData + pArena->m_pos, pArena->m_pos - m_pos);
+    pArena->m_pos = m_pos;
     pArena->m_pLastAlloc = m_pLastAlloc;
     pArena->m_lastAllocSize = m_lastAllocSize;
     pArena->m_pLCurrentDeleters = m_pLCurrentDeleters;
@@ -167,7 +168,7 @@ inline
 ArenaScope::ArenaScope(Arena* p) noexcept
     : m_pArena{p},
       m_state{
-          .m_off = p->m_pos,
+          .m_pos = p->m_pos,
           .m_pLastAlloc = p->m_pLastAlloc,
           .m_lastAllocSize = p->m_lastAllocSize,
           .m_pLCurrentDeleters = p->m_pLCurrentDeleters
@@ -374,8 +375,8 @@ Arena::growIfNeeded(isize newPos)
         m_commited = newCommited;
     }
 
+    ADT_ASAN_UNPOISON((u8*)m_pData + m_pos, newPos - m_pos);
     m_pos = newPos;
-    ADT_ASAN_UNPOISON(m_pData, m_pos);
 }
 
 inline void

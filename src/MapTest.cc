@@ -1,6 +1,5 @@
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
-#include "adt/ArenaList.hh"
 #include "adt/Map.hh"
 #include "adt/Span.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh"
@@ -45,8 +44,7 @@ genRandomString(IAllocator* pAlloc)
 static void
 microBench()
 {
-    ArenaList arena(SIZE_8M * 10);
-    defer( arena.freeAll() );
+    Arena& arena = *IThreadPool::inst()->arena();
 
     constexpr isize BIG = 1000000;
 
@@ -220,7 +218,7 @@ main()
 
     {
         ArenaScope astate {&arena};
-        MapM<StringView, u32> mapWithInitializerList {
+        Map<StringView, u32> mapWithInitializerList {&arena,{
             {"one", 1},
             {"two", 2},
             {"three", 3},
@@ -228,7 +226,7 @@ main()
             {"five", 5},
             {"six", 6},
             {"seven", 7},
-        };
+        }};
 
         ADT_ASSERT_ALWAYS(mapWithInitializerList.search("one").value() == 1, "");
         ADT_ASSERT_ALWAYS(mapWithInitializerList.search("two").value() == 2, "");
@@ -243,7 +241,7 @@ main()
 
     {
         ArenaScope arenaScope {&arena};
-        MapM<char const*, int, hash::nullTermStringFunc> mapNtsToInt {
+        Map<char const*, int, hash::nullTermStringFunc> mapNtsToInt {&arena, {
             {"one", 1},
             {"two", 2},
             {"three", 3},
@@ -251,7 +249,7 @@ main()
             {"five", 5},
             {"six", 6},
             {"seven", 7},
-        };
+        }};
 
         ADT_ASSERT_ALWAYS(mapNtsToInt.search("one").value() == 1, "");
         ADT_ASSERT_ALWAYS(mapNtsToInt.search("two").value() == 2, "");
@@ -301,10 +299,10 @@ main()
         if (fNineHundredNinetyNine) LogDebug("found: {}\n", fNineHundredNinetyNine.data());
     }
 
-    LogDebug("map auto loop: ");
+    print::err("map auto loop: ");
     for (auto& [k, v] : map)
-        LogDebug("['{}', {}], ", k, v);
-    LogDebug("\n");
+        print::err("['{}', {}], ", k, v);
+    print::err("\n");
 
     Map<int, int, memeHash> map2(&arena);
     map2.insert(&arena, 12, 1);
