@@ -1,6 +1,6 @@
 #pragma once
 
-#include "String-inl.hh"
+#include "print-inl.hh"
 
 #include <source_location>
 #include <exception>
@@ -14,7 +14,10 @@
     {                                                                                                                  \
         adt::RuntimeException ex;                                                                                      \
         auto& aMsgBuff = ex.m_sfMsg.data();                                                                            \
-        adt::isize n = adt::print::toBuffer(aMsgBuff, sizeof(aMsgBuff) - 1, #CND);                                     \
+        adt::isize n = adt::print::toBuffer(                                                                           \
+            aMsgBuff, sizeof(aMsgBuff) - 1, "(RuntimeException, {}, {}): condition '" #CND "' failed",                 \
+            print::shorterSourcePath(__FILE__), __LINE__                                                               \
+        );                                                                                                             \
         n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, "\nMsg: ");                                  \
         n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, __VA_ARGS__);                                \
         throw ex;                                                                                                      \
@@ -23,33 +26,32 @@
 namespace adt
 {
 
-struct IException : std::exception
-{
-    IException() = default;
-    virtual ~IException() = default;
-};
-
-struct RuntimeException : public IException
+struct RuntimeException : public std::exception
 {
     StringFixed<256> m_sfMsg {};
-    std::source_location m_loc {};
 
 
     /* */
 
-    RuntimeException(std::source_location loc = std::source_location::current()) : m_sfMsg {}, m_loc {loc} {}
-    RuntimeException(const StringView svMsg, std::source_location loc = std::source_location::current())
-        : m_sfMsg(svMsg), m_loc {loc} {}
+    RuntimeException() = default;
+    RuntimeException(const StringView svMsg, std::source_location loc = std::source_location::current()) noexcept;
 
     virtual ~RuntimeException() = default;
 
     /* */
 
-    virtual const char*
-    what() const noexcept override
-    {
-        return m_sfMsg.data();
-    }
+    virtual const char* what() const noexcept override { return m_sfMsg.data(); }
 };
+
+inline
+RuntimeException::RuntimeException(const StringView svMsg, std::source_location loc) noexcept
+{
+    print::toSpan(m_sfMsg.data(),
+        "(RuntimeException, {}, {}): '{}'\n",
+        print::shorterSourcePath(loc.file_name()),
+        loc.line(),
+        svMsg
+    );
+}
 
 } /* namespace adt */

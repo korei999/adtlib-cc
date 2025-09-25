@@ -110,7 +110,7 @@ main()
             ADT_ASSERT_ALWAYS(s_magic == 666, "{}", s_magic);
         }
     }
-    catch (const IException& ex)
+    catch (const std::exception& ex)
     {
         LogDebug("{}\n", ex.what());
     }

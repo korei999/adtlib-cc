@@ -77,7 +77,7 @@ main()
         reallocZero();
         throws();
     }
-    catch (const IException& ex)
+    catch (const std::exception& ex)
     {
         print::err("{}\n", ex.what());
     }

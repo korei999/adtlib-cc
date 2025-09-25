@@ -1,8 +1,8 @@
 #pragma once
 
-#include "types.hh"
-#include "IException.hh"
+#include "print-inl.hh"
 
+#include <source_location>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -167,14 +167,22 @@ struct IArena : IAllocator
 };
 
 /* NOTE: allocator can throw on malloc/zalloc/realloc */
-struct AllocException : public IException
+struct AllocException : public std::bad_alloc
 {
     StringFixed<128> m_sfMsg {};
 
     /* */
 
     AllocException() = default;
-    AllocException(const StringView svMsg) : m_sfMsg {svMsg} {}
+    AllocException(const StringView svMsg, std::source_location loc = std::source_location::current()) noexcept
+    {
+        print::toSpan(m_sfMsg.data(),
+            "(AllocException, {}, {}): '{}'\n",
+            print::shorterSourcePath(loc.file_name()),
+            loc.line(),
+            svMsg
+        );
+    }
 
     /* */
 
@@ -194,7 +202,10 @@ struct AllocException : public IException
     {                                                                                                                  \
         adt::AllocException ex;                                                                                        \
         auto& aMsgBuff = ex.m_sfMsg.data();                                                                            \
-        adt::isize n = adt::print::toBuffer(aMsgBuff, sizeof(aMsgBuff) - 1, #CND);                                     \
+        adt::isize n = adt::print::toBuffer(                                                                           \
+            aMsgBuff, sizeof(aMsgBuff) - 1, "(AllocException, {}, {}): condition '" #CND "' failed",                   \
+            print::shorterSourcePath(__FILE__), __LINE__                                                               \
+        );                                                                                                             \
         n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, "\nMsg: ");                                  \
         n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, __VA_ARGS__);                                \
         throw ex;                                                                                                      \
@@ -205,7 +216,10 @@ struct AllocException : public IException
     {                                                                                                                  \
         adt::AllocException ex;                                                                                        \
         auto& aMsgBuff = ex.m_sfMsg.data();                                                                            \
-        adt::isize n = adt::print::toBuffer(aMsgBuff, sizeof(aMsgBuff) - 1, #CND);                                     \
+        adt::isize n = adt::print::toBuffer(                                                                           \
+            aMsgBuff, sizeof(aMsgBuff) - 1, "(AllocException, {}, {}): condition '" #CND "' failed",                   \
+            print::shorterSourcePath(__FILE__), __LINE__                                                               \
+        );                                                                                                             \
         n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, "\nMsg: ");                                  \
         n += adt::print::toBuffer(aMsgBuff + n, sizeof(aMsgBuff) - 1 - n, __VA_ARGS__);                                \
         throw ex;                                                                                                      \

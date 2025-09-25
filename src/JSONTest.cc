@@ -73,7 +73,7 @@ main(int argc, char* argv[])
         if (argc >= 3 && "-p" == StringView(argv[2]))
             p.print(StdAllocator::inst(), stdout);
     }
-    catch (IException& ex)
+    catch (const std::exception& ex)
     {
         print::err(ex.what());
     }
