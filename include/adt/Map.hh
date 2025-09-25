@@ -292,7 +292,7 @@ Map<K, V, FN_HASH>::emplaceHashed(IAllocator* p, const K& key, const usize keyHa
     V tmpVal = V (std::forward<ARGS>(args)...);
 
     ADT_DEFER(
-        utils::moveDestruct(&bucket.val, std::move(tmpVal));
+        utils::destructiveMove(&bucket.val, std::move(tmpVal));
         bucket.eFlags = MAP_BUCKET_FLAGS::OCCUPIED;
     );
 
