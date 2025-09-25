@@ -69,9 +69,9 @@ main()
         reallocZero();
         throws();
     }
-    catch (IException& pEx)
+    catch (const IException& ex)
     {
-        pEx.printErrorMsg(stderr);
+        print::err(ex.what());
     }
 
     ArenaList arena(SIZE_1K);

@@ -115,7 +115,7 @@ main()
     }
     catch (const IException& ex)
     {
-        LogDebug("{}\n", ex.getMsg());
+        LogDebug("{}\n", ex.what());
     }
 
     LogInfo{"Arena2 test passed\n"};

@@ -76,7 +76,7 @@ PieceList::insert(isize pos, const StringView sv)
     catch (const AllocException& ex)
     {
 #ifdef ADT_DBG_MEMORY
-        ex.printErrorMsg(stderr);
+        LogError{ex.what()};
 #endif
         if (rcp) rcp.unref();
         StdAllocator::inst()->free(pNew);
@@ -104,7 +104,7 @@ PieceList::insert(isize pos, isize size, Node* pNode)
     catch (const AllocException& ex)
     {
 #ifdef ADT_DBG_MEMORY
-        ex.printErrorMsg(stderr);
+        LogError{ex.what()};
 #endif
         pNode->data.m_rcpS.unref();
     }

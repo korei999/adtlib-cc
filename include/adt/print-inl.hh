@@ -104,7 +104,7 @@ inline isize parseFormatArg(FormatArgs* pArgs, const StringView fmt, isize fmtId
 template<typename T>
 inline isize intToBuffer(T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept;
 
-inline isize copyBackToContext(Context* pCtx, FormatArgs fmtArgs, const StringView sv);
+inline isize pushUsingFmtArgs(Context* pCtx, FormatArgs fmtArgs, const StringView sv);
 
 inline isize format(Context* pCtx, FormatArgs fmtArgs, const StringView str);
 

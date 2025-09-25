@@ -6,10 +6,16 @@
 namespace adt
 {
 
-struct Runtime
+struct Context
 {
-    ILogger* pLogger {};
-    IThreadPool* pThreadPool {};
+    static inline Context* g_pContext {};
+
+    static Context* inst() noexcept { return g_pContext; }
+
+    /* */
+
+    ILogger* m_pLogger {};
+    IThreadPool* m_pThreadPool {}; /* Owns thread_local arenas. */
 };
 
 } /* namespace adt */

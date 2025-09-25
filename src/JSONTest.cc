@@ -62,7 +62,7 @@ main(int argc, char* argv[])
 
         // defer( sJson.destroy(&al) );
 
-        json::Parser p {};
+        ADT_ALLOCA(json::Parser, p);
         bool eRes = p.parse(&al, sJson);
         if (!eRes) LOG_WARN("json::Parser::parse() failed\n");
         // defer( p.destroy() );
@@ -72,6 +72,6 @@ main(int argc, char* argv[])
     }
     catch (IException& ex)
     {
-        ex.printErrorMsg(stderr);
+        print::err(ex.what());
     }
 }

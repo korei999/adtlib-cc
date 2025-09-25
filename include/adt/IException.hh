@@ -1,8 +1,9 @@
 #pragma once
 
-#include "print-inl.hh"
+#include "String-inl.hh"
 
 #include <source_location>
+#include <exception>
 
 #define ADT_RUNTIME_EXCEPTION(CND)                                                                                     \
     if (!static_cast<bool>(CND))                                                                                       \
@@ -22,15 +23,10 @@
 namespace adt
 {
 
-struct IException
+struct IException : std::exception
 {
     IException() = default;
     virtual ~IException() = default;
-
-    /* */
-
-    virtual void printErrorMsg(FILE* fp) const = 0;
-    virtual StringView getMsg() const = 0;
 };
 
 struct RuntimeException : public IException
@@ -49,18 +45,10 @@ struct RuntimeException : public IException
 
     /* */
 
-    virtual void
-    printErrorMsg(FILE* fp) const override
+    virtual const char*
+    what() const noexcept override
     {
-        char aBuff[256] {};
-        print::toSpan(aBuff, "RuntimeException: ({}, {}): {}\n", print::shorterSourcePath(m_loc.file_name()), m_loc.line(), m_sfMsg);
-        fputs(aBuff, fp);
-    };
-
-    virtual StringView
-    getMsg() const override
-    {
-        return m_sfMsg;
+        return m_sfMsg.data();
     }
 };
 

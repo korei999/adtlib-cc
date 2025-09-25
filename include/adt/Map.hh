@@ -299,7 +299,7 @@ Map<K, V, FN_HASH>::emplaceHashed(IAllocator* p, const K& key, const usize keyHa
     if (bucket.key == key)
     {
 #ifndef NDEBUG
-        print::err("[Map::emplace]: updating value for existing key('{}'): old: '{}', new: '{}'\n",
+        LogWarn("updating value for existing key('{}'): old: '{}', new: '{}'\n",
             key, bucket.val, tmpVal
         );
 #endif
@@ -474,7 +474,7 @@ Map<K, V, FN_HASH>::searchHashed(const K& key, usize keyHash) const
             break;
         }
 
-        idx = utils::cycleForwardPowerOf2(idx, m_vBuckets.size());
+        idx = (idx + 1) & (m_vBuckets.size() - 1);
     }
 
     return res;
@@ -499,9 +499,9 @@ Map<K, V, FN_HASH>::insertionIdx(usize hash, const K& key) const
         if (m_vBuckets[idx].key == key) break;
 
 #if !defined NDEBUG && defined ADT_DBG_COLLISIONS
-        print::err("[Map::insertionIdx]: collision at: {} (keys: '{}' and '{}'), nCollisions: {}\n", idx, key, m_vBuckets[idx].key, m_nCollisions++);
+        LogWarn("collision at: {} (keys: '{}' and '{}'), nCollisions: {}\n", idx, key, m_vBuckets[idx].key, m_nCollisions++);
 #endif
-        idx = utils::cycleForwardPowerOf2(idx, m_vBuckets.size());
+        idx = (idx + 1) & (m_vBuckets.size() - 1);
     }
 
     return idx;

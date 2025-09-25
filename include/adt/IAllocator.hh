@@ -23,6 +23,10 @@
     #define ADT_ASAN_UNPOISON(...) (void)0
 #endif
 
+#define ADT_ALLOCA(Type, var, ...)                                                                                     \
+    alignas(Type) adt::u8 var##Storage[sizeof(Type)];                                                                  \
+    Type& var = *::new(static_cast<void*>(var##Storage)) Type {__VA_ARGS__}
+
 namespace adt
 {
 
@@ -177,15 +181,7 @@ struct AllocException : public IException
 
     /* */
 
-    virtual void
-    printErrorMsg(FILE* fp) const override
-    {
-        char aBuff[128] {};
-        print::toSpan(aBuff, "AllocException: '{}', errno: '{}'\n", m_sfMsg, strerror(errno));
-        fputs(aBuff, fp);
-    }
-
-    virtual StringView getMsg() const override { return m_sfMsg; }
+    virtual const char* what() const noexcept override { return m_sfMsg.data(); }
 };
 
 #define ADT_ALLOC_EXCEPTION(CND)                                                                                       \
