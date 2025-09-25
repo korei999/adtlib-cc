@@ -1,6 +1,5 @@
 #include "adt/Thread.hh"
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/Logger.hh"
 
 #include "WIP/QueueSPSC.hh"
@@ -24,7 +23,7 @@ popTheQ(void*)
             if (i.value() == -1) break;
 
             ADT_ASSERT_ALWAYS(i.value() == counter, "");
-            LOG_GOOD("i: {}\n", i.value());
+            LogDebug("i: {}\n", i.value());
             ++counter;
         }
         else
@@ -40,7 +39,11 @@ popTheQ(void*)
 int
 main()
 {
-    LOG_NOTIFY("QueueSPSCTest...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("QueueSPSCTest...\n");
 
     Thread consumer {popTheQ, nullptr};
 

@@ -1,5 +1,4 @@
 #include "adt/QueueArray.hh"
-#include "adt/logs.hh"
 #include "adt/defer.hh"
 #include "adt/ArenaList.hh"
 #include "adt/Queue.hh"
@@ -10,7 +9,11 @@ using namespace adt;
 int
 main()
 {
-    LOG_NOTIFY("Queue test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("Queue test...\n");
 
     ArenaList arena(SIZE_1K);
     defer( arena.freeAll() );
@@ -30,57 +33,56 @@ main()
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 1, "expected: 1, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 2, "expected: 2, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 3, "expected: 3, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 4, "expected: 4, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 5, "expected: 5, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 6, "expected: 6, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 7, "expected: 7, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         {
             int x = q.popFront();
             ADT_ASSERT_ALWAYS(x == 8, "expected: 8, got: {}", x);
-            LOG("x: {}\n", x);
+            LogDebug("x: {}\n", x);
         }
 
         ADT_ASSERT_ALWAYS(q.empty(), "must be empty, size: {}", q.size());
 
         for (const auto& e : q)
-            LOG("(#{}): {}\n", q.idx(&e), e);
-
-        CERR("\n");
+            print::err("(#{}): {}\n", q.idx(&e), e);
+        print::err("\n");
     }
 
     {
@@ -120,9 +122,8 @@ main()
         }
 
         for (const auto& e : q)
-            LOG("(#{}): {}\n", q.idx(&e), e);
-
-        CERR("\n");
+            print::err("(#{}): {}\n", q.idx(&e), e);
+        print::err("\n");
     }
 
     {
@@ -143,8 +144,8 @@ main()
         q0.pushFront(5);
         q0.pushFront(6);
 
-        LOG("q0: {}\n", q0);
+        LogDebug("q0: {}\n", q0);
     }
 
-    LOG_GOOD("Queue test passed\n");
+    LogInfo("Queue test passed\n");
 }

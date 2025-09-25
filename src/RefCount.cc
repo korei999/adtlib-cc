@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/RefCount.hh"
 #include "adt/ArenaList.hh"
 #include "adt/math.hh"
@@ -14,18 +13,22 @@ show(RefCountedPtr<T> rcp)
 {
     if (!rcp)
     {
-        LOG_WARN("!rcp\n");
+        LogWarn("!rcp\n");
         return;
     }
     RefScope refScope {&rcp};
 
-    LOG_GOOD("rcp: {}\n", *rcp);
+    LogInfo("rcp: {}\n", *rcp);
 }
 
 int
 main()
 {
-    LOG_NOTIFY("RefCount test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("RefCount test...\n");
 
     {
         RefCountedPtr<int> rcp = RefCountedPtr<int>::alloc(1);
@@ -97,5 +100,5 @@ main()
         defer( rpcArena.unref() );
     }
 
-    LOG_GOOD("RefCount test passed\n");
+    LogInfo("RefCount test passed\n");
 }

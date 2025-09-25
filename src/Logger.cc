@@ -1,5 +1,4 @@
 #include "adt/Logger.hh"
-#include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/math.hh" /* IWYU pragma: keep */
 
@@ -21,7 +20,7 @@ atomic::Num<i64> s_i;
 int
 main(int, char**)
 {
-    LOG_NOTIFY("Logger test...\n");
+    print::out("Logger test...\n");
 
     constexpr isize BIG = 30;
 
@@ -79,8 +78,8 @@ main(int, char**)
     {
         atomic::Int::Type i = s_i.load(atomic::ORDER::RELAXED);
         ADT_ASSERT_ALWAYS(i == BIG, "s_i: {}", i);
-        LOG_GOOD("i: {}\n", i);
+        print::out("i: {}\n", i);
     }
 
-    LOG_GOOD("Logger test passed.\n");
+    print::out("Logger test passed.\n");
 }

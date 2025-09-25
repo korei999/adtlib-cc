@@ -4,7 +4,6 @@
 #include "adt/Queue.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/file.hh"
-#include "adt/logs.hh"
 #include "json/Parser.hh"
 #include "adt/Arena.hh"
 #include "adt/Logger.hh"
@@ -20,9 +19,13 @@ main(int argc, char* argv[])
 {
     if (argc <= 1)
     {
-        COUT("usage: {} <path to json> [-p(print)|-e(json creation example)]\n", argv[0]);
+        print::out("usage: {} <path to json> [-p(print)|-e(json creation example)]\n", argv[0]);
         return 0;
     }
+
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
 
     if (argc >= 1 && StringView(argv[1]) == "-e")
     {
@@ -64,7 +67,7 @@ main(int argc, char* argv[])
 
         ADT_ALLOCA(json::Parser, p);
         bool eRes = p.parse(&al, sJson);
-        if (!eRes) LOG_WARN("json::Parser::parse() failed\n");
+        if (!eRes) LogWarn("json::Parser::parse() failed\n");
         // defer( p.destroy() );
 
         if (argc >= 3 && "-p" == StringView(argv[2]))

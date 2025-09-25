@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/ArenaList.hh"
 #include "adt/Vec.hh"
 #include "adt/ReverseIt.hh"
@@ -34,8 +33,8 @@ main()
         v0.emplace(new V0 {4});
 
         for (auto& e : v0)
-            CERR("{}, ", static_cast<const V0&>(*e));
-        CERR("\n");
+            print::err("{}, ", static_cast<const V0&>(*e));
+        print::err("\n");
     }
 
     {
@@ -49,10 +48,10 @@ main()
         v0.pop();
         What w = v0.pop();
 
-        CERR("v0: {}, w: {}\n", v0, w);
+        print::err("v0: {}, w: {}\n", v0, w);
     }
 
-    CERR("\n");
+    print::err("\n");
 
     {
         VecManaged<Move> v0;
@@ -63,12 +62,12 @@ main()
         v0.emplace(3);
         v0.emplace(4);
 
-        CERR("v0: {}\n", v0);
+        print::err("v0: {}\n", v0);
     }
 
     {
         auto a = alignUp8(123);
-        LOG("a: {}\n", a);
+        print::err("a: {}\n", a);
 
         ArenaList arena(SIZE_1K);
         defer( arena.freeAll() );
@@ -104,11 +103,11 @@ main()
 
         const int aSpan[] {999, 999, 999};
 
-        LOG_WARN("v: {}\n", v);
+        print::err("v: {}\n", v);
         v.pushSpanAt(4, aSpan);
-        LOG_GOOD("v: {}\n", v);
+        print::err("v: {}\n", v);
         v.pushSpanAt(10, aSpan);
-        LOG_NOTIFY("v: {}\n", v);
+        print::err("v: {}\n", v);
     }
 
     Vec<ArenaList> aArenas(StdAllocator::inst(), 1);
@@ -120,7 +119,7 @@ main()
     Vec<f64> vec(&aArenas[0]);
 
     for (auto what : vec)
-        LOG("asdf {}\n", what);
+        print::err("asdf {}\n", what);
 
     vec.push(&aArenas[0], 5.123);
     vec.push(&aArenas[0], 3.234);
@@ -190,7 +189,7 @@ main()
         for (u32 i = 0; i < BIG; ++i)
             vec.emplace(&a, i, i);
 
-        LOG("adt: {:.3} ms\n", timer.elapsedSec() * 1000.0);
+        print::err("adt: {:.3} ms\n", timer.elapsedSec() * 1000.0);
 
         vec.destroy(&a);
     }
@@ -203,7 +202,7 @@ main()
         for (u32 i = 0; i < BIG; ++i)
             stdvec.emplace_back(i, i);
 
-        LOG("std: {:.3} ms\n", timer.elapsedSec() * 1000.0);
+        print::err("std: {:.3} ms\n", timer.elapsedSec() * 1000.0);
     }
 
     {
@@ -217,7 +216,7 @@ main()
 
         ADT_ASSERT_ALWAYS(sort::sorted(v.data(), v.size(), sort::ORDER::INC), "");
 
-        LOG("sorted: {}\n", v);
+        print::err("sorted: {}\n", v);
     }
 
     {
@@ -226,6 +225,6 @@ main()
         for (int i = 0; i < 5; ++i)
             v.push(i);
 
-        LOG("managed: {}\n", v);
+        print::err("managed: {}\n", v);
     }
 }

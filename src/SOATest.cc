@@ -1,6 +1,6 @@
-#include "adt/logs.hh"
 #include "adt/math.hh"
 #include "adt/Logger.hh"
+#include "adt/ThreadPool.hh"
 
 using namespace adt;
 
@@ -97,6 +97,14 @@ static void what();
 int
 main()
 {
+    ThreadPool ztp {SIZE_1G};
+    IThreadPool::setGlobal(&ztp);
+    defer( ztp.destroy() );
+
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     // Create an SOA container for Entity.
     // The order of pointer-to-members determines the order of the stored arrays.
     SOA<Entity, EntityBind, 10, &Entity::pos, &Entity::rot, &Entity::scale, &Entity::id> pool;
@@ -109,23 +117,23 @@ main()
 
     {
         auto first = pool.bind(0);
-        LOG("first: {}\n", first);
+        LogDebug("first: {}\n", first);
         first.id = 999;
     }
 
     {
         auto first = pool.bind(0);
-        LOG("first: {}\n", first);
+        LogDebug("first: {}\n", first);
         auto& id = pool.bindMember<&Entity::id>(0);
         id = -1;
     }
 
     auto first = pool.bind(0);
-    LOG("first: {}\n", first);
+    LogDebug("first: {}\n", first);
 
     pool[0].id = 666;
 
-    LOG("first: {}\n", first);
+    LogDebug("first: {}\n", first);
 
     what();
 }
@@ -181,14 +189,14 @@ what()
     what.set(11);
 
     auto a = what.bindMember<&What::a>();
-    LOG("a: {}\n", a);
+    LogDebug("a: {}\n", a);
 
     WhatBind bind = what.bind();
     bind.a = 5;
 
     a = what.bindMember<&What::a>();
     auto& b = what.bindMember<&What::b>();
-    LOG("a: {}, b: {}\n", a, b);
+    LogDebug("a: {}, b: {}\n", a, b);
     b = -1;
-    LOG("a: {}, b: {}\n", a, b);
+    LogDebug("a: {}, b: {}\n", a, b);
 }

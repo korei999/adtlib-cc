@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/print.hh"
 #include "adt/Thread.hh"
 #include "adt/defer.hh"
@@ -24,6 +23,10 @@ thread(void* pArg)
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     int one = 1;
 
     {
@@ -35,14 +38,14 @@ main()
     }
 
     auto what = [] {
-        LOG("what\n");
+        LogDebug("what\n");
     };
 
     Thread thrd(what, Thread::ATTR::DETACHED);
     auto err = thrd.detach();
-    LOG("err: {}\n", err);
+    LogDebug("err: {}\n", err);
 
     utils::sleepMS(100.0);
 
-    LOG("one: {}\n", one);
+    LogDebug("one: {}\n", one);
 }

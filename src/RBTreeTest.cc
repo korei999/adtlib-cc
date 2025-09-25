@@ -1,13 +1,12 @@
 #include "adt/ArenaList.hh"
-#include "adt/Map.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/ReverseIt.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/defer.hh"
 #include "adt/Timer.hh"
-#include "adt/logs.hh"
 #include "adt/Logger.hh"
+#include "adt/ThreadPool.hh"
 
 #include "Types.hh"
 
@@ -18,8 +17,15 @@ using namespace adt;
 int
 main()
 {
-    ArenaList arena {SIZE_1K};
-    defer( arena.freeAll() );
+    ThreadPool ztp {SIZE_1G};
+    IThreadPool::setGlobal(&ztp);
+    defer( ztp.destroy() );
+
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    Arena& arena = *ztp.arena();
 
     {
         PoolAllocator pool {sizeof(RBTree<long>::Node), 200};
@@ -39,11 +45,11 @@ main()
         tree.removeAndFree(&pool, -3L);
         tree.removeAndFree(&pool, -6L);
 
-        LOG_GOOD("root: {}\n", *tree.root());
+        LogInfo("root: {}\n", *tree.root());
 
         RBTree<long>::printNodes(StdAllocator::inst(), tree.root(), stdout);
 
-        LOG("sizeof(RBTree<Empty>::Node): {}\n", sizeof(RBTree<Empty>::Node));
+        LogDebug("sizeof(RBTree<Empty>::Node): {}\n", sizeof(RBTree<Empty>::Node));
     }
 
     {
@@ -101,10 +107,10 @@ main()
 
         RBTree<int>::printNodes(&arena, t0.root(), stdout);
 
-        CERR("t0: {}\n", t0);
+        LogDebug("t0: {}\n", t0);
         for (auto& e : ReverseIt(t0))
-            CERR("{}, ", e);
-        CERR("\n\n");
+            LogDebug("{}, ", e);
+        LogDebug("\n\n");
     }
 
     {
@@ -149,8 +155,8 @@ main()
             isize total = 0;
             for (auto& e : t0) total += e;
 
-            LOG("for loop: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
-            CERR("\n");
+            LogDebug("for loop: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("\n");
         }
 
         {
@@ -163,8 +169,8 @@ main()
                 }
             );
 
-            LOG("traverseIn: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
-            CERR("\n");
+            LogDebug("traverseIn: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("\n");
         }
 
         {
@@ -176,8 +182,8 @@ main()
                     return false;
                 }
             );
-            LOG("traversePost: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
-            CERR("\n");
+            LogDebug("traversePost: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("\n");
         }
 
         {
@@ -189,8 +195,8 @@ main()
                     return false;
                 }
             );
-            LOG("traversePre: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
-            CERR("\n");
+            LogDebug("traversePre: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("\n");
         }
     }
 }

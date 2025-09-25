@@ -1,5 +1,4 @@
 #include "adt/FuncBuffer.hh"
-#include "adt/logs.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -7,12 +6,16 @@ using namespace adt;
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     {
         int i0 = 666;
         int i1 = 999;
         int i2 = 133345;
 
-        FuncBuffer<void, 12> fn0 {[=] { LOG_GOOD("HELLO: {}, {}, {}\n", i0, i1, i2); }};
+        FuncBuffer<void, 12> fn0 {[=] { LogInfo("HELLO: {}, {}, {}\n", i0, i1, i2); }};
         static_assert(sizeof(fn0) == 24);
 
         fn0();
@@ -28,7 +31,7 @@ main()
         fn1();
 
         FuncBuffer<void> fn2 {
-            [] { LOG_WARN("NULL\n"); }
+            [] { LogWarn("NULL\n"); }
         };
         static_assert(sizeof(fn2) == 16);
 

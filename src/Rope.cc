@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/ArenaList.hh"
 #include "adt/Logger.hh"
 
@@ -9,7 +8,11 @@ using namespace adt;
 int
 main()
 {
-    LOG_NOTIFY("Rope test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("Rope test...\n");
 
     {
         Rope r {};
@@ -42,5 +45,5 @@ main()
     }
 
 
-    LOG_GOOD("Rope test passed\n");
+    LogInfo("Rope test passed\n");
 }

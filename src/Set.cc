@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/Set.hh"
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
@@ -9,7 +8,11 @@ using namespace adt;
 int
 main()
 {
-    LOG_NOTIFY("Set test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("Set test...\n");
 
     ArenaList arena {SIZE_1K};
     defer( arena.freeAll() );
@@ -32,7 +35,7 @@ main()
 
         for (auto& key : s)
         {
-            CERR("key: {}, idx: {}\n", key, s.idx(&key));
+            print::err("key: {}, idx: {}\n", key, s.idx(&key));
         }
     }
 }

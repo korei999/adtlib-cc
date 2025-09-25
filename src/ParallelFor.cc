@@ -1,5 +1,4 @@
 #include "adt/Vec.hh"
-#include "adt/logs.hh"
 #include "adt/ArenaList.hh"
 #include "adt/math.hh"
 #include "adt/ThreadPool.hh"
@@ -10,7 +9,11 @@ using namespace adt;
 int
 main()
 {
-    LOG_NOTIFY("ParallelFor test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("ParallelFor test...\n");
 
     ArenaList arena {SIZE_1K * 3};
     defer( arena.freeAll() );
@@ -33,12 +36,12 @@ main()
 
     for (auto* pF : vFutures) pF->wait();
 
-    CERR("v: {}\n", v);
+    print::err("v: {}\n", v);
 
     for (isize i = 0; i < v.size(); ++i)
     {
         ADT_ASSERT_ALWAYS(math::eq(v[i], f32(i) + (6 * (f32(i) / 1.66f))), "v[{}]: {}, (expected: {})", i, v[i], f32(i) + (6 * (f32(i) / 1.66f)));
     }
 
-    LOG_GOOD("ParallelFor test passed\n");
+    LogInfo("ParallelFor test passed\n");
 }

@@ -5,10 +5,10 @@
 #include "adt/String.hh" /* IWYU pragma: keep */
 #include "adt/Vec.hh"    /* IWYU pragma: keep */
 #include "adt/defer.hh"  /* IWYU pragma: keep */
-#include "adt/logs.hh"   /* IWYU pragma: keep */
 #include "adt/Timer.hh"
 #include "adt/math.hh"   /* IWYU pragma: keep */
 #include "adt/Logger.hh" /* IWYU pragma: keep */
+#include "adt/ThreadPool.hh"
 
 #include <format>
 #include <tuple>
@@ -56,7 +56,15 @@ format(Context* pCtx, FormatArgs fmtArgs, const Hello& x)
 int
 main()
 {
-    LOG_NOTIFY("print test...\n");
+    ThreadPool ztp {SIZE_1G};
+    IThreadPool::setGlobal(&ztp);
+    defer( ztp.destroy() );
+
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("print test...\n");
 
     {
         Hello h;
@@ -162,7 +170,7 @@ main()
         u8 aBuff[32] {};
         BufferAllocator buff {aBuff};
 
-        LOG("realCap: {}\n", buff.realCap());
+        LogDebug("realCap: {}\n", buff.realCap());
 
         String s = print::toString(&buff, buff.realCap(), "\"({}): hello {} {}   \"", 666, "im", "toxic");
         print::out("s({}): '{}'\n", s.size(), s);
@@ -192,7 +200,7 @@ main()
         printf("(adt::print) formatted %lld in %g ms\n", BIG, t1);
     }
 
-    CERR("\n");
+    LogDebug("\n");
 
     {
         Timer timer {INIT};
@@ -208,7 +216,7 @@ main()
         printf("(snprintf) formatted %lld in %g ms\n", BIG, t1);
     }
 
-    CERR("\n");
+    LogDebug("\n");
 
     {
         Timer timer {INIT};
@@ -223,7 +231,7 @@ main()
         printf("(std::format_to) formatted %lld in %g ms\n", BIG, t1);
     }
 
-    CERR("\n");
+    LogDebug("\n");
 
 #ifdef GOT_FMT
     {
@@ -240,5 +248,5 @@ main()
     }
 #endif
 
-    LOG_GOOD("print test passed\n");
+    LogInfo("print test passed\n");
 }

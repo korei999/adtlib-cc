@@ -1,6 +1,5 @@
-#pragma once
 
-#include "adt/logs.hh"
+#include "adt/print.hh"
 
 struct What
 {
@@ -9,7 +8,7 @@ struct What
     What() : p {new int {0}} {}
     What(int i) : p {new int {i}} {}
     What(const What& r) : p {r.p ? new int {*r.p} : new int {0}} {}
-    ~What() noexcept { CERR("What({}) dies...\n", *p); delete p; }
+    ~What() noexcept { adt::print::err("What({}) dies...\n", *p); delete p; }
 };
 
 struct Move
@@ -19,8 +18,8 @@ struct Move
     Move() : p {new int {0}} {}
     Move(int i) : p {new int {i}} {}
     Move(const Move& r) : p {r.p ? new int {*r.p} : new int {0}} {}
-    Move(Move&& r) noexcept : p {std::exchange(r.p, new int {0})} { CERR("Move({}) moves...\n", *p); }
-    ~Move() noexcept { CERR("Move({}) dies...\n", *p); delete p; }
+    Move(Move&& r) noexcept : p {std::exchange(r.p, new int {0})} { adt::print::err("Move({}) moves...\n", *p); }
+    ~Move() noexcept { adt::print::err("Move({}) dies...\n", *p); delete p; }
 
     bool operator<(const Move& r) const { return *p < *r.p; }
     bool operator<=(const Move& r) const { return *p <= *r.p; }

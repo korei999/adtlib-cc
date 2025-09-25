@@ -1,7 +1,6 @@
 #include "adt/ArenaList.hh"
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/Heap.hh"
 #include "adt/Logger.hh"
 
@@ -22,8 +21,8 @@ main()
     h.pushMax(&arena, -2);
     h.pushMax(&arena, 8);
 
-    LOG("h: [{}]\n", h.m_vec);
+    print::err("h: [{}]\n", h.m_vec);
 
     while (h.m_vec.size() > 0)
-        LOG("max: {}\n", h.maxExtract());
+        print::err("max: {}\n", h.maxExtract());
 }

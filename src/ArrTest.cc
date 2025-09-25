@@ -1,6 +1,5 @@
 #include "adt/Array.hh"
 #include "adt/StdAllocator.hh"
-#include "adt/logs.hh"
 #include "adt/sort.hh"
 #include "adt/Logger.hh"
 
@@ -19,7 +18,7 @@ main()
     arr.push(4);
     arr.push(5);
 
-    COUT("arr: {}\n", arr);
+    print::out("arr: {}\n", arr);
 
     [[maybe_unused]] int i = 10;
 
@@ -36,7 +35,7 @@ main()
 
         ADT_ASSERT_ALWAYS(sort::sorted(a, sort::ORDER::INC), "");
 
-        LOG("sorted inc: {}\n", a);
+        print::err("sorted inc: {}\n", a);
     }
 
     {

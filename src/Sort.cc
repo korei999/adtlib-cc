@@ -3,7 +3,6 @@
 
 #include "adt/sort.hh"
 #include "adt/ArenaList.hh" /* IWYU pragma: keep */
-#include "adt/logs.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
 #include "adt/Timer.hh"
@@ -68,6 +67,10 @@ quick2(void* pArray, isize l, isize r, void* pSpace, void* pSwap, isize mSize, i
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     constexpr isize BIG = 200000;
     rng::PCG32 rng = 666;
 
@@ -98,7 +101,7 @@ main()
             {
                 Timer timer {INIT};
                 std::sort(v1.data(), v1.data() + v1.size());
-                LOG_NOTIFY("std::sort(StringM): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("std::sort(StringM): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
             }
 
             auto v2 = v0.clone();
@@ -106,7 +109,7 @@ main()
             {
                 Timer timer {INIT};
                 sort::quick(&v2);
-                LOG_NOTIFY("sort::quick(StringM): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("sort::quick(StringM): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
             }
 
             auto v3 = v0.clone();
@@ -116,7 +119,7 @@ main()
                 qsort(v3.data(), v3.size(), sizeof(*v3.data()), [](const void* pl, const void* pr) -> int {
                     return utils::compare(*(StringM*)pl, *(StringM*)pr);
                 });
-                LOG_NOTIFY("qsort(StringM): {} items in {} ms\n", v3.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("qsort(StringM): {} items in {} ms\n", v3.size(), timer.elapsedSec() * 1000.0);
             }
 
             auto v4 = v0.clone();
@@ -128,7 +131,7 @@ main()
                 quick2(v4.data(), 0, v4.size() - 1, aBuff0, aBuff1, sizeof(aBuff0), [](const void* pl, const void* pr) {
                     return utils::compare(*(StringM*)pl, *(StringM*)pr);
                 });
-                LOG_NOTIFY("quick2(StringM): {} items in {} ms\n", v4.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("quick2(StringM): {} items in {} ms\n", v4.size(), timer.elapsedSec() * 1000.0);
             }
 
             ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");
@@ -140,7 +143,7 @@ main()
         }
     }
 
-    CERR("\n");
+    print::err("\n");
 
     {
         constexpr isize QSIZE = 2048;
@@ -164,7 +167,7 @@ main()
 #else
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
 #endif
-            LOG_NOTIFY("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
         }
 
         auto v2 = v0.clone();
@@ -172,7 +175,7 @@ main()
         {
             Timer timer {INIT};
             sort::quickParallel(&tp, &v2);
-            LOG_NOTIFY("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
         }
 
         ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");
@@ -180,7 +183,7 @@ main()
             ADT_ASSERT_ALWAYS(v1[i] == v2[i], "(i: {}): {}, {}", i, v1[i], v2[i]);
     }
 
-    CERR("\n");
+    print::err("\n");
 
     {
         VecM<i64> v0 {BIG};
@@ -195,7 +198,7 @@ main()
         {
             Timer timer {INIT};
             std::sort(v1.data(), v1.data() + v1.size());
-            LOG_NOTIFY("std::sort(u32): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("std::sort(u32): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
         }
 
         auto v2 = v0.clone();
@@ -203,7 +206,7 @@ main()
         {
             Timer timer {INIT};
             sort::quick(&v2);
-            LOG_NOTIFY("sort::quick(u32): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("sort::quick(u32): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
         }
 
         ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");

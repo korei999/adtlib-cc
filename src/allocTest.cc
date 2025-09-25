@@ -1,9 +1,9 @@
-#include "adt/logs.hh"
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Logger.hh"
 #include "adt/Timer.hh"
+#include "adt/ThreadPool.hh"
 
 #include <vector>
 #include <limits>
@@ -26,7 +26,7 @@ reallocZero()
     errno = {};
     auto* what = os.realloc((void*)0, 0, 0, 0);
     os.free(what);
-    LOG_ERR("what: {}\n", what);
+    LogError("what: {}\n", what);
 }
 
 template<typename T>
@@ -64,6 +64,14 @@ bool operator!=(const ArenaSTD<T>&, const ArenaSTD<U>&) { return false; }
 int
 main()
 {
+    ThreadPool ztp {SIZE_1G};
+    IThreadPool::setGlobal(&ztp);
+    defer( ztp.destroy() );
+
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     try
     {
         reallocZero();
@@ -101,7 +109,7 @@ main()
         Timer timer {INIT};
         for (int i = 0; i < big; ++i)
             vecStd.push_back(i);
-        LOG("vecStd: {}\n", timer.elapsedSec());
+        LogDebug("vecStd: {}\n", timer.elapsedSec());
     }
 
     // {
@@ -110,8 +118,8 @@ main()
     //         vecArena.push_back(i);
     //     f64 t1 = time::nowMS() - t0;
 
-    //     LOG("vecArena: {}\n", t1);
+    //     LogDebug("vecArena: {}\n", t1);
     // }
 
-    LOG("{}, {}\n", (int)std::numeric_limits<char>::min(), (int)std::numeric_limits<char>::max());
+    LogDebug("{}, {}\n", (int)std::numeric_limits<char>::min(), (int)std::numeric_limits<char>::max());
 }

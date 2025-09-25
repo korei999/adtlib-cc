@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/SList.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/defer.hh"
@@ -27,7 +26,7 @@ main()
     list.insert(&alloc, 5);
     list.insert(&alloc, 6);
 
-    CERR("list: {}\n", list);
+    print::out("list: {}\n", list);
 
     list.destroy(&alloc);
 
@@ -38,6 +37,6 @@ main()
         l.insert(2);
         l.insert(3);
 
-        CERR("l: {}\n", l);
+        print::out("l: {}\n", l);
     }
 }

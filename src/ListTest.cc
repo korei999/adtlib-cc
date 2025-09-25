@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/List.hh"
 #include "adt/defer.hh"
 #include "adt/Logger.hh"
@@ -21,7 +20,7 @@ main()
     list.pushBack(0);
 
     list.sort<utils::compareRev<long>>();
-    LOG("list: {}\n", list);
+    print::err("list: {}\n", list);
     list.sort();
-    LOG("list: {:>5}\n", list);
+    print::err("list: {:>5}\n", list);
 }

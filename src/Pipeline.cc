@@ -1,5 +1,4 @@
 #include "adt/Pipeline.hh"
-#include "adt/logs.hh"
 #include "adt/Vec.hh"
 #include "adt/Logger.hh"
 
@@ -43,7 +42,11 @@ stage4(void* pArg)
 int
 main()
 {
-    LOG_NOTIFY("Pipeline test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("Pipeline test...\n");
 
     StdAllocator* pAl = StdAllocator::inst();
 
@@ -67,5 +70,5 @@ main()
     for (const int e : v)
         ADT_ASSERT_ALWAYS(e == 64, "e: {}", e);
 
-    LOG_GOOD("Pipeline test passed\n");
+    LogInfo("Pipeline test passed\n");
 }

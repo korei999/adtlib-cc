@@ -1,5 +1,4 @@
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/Pool.hh"
 #include "adt/Logger.hh"
 
@@ -23,6 +22,6 @@ main()
 
     for (const auto& h : p)
     {
-        LOG("#{}: h: {}\n", p.idx(&h), h);
+        print::err("#{}: h: {}\n", p.idx(&h), h);
     }
 }

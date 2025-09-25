@@ -2,7 +2,6 @@
 
 #include "adt/Arena.hh"
 #include "adt/StdAllocator.hh"
-#include "adt/logs.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -10,7 +9,11 @@ using namespace adt;
 int
 main(int argc, char** argv)
 {
-    LOG_NOTIFY("ArgvParser test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("ArgvParser test...\n");
 
     {
         // Arena arena {SIZE_1G};
@@ -46,5 +49,5 @@ main(int argc, char** argv)
         // cmd.printUsage(StdAllocator::inst());
     }
 
-    LOG_GOOD("ArgvParser test passed\n");
+    LogInfo("ArgvParser test passed\n");
 }

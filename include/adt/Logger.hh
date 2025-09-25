@@ -3,15 +3,6 @@
 #include "ILogger.hh"
 #include "String.hh" /* IWYU pragma: keep */
 
-#define ADT_LOGGER_COL_NORM  "\x1b[0m"
-#define ADT_LOGGER_COL_RED  "\x1b[31m"
-#define ADT_LOGGER_COL_GREEN  "\x1b[32m"
-#define ADT_LOGGER_COL_YELLOW  "\x1b[33m"
-#define ADT_LOGGER_COL_BLUE  "\x1b[34m"
-#define ADT_LOGGER_COL_MAGENTA  "\x1b[35m"
-#define ADT_LOGGER_COL_CYAN  "\x1b[36m"
-#define ADT_LOGGER_COL_WHITE  "\x1b[37m"
-
 #ifdef _MSC_VER
     #include <io.h>
 #endif

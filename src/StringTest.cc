@@ -1,7 +1,6 @@
 #include "adt/ArenaList.hh"
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/ReverseIt.hh"
 #include "adt/rng.hh"
 #include "adt/Thread.hh"
@@ -18,6 +17,10 @@ using namespace adt;
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     {
         constexpr StringView sv0 = "sv1";
         constexpr StringView sv1 = "sv2";
@@ -43,7 +46,7 @@ main()
 
     bool bHWha = sHello.contains("HWha");
 
-    LOG("null: {}, What: {}, is: {}, this: {}, Wh: {}, his: {}, HWha: {}\n", bNull, bWhat, bIs, bThis, bWh, bHis, bHWha);
+    LogDebug("null: {}, What: {}, is: {}, this: {}, Wh: {}, his: {}, HWha: {}\n", bNull, bWhat, bIs, bThis, bWh, bHis, bHWha);
 
     sHello.destroy(&arena);
 
@@ -67,12 +70,12 @@ main()
     {
         const StringView s = "私は日本語を話せません";
         ADT_ASSERT(s.endsWith("せません"), "");
-        COUT("s: '{}'\n", s);
+        print::out("s: '{}'\n", s);
 
-        COUT("\"");
+        print::out("\"");
         for (auto wc : StringWCharIt(s))
-            COUT("'{}'", wc);
-        COUT("\"\n");
+            print::out("'{}'", wc);
+        print::out("\"\n");
     }
 
     {
@@ -117,42 +120,42 @@ main()
     {
         constexpr StringView sv = "Z̤͔ͧ̑̓ä͖̭̈̇lͮ̒ͫǧ̗͚̚o̙̔ͮ̇͐̇";
         int i = 0;
-        COUT("{}\n", sv);
+        print::out("{}\n", sv);
         for (const wchar_t& g : StringWCharIt(sv))
-            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
+            print::out("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
     }
 
-    COUT("\n");
+    print::out("\n");
 
     {
         constexpr StringView sv = "| 🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
-        COUT("width of '{}': {}\n", "🇺🇦", utf8::computeWidth("🇺🇦"));
+        print::out("width of '{}': {}\n", "🇺🇦", utf8::computeWidth("🇺🇦"));
         int i = 0;
-        COUT("({}) glyphs...\n", sv);
+        print::out("({}) glyphs...\n", sv);
         for (const wchar_t& g : StringWCharIt(sv))
         {
-            COUT("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
+            print::out("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
         }
     }
 
-    COUT("\n");
+    print::out("\n");
 
     {
         /* even better */
         constexpr StringView sv = "Tëst 👨‍👩‍👦 🇺🇸 नी நி";
-        COUT("({}) even better...\n", sv);
+        print::out("({}) even better...\n", sv);
         int i = 0;
-        COUT("wchars...\n");
+        print::out("wchars...\n");
         for (const wchar_t& g : StringWCharIt(sv))
         {
-            COUT("({}): '{}' ({} / {:#x}), width: {}\n", i++, g, u32(g), u32(g), wcWidth(g));
+            print::out("({}): '{}' ({} / {:#x}), width: {}\n", i++, g, u32(g), u32(g), wcWidth(g));
         }
     }
 
     {
         String s0 = {&arena, "Release"};
         const String s1 = s0.release();
-        COUT("s0: '{}', s1: '{}'\n", s0, s1);
+        print::out("s0: '{}', s1: '{}'\n", s0, s1);
         ADT_ASSERT_ALWAYS(s0.empty(), "");
         ADT_ASSERT_ALWAYS(s1 == "Release", "");
     }
@@ -160,11 +163,11 @@ main()
     {
         struct DemangleVeryLong { struct IncreadiblyLongName { struct ActuallyWayTooLongNameItsCrazy {}; }; };
         DemangleVeryLong::IncreadiblyLongName::ActuallyWayTooLongNameItsCrazy demangle;
-        COUT("demangled: '{}'\n", demangle);
+        print::out("demangled: '{}'\n", demangle);
 
-        COUT("thread: '{}'\n", Thread {});
-        COUT("StdAllocator: '{}'\n", StdAllocator {});
-        COUT("arena: '{}'\n", arena);
+        print::out("thread: '{}'\n", Thread {});
+        print::out("StdAllocator: '{}'\n", StdAllocator {});
+        print::out("arena: '{}'\n", arena);
     }
 
     {
@@ -182,10 +185,10 @@ main()
         ADT_ASSERT_ALWAYS(StringView("s1") > StringView("s0"), "");
         ADT_ASSERT_ALWAYS(StringView("s0") < StringView("s1"), "");
 
-        COUT("v0: {}\n", v0);
+        print::out("v0: {}\n", v0);
     }
 
-    COUT("\n");
+    print::out("\n");
 
     {
         std::vector<std::string> v0;
@@ -200,8 +203,8 @@ main()
 
         sort::quick(&v0);
 
-        COUT("std::vector: {}\n", v0);
+        print::out("std::vector: {}\n", v0);
     }
 
-    COUT("StringTest: PASSED\n");
+    print::out("StringTest: PASSED\n");
 }

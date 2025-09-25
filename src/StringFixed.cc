@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -6,6 +5,10 @@ using namespace adt;
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     {
         const char* nts = "1234567890ABCD";
         StringFixed<10> sf10 {};
@@ -13,7 +16,7 @@ main()
 
         ADT_ASSERT_ALWAYS(sf10.data()[9] == '\0', "");
         ADT_ASSERT_ALWAYS(sf10 == "123456789", "");
-        LOG("sf: '{}'\n", sf10.data());
+        LogDebug("sf: '{}'\n", sf10.data());
     }
 
     {
@@ -23,6 +26,6 @@ main()
         ADT_ASSERT_ALWAYS(sf5.data()[4] == '\0', "");
         ADT_ASSERT_ALWAYS(sf5 == sf5_2, "");
         ADT_ASSERT_ALWAYS(sf5 == "1234", "");
-        LOG("sf5: '{}'\n", sf5);
+        LogDebug("sf5: '{}'\n", sf5);
     }
 }

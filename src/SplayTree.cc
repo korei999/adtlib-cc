@@ -1,4 +1,3 @@
-#include "adt/logs.hh"
 #include "adt/SplayTree.hh"
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
@@ -12,9 +11,13 @@ static char s_aBuff[SIZE_1M];
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     BufferAllocator tmpBuff {s_aBuff};
 
-    LOG_NOTIFY("SplayTree test...\n");
+    LogInfo("SplayTree test...\n");
 
     ArenaList arena {SIZE_1K};
     defer( arena.freeAll() );
@@ -50,5 +53,5 @@ main()
         st.print(&arena, stdout);
     }
 
-    LOG_GOOD("SplayTree test passed.\n");
+    LogInfo("SplayTree test passed.\n");
 }

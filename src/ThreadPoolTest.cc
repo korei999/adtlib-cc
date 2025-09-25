@@ -1,6 +1,5 @@
 #include "adt/StdAllocator.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh" /* IWYU pragma: keep */
-#include "adt/logs.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh" /* IWYU pragma: keep */
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/ScratchBuffer.hh" /* IWYU pragma: keep */
@@ -29,7 +28,11 @@ static atomic::Int i {0};
 int
 main()
 {
-    LOG_NOTIFY("ThreadPool test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("ThreadPool test...\n");
 
     ThreadPool tp {512, SIZE_1G};
     defer( tp.destroy() );
@@ -54,5 +57,5 @@ main()
         ADT_ASSERT_ALWAYS(got == NTASKS + 4, "expected: {}, got: {}, ({})", NTASKS + 4, got, i.load(atomic::ORDER::RELAXED));
     }
 
-    LOG_GOOD("ThreadPool test passed...\n");
+    LogInfo("ThreadPool test passed...\n");
 }

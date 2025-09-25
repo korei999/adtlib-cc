@@ -1,5 +1,4 @@
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/Logger.hh"
 
@@ -15,7 +14,11 @@ static atomic::Int s_atomCounter {};
 int
 main()
 {
-    LOG_NOTIFY("QueueMPMC test...\n");
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
+    LogInfo("QueueMPMC test...\n");
 
     ThreadPool tp {128, SIZE_8G};
     defer( tp.destroy() );
@@ -50,5 +53,5 @@ main()
 
     ADT_ASSERT_ALWAYS(s_atomCounter.load(atomic::ORDER::RELAXED) == BIG, "{}", s_atomCounter.load(atomic::ORDER::RELAXED));
 
-    LOG_GOOD("QueueMPMC test passed.\n");
+    LogInfo("QueueMPMC test passed.\n");
 }

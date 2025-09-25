@@ -1,6 +1,5 @@
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Array.hh"
 #include "adt/Timer.hh"
@@ -26,7 +25,7 @@ main()
         isize f = utils::binarySearchI(v, e);
         ADT_ASSERT_ALWAYS(f != NPOS && f + 1 == e, "f: {}, f + 1: {}, e: {}", f, f + 1, e);
     }
-    COUT("time: {}\n", timer.elapsedMSec());
+    print::out("time: {}\n", timer.elapsedMSec());
 
     return 0;
 }

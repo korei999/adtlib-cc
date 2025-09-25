@@ -3,7 +3,6 @@
 #include "adt/Vec.hh"
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
-#include "adt/logs.hh"
 #include "adt/math.hh"
 #include "adt/Timer.hh"
 #include "adt/Logger.hh"
@@ -38,6 +37,10 @@ ADT_SOA_GEN_STRUCT_ZERO(Entity, Bind, ENTITY_FIELDS);
 int
 main()
 {
+    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    ILogger::setGlobal(&logger);
+    defer( logger.destroy() );
+
     constexpr isize SIZE = 5000000;
 
     StdAllocator alloc;
@@ -65,9 +68,9 @@ main()
         }
 
         auto t1 = timer.elapsedMSec();
-        CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+        LogDebug("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
-        LOG_NOTIFY("SOA time: {:.3} ms\n\n", t1);
+        LogInfo("SOA time: {:.3} ms\n\n", t1);
     }
 
     {
@@ -100,9 +103,9 @@ main()
         }
 
         auto t1 = timer.elapsedMSec();
-        CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+        LogDebug("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
-        LOG_NOTIFY("SOA(offsets) time: {:.3} ms\n\n", t1);
+        LogInfo("SOA(offsets) time: {:.3} ms\n\n", t1);
     }
 
     {
@@ -127,8 +130,8 @@ main()
         }
 
         auto t1 = timer.elapsedMSec();
-        CERR("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
+        LogDebug("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
-        LOG_NOTIFY("AOS time: {:.3} ms\n\n", t1);
+        LogInfo("AOS time: {:.3} ms\n\n", t1);
     }
 }
