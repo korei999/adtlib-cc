@@ -79,7 +79,7 @@ main()
     }
     catch (const IException& ex)
     {
-        print::err(ex.what());
+        print::err("{}\n", ex.what());
     }
 
     ArenaList arena(SIZE_1K);

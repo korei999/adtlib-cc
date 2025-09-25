@@ -104,7 +104,7 @@ PieceList::insert(isize pos, isize size, Node* pNode)
     catch (const AllocException& ex)
     {
 #ifdef ADT_DBG_MEMORY
-        LogError{ex.what()};
+        LogError{"{}\n", ex.what()};
 #endif
         pNode->data.m_rcpS.unref();
     }

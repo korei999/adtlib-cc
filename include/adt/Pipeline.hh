@@ -167,7 +167,7 @@ Pipeline::stageLoop(void* pStage)
             }
             catch (const AllocException& ex)
             {
-                LogError{ex.what()};
+                LogError{"{}\n", ex.what()};
             }
         }
         else

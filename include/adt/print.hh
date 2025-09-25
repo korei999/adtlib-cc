@@ -73,7 +73,7 @@ Builder::print(const StringView fmt, const ARGS_T&... args)
     catch (const AllocException& ex)
     {
 #ifdef ADT_DBG_MEMORY
-        LogError{ex.what()};
+        LogError{"{}\n", ex.what()};
 #endif
         if (m_size > 0) m_pData[--m_size] = '\0';
         else return {};
@@ -783,7 +783,7 @@ toFILE(IAllocator* pAlloc, FILE* fp, const StringView fmt, const ARGS_T&... tArg
     catch (const AllocException& ex)
     {
 #ifdef ADT_DBG_MEMORY
-        LogError{ex.what()};
+        LogError{"{}\n", ex.what()};
 #endif
     }
 
@@ -838,7 +838,7 @@ toString(IAllocator* pAlloc, isize prealloc, const StringView fmt, const ARGS_T&
     catch (const AllocException& ex)
     {
 #ifdef ADT_DBG_MEMORY
-        LogError{ex.what()};
+        LogError{"{}\n", ex.what()};
 #endif
         if (builder.m_size > 0) builder.m_pData[--builder.m_size] = '\0';
         else return {};
