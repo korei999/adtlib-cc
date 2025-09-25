@@ -130,6 +130,7 @@ protected:
     void decommit(void* p, isize size);
 };
 
+/* Capture current state to restore it later with restore(). */
 struct ArenaState
 {
     isize m_pos {};

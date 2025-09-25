@@ -46,8 +46,7 @@ struct Builder
     /* */
 
     Builder() = default;
-    Builder(IAllocator* pAlloc) noexcept : m_pAlloc {pAlloc} {}
-    Builder(IAllocator* pAlloc, isize prealloc);
+    Builder(IAllocator* pAlloc, isize prealloc = 8);
     Builder(IAllocator* pAlloc, char* pBuff, isize buffSize) noexcept : m_pAlloc {pAlloc}, m_pData {pBuff}, m_cap {buffSize} {}
     Builder(char* pBuff, isize buffSize) noexcept : m_pData {pBuff}, m_cap {buffSize} {}
 

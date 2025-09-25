@@ -96,7 +96,7 @@ Builder::push(char c)
     {
         if (!m_pAlloc) return -1;
 
-        grow(utils::max(isize(8), m_cap * 2));
+        grow((m_cap+1) * 2);
     }
 
     m_pData[m_size++] = c;
@@ -112,7 +112,7 @@ Builder::push(const Span<const char> sp)
     {
         if (!m_pAlloc) return -1;
 
-        grow(utils::max(isize(8), 2 * (m_cap + sp.size())));
+        grow(2 * (m_cap + sp.size() + 1));
     }
 
     ::memcpy(m_pData + m_size, sp.data(), sp.size());
@@ -146,13 +146,14 @@ Builder::pushN(const char c, const isize nTimes)
 inline void
 Builder::grow(isize newCap)
 {
+    ADT_ASSERT(newCap > 0, "{}", newCap);
     char* pNewData {};
 
     if (!m_bDataAllocated)
     {
         pNewData = m_pAlloc->zallocV<char>(newCap);
         m_bDataAllocated = true;
-        memcpy(pNewData, m_pData, m_size);
+        if (m_size > 0) ::memcpy(pNewData, m_pData, m_size);
     }
     else
     {

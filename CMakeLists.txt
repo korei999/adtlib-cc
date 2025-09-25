@@ -20,8 +20,6 @@ option(OPT_MARCH_NATIVE "" OFF)
 include_directories(BEFORE "src")
 include_directories(BEFORE "include")
 
-add_definitions("-DADT_LOGS")
-add_definitions("-DADT_LOGS_LESS_TYPING")
 add_definitions("-DADT_DEFER_LESS_TYPING")
 add_definitions("-DADT_LOGGER_LEVEL=3")
 # add_definitions("-DADT_LOGGER_DISABLE")

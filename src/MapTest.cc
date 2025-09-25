@@ -35,8 +35,7 @@ genRandomString(IAllocator* pAlloc)
     auto pMem = pAlloc->zallocV<char>(size);
     auto s = String(pAlloc, pMem, size);
 
-    for (auto& ch : s)
-        ch = ntsChars[ s_rng.next() % len ];
+    for (auto& ch : s) ch = ntsChars[ s_rng.next() % len ];
 
     return s;
 }
@@ -51,8 +50,7 @@ microBench()
     Vec<String> vStrings {&arena, BIG};
     vStrings.setSize(&arena, BIG);
 
-    for (isize i = 0; i < BIG; ++i)
-        vStrings[i] = genRandomString(&arena);
+    for (isize i = 0; i < BIG; ++i) vStrings[i] = genRandomString(&arena);
 
     {
         MapM<int, int> map {};
@@ -205,6 +203,7 @@ main()
     }
 
     {
+        ArenaScope arenaScope {&arena};
         Map<std::string, int> map {&arena};
         defer( map.destroy(&arena) );
 
@@ -299,10 +298,13 @@ main()
         if (fNineHundredNinetyNine) LogDebug("found: {}\n", fNineHundredNinetyNine.data());
     }
 
-    print::err("map auto loop: ");
-    for (auto& [k, v] : map)
-        print::err("['{}', {}], ", k, v);
-    print::err("\n");
+    {
+        ArenaScope arenaScope {&arena};
+
+        print::Builder pb {&arena};
+        for (auto& [k, v] : map) pb.print("('{}', {}), ", k, v);
+        LogDebug("map auto loop: {}\n", StringView(pb));
+    }
 
     Map<int, int, memeHash> map2(&arena);
     map2.insert(&arena, 12, 1);
