@@ -3,9 +3,6 @@
 #include "print-inl.hh"
 
 #include <source_location>
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
 #include <utility>
 #include <new> /* IWYU pragma: keep */
 
