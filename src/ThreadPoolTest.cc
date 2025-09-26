@@ -2,7 +2,6 @@
 #include "adt/defer.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh" /* IWYU pragma: keep */
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
-#include "adt/ScratchBuffer.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh" /* IWYU pragma: keep */
 #include "adt/Logger.hh"
 
