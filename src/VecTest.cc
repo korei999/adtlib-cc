@@ -50,7 +50,10 @@ main()
         Vec<int> vMoved1;
         vMoved1 = std::move(vMoved0);
         Vec<int> vCopy1 {vMoved1};
-        LogDebug{"vCopy0: {}, vMoved0: {}, vCopy1: {}\n", vCopy0, vMoved0, vCopy1};
+        Vec<int> vCopy2;
+        vCopy2 = vCopy1;
+
+        LogDebug{"vCopy0: {}, vMoved0: {}, vMoved1: {}, vCopy1: {}, vCopy2: {}\n", vCopy0, vMoved0, vMoved1, vCopy1, vCopy2};
 
         {
             VecM<int> v0 {};

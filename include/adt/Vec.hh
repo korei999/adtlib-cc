@@ -345,11 +345,8 @@ template<typename T>
 inline void
 VecBase<T>::destroy(IAllocator* p) noexcept
 {
-    if (p)
-    {
-        p->dealloc(m_pData, m_size);
-        *this = {};
-    }
+    p->dealloc(m_pData, m_size);
+    *this = {};
 }
 
 template<typename T>
@@ -465,7 +462,7 @@ struct VecManaged : ALLOC_T, VecBase<T>
     VecManaged(const isize prealloc) : Base{allocator(), prealloc} {}
     VecManaged(const isize prealloc, const T& fillWith) : Base{allocator(), prealloc, fillWith} {}
 
-    ~VecManaged() noexcept { Base::destroy(allocator()); }
+    ~VecManaged() noexcept { if (allocator()) Base::destroy(allocator()); }
 
     VecManaged(VecManaged&&) noexcept;
     VecManaged& operator=(VecManaged&&) noexcept;
@@ -516,7 +513,7 @@ VecManaged<T, ALLOC_T>::VecManaged(VecManaged&& x) noexcept
     m_size = utils::exchange(&x.m_size, 0);
     m_cap = utils::exchange(&x.m_cap, 0);
 
-    if constexpr (!std::is_empty_v<ALLOC_T>)
+    if constexpr (std::is_same_v<ALLOC_T, IAllocatorMember>)
     {
         static_cast<ALLOC_T*>(this)->m_pAlloc = x.allocator();
         static_cast<ALLOC_T*>(&x)->m_pAlloc = nullptr;
@@ -533,7 +530,7 @@ VecManaged<T, ALLOC_T>::operator=(VecManaged&& x) noexcept
         m_size = utils::exchange(&x.m_size, 0);
         m_cap = utils::exchange(&x.m_cap, 0);
 
-        if constexpr (!std::is_empty_v<ALLOC_T>)
+        if constexpr (std::is_same_v<ALLOC_T, IAllocatorMember>)
             ALLOC_T::m_pAlloc = utils::exchange(&x.m_pAlloc, nullptr);
     }
 
@@ -545,7 +542,7 @@ inline
 VecManaged<T, ALLOC_T>::VecManaged(const VecManaged& x)
     : Base{x.allocator(), x.m_size}
 {
-    if constexpr (!std::is_empty_v<ALLOC_T>)
+    if constexpr (std::is_same_v<ALLOC_T, IAllocatorMember>)
         ALLOC_T::m_pAlloc = x.m_pAlloc;
 
     setSize(x.m_size);
@@ -558,10 +555,8 @@ VecManaged<T, ALLOC_T>::operator=(const VecManaged& x)
 {
     if (this != &x)
     {
-        destroy();
-
-        if constexpr (!std::is_empty_v<ALLOC_T>)
-            ALLOC_T::m_pAlloc = x.m_pAlloc;
+        if constexpr (std::is_same_v<ALLOC_T, IAllocatorMember>)
+            if (!allocator()) ALLOC_T::m_pAlloc = x.m_pAlloc;
 
         setSize(x.m_size);
         utils::memCopy(m_pData, x.m_pData, m_size);
