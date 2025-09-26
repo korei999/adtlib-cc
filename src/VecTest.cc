@@ -27,27 +27,14 @@ struct A
 
     virtual void hi() {};
 };
-struct B : A, ForceMemCopyable
+
+struct B : A
 {
     B(int _i, int _i1) : A(_i + _i1) {}
     virtual ~B() override {}
 
     virtual void hi() override final {};
 };
-
-struct C : B
-{
-    static constexpr bool ForceMemCopyableValue = false;
-};
-
-struct D : C
-{
-    static constexpr bool ForceMemCopyableValue = true;
-};
-
-static_assert(IsForcedMemCopyable<B>);
-static_assert(!IsForcedMemCopyable<C>);
-static_assert(IsForcedMemCopyable<D>);
 
 int
 main()

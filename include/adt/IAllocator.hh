@@ -63,18 +63,6 @@ getPageSize() noexcept
 #define ADT_WARN_LEAK [[deprecated("warning: memory leak")]]
 #define ADT_WARN_USE_AFTER_FREE [[deprecated("warning: use after free")]]
 
-/* Allow faster realloc. */
-struct ForceMemCopyable
-{
-    static constexpr bool ForceMemCopyableValue = true;
-};
-
-template<typename T>
-concept IsForcedMemCopyable =
-    std::is_base_of_v<ForceMemCopyable, std::remove_cvref_t<T>> &&
-    requires { { std::remove_cvref_t<T>::ForceMemCopyableValue } -> std::convertible_to<bool>; } &&
-    std::remove_cvref_t<T>::ForceMemCopyableValue == true;
-
 template<typename BASE>
 struct AllocatorHelperCRTP
 {
@@ -112,7 +100,7 @@ struct AllocatorHelperCRTP
     [[nodiscard]] constexpr T*
     relocate(T* p, usize oldCount, usize newCount) noexcept(false) /* AllocException */
     {
-        if constexpr (std::is_trivially_copyable_v<T> || IsForcedMemCopyable<T>)
+        if constexpr (std::is_trivially_destructible_v<T>)
         {
             return reallocV<T>(p, oldCount, newCount);
         }
