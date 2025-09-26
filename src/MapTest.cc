@@ -47,7 +47,7 @@ microBench()
 
     constexpr isize BIG = 1000000;
 
-    Vec<String> vStrings {&arena, BIG};
+    VecBase<String> vStrings {&arena, BIG};
     vStrings.setSize(&arena, BIG);
 
     for (isize i = 0; i < BIG; ++i) vStrings[i] = genRandomString(&arena);

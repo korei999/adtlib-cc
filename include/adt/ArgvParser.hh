@@ -30,7 +30,7 @@ struct ArgvParser
 
     IAllocator* m_pAlloc {};
     FILE* m_pFile {};
-    Vec<Arg<String>> m_vArgParsers {};
+    VecBase<Arg<String>> m_vArgParsers {};
     Map<StringView, isize> m_mStringToArgI {};
     String m_sFirst {};
     String m_sUsage {};

@@ -9,7 +9,7 @@ usesThreadLocalArena()
     Arena* pArena = IThreadPool::inst()->arena();
     ArenaScope arenaScope {pArena};
 
-    Vec<StringView> v {};
+    VecBase<StringView> v {};
     for (isize i = 0; i < 10000; ++i)
     {
         Span sp = {pArena->zallocV<char>(100), 100};

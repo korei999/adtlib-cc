@@ -66,6 +66,15 @@ getPageSize() noexcept
 #define ADT_WARN_LEAK [[deprecated("warning: memory leak")]]
 #define ADT_WARN_USE_AFTER_FREE [[deprecated("warning: use after free")]]
 
+/* Allow faster realloc. */
+struct ForceMemcpyable
+{
+    static constexpr bool Value = true;
+};
+
+template<typename T>
+concept IsMemCopyable = std::is_base_of_v<ForceMemcpyable, std::remove_cvref_t<T>> || std::is_trivially_copyable_v<std::remove_cvref_t<T>>;
+
 template<typename BASE>
 struct AllocatorHelperCRTP
 {
@@ -103,8 +112,7 @@ struct AllocatorHelperCRTP
     [[nodiscard]] constexpr T*
     relocate(T* p, usize oldCount, usize newCount) noexcept(false) /* AllocException */
     {
-        /* NOTE: Just never use self referential types and we good. */
-        if constexpr (std::is_trivially_destructible_v<T>)
+        if constexpr (IsMemCopyable<T>)
         {
             return reallocV<T>(p, oldCount, newCount);
         }
@@ -116,7 +124,8 @@ struct AllocatorHelperCRTP
             for (usize i = 0; i < oldCount; ++i)
             {
                 new(pNew + i) T {std::move(p[i])};
-                p[i].~T();
+                if constexpr (!std::is_trivially_destructible_v<T>)
+                    p[i].~T();
             }
 
             static_cast<BASE*>(this)->free(p);
@@ -164,6 +173,16 @@ struct IAllocator : AllocatorHelperCRTP<IAllocator>
 struct IArena : IAllocator
 {
     virtual constexpr void freeAll() noexcept = 0;
+};
+
+/* allocator() helper for Managed classes. */
+struct IAllocatorMember
+{
+    IAllocator* m_pAlloc {};
+
+    /* */
+
+    auto* ptr() const noexcept { return m_pAlloc; }
 };
 
 /* NOTE: allocator can throw on malloc/zalloc/realloc */

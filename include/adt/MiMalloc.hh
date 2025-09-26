@@ -24,6 +24,7 @@ struct MiMalloc : IAllocator
 struct MiMallocNV : AllocatorHelperCRTP<MiMallocNV>
 {
     [[nodiscard]] static MiMalloc* inst() noexcept { return MiMalloc::inst(); }
+    [[nodiscard]] static MiMalloc* ptr() noexcept { return MiMalloc::inst(); }
 
     [[nodiscard]] static void* malloc(usize mCount, usize mSize) noexcept(false)
     { return MiMalloc::inst()->malloc(mCount, mSize); }

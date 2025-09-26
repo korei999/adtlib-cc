@@ -31,6 +31,7 @@ struct StdAllocator : IAllocator
 struct StdAllocatorNV : AllocatorHelperCRTP<StdAllocatorNV>
 {
     [[nodiscard]] static StdAllocator* inst() noexcept { return StdAllocator::inst(); }
+    [[nodiscard]] static StdAllocator* ptr() noexcept { return StdAllocator::inst(); }
 
     [[nodiscard]] static void* malloc(usize mCount, usize mSize) noexcept(false)
     { return StdAllocator::inst()->malloc(mCount, mSize); }

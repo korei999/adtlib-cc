@@ -36,8 +36,8 @@ union Val
     adt::StringView s;
     adt::i64 l;
     adt::f64 d;
-    adt::Vec<Node> a;
-    adt::Vec<Node> o;
+    adt::VecBase<Node> a;
+    adt::VecBase<Node> o;
     bool b;
 };
 
@@ -109,7 +109,7 @@ class Parser
 {
     adt::IAllocator* m_pAlloc {};
     Lexer m_lex {};
-    adt::Vec<Node> m_aObjects {};
+    adt::VecBase<Node> m_aObjects {};
     Token m_token {};
 
     /* */
@@ -126,8 +126,8 @@ public:
     void print(adt::IAllocator* pAlloc, FILE* fp);
 
     /* if root json object consists of only one object return that, otherwise get array of root objects */
-    adt::Vec<Node>& getRoot();
-    const adt::Vec<Node>& getRoot() const;
+    adt::VecBase<Node>& getRoot();
+    const adt::VecBase<Node>& getRoot() const;
 
     /* pfn returns true for early return */
     void traverse(bool (*pfn)(Node* p, void* pFnArgs), void* pArgs, TRAVERSAL_ORDER eOrder);
@@ -152,7 +152,7 @@ void printNode(adt::IAllocator* pAlloc, FILE* fp, const Node* pNode, adt::String
 
 /* Linear search inside JSON object. Returns nullptr if not found */
 [[nodiscard]] inline Node*
-searchNode(adt::Vec<Node>& aObj, adt::StringView sKey)
+searchNode(adt::VecBase<Node>& aObj, adt::StringView sKey)
 {
     for (adt::u32 i = 0; i < aObj.size(); i++)
         if (aObj[i].svKey == sKey)
@@ -162,7 +162,7 @@ searchNode(adt::Vec<Node>& aObj, adt::StringView sKey)
 }
 
 [[nodiscard]] inline const Node*
-searchNode(const adt::Vec<Node>& aObj, adt::StringView sKey)
+searchNode(const adt::VecBase<Node>& aObj, adt::StringView sKey)
 {
     for (adt::u32 i = 0; i < aObj.size(); i++)
         if (aObj[i].svKey == sKey)
@@ -171,28 +171,28 @@ searchNode(const adt::Vec<Node>& aObj, adt::StringView sKey)
     return nullptr;
 }
 
-[[nodiscard]] inline adt::Vec<Node>&
+[[nodiscard]] inline adt::VecBase<Node>&
 getObject(Node* obj)
 {
     ADT_ASSERT(obj->tagVal.eTag == TAG::OBJECT, " ");
     return obj->tagVal.val.o;
 }
 
-[[nodiscard]] inline const adt::Vec<Node>&
+[[nodiscard]] inline const adt::VecBase<Node>&
 getObject(const Node* obj)
 {
     ADT_ASSERT(obj->tagVal.eTag == TAG::OBJECT, " ");
     return obj->tagVal.val.o;
 }
 
-[[nodiscard]] inline adt::Vec<Node>&
+[[nodiscard]] inline adt::VecBase<Node>&
 getArray(Node* obj)
 {
     ADT_ASSERT(obj->tagVal.eTag == TAG::ARRAY, " ");
     return obj->tagVal.val.a;
 }
 
-[[nodiscard]] inline const adt::Vec<Node>&
+[[nodiscard]] inline const adt::VecBase<Node>&
 getArray(const Node* obj)
 {
     ADT_ASSERT(obj->tagVal.eTag == TAG::ARRAY, " ");

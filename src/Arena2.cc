@@ -27,8 +27,8 @@ main()
 
             LogInfo{"start off: {}\n", arena.memoryUsed()};
 
-            Vec<isize> v0 {};
-            Vec<isize> v1 {};
+            VecBase<isize> v0 {};
+            VecBase<isize> v1 {};
 
             for (isize i = 0; i < 100; ++i)
             {

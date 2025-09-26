@@ -16,14 +16,57 @@
 
 using namespace adt;
 
-const isize BIG = 10000000;
+constexpr isize BIG = 30000000;
 
 int
 main()
 {
+    ThreadPool ztp {SIZE_1M * 64};
+    IThreadPool::setGlobal(&ztp);
+
     Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
+
+    Arena& arena = *ztp.arena();
+
+    {
+        Vec<int> v {&arena};
+        static_assert(sizeof(v) == 32);
+        v.push(0);
+        v.push(1);
+        v.push(2);
+        v.push(3);
+        v.push(4);
+        v.push(5);
+        v.push(6);
+
+        for (isize i = 0; i < v.size(); ++i)
+            ADT_ASSERT_ALWAYS(v[i] == i, "{}, {}", i, v[i]);
+        LogDebug{"v: {}\n", v};
+
+        auto vCopy0 {v};
+        auto vMoved0 = std::move(vCopy0);
+        Vec<int> vMoved1;
+        vMoved1 = std::move(vMoved0);
+        Vec<int> vCopy1 {vMoved1};
+        LogDebug{"vCopy0: {}, vMoved0: {}, vCopy1: {}\n", vCopy0, vMoved0, vCopy1};
+
+        {
+            VecM<int> v0 {};
+            v0.push(0);
+            v0.push(1);
+            v0.push(2);
+            v0.push(3);
+            v0.push(4);
+            v0.push(5);
+            v0.push(6);
+
+            VecM<int> v1 = std::move(v0);
+            static_assert(sizeof(v1) == 24);
+            LogDebug{"v0: {}, v1: {}\n", v0, v1};
+        }
+    }
 
     {
         VecM<std::unique_ptr<Virtual>> v0;
@@ -73,10 +116,7 @@ main()
         auto a = alignUp8(123);
         print::err("a: {}\n", a);
 
-        ArenaList arena(SIZE_1K);
-        defer( arena.freeAll() );
-
-        Vec<int> vec {&arena};
+        VecBase<int> vec {&arena};
         for (int i = 0; i < 100000; ++i)
             vec.push(&arena, i);
     }
@@ -114,13 +154,13 @@ main()
         print::err("v: {}\n", v);
     }
 
-    Vec<ArenaList> aArenas(StdAllocator::inst(), 1);
+    VecBase<ArenaList> aArenas(StdAllocator::inst(), 1);
     defer( aArenas.destroy(StdAllocator::inst()) );
 
     aArenas.push(StdAllocator::inst(), {SIZE_1M});
     defer( aArenas[0].freeAll() );
 
-    Vec<f64> vec(&aArenas[0]);
+    VecBase<f64> vec(&aArenas[0]);
 
     for (auto what : vec)
         print::err("asdf {}\n", what);
@@ -159,7 +199,7 @@ main()
         print::out("\n");
     }
 
-    struct A
+    struct A : ForceMemcpyable
     {
         int i = 0;
 
@@ -178,7 +218,7 @@ main()
 
     {
         ArenaList a(sizeof(u32) * BIG);
-        Vec<B> vec(&a, 77);
+        VecBase<B> vec(&a, 77);
         for (u32 i = 0; i < BIG / 4; ++i)
             vec.push(&a, {(int)i, 0});
         a.freeAll();
@@ -189,11 +229,11 @@ main()
 
         StdAllocator a;
 
-        Vec<B> vec(&a);
-        for (u32 i = 0; i < BIG; ++i)
+        VecBase<B> vec(&a);
+        for (isize i = 0; i < BIG; ++i)
             vec.emplace(&a, i, i);
 
-        print::err("adt: {:.3} ms\n", timer.elapsedSec() * 1000.0);
+        print::err("adt: {:.3} ms (cap: {})\n", timer.elapsedMSec(), vec.cap());
 
         vec.destroy(&a);
     }
@@ -202,11 +242,13 @@ main()
         Timer timer {INIT};
 
         std::vector<B> stdvec;
+        /* Testing relocation performance. */
+
         /*stdvec.reserve(big);*/
         for (u32 i = 0; i < BIG; ++i)
             stdvec.emplace_back(i, i);
 
-        print::err("std: {:.3} ms\n", timer.elapsedSec() * 1000.0);
+        print::err("std: {:.3} ms (cap: {})\n", timer.elapsedMSec(), stdvec.capacity());
     }
 
     {

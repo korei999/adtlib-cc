@@ -171,7 +171,7 @@ main()
     }
 
     {
-        Vec<String> v0;
+        VecBase<String> v0;
         rng::PCG32 rng = 666;
         for (isize i = 9; i >= 0; --i)
         {

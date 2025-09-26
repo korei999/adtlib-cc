@@ -21,13 +21,13 @@ main()
     ThreadPool tp {128, SIZE_8G};
     defer( tp.destroy() );
 
-    Vec<f32> v;
+    VecBase<f32> v;
     defer( v.destroy(&arena) );
 
     for (isize i = 0; i < 43; ++i)
         v.push(&arena, i);
 
-    Vec<IThreadPool::Future<Span<f32>>*> vFutures = parallelFor(&arena, &tp, Span<f32> {v},
+    VecBase<IThreadPool::Future<Span<f32>>*> vFutures = parallelFor(&arena, &tp, Span<f32> {v},
         [](Span<f32> spBatch, isize)
         {
             for (auto& e : spBatch) e += (6 * (e / 1.66f));

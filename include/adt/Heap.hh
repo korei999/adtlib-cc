@@ -28,7 +28,7 @@ HeapRightI(const isize i)
 template<typename T>
 struct Heap
 {
-    Vec<T> m_vec {};
+    VecBase<T> m_vec {};
 
     /* */
 
@@ -48,15 +48,15 @@ struct Heap
     void pushMax(IAllocator* pA, const T& x);
     [[nodiscard]] T minExtract();
     [[nodiscard]] T maxExtract();
-    void minSort(IAllocator* pA, Vec<T>* a);
-    void maxSort(IAllocator* pA, Vec<T>* a);
+    void minSort(IAllocator* pA, VecBase<T>* a);
+    void maxSort(IAllocator* pA, VecBase<T>* a);
 };
 
 template<typename T>
-inline Heap<T> HeapMinFromVec(IAllocator* pA, const Vec<T>& a);
+inline Heap<T> HeapMinFromVec(IAllocator* pA, const VecBase<T>& a);
 
 template<typename T>
-inline Heap<T> HeapMaxFromVec(IAllocator* pA, const Vec<T>& a);
+inline Heap<T> HeapMaxFromVec(IAllocator* pA, const VecBase<T>& a);
 
 template<typename T>
 inline void
@@ -107,7 +107,7 @@ inline void
 Heap<T>::minBubbleDown(isize i)
 {
     isize smallest, left, right;
-    Vec<T>& v = m_vec;
+    VecBase<T>& v = m_vec;
 
 GOTO_again:
     left = HeapLeftI(i);
@@ -133,7 +133,7 @@ inline void
 Heap<T>::maxBubbleDown(isize i)
 {
     isize largest, left, right;
-    Vec<T>& v = m_vec;
+    VecBase<T>& v = m_vec;
 
 GOTO_again:
     left = HeapLeftI(i);
@@ -172,7 +172,7 @@ Heap<T>::pushMax(IAllocator* pA, const T& x)
 
 template<typename T>
 inline Heap<T>
-HeapMinFromVec(IAllocator* pA, const Vec<T>& a)
+HeapMinFromVec(IAllocator* pA, const VecBase<T>& a)
 {
     Heap<T> q (pA, a.cap);
     q.m_vec.size = a.m_size;
@@ -186,7 +186,7 @@ HeapMinFromVec(IAllocator* pA, const Vec<T>& a)
 
 template<typename T>
 inline Heap<T>
-HeapMaxFromVec(IAllocator* pA, const Vec<T>& a)
+HeapMaxFromVec(IAllocator* pA, const VecBase<T>& a)
 {
     Heap<T> q (pA, a.cap);
     q.m_vec.size = a.m_size;
@@ -232,7 +232,7 @@ Heap<T>::maxExtract()
 
 template<typename T>
 inline void
-Heap<T>::minSort(IAllocator* pA, Vec<T>* a)
+Heap<T>::minSort(IAllocator* pA, VecBase<T>* a)
 {
     Heap<T> s = HeapMinFromVec(pA, *a);
 
@@ -244,7 +244,7 @@ Heap<T>::minSort(IAllocator* pA, Vec<T>* a)
 
 template<typename T>
 inline void
-Heap<T>::maxSort(IAllocator* pA, Vec<T>* a)
+Heap<T>::maxSort(IAllocator* pA, VecBase<T>* a)
 {
     Heap<T> s = HeapMaxFromVec(pA, *a);
 

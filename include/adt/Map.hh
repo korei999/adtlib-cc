@@ -98,7 +98,7 @@ struct MapResult
 template<typename K, typename V, usize (*FN_HASH)(const K&) = hash::func<K>>
 struct Map
 {
-    Vec<MapBucket<K, V>> m_vBuckets {};
+    VecBase<MapBucket<K, V>> m_vBuckets {};
     isize m_nOccupied {};
     f32 m_maxLoadFactor {};
 

@@ -77,9 +77,7 @@ struct ThreadPool : IThreadPool
     /* */
 
     ThreadPool() = default;
-
     ThreadPool(isize arenaReserve);
-
     ThreadPool(isize qSize, isize arenaReserve, int nThreads = optimalThreadCount());
 
     ThreadPool(
@@ -91,6 +89,14 @@ struct ThreadPool : IThreadPool
         isize arenaReserve,
         int nThreads = optimalThreadCount()
     );
+
+    ~ThreadPool() noexcept;
+
+    ThreadPool(ThreadPool&&) = delete;
+    void operator=(ThreadPool&&) = delete;
+
+    ThreadPool(const ThreadPool&) = delete;
+    void operator=(const ThreadPool&) = delete;
 
     /* */
 
@@ -150,6 +156,12 @@ ThreadPool::ThreadPool(
       m_arenaReserved(arenaReserve)
 {
     start();
+}
+
+inline
+ThreadPool::~ThreadPool() noexcept
+{
+    destroy();
 }
 
 inline THREAD_STATUS
@@ -323,7 +335,7 @@ ThreadPool::arena() noexcept
  * 
  *  for (auto* pF : vFutures) pF->wait(); */
 template<typename THREAD_POOL_T, typename T, typename CL_PROC_BATCH>
-[[nodiscard]] inline Vec<IThreadPool::Future<Span<T>>*>
+[[nodiscard]] inline VecBase<IThreadPool::Future<Span<T>>*>
 parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH clProcBatch, isize minBatchSize = 1)
 {
     if (spData.size() < 0) return {};
@@ -345,7 +357,7 @@ parallelFor(IArena* pArena, THREAD_POOL_T* pTp, Span<T> spData, CL_PROC_BATCH cl
         decltype(clProcBatch) cl {};
     };
 
-    Vec<IThreadPool::Future<Span<T>>*> vFutures {pArena, tailSize > 0 ? nThreads + 1 : nThreads};
+    VecBase<IThreadPool::Future<Span<T>>*> vFutures {pArena, tailSize > 0 ? nThreads + 1 : nThreads};
 
     auto clBatch = [&](isize off, isize size) {
         Arg* pArg = pArena->alloc<Arg>(pTp, Span<T> {spData.data() + off, size}, off, clProcBatch);

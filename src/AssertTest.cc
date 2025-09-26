@@ -14,7 +14,7 @@ main()
     ArenaList arena(SIZE_1K);
     defer( arena.freeAll() );
 
-    Vec<int> vec {&arena};
+    VecBase<int> vec {&arena};
     vec.push(&arena, 1);
     vec.push(&arena, 2);
 }

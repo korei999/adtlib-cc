@@ -96,7 +96,7 @@ main()
         }
 
         {
-            auto v1 = v0.clone();
+            auto v1 = v0;
             defer( v1.destroy() );
             {
                 Timer timer {INIT};
@@ -104,7 +104,7 @@ main()
                 LogDebug("std::sort(StringM): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
             }
 
-            auto v2 = v0.clone();
+            auto v2 = v0;
             defer( v2.destroy() );
             {
                 Timer timer {INIT};
@@ -112,7 +112,7 @@ main()
                 LogDebug("sort::quick(StringM): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
             }
 
-            auto v3 = v0.clone();
+            auto v3 = v0;
             defer( v3.destroy() );
             {
                 Timer timer {INIT};
@@ -122,7 +122,7 @@ main()
                 LogDebug("qsort(StringM): {} items in {} ms\n", v3.size(), timer.elapsedSec() * 1000.0);
             }
 
-            auto v4 = v0.clone();
+            auto v4 = v0;
             defer( v4.destroy() );
             {
                 Timer timer {INIT};
@@ -158,7 +158,7 @@ main()
         for (isize i = 0; i < v0.size(); ++i)
             v0[i] = isize(rng.next());
 
-        auto v1 = v0.clone();
+        auto v1 = v0;
         defer( v1.destroy() );
         {
             Timer timer {INIT};
@@ -170,7 +170,7 @@ main()
             LogDebug("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
         }
 
-        auto v2 = v0.clone();
+        auto v2 = v0;
         defer( v2.destroy() );
         {
             Timer timer {INIT};
@@ -193,7 +193,7 @@ main()
         for (isize i = 0; i < BIG; ++i)
             v0[i] = isize(rng.next());
 
-        auto v1 = v0.clone();
+        auto v1 = v0;
         defer( v1.destroy() );
         {
             Timer timer {INIT};
@@ -201,7 +201,7 @@ main()
             LogDebug("std::sort(u32): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
         }
 
-        auto v2 = v0.clone();
+        auto v2 = v0;
         defer( v2.destroy() );
         {
             Timer timer {INIT};
