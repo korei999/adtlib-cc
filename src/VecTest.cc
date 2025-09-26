@@ -18,6 +18,37 @@ using namespace adt;
 
 const isize BIG = 10000000;
 
+struct A
+{
+    int i = 0;
+
+    A(int _i) : i(_i) {}
+    virtual  ~A() {}
+
+    virtual void hi() {};
+};
+struct B : A, ForceMemCopyable
+{
+    B(int _i, int _i1) : A(_i + _i1) {}
+    virtual ~B() override {}
+
+    virtual void hi() override final {};
+};
+
+struct C : B
+{
+    static constexpr bool ForceMemCopyableValue = false;
+};
+
+struct D : C
+{
+    static constexpr bool ForceMemCopyableValue = true;
+};
+
+static_assert(IsForcedMemCopyable<B>);
+static_assert(!IsForcedMemCopyable<C>);
+static_assert(IsForcedMemCopyable<D>);
+
 int
 main()
 {
@@ -158,23 +189,6 @@ main()
             print::out("{}, ", e);
         print::out("\n");
     }
-
-    struct A
-    {
-        int i = 0;
-
-        A(int _i) : i(_i) {}
-        virtual  ~A() {}
-
-        virtual void hi() {};
-    };
-    struct B : A
-    {
-        B(int _i, int _i1) : A(_i + _i1) {}
-        virtual ~B() override {}
-
-        virtual void hi() override final {};
-    };
 
     {
         ArenaList a(sizeof(u32) * BIG);
