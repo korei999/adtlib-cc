@@ -15,6 +15,7 @@ struct PieceList
         /* */
 
         StringView view() noexcept { return {m_rcpS->data() + m_pos, m_size}; }
+        const StringView view() const noexcept { return {const_cast<char*>(m_rcpS->data()) + m_pos, m_size}; }
     };
 
     using ListType = List<Piece>;
