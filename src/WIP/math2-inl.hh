@@ -106,10 +106,10 @@ struct V3Base : V2Base<T>
     { return {static_cast<B>(x()), static_cast<B>(y()), static_cast<B>(z())}; }
 
     template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[3])(s))[i]; }
+    T& z() noexcept { return m_z; }
+    const T& z() const noexcept { return m_z; }
 
-    template<typename S> decltype(auto) z(this S&& s) noexcept { return s.m_z; }
-
-    V2B xy() const noexcept { return *static_cast<V2B*>(this); }
+    V2B xy() const noexcept { return *static_cast<const V2B*>(this); }
     V2B yz() const noexcept { return {y(), z()}; }
 
     bool operator==(const V3Base& r) const noexcept;
@@ -169,7 +169,8 @@ struct V4Base : V3Base<T>
 
     /* */
 
-    template<typename S> decltype(auto) w(this S&& s) noexcept { return s.m_w; }
+    T& w() noexcept { return m_w; }
+    const T& w() const noexcept { return m_w; }
 
     V3B xyz() const noexcept { return *static_cast<const V3B*>(this); }
     V2B zw() const noexcept { return {y(), z()}; }
@@ -204,94 +205,119 @@ struct V4Base : V3Base<T>
 using V4 = V4Base<f32>;
 using IV4 = V4Base<f32>;
 
-template<typename T>
-struct M2Base
+struct M2
 {
-    T m_a[2][2] {};
+    f32 m_a[2][2];
 
     /* */
 
-    M2Base() = default;
-    M2Base(InitFlag) noexcept;
-    M2Base(T _0, T _1, T _2, T _3) noexcept : m_a{_0, _1, _2, _3} {}
+    M2() noexcept : m_a{} {}
+    explicit M2(UninitFlag) noexcept {}
+    explicit M2(int) noexcept;
+    M2(f32 _0, f32 _1, f32 _2, f32 _3) noexcept : m_a{_0, _1, _2, _3} {}
 
     /* */
 
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[2*2])(s))[i]; }
-    template<typename S> decltype(auto) operator[](this S&& s, int i, int j) noexcept { return s.m_a[i][j]; }
+    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((V2(&)[2])(s))[i]; }
+    template<typename S> decltype(auto) data(this S&& s) noexcept { return (f32(&)[2*2])(s); }
 
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return ((T(&)[2*2])(s)); }
-    template<typename S> decltype(auto) v2s(this S&& s) noexcept { return ((V2Base<T>(&)[2])(s)); }
-
-    T det() const noexcept;
+    f32 det() const noexcept;
 };
 
-using M2 = M2Base<f32>;
-
-template<typename T>
-struct M3Base
+struct M3
 {
-    T m_a[3][3];
+    f32 m_a[3][3];
 
     /* */
 
-    constexpr M3Base() noexcept : m_a{} {}
-    explicit constexpr M3Base(int) noexcept;
-    explicit constexpr M3Base(UninitFlag) noexcept {}
-    constexpr M3Base(T _0, T _1, T _2, T _3, T _4, T _5, T _6, T _7, T _8) noexcept;
+    constexpr M3() noexcept : m_a{} {}
+    explicit constexpr M3(int) noexcept;
+    explicit constexpr M3(UninitFlag) noexcept {}
+    constexpr M3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8) noexcept;
+    constexpr M3(const V3& _0, const V3& _1, const V3& _2) noexcept;
 
     /* */
 
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[3*3])(s))[i]; }
-    template<typename S> decltype(auto) operator[](this S&& s, int i, int j) noexcept { return s.m_a[i][j]; }
+    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((V3(&)[3])(s))[i]; }
+    template<typename S> decltype(auto) data(this S&& s) noexcept { return (f32(&)[3*3])(s); }
 
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return ((T(&)[3*3])(s)); }
-    template<typename S> decltype(auto) v3s(this S&& s) noexcept { return ((V3Base<T>(&)[3])(s)); }
+    f32 det() const noexcept;
+    M3 minors() const noexcept;
+    M3 cofactors() const noexcept;
+    M3 transposed() const noexcept;
+    M3 adj() const noexcept;
+    M3 inv() const noexcept;
+    M3 normal() const noexcept;
+    M3 scaled(const f32 s) const noexcept;
+    M3 scaled(const V2 s) const noexcept;
 
-    T det() const noexcept;
-    M3Base minors() const noexcept;
-    M3Base cofactors() const noexcept;
-    M3Base transposed() const noexcept;
-    M3Base adj() const noexcept;
-    M3Base inv() const noexcept;
-    M3Base normal() const noexcept;
-    M3Base scaled(const f32 s) const noexcept;
-    M3Base scaled(const V2Base<T> s) const noexcept;
+    bool operator==(const M3& r) const noexcept;
 
-    bool operator==(const M3Base& r) const noexcept;
-
-    M3Base operator*(const f32 r) const noexcept;
-    M3Base& operator*=(const f32 r) noexcept;
-    friend M3Base operator*(const f32 l, const M3Base& r) noexcept { return r * l; }
-    V3Base<T> operator*(const V3Base<T>& r) const noexcept;
-    M3Base operator*(const M3Base& r) const noexcept;
-    M3Base& operator*=(const M3Base& r) noexcept;
+    M3 operator*(const f32 r) const noexcept;
+    M3& operator*=(const f32 r) noexcept;
+    friend M3 operator*(const f32 l, const M3& r) noexcept { return r * l; }
+    V3 operator*(const V3& r) const noexcept;
+    M3 operator*(const M3& r) const noexcept;
+    M3& operator*=(const M3& r) noexcept;
 };
 
-using M3 = M3Base<f32>;
-
-template<typename T>
-struct M4Base
+struct M4
 {
-    T m_a[4][4];
+    f32 m_a[4][4];
 
     /* */
 
-    constexpr M4Base() noexcept : m_a{} {}
-    explicit constexpr M4Base(UninitFlag) noexcept {};
-    explicit constexpr M4Base(int) noexcept;
-    constexpr M4Base(T _0, T _1, T _2, T _3, T _4, T _5, T _6, T _7, T _8, T _9, T _10, T _11, T _12, T _13, T _14, T _15) noexcept;
+    constexpr M4() noexcept : m_a{} {}
+    explicit constexpr M4(UninitFlag) noexcept {};
+    explicit constexpr M4(int) noexcept;
+    constexpr M4(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8, f32 _9, f32 _10, f32 _11, f32 _12, f32 _13, f32 _14, f32 _15) noexcept;
+    constexpr M4(const V4& _0, const V4& _1, const V4& _2, const V4& _3) noexcept;
 
     /* */
 
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[4*4])(s))[i]; }
-    template<typename S> decltype(auto) operator[](this S&& s, int i, int j) noexcept { return s.m_a[i][j]; }
+    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((V4(&)[4])(s))[i]; }
+    template<typename S> decltype(auto) data(this S&& s) noexcept { return ((f32(&)[4*4])(s)); }
 
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return ((T(&)[4*4])(s)); }
-    template<typename S> decltype(auto) v4s(this S&& s) noexcept { return ((V4Base<T>(&)[4])(s)); }
+    bool operator==(const M4& r) const noexcept;
+
+    M4 operator*(const f32 r) const noexcept;
+    M4 operator*(bool) = delete;
+    M4& operator*=(const f32 r) noexcept;
+    M4& operator*=(bool) = delete;
+    friend M4 operator*(const f32 l, const M4& r) noexcept { return r * l; }
+    V4 operator*(const V4& r) const noexcept;
+    M4 operator*(const M4& r) const noexcept;
+    M4& operator*=(const M4& r) noexcept;
+
+    f32 det() const noexcept;
+    M4 minors() const noexcept;
+    M4 cofactors() const noexcept;
+    M4 transposed() const noexcept;
+    M4 adj() const noexcept;
+    M4 inv() const noexcept;
+    M4 translated(const V3& tv) const noexcept;
+    M4 scaled(const f32 s) const noexcept;
+    M4 scaled(const V3& s) const noexcept;
+    M4 rotated(const f32 th, const V3& ax) const noexcept;
+    M4 rotatedX(const f32 th) const noexcept;
+    M4 rotatedY(const f32 th) const noexcept;
+    M4 rotatedZ(const f32 th) const noexcept;
+
+    static M4 translationFrom(const V3& tv) noexcept;
+    static M4 translationFrom(const f32 x, const f32 y, const f32 z) noexcept;
+    static M4 scaledFrom(const f32 s) noexcept;
+    static M4 scaledFrom(const V3& v) noexcept;
+    static M4 scaledFrom(f32 x, f32 y, f32 z) noexcept;
+    static M4 persFrom(const f32 fov, const f32 asp, const f32 n, const f32 f) noexcept;
+    static M4 orthoFrom(const f32 l, const f32 r, const f32 b, const f32 t, const f32 n, const f32 f) noexcept;
+    static M4 lookAtFrom(const V3& R, const V3& U, const V3& D, const V3& P) noexcept;
+    static M4 lookAtFrom(const V3& eyeV, const V3& centerV, const V3& upV) noexcept;
+    static M4 rotFrom(const f32 th, const V3& ax) noexcept;
+    static M4 rotXFrom(const f32 th) noexcept;
+    static M4 rotYFrom(const f32 th) noexcept;
+    static M4 rotZFrom(const f32 th) noexcept;
+    static M4 rotFrom(const f32 x, const f32 y, const f32 z) noexcept;
 };
-
-using M4 = M4Base<f32>;
 
 } /* namespace adt::math2 */
 
@@ -301,7 +327,8 @@ namespace adt::print
 template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::V2Base<T>& x);
 template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::V3Base<T>& x);
 template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::V4Base<T>& x);
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M2Base<T>& x);
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M3Base<T>& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M2& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M3& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x);
 
 } /* namespace adt::print */

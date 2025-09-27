@@ -562,9 +562,8 @@ V4Base<T>::dot(const V4Base& r) const noexcept
 #endif
 }
 
-template<typename T>
 inline
-M2Base<T>::M2Base(InitFlag) noexcept
+M2::M2(int) noexcept
     : m_a
     {
         1, 0,
@@ -573,17 +572,15 @@ M2Base<T>::M2Base(InitFlag) noexcept
 {
 }
 
-template<typename T>
-inline T
-M2Base<T>::det() const noexcept
+inline f32
+M2::det() const noexcept
 {
-    const M2Base& d = *this;
+    auto& d = data();
     return d[0]*d[3] - d[1]*d[2];
 }
 
-template<typename T>
 constexpr inline
-M3Base<T>::M3Base(int) noexcept
+M3::M3(int) noexcept
     : m_a
     {
         1, 0, 0,
@@ -593,9 +590,8 @@ M3Base<T>::M3Base(int) noexcept
 {
 }
 
-template<typename T>
 inline constexpr
-M3Base<T>::M3Base(T _0, T _1, T _2, T _3, T _4, T _5, T _6, T _7, T _8) noexcept
+M3::M3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8) noexcept
     : m_a
     {
         _0, _1, _2,
@@ -605,9 +601,19 @@ M3Base<T>::M3Base(T _0, T _1, T _2, T _3, T _4, T _5, T _6, T _7, T _8) noexcept
 {
 }
 
-template<typename T>
-inline T
-M3Base<T>::det() const noexcept
+inline constexpr
+M3::M3(const V3& _0, const V3& _1, const V3& _2) noexcept
+    : m_a
+    {
+        _0.x(), _0.y(), _0.z(),
+        _1.x(), _1.y(), _1.z(),
+        _2.x(), _2.y(), _2.z()
+    }
+{
+}
+
+inline f32
+M3::det() const noexcept
 {
     const auto& e = m_a;
     return (
@@ -617,29 +623,27 @@ M3Base<T>::det() const noexcept
     );
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::minors() const noexcept
+inline M3
+M3::minors() const noexcept
 {
     const auto& e = m_a;
     return {
-        M2Base<T>({e[1][1], e[1][2], e[2][1], e[2][2]}).det(),
-        M2Base<T>({e[1][0], e[1][2], e[2][0], e[2][2]}).det(),
-        M2Base<T>({e[1][0], e[1][1], e[2][0], e[2][1]}).det(),
+        M2({e[1][1], e[1][2], e[2][1], e[2][2]}).det(),
+        M2({e[1][0], e[1][2], e[2][0], e[2][2]}).det(),
+        M2({e[1][0], e[1][1], e[2][0], e[2][1]}).det(),
 
-        M2Base<T>({e[0][1], e[0][2], e[2][1], e[2][2]}).det(),
-        M2Base<T>({e[0][0], e[0][2], e[2][0], e[2][2]}).det(),
-        M2Base<T>({e[0][0], e[0][1], e[2][0], e[2][1]}).det(),
+        M2({e[0][1], e[0][2], e[2][1], e[2][2]}).det(),
+        M2({e[0][0], e[0][2], e[2][0], e[2][2]}).det(),
+        M2({e[0][0], e[0][1], e[2][0], e[2][1]}).det(),
 
-        M2Base<T>({e[0][1], e[0][2], e[1][1], e[1][2]}).det(),
-        M2Base<T>({e[0][0], e[0][2], e[1][0], e[1][2]}).det(),
-        M2Base<T>({e[0][0], e[0][1], e[1][0], e[1][1]}).det()
+        M2({e[0][1], e[0][2], e[1][1], e[1][2]}).det(),
+        M2({e[0][0], e[0][2], e[1][0], e[1][2]}).det(),
+        M2({e[0][0], e[0][1], e[1][0], e[1][1]}).det()
     };
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::cofactors() const noexcept
+inline M3
+M3::cofactors() const noexcept
 {
     M3 m = minors();
     auto& e = m.m_a;
@@ -652,9 +656,8 @@ M3Base<T>::cofactors() const noexcept
 }
 
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::transposed() const noexcept
+inline M3
+M3::transposed() const noexcept
 {
     auto& e = m_a;
     return {
@@ -664,30 +667,26 @@ M3Base<T>::transposed() const noexcept
     };
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::adj() const noexcept
+inline M3
+M3::adj() const noexcept
 {
     return cofactors().transposed();
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::inv() const noexcept
+inline M3
+M3::inv() const noexcept
 {
-    return (1.0f/det()) * adj();
+    return (1.0 / det()) * adj();
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::normal() const noexcept
+inline M3
+M3::normal() const noexcept
 {
     return inv().transposed();
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::scaled(const f32 s) const noexcept
+inline M3
+M3::scaled(const f32 s) const noexcept
 {
     M3 sm {
         s, 0, 0,
@@ -698,82 +697,74 @@ M3Base<T>::scaled(const f32 s) const noexcept
     return *this * sm;
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::scaled(const V2Base<T> s) const noexcept
+inline M3
+M3::scaled(const V2 s) const noexcept
 {
     M3 sm {
-        s.x, 0,   0,
-        0,   s.y, 0,
-        0,   0,   1
+        s.x(), 0,     0,
+        0,     s.y(), 0,
+        0,     0,     1
     };
 
     return *this * sm;
 }
 
-template<typename T>
 inline bool
-M3Base<T>::operator==(const M3Base& r) const noexcept
+M3::operator==(const M3& r) const noexcept
 {
     for (int i = 0; i < 9; ++i)
-        if (!eq((*this)[i], r[i]))
+        if (!eq(data()[i], r.data()[i]))
             return false;
 
     return true;
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::operator*(const f32 r) const noexcept
+inline M3
+M3::operator*(const f32 r) const noexcept
 {
     M3 m {UNINIT};
 
     for (int i = 0; i < 9; ++i)
-        m[i] = (*this)[i] * r;
+        m.data()[i] = data()[i] * r;
 
     return m;
 }
 
-template<typename T>
-inline M3Base<T>&
-M3Base<T>::operator*=(const f32 r) noexcept
+inline M3&
+M3::operator*=(const f32 r) noexcept
 {
     for (int i = 0; i < 9; ++i)
-        (*this)[i] *= r;
+        data()[i] *= r;
 
     return *this;
 }
 
-template<typename T>
-inline V3Base<T>
-M3Base<T>::operator*(const V3Base<T>& r) const noexcept
+inline V3
+M3::operator*(const V3& r) const noexcept
 {
-    return v3s()[0] * r.x() + v3s()[1] * r.y() + v3s()[2] * r.z();
+    return (*this)[0] * r.x() + (*this)[1] * r.y() + (*this)[2] * r.z();
 }
 
-template<typename T>
-inline M3Base<T>
-M3Base<T>::operator*(const M3Base& r) const noexcept
+inline M3
+M3::operator*(const M3& r) const noexcept
 {
     M3 m {UNINIT};
 
-    m.v3s()[0] = *this * r.v3s()[0];
-    m.v3s()[1] = *this * r.v3s()[1];
-    m.v3s()[2] = *this * r.v3s()[2];
+    m[0] = *this * r[0];
+    m[1] = *this * r[1];
+    m[2] = *this * r[2];
 
     return m;
 }
 
-template<typename T>
-inline M3Base<T>&
-M3Base<T>::operator*=(const M3Base& r) noexcept
+inline M3&
+M3::operator*=(const M3& r) noexcept
 {
     return *this = *this * r;
 }
 
-template<typename T>
 inline constexpr
-M4Base<T>::M4Base(int) noexcept
+M4::M4(int) noexcept
     : m_a
     {
         1, 0, 0, 0,
@@ -784,9 +775,8 @@ M4Base<T>::M4Base(int) noexcept
 {
 }
 
-template<typename T>
 inline constexpr
-M4Base<T>::M4Base(T _0, T _1, T _2, T _3, T _4, T _5, T _6, T _7, T _8, T _9, T _10, T _11, T _12, T _13, T _14, T _15) noexcept
+M4::M4(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8, f32 _9, f32 _10, f32 _11, f32 _12, f32 _13, f32 _14, f32 _15) noexcept
     : m_a
     {
         _0, _1, _2, _3,
@@ -795,6 +785,364 @@ M4Base<T>::M4Base(T _0, T _1, T _2, T _3, T _4, T _5, T _6, T _7, T _8, T _9, T 
         _12, _13, _14, _15
     }
 {
+}
+
+constexpr inline
+M4::M4(const V4& _0, const V4& _1, const V4& _2, const V4& _3) noexcept
+    : m_a
+    {
+        _0.x(), _0.y(), _0.z(), _0.w(),
+        _1.x(), _1.y(), _1.z(), _1.w(),
+        _2.x(), _2.y(), _2.z(), _2.w(),
+        _3.x(), _3.y(), _3.z(), _3.w()
+    }
+{
+}
+
+inline bool
+M4::operator==(const M4& r) const noexcept
+{
+    for (int i = 0; i < 16; ++i)
+        if (!eq(data()[i], r.data()[i]))
+            return false;
+
+    return true;
+}
+
+inline M4
+M4::operator*(const f32 r) const noexcept
+{
+    M4 m {UNINIT};
+
+    for (int i = 0; i < 16; ++i)
+        m.data()[i] = data()[i] * r;
+
+    return m;
+}
+
+inline M4&
+M4::operator*=(const f32 r) noexcept
+{
+    for (int i = 0; i < 16; ++i)
+        data()[i] *= r;
+
+    return *this;
+}
+
+inline V4
+M4::operator*(const V4& r) const noexcept
+{
+#if defined ADT_AVX2 && 0
+
+    auto x3 = v[3] * r.w;
+    auto x2 = simd::fma(v[2], r.z, x3);
+    auto x1 = simd::fma(v[1], r.y, x2);
+    auto x0 = simd::fma(v[0], r.x, x1);
+
+    return V4(x0);
+
+#else
+
+    return (*this)[0] * r.x() + (*this)[1] * r.y() + (*this)[2] * r.z() + (*this)[3] * r.w();
+
+#endif
+}
+
+inline M4
+M4::operator*(const M4& r) const noexcept
+{
+    M4 m {};
+
+    m[0] = *this * r[0];
+    m[1] = *this * r[1];
+    m[2] = *this * r[2];
+    m[3] = *this * r[3];
+
+    return m;
+}
+
+inline M4&
+M4::operator*=(const M4& r) noexcept
+{
+    return *this = *this * r;
+}
+
+inline f32
+M4::det() const noexcept
+{
+    auto& e = m_a;
+    return (
+        e[0][3] * e[1][2] * e[2][1] * e[3][0] - e[0][2] * e[1][3] * e[2][1] * e[3][0] -
+        e[0][3] * e[1][1] * e[2][2] * e[3][0] + e[0][1] * e[1][3] * e[2][2] * e[3][0] +
+        e[0][2] * e[1][1] * e[2][3] * e[3][0] - e[0][1] * e[1][2] * e[2][3] * e[3][0] -
+        e[0][3] * e[1][2] * e[2][0] * e[3][1] + e[0][2] * e[1][3] * e[2][0] * e[3][1] +
+        e[0][3] * e[1][0] * e[2][2] * e[3][1] - e[0][0] * e[1][3] * e[2][2] * e[3][1] -
+        e[0][2] * e[1][0] * e[2][3] * e[3][1] + e[0][0] * e[1][2] * e[2][3] * e[3][1] +
+        e[0][3] * e[1][1] * e[2][0] * e[3][2] - e[0][1] * e[1][3] * e[2][0] * e[3][2] -
+        e[0][3] * e[1][0] * e[2][1] * e[3][2] + e[0][0] * e[1][3] * e[2][1] * e[3][2] +
+        e[0][1] * e[1][0] * e[2][3] * e[3][2] - e[0][0] * e[1][1] * e[2][3] * e[3][2] -
+        e[0][2] * e[1][1] * e[2][0] * e[3][3] + e[0][1] * e[1][2] * e[2][0] * e[3][3] +
+        e[0][2] * e[1][0] * e[2][1] * e[3][3] - e[0][0] * e[1][2] * e[2][1] * e[3][3] -
+        e[0][1] * e[1][0] * e[2][2] * e[3][3] + e[0][0] * e[1][1] * e[2][2] * e[3][3]
+    );
+}
+
+inline M4
+M4::minors() const noexcept
+{
+    auto& e = m_a;
+    return {
+        M3(e[1][1], e[1][2], e[1][3],    e[2][1], e[2][2], e[2][3],    e[3][1], e[3][2], e[3][3]).det(),
+        M3(e[1][0], e[1][2], e[1][3],    e[2][0], e[2][2], e[2][3],    e[3][0], e[3][2], e[3][3]).det(),
+        M3(e[1][0], e[1][1], e[1][3],    e[2][0], e[2][1], e[2][3],    e[3][0], e[3][1], e[3][3]).det(),
+        M3(e[1][0], e[1][1], e[1][2],    e[2][0], e[2][1], e[2][2],    e[3][0], e[3][1], e[3][2]).det(),
+
+        M3(e[0][1], e[0][2], e[0][3],    e[2][1], e[2][2], e[2][3],    e[3][1], e[3][2], e[3][3]).det(),
+        M3(e[0][0], e[0][2], e[0][3],    e[2][0], e[2][2], e[2][3],    e[3][0], e[3][2], e[3][3]).det(),
+        M3(e[0][0], e[0][1], e[0][3],    e[2][0], e[2][1], e[2][3],    e[3][0], e[3][1], e[3][3]).det(),
+        M3(e[0][0], e[0][1], e[0][2],    e[2][0], e[2][1], e[2][2],    e[3][0], e[3][1], e[3][2]).det(),
+
+        M3(e[0][1], e[0][2], e[0][3],    e[1][1], e[1][2], e[1][3],    e[3][1], e[3][2], e[3][3]).det(),
+        M3(e[0][0], e[0][2], e[0][3],    e[1][0], e[1][2], e[1][3],    e[3][0], e[3][2], e[3][3]).det(),
+        M3(e[0][0], e[0][1], e[0][3],    e[1][0], e[1][1], e[1][3],    e[3][0], e[3][1], e[3][3]).det(),
+        M3(e[0][0], e[0][1], e[0][2],    e[1][0], e[1][1], e[1][2],    e[3][0], e[3][1], e[3][2]).det(),
+
+        M3(e[0][1], e[0][2], e[0][3],    e[1][1], e[1][2], e[1][3],    e[2][1], e[2][2], e[2][3]).det(),
+        M3(e[0][0], e[0][2], e[0][3],    e[1][0], e[1][2], e[1][3],    e[2][0], e[2][2], e[2][3]).det(),
+        M3(e[0][0], e[0][1], e[0][3],    e[1][0], e[1][1], e[1][3],    e[2][0], e[2][1], e[2][3]).det(),
+        M3(e[0][0], e[0][1], e[0][2],    e[1][0], e[1][1], e[1][2],    e[2][0], e[2][1], e[2][2]).det()
+    };
+}
+
+inline M4
+M4::cofactors() const noexcept
+{
+    M4 m = minors();
+
+    V4 plusMinus{+1, -1, +1, -1};
+    V4 minusPlus{-1, +1, -1, +1};
+
+    m[0] *= plusMinus;
+    m[1] *= minusPlus;
+    m[2] *= plusMinus;
+    m[3] *= minusPlus;
+
+    return m;
+}
+
+inline M4
+M4::transposed() const noexcept
+{
+    auto& e = m_a;
+    return {
+        e[0][0], e[1][0], e[2][0], e[3][0],
+        e[0][1], e[1][1], e[2][1], e[3][1],
+        e[0][2], e[1][2], e[2][2], e[3][2],
+        e[0][3], e[1][3], e[2][3], e[3][3]
+    };
+}
+
+inline M4
+M4::adj() const noexcept
+{
+    return cofactors().transposed();
+}
+
+inline M4
+M4::inv() const noexcept
+{
+    return (1.0 / det()) * adj();
+}
+
+inline M4
+M4::translated(const V3& tv) const noexcept
+{
+    return *this * translationFrom(tv);
+}
+
+inline M4
+M4::scaled(const f32 s) const noexcept
+{
+    return *this * scaledFrom(s);
+}
+
+inline M4
+M4::scaled(const V3& s) const noexcept
+{
+    return *this * scaledFrom(s);
+}
+
+inline M4
+M4::rotated(const f32 th, const V3& ax) const noexcept
+{
+    return *this * rotFrom(th, ax);
+}
+
+inline M4
+M4::rotatedX(const f32 th) const noexcept
+{
+    return *this * rotXFrom(th);
+}
+
+inline M4
+M4::rotatedY(const f32 th) const noexcept
+{
+    return *this * rotYFrom(th);
+}
+
+inline M4
+M4::rotatedZ(const f32 th) const noexcept
+{
+    return *this * rotZFrom(th);
+}
+
+/* static */ inline M4
+M4::scaledFrom(const f32 s) noexcept
+{
+    return {
+        s, 0, 0, 0,
+        0, s, 0, 0,
+        0, 0, s, 0,
+        0, 0, 0, 1
+    };
+}
+
+/* static */ inline M4
+M4::scaledFrom(const V3& v) noexcept
+{
+    return {
+        v.x(), 0,     0,     0,
+        0,     v.y(), 0,     0,
+        0,     0,     v.z(), 0,
+        0,     0,     0,     1
+    };
+}
+
+/* static */ inline M4
+M4::scaledFrom(f32 x, f32 y, f32 z) noexcept
+{
+    return scaledFrom(V3{x, y, z});
+}
+
+/* static */ inline M4
+M4::persFrom(const f32 fov, const f32 asp, const f32 n, const f32 f) noexcept
+{
+    M4 res {};
+    res[0].x() = 1.0f / (asp * std::tan(fov * 0.5f));
+    res[1].y() = 1.0f / (std::tan(fov * 0.5f));
+    res[2].z() = -f / (n - f);
+    res[3].z() = n * f / (n - f);
+    res[2].w() = 1.0f;
+
+    return res;
+}
+
+/* static */ inline M4
+M4::orthoFrom(const f32 l, const f32 r, const f32 b, const f32 t, const f32 n, const f32 f) noexcept
+{
+    return {
+        2/(r-l),       0,            0,           0,
+        0,             2/(t-b),      0,           0,
+        0,             0,           -2/(f-n),     0,
+        -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1
+    };
+}
+
+/* static */ inline M4
+M4::lookAtFrom(const V3& R, const V3& U, const V3& D, const V3& P) noexcept
+{
+    M4 m0 {
+        R.x(),  U.x(),  D.x(),  0,
+        R.y(),  U.y(),  D.y(),  0,
+        R.z(),  U.z(),  D.z(),  0,
+        0,      0,      0,      1
+    };
+
+    return m0.translated({-P.x(), -P.y(), -P.z()});
+}
+
+/* static */ inline M4
+M4::lookAtFrom(const V3& eyeV, const V3& centerV, const V3& upV) noexcept
+{
+    V3 camDir = (eyeV - centerV).normalized();
+    V3 camRight = upV.cross(camDir).normalized();
+    V3 camUp = camDir.cross(camRight);
+
+    return lookAtFrom(camDir, camUp, camDir, eyeV);
+}
+
+/* static */ inline M4
+M4::rotFrom(const f32 th, const V3& ax) noexcept
+{
+    const f32 c = std::cos(th);
+    const f32 s = std::sin(th);
+
+    const f32 x = ax.x();
+    const f32 y = ax.y();
+    const f32 z = ax.z();
+
+    return {
+        ((1 - c)*sq(x)) + c, ((1 - c)*x*y) - s*z, ((1 - c)*x*z) + s*y, 0,
+        ((1 - c)*x*y) + s*z, ((1 - c)*sq(y)) + c, ((1 - c)*y*z) - s*x, 0,
+        ((1 - c)*x*z) - s*y, ((1 - c)*y*z) + s*x, ((1 - c)*sq(z)) + c, 0,
+        0,                   0,                   0,                   1
+    };
+}
+
+/* static */ M4
+M4::rotXFrom(const f32 th) noexcept
+{
+    return {
+        1,  0,            0,            0,
+        0,  std::cos(th), std::sin(th), 0,
+        0, -std::sin(th), std::cos(th), 0,
+        0,  0,            0,            1
+    };
+}
+
+/* static */ inline M4
+M4::rotYFrom(const f32 th) noexcept
+{
+    return {
+        std::cos(th), 0,  std::sin(th),  0,
+        0,            1,  0,             0,
+       -std::sin(th), 0,  std::cos(th),  0,
+        0,            0,  0,             1
+    };
+}
+
+/* static */ inline M4
+M4::rotZFrom(const f32 th) noexcept
+{
+    return {
+        std::cos(th),  std::sin(th), 0, 0,
+       -std::sin(th),  std::cos(th), 0, 0,
+        0,             0,            1, 0,
+        0,             0,            0, 1
+    };
+}
+
+/* static */ inline M4
+M4::rotFrom(const f32 x, const f32 y, const f32 z) noexcept
+{
+    return rotZFrom(z) * rotYFrom(y) * rotZFrom(x);
+}
+
+/* static */ inline M4
+M4::translationFrom(const V3& tv) noexcept
+{
+    return {
+        1,      0,      0,      0,
+        0,      1,      0,      0,
+        0,      0,      1,      0,
+        tv.x(), tv.y(), tv.z(), 1
+    };
+}
+
+/* static */ inline M4
+M4::translationFrom(const f32 x, const f32 y, const f32 z) noexcept
+{
+    return translationFrom(V3{x, y, z});
 }
 
 } /* namespace adt::math2 */
@@ -826,24 +1174,36 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::V4Base<T>& x)
     return formatVariadic(pCtx, fmtArgs, x.x(), x.y(), x.z(), x.w());
 }
 
-template<typename T>
+template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::M2Base<T>& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math2::M2& x)
 {
     return formatVariadicStacked(pCtx, fmtArgs,
-        "\n\t(", x[0], ", ", x[1],
-        "\n\t ", x[2], ", ", x[3], ")"
+        "\n\t(", x[0][0], ", ", x[0][1],
+        "\n\t ", x[1][0], ", ", x[1][1], ")"
     );
 }
 
-template<typename T>
+template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::M3Base<T>& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math2::M3& x)
 {
     return formatVariadicStacked(pCtx, fmtArgs,
-        "\n\t(", x[0], ", ", x[1], ", ", x[2],
-        "\n\t ", x[3], ", ", x[4], ", ", x[5],
-        "\n\t ", x[6], ", ", x[7], ", ", x[8], ")"
+        "\n\t(", x[0][0], ", ", x[0][1], ", ", x[0][2],
+        "\n\t ", x[1][0], ", ", x[1][1], ", ", x[1][2],
+        "\n\t ", x[2][0], ", ", x[2][1], ", ", x[2][2], ")"
+    );
+}
+
+template<>
+inline isize
+format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x)
+{
+    return formatVariadicStacked(pCtx, fmtArgs,
+        "\n\t(", x[0][0], ", ", x[0][1], ", ", x[0][2], ", ", x[0][3],
+        "\n\t ", x[1][0], ", ", x[1][1], ", ", x[1][2], ", ", x[1][3],
+        "\n\t ", x[2][0], ", ", x[2][1], ", ", x[2][2], ", ", x[2][3],
+        "\n\t ", x[3][0], ", ", x[3][1], ", ", x[3][2], ", ", x[3][3], ")"
     );
 }
 
