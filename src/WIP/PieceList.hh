@@ -8,7 +8,7 @@ struct PieceList
 {
     struct Piece
     {
-        RefCountedPtr<StringM> m_rcpS {};
+        RefCountedPtr<VStringM> m_rcpS {};
         isize m_pos {};
         isize m_size {};
 
@@ -29,7 +29,7 @@ struct PieceList
 
     PieceList() noexcept = default;
 
-    PieceList(RefCountedPtr<StringM> rcpS);
+    PieceList(RefCountedPtr<VStringM> rcpS);
 
     /* */
 
@@ -41,7 +41,7 @@ struct PieceList
     void remove(isize pos, isize size);
     void defragment();
 
-    [[nodiscard]] String toString(IAllocator* pAlloc);
+    [[nodiscard]] VString toString(IAllocator* pAlloc);
 
     [[nodiscard]] Node* posToNode(isize* pPos) noexcept;
 
@@ -50,10 +50,10 @@ protected:
 };
 
 inline
-PieceList::PieceList(RefCountedPtr<StringM> rcpS)
+PieceList::PieceList(RefCountedPtr<VStringM> rcpS)
 {
-    m_lPieces.pushBack(Piece{.m_rcpS = rcpS.ref(), .m_pos = 0, .m_size = rcpS->m_size});
-    m_size = rcpS->m_size;
+    m_lPieces.pushBack(Piece{.m_rcpS = rcpS.ref(), .m_pos = 0, .m_size = rcpS->size()});
+    m_size = rcpS->size();
 }
 
 inline PieceList::Node*
@@ -61,11 +61,11 @@ PieceList::insert(isize pos, const StringView sv)
 {
     Node* pNew = nullptr;
     Node* pRet = nullptr;
-    RefCountedPtr<StringM> rcp {};
+    RefCountedPtr<VStringM> rcp {};
 
     try
     {
-        rcp = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sv);
+        rcp = RefCountedPtr<VStringM>::allocWithDeleter([](VStringM* p) { p->destroy(); }, sv);
         pNew = Node::alloc(StdAllocator::inst(), Piece{
             .m_rcpS = rcp,
             .m_pos = 0,
@@ -199,35 +199,33 @@ PieceList::defragment()
 {
     if (m_size <= 0) return;
 
-    StringM sRet;
-    sRet.m_pData = StdAllocator::inst()->mallocV<char>(m_size + 1);
-    sRet.m_size = m_size;
+    VStringM sRet {m_size + 1};
+    sRet.m_allocated.size = m_size;
 
     Piece piece {
-        .m_rcpS = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sRet),
+        .m_rcpS = RefCountedPtr<VStringM>::allocWithDeleter([](VStringM* p) { p->destroy(); }, sRet),
         .m_pos = 0,
         .m_size = m_size,
     };
 
     isize i = 0;
     m_lPieces.destroy([&](Piece* p) {
-        ::memcpy(sRet.m_pData + i, p->view().m_pData, p->m_size);
+        ::memcpy(sRet.m_allocated.pData + i, p->view().m_pData, p->m_size);
         i += p->m_size;
         p->m_rcpS.unref();
     });
-    sRet.m_pData[i] = '\0';
+    sRet.m_allocated.pData[i] = '\0';
 
     static_cast<ListType&>(m_lPieces).pushBack(Node::alloc(StdAllocator::inst(), piece));
 }
 
-inline String
+inline VString
 PieceList::toString(IAllocator* pAlloc)
 {
     if (m_size <= 0) return {};
 
-    StringM sRet;
-    sRet.m_pData = pAlloc->mallocV<char>(m_size + 1);
-    sRet.m_size = m_size;
+    VString sRet {pAlloc, m_size + 1};
+    sRet.m_allocated.size = m_size;
 
     isize i = 0;
     Node* p = m_lPieces.m_pFirst;
@@ -235,12 +233,12 @@ PieceList::toString(IAllocator* pAlloc)
     {
         Node* pNext = p->pNext;
 
-        ::memcpy(sRet.m_pData + i, p->data.view().m_pData, p->data.m_size);
+        ::memcpy(sRet.m_allocated.pData + i, p->data.view().m_pData, p->data.m_size);
         i += p->data.m_size;
 
         p = pNext;
     }
-    sRet.m_pData[i] = '\0';
+    sRet.m_allocated.pData[i] = '\0';
 
     return sRet;
 }

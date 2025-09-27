@@ -11,7 +11,7 @@ test()
 {
     Arena& arena = *IThreadPool::inst()->arena();
 
-    auto rcp = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, "HelloWorld");
+    auto rcp = RefCountedPtr<VStringM>::allocWithDeleter([](VStringM* p) { p->destroy(); }, "HelloWorld");
     defer( rcp.unref() );
 
     PieceList pl {rcp};
@@ -25,9 +25,9 @@ test()
 
     {
         ArenaScope sg {&arena};
-        String s = pl.toString(&arena);
+        VString s = pl.toString(&arena);
         LogDebug("s: '{}'\n", s);
-        ADT_ASSERT_ALWAYS(s == "(+)Hello|INS<--->ERT|World[{^}*]", "s: '{}'", s);
+        ADT_ASSERT_ALWAYS(StringView(s) == "(+)Hello|INS<--->ERT|World[{^}*]", "s(size: {}, cap: {}): '{}'", s.size(), s.cap(), s);
     }
 
     int i = 0;
@@ -55,9 +55,9 @@ test()
 
     {
         ArenaScope sg {&arena};
-        String sDefragmented = pl.toString(&arena);
+        VString sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
-        ADT_ASSERT_ALWAYS(sDefragmented == "(rld[{^}*]", "");
+        ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(rld[{^}*]", "");
     }
 
     {
@@ -71,18 +71,18 @@ test()
 
     {
         ArenaScope sg {&arena};
-        String sDefragmented = pl.toString(&arena);
+        VString sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
-        ADT_ASSERT_ALWAYS(sDefragmented == "(|%rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
+        ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(|%rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
     }
 
     pl.remove(1, pl.size() - 2);
 
     {
         ArenaScope sg {&arena};
-        String s = pl.toString(&arena);
+        VString s = pl.toString(&arena);
         LogInfo("({}): s: '{}'\n", s.size(), s);
-        ADT_ASSERT_ALWAYS(s == "(]", "s: '{}'", s);
+        ADT_ASSERT_ALWAYS(StringView(s) == "(]", "s: '{}'", s);
     }
 
     pl.remove(0, pl.size());
