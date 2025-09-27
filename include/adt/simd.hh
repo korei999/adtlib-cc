@@ -413,8 +413,8 @@ struct i32x8
 
     /* */
 
-    decltype(auto) data() { return reinterpret_cast<i32(&)[8]>(pack); }
-    decltype(auto) data() const { return reinterpret_cast<const i32(&)[8]>(pack); }
+    decltype(auto) data() { return reinterpret_cast<i32(&)[8]>(*this); }
+    decltype(auto) data() const { return reinterpret_cast<const i32(&)[8]>(*this); }
 
     i32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
     const i32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
@@ -450,8 +450,8 @@ struct f32x8
 
     /* */
 
-    decltype(auto) data() { return reinterpret_cast<f32(&)[8]>(pack); }
-    decltype(auto) data() const { return reinterpret_cast<const f32(&)[8]>(pack); }
+    decltype(auto) data() { return reinterpret_cast<f32(&)[8]>(*this); }
+    decltype(auto) data() const { return reinterpret_cast<const f32(&)[8]>(*this); }
 
     f32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
     const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
