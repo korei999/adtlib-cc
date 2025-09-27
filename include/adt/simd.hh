@@ -14,7 +14,6 @@
 #pragma once
 
 #include "Span.hh" /* IWYU pragma: keep */
-#include "math-inl.hh"
 
 #ifdef ADT_SSE4_2
     #include <nmmintrin.h>
@@ -86,17 +85,11 @@ struct f32x4
 
     f32x4(f32 x, f32 y, f32 z, f32 w) : pack(_mm_set_ps(w, z, y, x)) {}
 
-    f32x4(const math::V4 v) : pack(_mm_set_ps(v.w, v.z, v.y, v.x)) {}
-
     explicit f32x4(i32x4 x) : pack {_mm_cvtepi32_ps(x.pack)} {}
 
     /* */
 
     explicit operator __m128() const { return pack; }
-
-    explicit operator math::V4() const { return *reinterpret_cast<const math::V4*>(this); }
-
-    explicit operator math::Qt() const { return reinterpret_cast<const math::Qt&>(*this); }
 
     explicit operator i32x4() const { return i32x4{_mm_cvtps_epi32(pack)}; }
 

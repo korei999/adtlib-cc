@@ -75,10 +75,13 @@ struct Arena : IArena
 
         /* */
 
-        explicit operator bool() noexcept { return m_pData != nullptr; }
+        explicit operator bool() const noexcept { return m_pData != nullptr; }
 
         T& operator*() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
+        const T& operator*() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
+
         T* operator->() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
+        const T* operator->() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
     };
 
     static constexpr u64 INVALID_PTR = ~0llu;
@@ -405,5 +408,18 @@ Arena::decommit(void* p, isize size)
 #else
 #endif
 }
+
+namespace print
+{
+
+template<typename T>
+inline isize
+format(Context* pCtx, FormatArgs fmtArgs, const Arena::Ptr<T>& x)
+{
+    if (x) return format(pCtx, fmtArgs, *x);
+    else return format(pCtx, fmtArgs, "null");
+}
+
+} /* namespace print */
 
 } /* namespace adt */
