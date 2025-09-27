@@ -14,6 +14,7 @@
 #pragma once
 
 #include "Span.hh" /* IWYU pragma: keep */
+#include "math-inl.hh"
 
 #ifdef ADT_SSE4_2
     #include <nmmintrin.h>
@@ -50,8 +51,8 @@ struct i32x4
 
     /* */
 
-    i32* data() { return reinterpret_cast<i32*>(&pack); }
-    const i32* data() const { return (i32*)(&pack); }
+    decltype(auto) data() { return reinterpret_cast<i32(&)[4]>(pack); }
+    decltype(auto) data() const { return reinterpret_cast<const i32(&)[4]>(pack); }
 
     i32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
     const i32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
@@ -85,16 +86,22 @@ struct f32x4
 
     f32x4(f32 x, f32 y, f32 z, f32 w) : pack(_mm_set_ps(w, z, y, x)) {}
 
+    f32x4(const math::V4 v) : pack(_mm_set_ps(v.w, v.z, v.y, v.x)) {}
+
     explicit f32x4(i32x4 x) : pack {_mm_cvtepi32_ps(x.pack)} {}
 
     /* */
 
     explicit operator __m128() const { return pack; }
 
+    explicit operator math::V4() const { return *reinterpret_cast<const math::V4*>(this); }
+
+    explicit operator math::Qt() const { return reinterpret_cast<const math::Qt&>(*this); }
+
     explicit operator i32x4() const { return i32x4{_mm_cvtps_epi32(pack)}; }
 
-    f32* data() { return reinterpret_cast<f32*>(&pack); }
-    const f32* data() const { return (f32*)(&pack); }
+    decltype(auto) data() { return reinterpret_cast<f32(&)[4]>(pack); }
+    decltype(auto) data() const { return reinterpret_cast<const f32(&)[4]>(pack); }
 
     f32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
     const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
@@ -406,8 +413,8 @@ struct i32x8
 
     /* */
 
-    i32* data() { return reinterpret_cast<i32*>(this); }
-    const i32* data() const { return (i32*)(this); }
+    decltype(auto) data() { return reinterpret_cast<i32(&)[8]>(pack); }
+    decltype(auto) data() const { return reinterpret_cast<const i32(&)[8]>(pack); }
 
     i32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
     const i32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
@@ -442,6 +449,12 @@ struct f32x8
     f32x8(i32x8 _pack) : pack {_mm256_cvtepi32_ps(_pack.pack)} {}
 
     /* */
+
+    decltype(auto) data() { return reinterpret_cast<f32(&)[8]>(pack); }
+    decltype(auto) data() const { return reinterpret_cast<const f32(&)[8]>(pack); }
+
+    f32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
+    const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 8, "out of range, should be (>= 0 && < 8) got: {}", i); return data()[i]; }
 
     explicit operator __m256() const { return pack; }
 
