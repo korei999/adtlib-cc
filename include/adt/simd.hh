@@ -51,8 +51,8 @@ struct i32x4
 
     /* */
 
-    decltype(auto) data() { return reinterpret_cast<i32(&)[4]>(pack); }
-    decltype(auto) data() const { return reinterpret_cast<const i32(&)[4]>(pack); }
+    decltype(auto) data() { return reinterpret_cast<i32(&)[4]>(*this); }
+    decltype(auto) data() const { return reinterpret_cast<const i32(&)[4]>(*this); }
 
     i32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
     const i32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
@@ -100,8 +100,8 @@ struct f32x4
 
     explicit operator i32x4() const { return i32x4{_mm_cvtps_epi32(pack)}; }
 
-    decltype(auto) data() { return reinterpret_cast<f32(&)[4]>(pack); }
-    decltype(auto) data() const { return reinterpret_cast<const f32(&)[4]>(pack); }
+    decltype(auto) data() { return reinterpret_cast<f32(&)[4]>(*this); }
+    decltype(auto) data() const { return reinterpret_cast<const f32(&)[4]>(*this); }
 
     f32& operator[](int i)             { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
     const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "out of range, should be (>= 0 && < 4)"); return data()[i]; }
