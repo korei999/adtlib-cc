@@ -44,6 +44,29 @@ lerp(const auto& a, const auto& b, const auto& t)
     return (1.0 - t)*a + t*b;
 }
 
+template<typename T, std::floating_point F>
+constexpr T
+bezier(
+    const T& p0,
+    const T& p1,
+    const T& p2,
+    const F t)
+{
+    return sq(1-t)*p0 + 2*(1-t)*t*p1 + sq(t)*p2;
+}
+
+template<typename T, std::floating_point F>
+constexpr T
+bezier(
+    const T& p0,
+    const T& p1,
+    const T& p2,
+    const T& p3,
+    const F t)
+{
+    return cube(1-t)*p0 + 3*sq(1-t)*t*p1 + 3*(1-t)*sq(t)*p2 + cube(t)*p3;
+}
+
 template<typename T>
 inline bool
 V2Base<T>::operator==(const V2Base& r) const noexcept
@@ -53,7 +76,7 @@ V2Base<T>::operator==(const V2Base& r) const noexcept
 
 template<typename T>
 inline V2Base<T>
-V2Base<T>::operator-() noexcept
+V2Base<T>::operator-() const noexcept
 {
     return {-x(), -y()};
 }
@@ -1089,7 +1112,7 @@ M4::rotFrom(const f32 th, const V3& ax) noexcept
     };
 }
 
-/* static */ M4
+/* static */ inline M4
 M4::rotXFrom(const f32 th) noexcept
 {
     return {
@@ -1143,6 +1166,207 @@ M4::translationFrom(const V3& tv) noexcept
 M4::translationFrom(const f32 x, const f32 y, const f32 z) noexcept
 {
     return translationFrom(V3{x, y, z});
+}
+
+inline
+Qt::Qt(int) noexcept
+    : V4{0, 0, 0, 1}
+{
+}
+
+inline
+Qt::Qt(V4 v4) noexcept
+    : V4{v4}
+{
+}
+
+inline Qt
+Qt::operator-() const noexcept
+{
+    Qt r {UNINIT};
+    static_cast<V2&>(r) = -static_cast<const V2&>(*this);
+    return r;
+}
+
+inline Qt
+Qt::operator*(const Qt& r) const noexcept
+{
+    auto& l = *this;
+
+    return {
+        l.w()*r.x() + l.x()*r.w() + l.y()*r.z() - l.z()*r.y(),
+        l.w()*r.y() - l.x()*r.z() + l.y()*r.w() + l.z()*r.x(),
+        l.w()*r.z() + l.x()*r.y() - l.y()*r.x() + l.z()*r.w(),
+        l.w()*r.w() - l.x()*r.x() - l.y()*r.y() - l.z()*r.z(),
+    };
+}
+
+inline Qt
+Qt::operator*(const V4& r) const noexcept
+{
+    return *this * ((const Qt&)r);
+}
+
+inline Qt
+Qt::operator*=(const Qt& r) noexcept
+{
+    return *this = *this * r;
+}
+
+inline Qt
+Qt::operator*=(const V4& r) noexcept
+{
+    return *this = *this * r;
+}
+
+inline M4
+Qt::rot() const noexcept
+{
+    auto& x = this->x();
+    auto& y = this->y();
+    auto& z = this->z();
+    auto& w = this->w();
+
+    return {
+        1 - 2*y*y - 2*z*z, 2*x*y + 2*w*z,     2*x*z - 2*w*y,     0,
+        2*x*y - 2*w*z,     1 - 2*x*x - 2*z*z, 2*y*z + 2*w*x,     0,
+        2*x*z + 2*w*y,     2*y*z - 2*w*x,     1 - 2*x*x - 2*y*y, 0,
+        0,                 0,                 0,                 1
+    };
+}
+
+inline M4
+Qt::rot2() const noexcept
+{
+    f32 x = this->x(), y = this->y(), z = this->z(), w = this->w();
+
+    f32 xx = x * x;
+    f32 yy = y * y;
+    f32 zz = z * z;
+    f32 xy = x * y;
+    f32 xz = x * z;
+    f32 yz = y * z;
+    f32 wx = w * x;
+    f32 wy = w * y;
+    f32 wz = w * z;
+
+    M4 m {UNINIT};
+    m[0][0] = 1.0f - 2.0f * (yy + zz);
+    m[0][1] = 2.0f * (xy + wz);
+    m[0][2] = 2.0f * (xz - wy);
+    m[0][3] = 0.0f;
+
+    m[1][0] = 2.0f * (xy - wz);
+    m[1][1] = 1.0f - 2.0f * (xx + zz);
+    m[1][2] = 2.0f * (yz + wx);
+    m[1][3] = 0.0f;
+
+    m[2][0] = 2.0f * (xz + wy);
+    m[2][1] = 2.0f * (yz - wx);
+    m[2][2] = 1.0f - 2.0f * (xx + yy);
+    m[2][3] = 0.0f;
+
+    m[3][0] = 0.0f;
+    m[3][1] = 0.0f;
+    m[3][2] = 0.0f;
+    m[3][3] = 1.0f;
+
+    return m;
+}
+
+inline Qt
+Qt::conj() const noexcept
+{
+    return {x(), y(), z(), w()};
+}
+
+inline Qt
+Qt::normalized() const noexcept
+{
+    f32 mag = std::sqrt(w() * w() + x() * x() + y() * y() + z() * z());
+    return {x() / mag, y() / mag, z() / mag, w() / mag};
+}
+
+/* static */ inline Qt
+Qt::axisAngleFrom(const V3& axis, f32 th) noexcept
+{
+    f32 sinTh = std::sin(th / 2.0f);
+
+    return {
+        axis.x() * sinTh,
+        axis.y() * sinTh,
+        axis.z() * sinTh,
+        std::cos(th / 2.0f)
+    };
+}
+
+inline Qt
+slerp(const Qt& q1, const Qt& q2, f32 t) noexcept
+{
+    auto dot = q1.dot(q2);
+
+    Qt q2b = q2;
+    if (dot < 0.0f)
+    {
+        q2b = -q2b;
+        dot = -dot;
+    }
+
+#if defined ADT_SSE4_2 && 0
+
+    if (dot > 0.9995f)
+    {
+        auto q1Pack = simd::f32x4(q1.base);
+
+        auto diff = simd::f32x4(q2b.base) - q1Pack;
+        auto mul = diff * t;
+        auto sum = q1Pack + mul;
+
+        return QtNorm(Qt(sum));
+    }
+
+#else
+
+    if (dot > 0.9995f)
+    {
+        Qt res {
+            q1.x() + t * (q2b.x() - q1.x()),
+            q1.y() + t * (q2b.y() - q1.y()),
+            q1.z() + t * (q2b.z() - q1.z()),
+            q1.w() + t * (q2b.w() - q1.w())
+        };
+        return res.normalized();
+    }
+
+#endif
+
+    f32 theta0 = std::acos(dot);
+    f32 theta = theta0 * t;
+
+    f32 sinTheta0 = std::sin(theta0);
+    f32 sinTheta = std::sin(theta);
+
+    f32 s1 = std::cos(theta) - dot * (sinTheta / sinTheta0);
+    f32 s2 = sinTheta / sinTheta0;
+
+#if defined ADT_SSE4_2 && 0
+
+    auto res = V4((simd::f32x4(q1.base) * s1) + (simd::f32x4(q2b.base) * s2));
+    return Qt(res);
+
+#else
+
+    Qt res {UNINIT};
+
+    res.x() = (s1 * q1.x()) + (s2 * q2b.x());
+    res.y() = (s1 * q1.y()) + (s2 * q2b.y());
+    res.z() = (s1 * q1.z()) + (s2 * q2b.z());
+    res.w() = (s1 * q1.w()) + (s2 * q2b.w());
+
+    return res;
+
+#endif
+
 }
 
 } /* namespace adt::math2 */
@@ -1205,6 +1429,13 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x)
         "\n\t ", x[2][0], ", ", x[2][1], ", ", x[2][2], ", ", x[2][3],
         "\n\t ", x[3][0], ", ", x[3][1], ", ", x[3][2], ", ", x[3][3], ")"
     );
+}
+
+template<>
+inline isize
+format(Context* pCtx, FormatArgs fmtArgs, const math2::Qt& x)
+{
+    return format(pCtx, fmtArgs, static_cast<const math2::V4&>(x));
 }
 
 } /* namespace adt::print */

@@ -48,6 +48,11 @@ test()
         ADT_ASSERT_ALWAYS(m4_1 * m4_1.inv() == m4_0, "");
         LogDebug{"\nm4_0: {}\nm4_1: {}\nm4_1.inv: {}\n", m4_0, m4_1, m4_1.inv()};
     }
+
+    {
+        math2::Qt q0 {1};
+        LogDebug{"q0: {}\n", q0};
+    }
 }
 
 int

@@ -34,6 +34,25 @@ constexpr inline i64 sign(i64 x);
 
 constexpr inline auto lerp(const auto& a, const auto& b, const auto& t);
 
+template<typename T, std::floating_point F>
+constexpr T
+bezier(
+    const T& p0,
+    const T& p1,
+    const T& p2,
+    const F t
+);
+
+template<typename T, std::floating_point F>
+constexpr T
+bezier(
+    const T& p0,
+    const T& p1,
+    const T& p2,
+    const T& p3,
+    const F t
+);
+
 template<typename T>
 struct V2Base
 {
@@ -56,7 +75,7 @@ struct V2Base
     template<typename S> decltype(auto) y(this S&& s) noexcept { return s.m_a[1]; }
 
     bool operator==(const V2Base& r) const noexcept;
-    V2Base operator-() noexcept;
+    V2Base operator-() const noexcept;
     V2Base operator+(const V2Base& r) const noexcept;
     V2Base operator-(const V2Base& r) const noexcept;
     V2Base operator*(f32 s) const noexcept;
@@ -319,6 +338,37 @@ struct M4
     static M4 rotFrom(const f32 x, const f32 y, const f32 z) noexcept;
 };
 
+struct Qt : V4
+{
+    using V4::V4Base;
+
+    /* */
+
+    Qt() = default;
+    Qt(int) noexcept;
+    explicit Qt(V4 v4) noexcept;
+    explicit Qt(UninitFlag) noexcept {}
+
+    /* */
+
+    Qt operator-() const noexcept;
+    Qt operator*(const Qt& r) const noexcept;
+    Qt operator*(const V4& r) const noexcept;
+    Qt operator*=(const Qt& r) noexcept;
+    Qt operator*=(const V4& r) noexcept;
+
+    Qt flipped() const noexcept { return {w(), z(), y(), x()}; }
+
+    M4 rot() const noexcept;
+    M4 rot2() const noexcept;
+    Qt conj() const noexcept;
+    Qt normalized() const noexcept;
+
+    static Qt axisAngleFrom(const V3& axis, f32 th) noexcept;
+};
+
+inline Qt slerp(const Qt& q1, const Qt& q2, f32 t) noexcept;
+
 } /* namespace adt::math2 */
 
 namespace adt::print
@@ -330,5 +380,6 @@ template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, cons
 template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M2& x);
 template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M3& x);
 template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::Qt& x);
 
 } /* namespace adt::print */
