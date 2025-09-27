@@ -1,11 +1,11 @@
 #pragma once
 
-#include "math2-inl.hh"
+#include "math-inl.hh"
 #include "adt/utils.hh"
 
 #include <cmath>
 
-namespace adt::math2
+namespace adt::math
 {
 
 template<typename T>
@@ -1369,14 +1369,26 @@ slerp(const Qt& q1, const Qt& q2, f32 t) noexcept
 
 }
 
-} /* namespace adt::math2 */
+inline M4
+transformation(const V3& translation, const Qt& rot, const V3& scale) noexcept
+{
+    return M4::translationFrom(translation) * rot.rot() * M4::scaledFrom(scale);
+}
+
+inline M4
+transformation(const V3& translation, const V3& scale) noexcept
+{
+    return M4::translationFrom(translation) * M4::scaledFrom(scale);
+}
+
+} /* namespace adt::math */
 
 namespace adt::print
 {
 
 template<typename T>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::V2Base<T>& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::V2Base<T>& x)
 {
     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
     return formatVariadic(pCtx, fmtArgs, x.x(), x.y());
@@ -1384,7 +1396,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::V2Base<T>& x)
 
 template<typename T>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::V3Base<T>& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::V3Base<T>& x)
 {
     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
     return formatVariadic(pCtx, fmtArgs, x.x(), x.y(), x.z());
@@ -1392,7 +1404,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::V3Base<T>& x)
 
 template<typename T>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::V4Base<T>& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::V4Base<T>& x)
 {
     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
     return formatVariadic(pCtx, fmtArgs, x.x(), x.y(), x.z(), x.w());
@@ -1400,7 +1412,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::V4Base<T>& x)
 
 template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::M2& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::M2& x)
 {
     return formatVariadicStacked(pCtx, fmtArgs,
         "\n\t(", x[0][0], ", ", x[0][1],
@@ -1410,7 +1422,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::M2& x)
 
 template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::M3& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::M3& x)
 {
     return formatVariadicStacked(pCtx, fmtArgs,
         "\n\t(", x[0][0], ", ", x[0][1], ", ", x[0][2],
@@ -1421,7 +1433,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::M3& x)
 
 template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::M4& x)
 {
     return formatVariadicStacked(pCtx, fmtArgs,
         "\n\t(", x[0][0], ", ", x[0][1], ", ", x[0][2], ", ", x[0][3],
@@ -1433,9 +1445,9 @@ format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x)
 
 template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const math2::Qt& x)
+format(Context* pCtx, FormatArgs fmtArgs, const math::Qt& x)
 {
-    return format(pCtx, fmtArgs, static_cast<const math2::V4&>(x));
+    return format(pCtx, fmtArgs, static_cast<const math::V4&>(x));
 }
 
 } /* namespace adt::print */

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "adt/types.hh"
 #include "adt/print-inl.hh"
 
 #include <limits>
 
-namespace adt::math2
+namespace adt::math
 {
 
 constexpr f64 PI64 = 3.14159265358979323846;
@@ -67,12 +66,20 @@ struct V2Base
 
     /* */
 
+    template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[2])(s); }
+
     template<typename B> explicit operator V2Base<B>() const noexcept { return {static_cast<B>(x()), static_cast<B>(y())}; }
 
     template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return s.m_a[i]; }
 
     template<typename S> decltype(auto) x(this S&& s) noexcept { return s.m_a[0]; }
     template<typename S> decltype(auto) y(this S&& s) noexcept { return s.m_a[1]; }
+
+    template<typename S> decltype(auto) r(this S&& s) noexcept { return s.m_a[0]; }
+    template<typename S> decltype(auto) g(this S&& s) noexcept { return s.m_a[1]; }
+
+    template<typename S> decltype(auto) u(this S&& s) noexcept { return s.m_a[0]; }
+    template<typename S> decltype(auto) v(this S&& s) noexcept { return s.m_a[1]; }
 
     bool operator==(const V2Base& r) const noexcept;
     V2Base operator-() const noexcept;
@@ -121,12 +128,17 @@ struct V3Base : V2Base<T>
 
     /* */
 
+    template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[3])(s); }
+
     template<typename B> explicit operator V3Base<B>() const noexcept
     { return {static_cast<B>(x()), static_cast<B>(y()), static_cast<B>(z())}; }
 
     template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[3])(s))[i]; }
     T& z() noexcept { return m_z; }
     const T& z() const noexcept { return m_z; }
+
+    T& b() noexcept { return m_z; }
+    const T& b() const noexcept { return m_z; }
 
     V2B xy() const noexcept { return *static_cast<const V2B*>(this); }
     V2B yz() const noexcept { return {y(), z()}; }
@@ -191,7 +203,12 @@ struct V4Base : V3Base<T>
     T& w() noexcept { return m_w; }
     const T& w() const noexcept { return m_w; }
 
-    V3B xyz() const noexcept { return *static_cast<const V3B*>(this); }
+    T& a() noexcept { return m_w; }
+    const T& a() const noexcept { return m_w; }
+
+    V3B& xyz() noexcept { return *static_cast<V3B*>(this); }
+    const V3B& xyz() const noexcept { return *static_cast<const V3B*>(this); }
+
     V2B zw() const noexcept { return {y(), z()}; }
     V3B yzw() const noexcept { return {y(), z(), w()}; }
 
@@ -369,17 +386,20 @@ struct Qt : V4
 
 inline Qt slerp(const Qt& q1, const Qt& q2, f32 t) noexcept;
 
-} /* namespace adt::math2 */
+inline M4 transformation(const V3& translation, const Qt& rot, const V3& scale) noexcept;
+inline M4 transformation(const V3& translation, const V3& scale) noexcept;
+
+} /* namespace adt::math */
 
 namespace adt::print
 {
 
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::V2Base<T>& x);
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::V3Base<T>& x);
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::V4Base<T>& x);
-template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M2& x);
-template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M3& x);
-template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::M4& x);
-template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math2::Qt& x);
+template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V2Base<T>& x);
+template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V3Base<T>& x);
+template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V4Base<T>& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::M2& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::M3& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::M4& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::Qt& x);
 
 } /* namespace adt::print */
