@@ -27,17 +27,17 @@
 namespace adt::time
 {
 
+static constexpr i64 USEC = 1;
+static constexpr i64 MSEC = 1'000;
+static constexpr i64 SEC = 1'000'000;
+static constexpr i64 MIN = SEC * 60;
+static constexpr i64 HOUR = MIN * 60;
+static constexpr i64 DAY = HOUR * 24;
+static constexpr i64 WEEK = DAY * 7;
+static constexpr i64 YEAR = DAY * 365;
+
 struct Clock /* In microseconds. */
 {
-    static constexpr i64 USEC = 1;
-    static constexpr i64 MSEC = 1'000;
-    static constexpr i64 SEC = 1'000'000;
-    static constexpr i64 MIN = SEC * 60;
-    static constexpr i64 HOUR = MIN * 60;
-    static constexpr i64 DAY = HOUR * 24;
-    static constexpr i64 WEEK = DAY * 7;
-    static constexpr i64 YEAR = DAY * 365;
-
     /* */
 
     i64 m_startTime {};
