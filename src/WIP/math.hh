@@ -8,6 +8,16 @@
 namespace adt::math
 {
 
+constexpr inline f64 toDeg(f64 x) { return x * 180.0 / PI64; }
+constexpr inline f64 toRad(f64 x) { return x * PI64 / 180.0; }
+constexpr inline f32 toDeg(f32 x) { return x * 180.0f / PI32; }
+constexpr inline f32 toRad(f32 x) { return x * PI32 / 180.0f; }
+
+constexpr inline f64 toRad(i64 x) { return toRad(static_cast<f64>(x)); }
+constexpr inline f64 toDeg(i64 x) { return toDeg(static_cast<f64>(x)); }
+constexpr inline f32 toRad(i32 x) { return toRad(static_cast<f32>(x)); }
+constexpr inline f32 toDeg(i32 x) { return toDeg(static_cast<f32>(x)); }
+
 template<typename T>
 inline bool
 eq(const T& l, const T& r)
@@ -765,19 +775,18 @@ M3::operator*=(const f32 r) noexcept
 inline V3
 M3::operator*(const V3& r) const noexcept
 {
-    return (*this)[0] * r.x() + (*this)[1] * r.y() + (*this)[2] * r.z();
+    const V3* v = &operator[](0);
+    return v[0] * r.x() + v[1] * r.y() + v[2] * r.z();
 }
 
 inline M3
 M3::operator*(const M3& r) const noexcept
 {
-    M3 m {UNINIT};
-
-    m[0] = *this * r[0];
-    m[1] = *this * r[1];
-    m[2] = *this * r[2];
-
-    return m;
+    return {
+        *this * r[0],
+        *this * r[1],
+        *this * r[2]
+    };
 }
 
 inline M3&
@@ -866,7 +875,8 @@ M4::operator*(const V4& r) const noexcept
 
 #else
 
-    return (*this)[0] * r.x() + (*this)[1] * r.y() + (*this)[2] * r.z() + (*this)[3] * r.w();
+    const V4* v = &this->operator[](0);
+    return v[0] * r.x() + v[1] * r.y() + v[2] * r.z() + v[3] * r.w();
 
 #endif
 }
@@ -874,14 +884,12 @@ M4::operator*(const V4& r) const noexcept
 inline M4
 M4::operator*(const M4& r) const noexcept
 {
-    M4 m {};
-
-    m[0] = *this * r[0];
-    m[1] = *this * r[1];
-    m[2] = *this * r[2];
-    m[3] = *this * r[3];
-
-    return m;
+    return {
+        *this * r[0],
+        *this * r[1],
+        *this * r[2],
+        *this * r[3]
+    };
 }
 
 inline M4&
@@ -1148,7 +1156,7 @@ M4::rotZFrom(const f32 th) noexcept
 /* static */ inline M4
 M4::rotFrom(const f32 x, const f32 y, const f32 z) noexcept
 {
-    return rotZFrom(z) * rotYFrom(y) * rotZFrom(x);
+    return rotZFrom(z) * rotYFrom(y) * rotXFrom(x);
 }
 
 /* static */ inline M4

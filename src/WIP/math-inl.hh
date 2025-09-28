@@ -195,10 +195,12 @@ struct V4Base : V3Base<T>
     constexpr V4Base(V2B _xy, T _z, T _w) noexcept : V3B{_xy, _z}, m_w{_w} {}
     constexpr V4Base(T _x, T _y, V2B _zw) noexcept : V3B{_x, _y, _zw.x()}, m_w{_zw.y()} {}
     constexpr V4Base(V2B _xy, V2B _zw) noexcept : V3B{_xy, _zw.x()}, m_w{_zw.y()} {}
-    constexpr V4Base(T _x, V2B _yz, T _w) noexcept : V3B{_x, _yz.x(), _yz.y()}, m_w{_w} {}
+    constexpr V4Base(T _x, V2B _yz, T _w) noexcept : V3B{_x, _yz}, m_w{_w} {}
     constexpr V4Base(T(&a)[4]) noexcept : V3B{a[0], a[1], a[2]}, m_w{a[3]} {}
 
     /* */
+
+    template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[4])(s); }
 
     T& w() noexcept { return m_w; }
     const T& w() const noexcept { return m_w; }

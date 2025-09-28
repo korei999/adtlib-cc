@@ -24,9 +24,15 @@ test()
         static_assert(sizeof(math::V2) == 8);
         static_assert(sizeof(math::IV2) == 8);
 
+    }
+
+    {
         math::V4 v4_0 {1, 2, 3, 4};
+        v4_0.x() = 99;
+        v4_0.y() = 66;
         math::V3 v3_1 = v4_0.xyz();
-        LogDebug{"v4_0: {}, v3_1: {}, what: {}\n", v4_0, v3_1};
+        ADT_ASSERT_ALWAYS(v4_0 == math::V4(99, 66, 3, 4), "{}", v4_0);
+        LogDebug{"v4_0: {}, v3_1: {}\n", v4_0, v3_1};
     }
 
     {
