@@ -95,7 +95,7 @@ struct Arena : IArena
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
     SList<DeleterNode> m_lDeleters {}; /* Run deleters on reset()/freeAll() or state restorations. */
-    SList<DeleterNode>* m_pLCurrentDeleters = &m_lDeleters; /* Switch and restore current list on ArenaScope changes. */
+    SList<DeleterNode>* m_pLCurrentDeleters {}; /* Switch and restore current list on ArenaScope changes. */
 
     /* */
 
@@ -190,6 +190,7 @@ ArenaScope::~ArenaScope() noexcept
 
 inline
 Arena::Arena(isize reserveSize, isize commitSize)
+    : m_pLCurrentDeleters{&m_lDeleters}
 {
     [[maybe_unused]] int err = 0;
 
@@ -294,7 +295,7 @@ Arena::freeAll() noexcept
 #endif
 
     ADT_ASAN_UNPOISON(m_pData, m_reserved);
-    ::memset((u8*)this, 0, sizeof(*this));
+    *this = {};
 }
 
 template<typename T, typename ...ARGS>
