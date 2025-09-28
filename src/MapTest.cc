@@ -1,4 +1,4 @@
-#include "adt/StdAllocator.hh" /* IWYU pragma: keep */
+#include "adt/Gpa.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/Map.hh"
 #include "adt/Span.hh" /* IWYU pragma: keep */

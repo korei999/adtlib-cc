@@ -1,6 +1,6 @@
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
-#include "adt/StdAllocator.hh"
+#include "adt/Gpa.hh"
 #include "adt/Array.hh"
 #include "adt/time.hh"
 #include "adt/Logger.hh"

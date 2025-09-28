@@ -13,6 +13,7 @@ set(ADT_PRECOMPILED_HEADERS
     Exception.hh
     file.hh
     FuncBuffer.hh
+    Gpa.hh
     hash.hh
     Heap.hh
     IAllocator.hh
@@ -44,7 +45,6 @@ set(ADT_PRECOMPILED_HEADERS
     Span2D.hh
     Span.hh
     SplayTree.hh
-    StdAllocator.hh
     String.hh
     Thread.hh
     ThreadPool.hh

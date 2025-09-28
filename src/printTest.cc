@@ -148,7 +148,7 @@ main()
 
     {
         constexpr isize PREALLOC = 32;
-        auto* pStd = StdAllocator::inst();
+        auto* pStd = Gpa::inst();
 
         constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         const isize n = print::toFILE<PREALLOC>(pStd, stdout, svLong);
@@ -157,7 +157,7 @@ main()
     }
 
     {
-        print::Builder buff {StdAllocator::inst(), 128};
+        print::Builder buff {Gpa::inst(), 128};
         defer( buff.destroy() );
 
         buff.print("hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});

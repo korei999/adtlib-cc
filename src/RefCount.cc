@@ -67,7 +67,7 @@ main()
     }
 
     {
-        RefCountedPtr<math::V3> rcp = StdAllocator::inst()->alloc<math::V3>(math::V3{1.1f, 2.2f, 3.3f});
+        RefCountedPtr<math::V3> rcp = Gpa::inst()->alloc<math::V3>(math::V3{1.1f, 2.2f, 3.3f});
         defer( rcp.unref() );
 
         auto rcp2 = rcp.ref();
@@ -96,7 +96,7 @@ main()
             ::free(p);
         };
 
-        RefCountedPtr<ArenaList> rpcArena {clDeleter, StdAllocator::inst()->alloc<ArenaList>(SIZE_1K)};
+        RefCountedPtr<ArenaList> rpcArena {clDeleter, Gpa::inst()->alloc<ArenaList>(SIZE_1K)};
         defer( rpcArena.unref() );
     }
 

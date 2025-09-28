@@ -67,7 +67,7 @@ PieceList::insert(isize pos, const StringView sv)
     try
     {
         rcp = RefCountedPtr<VStringM>::allocWithDeleter([](VStringM* p) { p->destroy(); }, sv);
-        pNew = Node::alloc(StdAllocator::inst(), Piece{
+        pNew = Node::alloc(Gpa::inst(), Piece{
             .m_rcpS = rcp,
             .m_pos = 0,
             .m_size = sv.m_size,
@@ -80,7 +80,7 @@ PieceList::insert(isize pos, const StringView sv)
         LogError{ex.what()};
 #endif
         if (rcp) rcp.unref();
-        StdAllocator::inst()->free(pNew);
+        Gpa::inst()->free(pNew);
     }
 
     return pRet;
@@ -94,7 +94,7 @@ PieceList::insert(isize pos, isize size, Node* pNode)
 
     try
     {
-        pNew = Node::alloc(StdAllocator::inst(), Piece{
+        pNew = Node::alloc(Gpa::inst(), Piece{
             .m_rcpS = pNode->data.m_rcpS.ref(),
             .m_pos = 0,
             .m_size = size,
@@ -145,7 +145,7 @@ PieceList::remove(isize pos, isize size)
 
         if (size < rPiece.m_size - pos) /* split case */
         {
-            Node* pLeftNode = Node::alloc(StdAllocator::inst(), Piece{
+            Node* pLeftNode = Node::alloc(Gpa::inst(), Piece{
                 .m_rcpS = rPiece.m_rcpS.ref(),
                 .m_pos = rPiece.m_pos,
                 .m_size = pos,
@@ -217,7 +217,7 @@ PieceList::defragment()
     });
     sRet.m_allocated.pData[i] = '\0';
 
-    static_cast<ListType&>(m_lPieces).pushBack(Node::alloc(StdAllocator::inst(), piece));
+    static_cast<ListType&>(m_lPieces).pushBack(Node::alloc(Gpa::inst(), piece));
 }
 
 inline VString
@@ -289,7 +289,7 @@ PieceList::insertFinal(isize pos, isize size, Node* pNew)
 
     if (pos > 0) /* split case */
     {
-        Node* pLeftNode = Node::alloc(StdAllocator::inst(), Piece{
+        Node* pLeftNode = Node::alloc(Gpa::inst(), Piece{
             .m_rcpS = rPiece.m_rcpS.ref(),
             .m_pos = rPiece.m_pos,
             .m_size = pos,

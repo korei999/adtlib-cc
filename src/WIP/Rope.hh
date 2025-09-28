@@ -117,7 +117,7 @@ Rope::insert(const StringView sv, isize atI)
     if (sv.empty()) return nullptr;
 
     auto rcp = RefCountedPtr<StringM>::allocWithDeleter([](StringM* p) { p->destroy(); }, sv);
-    auto* pLeaf = StdAllocator::inst()->alloc<Leaf>(Node{}, rcp, 0, rcp->size() - 1);
+    auto* pLeaf = Gpa::inst()->alloc<Leaf>(Node{}, rcp, 0, rcp->size() - 1);
     auto* p = insertNode(pLeaf, atI);
 
     m_totalSize += sv.size();
@@ -187,7 +187,7 @@ Rope::destroy() noexcept
             ADT_ASSERT(!p->m_right, "");
             reinterpret_cast<Leaf*>(p)->m_rcpS.unref();
         }
-        StdAllocator::inst()->free(p);
+        Gpa::inst()->free(p);
     });
 }
 
@@ -222,9 +222,9 @@ Rope::insertSplit(Leaf** ppLeaf, Leaf* pNew, isize weightedKey)
     Leaf* pLeaf = *ppLeaf;
     Node* pPar = pLeaf->m_parent;
 
-    auto* pTopWeight = StdAllocator::inst()->mallocV<Node>(1);
-    auto* pLeftWeight = StdAllocator::inst()->mallocV<Node>(1);
-    auto* pRightLeaf = StdAllocator::inst()->mallocV<Leaf>(1);
+    auto* pTopWeight = Gpa::inst()->mallocV<Node>(1);
+    auto* pLeftWeight = Gpa::inst()->mallocV<Node>(1);
+    auto* pRightLeaf = Gpa::inst()->mallocV<Leaf>(1);
 
     pRightLeaf->m_rcpS = pLeaf->m_rcpS.ref();
     pRightLeaf->m_lastI = pLeaf->m_lastI;
@@ -279,7 +279,7 @@ Rope::insertAppend(Leaf** ppLeaf, Leaf* pNew, isize)
     Leaf* pLeaf = *ppLeaf;
     Node* pPar = pLeaf->m_parent;
 
-    auto* pWeight = StdAllocator::inst()->mallocV<Node>(1);
+    auto* pWeight = Gpa::inst()->mallocV<Node>(1);
 
     { /* pWeight */
         pWeight->m_parent = pPar;
@@ -318,7 +318,7 @@ Rope::insertPrepend(Leaf** ppLeaf, Leaf* pNew, isize)
     Leaf* pLeaf = *ppLeaf;
     Node* pPar = pLeaf->m_parent;
 
-    Node* pWeight = StdAllocator::inst()->mallocV<Node>(1);
+    Node* pWeight = Gpa::inst()->mallocV<Node>(1);
 
     { /* pWeight */
         pWeight->m_parent = pPar;

@@ -1,6 +1,6 @@
 #include "adt/ArenaList.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
-#include "adt/StdAllocator.hh" /* IWYU pragma: keep */
+#include "adt/Gpa.hh" /* IWYU pragma: keep */
 #include "adt/Queue.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh"
 #include "adt/file.hh"
@@ -41,7 +41,7 @@ main(int argc, char* argv[])
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string1"));
         jObj[arrIdx].pushToArray(&al, json::makeString("", "string2"));
 
-        json::printNode(StdAllocator::inst(), stdout, &jObj);
+        json::printNode(Gpa::inst(), stdout, &jObj);
         putchar('\n');
 
         return 0;
@@ -50,7 +50,7 @@ main(int argc, char* argv[])
     try
     {
         // FreeList al {SIZE_1G};
-        // StdAllocator al;
+        // Gpa al;
         // MiMalloc al;
         Arena al {SIZE_8G};
         // MiHeap al(0);
@@ -71,7 +71,7 @@ main(int argc, char* argv[])
         // defer( p.destroy() );
 
         if (argc >= 3 && "-p" == StringView(argv[2]))
-            p.print(StdAllocator::inst(), stdout);
+            p.print(Gpa::inst(), stdout);
     }
     catch (const std::exception& ex)
     {

@@ -21,7 +21,7 @@ format(Context* ctx, FormatArgs fmtArgs, const ILogger::LEVEL& x)
 
 } /* namespace adt::print */
 
-#include "StdAllocator.hh"
+#include "Gpa.hh"
 #include "IThreadPool.hh"
 #include "Arena.hh"
 
@@ -263,7 +263,7 @@ inline
 Logger::Logger(FILE* pFile, ILogger::LEVEL eLevel, isize ringBufferSize, bool bForceColor)
     : ILogger{pFile, eLevel, bForceColor},
       m_ring{ringBufferSize},
-      m_pDrainBuff{StdAllocator::inst()->zallocV<char>(m_ring.m_cap)},
+      m_pDrainBuff{Gpa::inst()->zallocV<char>(m_ring.m_cap)},
       m_mtxRing{INIT}, m_cndRing{INIT},
       m_thrd{(ThreadFn)methodPointerNonVirtual(&Logger::loop), this}
 {
@@ -343,7 +343,7 @@ Logger::destroy() noexcept
     m_mtxRing.destroy();
     m_cndRing.destroy();
     m_ring.destroy();
-    StdAllocator::inst()->free(m_pDrainBuff);
+    Gpa::inst()->free(m_pDrainBuff);
 }
 
 inline THREAD_STATUS
@@ -379,7 +379,7 @@ Logger::loop() noexcept
 inline
 Logger::RingBuffer::RingBuffer(isize cap)
     : m_cap{nextPowerOf2(cap)},
-      m_pData{StdAllocator::inst()->zallocV<u8>(m_cap)}
+      m_pData{Gpa::inst()->zallocV<u8>(m_cap)}
 {
 }
 
@@ -473,7 +473,7 @@ Logger::RingBuffer::pop() noexcept
 inline void
 Logger::RingBuffer::destroy() noexcept
 {
-    StdAllocator::inst()->free(m_pData);
+    Gpa::inst()->free(m_pData);
     m_pData = nullptr;
     m_firstI = m_lastI = m_size = m_cap = 0;
 }

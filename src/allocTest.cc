@@ -1,6 +1,6 @@
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
-#include "adt/StdAllocator.hh"
+#include "adt/Gpa.hh"
 #include "adt/Logger.hh"
 #include "adt/time.hh"
 #include "adt/ThreadPool.hh"
@@ -13,7 +13,7 @@ using namespace adt;
 void
 throws()
 {
-    StdAllocator osAl {};
+    Gpa osAl {};
     auto* ptr = osAl.zalloc(1, SIZE_8G * 1024);
     defer( osAl.free(ptr) );
 }
@@ -21,7 +21,7 @@ throws()
 static void
 reallocZero()
 {
-    StdAllocator os {};
+    Gpa os {};
 
     errno = {};
     auto* what = os.realloc((void*)0, 0, 0, 0);

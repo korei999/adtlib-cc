@@ -2,7 +2,7 @@
 #include "adt/Vec.hh"
 #include "adt/ReverseIt.hh"
 #include "adt/defer.hh"
-#include "adt/StdAllocator.hh"
+#include "adt/Gpa.hh"
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/time.hh"
@@ -132,10 +132,10 @@ main()
         print::err("v: {}\n", v);
     }
 
-    Vec<ArenaList> aArenas(StdAllocator::inst(), 1);
-    defer( aArenas.destroy(StdAllocator::inst()) );
+    Vec<ArenaList> aArenas(Gpa::inst(), 1);
+    defer( aArenas.destroy(Gpa::inst()) );
 
-    aArenas.push(StdAllocator::inst(), {SIZE_1M});
+    aArenas.push(Gpa::inst(), {SIZE_1M});
     defer( aArenas[0].freeAll() );
 
     Vec<f64> vec(&aArenas[0]);
@@ -188,7 +188,7 @@ main()
     {
         time::Clock timer {INIT};
 
-        StdAllocator a;
+        Gpa a;
 
         Vec<B> vec(&a);
         for (u32 i = 0; i < BIG; ++i)

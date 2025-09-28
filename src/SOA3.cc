@@ -1,5 +1,5 @@
 #include "adt/SOA.hh"
-#include "adt/StdAllocator.hh"
+#include "adt/Gpa.hh"
 #include "adt/Vec.hh"
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
@@ -43,7 +43,7 @@ main()
 
     constexpr isize SIZE = 5000000;
 
-    StdAllocator alloc;
+    Gpa alloc;
 
     {
         VecSOA<ENTITY_TEMPLATE_ARGS> v0 {&alloc, SIZE};

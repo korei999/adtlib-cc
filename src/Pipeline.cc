@@ -48,7 +48,7 @@ main()
 
     LogInfo("Pipeline test...\n");
 
-    StdAllocator* pAl = StdAllocator::inst();
+    Gpa* pAl = Gpa::inst();
 
     Pipeline pl {pAl, {
         {pAl, stage0}, {pAl, stage1}, {pAl, stage2}, {pAl, stage3}, {pAl, stage4}

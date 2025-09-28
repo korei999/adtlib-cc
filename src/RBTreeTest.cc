@@ -2,7 +2,7 @@
 #include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
 #include "adt/ReverseIt.hh"
-#include "adt/StdAllocator.hh"
+#include "adt/Gpa.hh"
 #include "adt/defer.hh"
 #include "adt/time.hh"
 #include "adt/Logger.hh"
@@ -47,7 +47,7 @@ main()
 
         LogInfo("root: {}\n", *tree.root());
 
-        RBTree<long>::printNodes(StdAllocator::inst(), tree.root(), stdout);
+        RBTree<long>::printNodes(Gpa::inst(), tree.root(), stdout);
 
         LogDebug("sizeof(RBTree<Empty>::Node): {}\n", sizeof(RBTree<Empty>::Node));
     }
@@ -68,8 +68,8 @@ main()
 
         auto rb1 = rb0.release();
 
-        RBTree<String>::printNodes(StdAllocator::inst(), rb0.root(), stdout);
-        RBTree<String>::printNodes(StdAllocator::inst(), rb1.root(), stdout);
+        RBTree<String>::printNodes(Gpa::inst(), rb0.root(), stdout);
+        RBTree<String>::printNodes(Gpa::inst(), rb1.root(), stdout);
     }
 
     {
@@ -84,7 +84,7 @@ main()
         static_assert(ConvertsToStringView<std::string>);
         static_assert(!ConvertsToStringView<ArenaList>);
 
-        RBTree<std::string>::printNodes(StdAllocator::inst(), t0.root(), stdout);
+        RBTree<std::string>::printNodes(Gpa::inst(), t0.root(), stdout);
 
         t0.destructElements();
     }
@@ -115,10 +115,10 @@ main()
 
     {
         RBTree<int> t0;
-        defer( t0.destroy(StdAllocator::inst()) );
+        defer( t0.destroy(Gpa::inst()) );
 
         for (isize i = 0; i < 5000000; ++i)
-            t0.emplace(StdAllocator::inst(), false, i);
+            t0.emplace(Gpa::inst(), false, i);
 
         {
             auto* pFound = RBTree<int>::traversePre(t0.root(), [&](RBTree<int>::Node* p)

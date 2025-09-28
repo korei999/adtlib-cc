@@ -30,7 +30,7 @@ main()
         r.insert("ld", r.size());
         r.insert("||", 6);
 
-        r.printTree(StdAllocator::inst(), stdout);
+        r.printTree(Gpa::inst(), stdout);
 
         print::out("\nfull: '");
         for (isize i = 0; i < r.m_totalSize; ++i)

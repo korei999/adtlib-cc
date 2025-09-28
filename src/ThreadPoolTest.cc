@@ -1,4 +1,4 @@
-#include "adt/StdAllocator.hh" /* IWYU pragma: keep */
+#include "adt/Gpa.hh" /* IWYU pragma: keep */
 #include "adt/defer.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh" /* IWYU pragma: keep */
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */

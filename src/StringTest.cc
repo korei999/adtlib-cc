@@ -166,7 +166,7 @@ main()
         print::out("demangled: '{}'\n", demangle);
 
         print::out("thread: '{}'\n", Thread {});
-        print::out("StdAllocator: '{}'\n", StdAllocator {});
+        print::out("Gpa: '{}'\n", Gpa {});
         print::out("arena: '{}'\n", arena);
     }
 

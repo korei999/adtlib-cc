@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StdAllocator.hh"
+#include "Gpa.hh"
 #include "utils.hh"
 
 #include <cstddef>
@@ -407,7 +407,7 @@ List<T>::sort()
     m_pLast = tail;
 }
 
-template<typename T, typename ALLOC_T = StdAllocatorNV>
+template<typename T, typename ALLOC_T = GpaNV>
 struct ListManaged : public List<T>
 {
     using Base = List<T>;
