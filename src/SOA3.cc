@@ -4,7 +4,7 @@
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
 #include "adt/math.hh"
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -58,7 +58,7 @@ main()
 
         Entity acc {};
 
-        Timer timer {INIT};
+        time::Clock timer {INIT};
         for (Entity::Bind en : v0)
         {
             acc.pos += en.pos;
@@ -93,7 +93,7 @@ main()
         auto* pVel = &v0[0].vel;
         auto* pAsset = &v0[0].assetI;
 
-        Timer timer {INIT};
+        time::Clock timer {INIT};
         for (isize i = 0; i < v0.size(); ++i)
         {
             acc.pos += pPos[i];
@@ -120,7 +120,7 @@ main()
 
         Entity acc {};
 
-        Timer timer {INIT};
+        time::Clock timer {INIT};
         for (isize i = 0; i < v0.size(); ++i)
         {
             acc.pos += v0[i].pos;

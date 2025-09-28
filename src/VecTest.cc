@@ -5,7 +5,7 @@
 #include "adt/StdAllocator.hh"
 #include "adt/sort.hh"
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/assert.hh"
 #include "adt/Logger.hh"
 
@@ -186,7 +186,7 @@ main()
     }
 
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
 
         StdAllocator a;
 
@@ -200,7 +200,7 @@ main()
     }
 
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
 
         std::vector<B> stdvec;
         /*stdvec.reserve(big);*/

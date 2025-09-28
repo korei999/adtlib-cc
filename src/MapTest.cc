@@ -3,7 +3,7 @@
 #include "adt/Map.hh"
 #include "adt/Span.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh"
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/Arena.hh"
 #include "adt/Logger.hh"
 #include "adt/ThreadPool.hh"
@@ -23,7 +23,7 @@ memeHash(const int& x)
     return usize(x);
 }
 
-static rng::PCG32 s_rng {(u64)Timer::getTime()};
+static rng::PCG32 s_rng {(u64)time::Clock::getTime()};
 
 static String
 genRandomString(IAllocator* pAlloc)
@@ -68,7 +68,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -83,7 +83,7 @@ microBench()
         }
 
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -131,7 +131,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -144,7 +144,7 @@ microBench()
         }
 
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
 
             for (isize i = 0; i < BIG; ++i)
             {

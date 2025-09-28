@@ -293,8 +293,8 @@ Arena::freeAll() noexcept
 #else
 #endif
 
-    *this = {};
     ADT_ASAN_UNPOISON(m_pData, m_reserved);
+    ::memset((u8*)this, 0, sizeof(*this));
 }
 
 template<typename T, typename ...ARGS>

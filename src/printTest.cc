@@ -5,7 +5,7 @@
 #include "adt/String.hh" /* IWYU pragma: keep */
 #include "adt/Vec.hh"    /* IWYU pragma: keep */
 #include "adt/defer.hh"  /* IWYU pragma: keep */
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/math.hh"   /* IWYU pragma: keep */
 #include "adt/Logger.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh"
@@ -187,7 +187,7 @@ main()
     }
 
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
@@ -203,7 +203,7 @@ main()
     LogDebug("\n");
 
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
@@ -219,7 +219,7 @@ main()
     LogDebug("\n");
 
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
@@ -235,7 +235,7 @@ main()
 
 #ifdef GOT_FMT
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)

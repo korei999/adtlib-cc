@@ -2,7 +2,7 @@
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Array.hh"
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -19,7 +19,7 @@ main()
     for (isize i = 0; i < SIZE; ++i)
         v[i] = i + 1;
 
-    Timer timer {INIT};
+    time::Clock timer {INIT};
     for (int e : v)
     {
         isize f = utils::binarySearchI(v, e);

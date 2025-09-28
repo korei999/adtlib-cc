@@ -1,4 +1,4 @@
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/Logger.hh"
 
 using namespace adt;
@@ -13,7 +13,7 @@ main()
     {
         LogDebug{"time test...\n"};
 
-        Timer timer {INIT};
+        time::Clock timer {INIT};
         for (isize i = 0; i < 1000000; ++i)
         {
             char aBuff[512] {};

@@ -2,7 +2,7 @@
 #include "adt/defer.hh"
 #include "adt/StdAllocator.hh"
 #include "adt/Logger.hh"
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/ThreadPool.hh"
 
 #include <vector>
@@ -106,7 +106,7 @@ main()
     }
 
     {
-        Timer timer {INIT};
+        time::Clock timer {INIT};
         for (int i = 0; i < big; ++i)
             vecStd.push_back(i);
         LogDebug("vecStd: {}\n", timer.elapsedSec());

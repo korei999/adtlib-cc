@@ -48,7 +48,7 @@ set(ADT_PRECOMPILED_HEADERS
     String.hh
     Thread.hh
     ThreadPool.hh
-    Timer.hh
+    time.hh
     types.hh
     utf8.hh
     utils.hh

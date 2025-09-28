@@ -5,7 +5,7 @@
 #include "adt/ArenaList.hh" /* IWYU pragma: keep */
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
-#include "adt/Timer.hh"
+#include "adt/time.hh"
 #include "adt/rng.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/Logger.hh"
@@ -99,7 +99,7 @@ main()
             auto v1 = v0.clone();
             defer( v1.destroy() );
             {
-                Timer timer {INIT};
+                time::Clock timer {INIT};
                 std::sort(v1.data(), v1.data() + v1.size());
                 LogDebug("std::sort(StringM): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
             }
@@ -107,7 +107,7 @@ main()
             auto v2 = v0.clone();
             defer( v2.destroy() );
             {
-                Timer timer {INIT};
+                time::Clock timer {INIT};
                 sort::quick(&v2);
                 LogDebug("sort::quick(StringM): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
             }
@@ -115,7 +115,7 @@ main()
             auto v3 = v0.clone();
             defer( v3.destroy() );
             {
-                Timer timer {INIT};
+                time::Clock timer {INIT};
                 qsort(v3.data(), v3.size(), sizeof(*v3.data()), [](const void* pl, const void* pr) -> int {
                     return utils::compare(*(StringM*)pl, *(StringM*)pr);
                 });
@@ -125,7 +125,7 @@ main()
             auto v4 = v0.clone();
             defer( v4.destroy() );
             {
-                Timer timer {INIT};
+                time::Clock timer {INIT};
                 u8 aBuff0[sizeof(*v4.data())] {};
                 u8 aBuff1[sizeof(*v4.data())] {};
                 quick2(v4.data(), 0, v4.size() - 1, aBuff0, aBuff1, sizeof(aBuff0), [](const void* pl, const void* pr) {
@@ -161,7 +161,7 @@ main()
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
 #if defined __APPLE__ || defined __OpenBSD__
             std::sort(v1.data(), v1.data() + v1.size());
 #else
@@ -173,7 +173,7 @@ main()
         auto v2 = v0.clone();
         defer( v2.destroy() );
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
             sort::quickParallel(&tp, &v2);
             LogDebug("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
         }
@@ -196,7 +196,7 @@ main()
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
             std::sort(v1.data(), v1.data() + v1.size());
             LogDebug("std::sort(u32): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
         }
@@ -204,7 +204,7 @@ main()
         auto v2 = v0.clone();
         defer( v2.destroy() );
         {
-            Timer timer {INIT};
+            time::Clock timer {INIT};
             sort::quick(&v2);
             LogDebug("sort::quick(u32): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
         }

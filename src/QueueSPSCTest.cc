@@ -2,7 +2,7 @@
 #include "adt/defer.hh"
 #include "adt/Logger.hh"
 
-#include "WIP/QueueSPSC.hh"
+#include "adt/QueueSPSC.hh"
 
 using namespace adt;
 
