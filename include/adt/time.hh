@@ -75,8 +75,7 @@ frequency() noexcept
 {
 #ifdef _MSC_VER
 
-    static const LARGE_INTEGER s_freq = []
-    {
+    static const LARGE_INTEGER s_freq = [] {
         LARGE_INTEGER t;
         QueryPerformanceFrequency(&t);
         return t;
@@ -97,7 +96,7 @@ diff(Type time, Type startTime) noexcept
 
 #ifdef _MSC_VER
 
-    return diff * 1000000ll / frequency();
+    return diff / frequency();
 
 #elif __has_include(<unistd.h>)
 
@@ -109,13 +108,33 @@ diff(Type time, Type startTime) noexcept
 [[nodiscard]] inline f64
 diffSec(Type time, Type startTime) noexcept
 {
-    return (f64)diff(time, startTime) / ((f64)frequency() / 1000.0);
+    const Type diff = time - startTime;
+
+#ifdef _MSC_VER
+
+    return (f64)diff / (f64)frequency();
+
+#elif __has_include(<unistd.h>)
+
+    return diff / 1000ll;
+
+#endif
 }
 
 [[nodiscard]] inline f64
 diffMSec(Type time, Type startTime) noexcept
 {
-    return (f64)diff(time, startTime) / ((f64)frequency() / 1000000.0);
+    const Type diff = time - startTime;
+
+#ifdef _MSC_VER
+
+    return (f64)diff * (1000.0 / (f64)frequency());
+
+#elif __has_include(<unistd.h>)
+
+    return diff / 1000ll;
+
+#endif
 }
 
 [[nodiscard]] inline Type

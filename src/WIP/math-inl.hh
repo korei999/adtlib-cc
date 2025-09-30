@@ -72,14 +72,14 @@ struct V2Base
 
     template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return s.m_a[i]; }
 
-    template<typename S> decltype(auto) x(this S&& s) noexcept { return s.m_a[0]; }
-    template<typename S> decltype(auto) y(this S&& s) noexcept { return s.m_a[1]; }
+    template<typename S> constexpr decltype(auto) x(this S&& s) noexcept { return s.m_a[0]; }
+    template<typename S> constexpr decltype(auto) y(this S&& s) noexcept { return s.m_a[1]; }
 
-    template<typename S> decltype(auto) r(this S&& s) noexcept { return s.m_a[0]; }
-    template<typename S> decltype(auto) g(this S&& s) noexcept { return s.m_a[1]; }
+    template<typename S> constexpr decltype(auto) r(this S&& s) noexcept { return s.m_a[0]; }
+    template<typename S> constexpr decltype(auto) g(this S&& s) noexcept { return s.m_a[1]; }
 
-    template<typename S> decltype(auto) u(this S&& s) noexcept { return s.m_a[0]; }
-    template<typename S> decltype(auto) v(this S&& s) noexcept { return s.m_a[1]; }
+    template<typename S> constexpr decltype(auto) u(this S&& s) noexcept { return s.m_a[0]; }
+    template<typename S> constexpr decltype(auto) v(this S&& s) noexcept { return s.m_a[1]; }
 
     bool operator==(const V2Base& r) const noexcept;
     V2Base operator-() const noexcept;
@@ -134,11 +134,11 @@ struct V3Base : V2Base<T>
     { return {static_cast<B>(x()), static_cast<B>(y()), static_cast<B>(z())}; }
 
     template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[3])(s))[i]; }
-    T& z() noexcept { return m_z; }
-    const T& z() const noexcept { return m_z; }
+    constexpr T& z() noexcept { return m_z; }
+    constexpr const T& z() const noexcept { return m_z; }
 
-    T& b() noexcept { return m_z; }
-    const T& b() const noexcept { return m_z; }
+    constexpr T& b() noexcept { return m_z; }
+    constexpr const T& b() const noexcept { return m_z; }
 
     V2B xy() const noexcept { return *static_cast<const V2B*>(this); }
     V2B yz() const noexcept { return {y(), z()}; }
@@ -202,11 +202,11 @@ struct V4Base : V3Base<T>
 
     template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[4])(s); }
 
-    T& w() noexcept { return m_w; }
-    const T& w() const noexcept { return m_w; }
+    constexpr T& w() noexcept { return m_w; }
+    constexpr const T& w() const noexcept { return m_w; }
 
-    T& a() noexcept { return m_w; }
-    const T& a() const noexcept { return m_w; }
+    constexpr T& a() noexcept { return m_w; }
+    constexpr const T& a() const noexcept { return m_w; }
 
     V3B& xyz() noexcept { return *static_cast<V3B*>(this); }
     const V3B& xyz() const noexcept { return *static_cast<const V3B*>(this); }
