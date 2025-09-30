@@ -127,6 +127,7 @@ PieceList::remove(isize pos, isize size)
         Piece& rPiece = pNode->data;
 
         const isize nShed = utils::min(rPiece.m_size, size);
+        rPiece.m_pos += nShed;
         rPiece.m_size -= nShed;
 
         size -= nShed;

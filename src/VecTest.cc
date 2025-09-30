@@ -39,7 +39,7 @@ struct B : A
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -186,7 +186,7 @@ main()
     }
 
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
 
         Gpa a;
 
@@ -194,20 +194,20 @@ main()
         for (u32 i = 0; i < BIG; ++i)
             vec.emplace(&a, i, i);
 
-        print::err("adt: {:.3} ms\n", timer.elapsedSec() * 1000.0);
+        print::err("adt: {:.3} ms\n", time::diffMSec(time::now(), timer));
 
         vec.destroy(&a);
     }
 
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
 
         std::vector<B> stdvec;
         /*stdvec.reserve(big);*/
         for (u32 i = 0; i < BIG; ++i)
             stdvec.emplace_back(i, i);
 
-        print::err("std: {:.3} ms\n", timer.elapsedSec() * 1000.0);
+        print::err("std: {:.3} ms\n", time::diffMSec(time::now(), timer));
     }
 
     {

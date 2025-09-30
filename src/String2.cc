@@ -46,7 +46,7 @@ main()
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, 1 << 12};
+    Logger logger {2, ILogger::LEVEL::DEBUG, 1 << 12};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 

@@ -21,7 +21,7 @@ main()
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -151,16 +151,16 @@ main()
         }
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             isize total = 0;
             for (auto& e : t0) total += e;
 
-            LogDebug("for loop: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("for loop: time: {:.3} ms, totalSum: {}\n", time::diffSec(time::now(), timer), total);
             LogDebug("\n");
         }
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             isize total = 0;
             RBTree<int>::traverseIn(t0.root(), [&](RBTree<int>::Node* p)
                 {
@@ -169,12 +169,12 @@ main()
                 }
             );
 
-            LogDebug("traverseIn: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("traverseIn: time: {:.3} ms, totalSum: {}\n", time::diffSec(time::now(), timer), total);
             LogDebug("\n");
         }
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             isize total = 0;
             RBTree<int>::traversePost(t0.root(), [&](RBTree<int>::Node* p)
                 {
@@ -182,12 +182,12 @@ main()
                     return false;
                 }
             );
-            LogDebug("traversePost: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("traversePost: time: {:.3} ms, totalSum: {}\n", time::diffSec(time::now(), timer), total);
             LogDebug("\n");
         }
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             isize total = 0;
             RBTree<int>::traversePre(t0.root(), [&](RBTree<int>::Node* p)
                 {
@@ -195,7 +195,7 @@ main()
                     return false;
                 }
             );
-            LogDebug("traversePre: time: {:.3} ms, totalSum: {}\n", timer.elapsedSec(), total);
+            LogDebug("traversePre: time: {:.3} ms, totalSum: {}\n", time::diffSec(time::now(), timer), total);
             LogDebug("\n");
         }
     }

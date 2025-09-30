@@ -11,7 +11,7 @@ static char s_aBuff[SIZE_1M];
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 

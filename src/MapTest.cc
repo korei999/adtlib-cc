@@ -23,7 +23,7 @@ memeHash(const int& x)
     return usize(x);
 }
 
-static rng::PCG32 s_rng {(u64)time::Clock::getTime()};
+static rng::PCG32 s_rng {(u64)time::now()};
 
 static String
 genRandomString(IAllocator* pAlloc)
@@ -68,7 +68,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -79,11 +79,11 @@ microBench()
                 }
             }
 
-            LogDebug("tryInsert {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
+            LogDebug("tryInsert {} items in {:.3} ms\n", BIG, time::diffMSec(time::now(), timer));
         }
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -105,7 +105,7 @@ microBench()
                 }
             }
 
-            LogDebug("search {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
+            LogDebug("search {} items in {:.3} ms\n", BIG, time::diffMSec(time::now(), timer));
 
             for (auto& sv : vNotFoundStrings)
             {
@@ -131,7 +131,7 @@ microBench()
         defer( vNotFoundStrings.destroy() );
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -140,11 +140,11 @@ microBench()
                     vNotFoundStrings.push(vStrings[i]);
             }
 
-            LogDebug("STL: try_emplace {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
+            LogDebug("STL: try_emplace {} items in {:.3} ms\n", BIG, time::diffMSec(time::now(), timer));
         }
 
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
 
             for (isize i = 0; i < BIG; ++i)
             {
@@ -166,7 +166,7 @@ microBench()
                 }
             }
 
-            LogDebug("STL: search {} items in {:.3} ms\n", BIG, timer.elapsedSec() * 1000.0);
+            LogDebug("STL: search {} items in {:.3} ms\n", BIG, time::diffMSec(time::now(), timer));
 
             for (auto& sv : vNotFoundStrings)
             {
@@ -183,7 +183,7 @@ main()
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 

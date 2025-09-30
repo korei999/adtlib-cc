@@ -68,7 +68,7 @@ main()
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -106,10 +106,10 @@ main()
     }
 
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
         for (int i = 0; i < big; ++i)
             vecStd.push_back(i);
-        LogDebug("vecStd: {}\n", timer.elapsedSec());
+        LogDebug("vecStd: {}\n", time::diffMSec(time::now(), timer));
     }
 
     // {

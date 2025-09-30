@@ -60,7 +60,7 @@ main()
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -187,13 +187,13 @@ main()
     }
 
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             print::toSpan(aBuff, "some string here {:5} just taking a bunch of space: {}, {}, {}, {}", svTest, i, i, f32(i), f64(i));
 
-        const auto t1 = timer.elapsedMSec();
+        const auto t1 = time::diffMSec(time::now(), timer);
 
         print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(adt::print) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
@@ -203,13 +203,13 @@ main()
     LogDebug("\n");
 
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             snprintf(aBuff, sizeof(aBuff) - 1, "some string here %.*s just taking a bunch of space: %lld, %lld, %g, %g", 5, svTest.data(), i, i, f32(i), f64(i));
 
-        const auto t1 = timer.elapsedMSec();
+        const auto t1 = time::diffMSec(time::now(), timer);
 
         print::out("aBuff: {}\n", aBuff);
         // LOG_BAD("(snprintf) formatted {} in {} ms\n", BIG, (t1 - t0) / 1000);
@@ -219,13 +219,13 @@ main()
     LogDebug("\n");
 
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             std::format_to(aBuff, "some string here {:.5} just taking a bunch of space: {}, {}, {}, {}", std::string_view{svTest.data(), svTest.size()}, i, i, f32(i), f64(i));
 
-        const auto t1 = timer.elapsedMSec();
+        const auto t1 = time::diffMSec(time::now(), timer);
 
         print::out("aBuff: {}\n", aBuff);
         printf("(std::format_to) formatted %lld in %g ms\n", BIG, t1);
@@ -235,13 +235,13 @@ main()
 
 #ifdef GOT_FMT
     {
-        time::Clock timer {INIT};
+        auto timer = time::now();
 
         char aBuff[128] {};
         for (isize i = 0; i < BIG; ++i)
             fmt::format_to(aBuff, "some string here {:.5} just taking a bunch of space: {}, {}, {}, {}", std::string_view{svTest.data(), svTest.size()}, i, i, f32(i), f64(i));
 
-        const auto t1 = timer.elapsedMSec();
+        const auto t1 = time::diffMSec(time::now(), timer);
 
         print::out("aBuff: {}\n", aBuff);
         printf("(fmt::format_to) formatted %lld in %g ms\n", BIG, t1);

@@ -17,7 +17,7 @@ using namespace adt;
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -127,16 +127,16 @@ main()
 
     print::out("\n");
 
-    {
-        constexpr StringView sv = "| 🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
-        print::out("width of '{}': {}\n", "🇺🇦", utf8::computeWidth("🇺🇦"));
-        int i = 0;
-        print::out("({}) glyphs...\n", sv);
-        for (const wchar_t& g : StringWCharIt(sv))
-        {
-            print::out("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
-        }
-    }
+    // {
+    //     constexpr StringView sv = "| 🇺🇦КВИТКИ/̶̢̧̠̩̠̠̪̜͚͙̏͗̏̇̑̈͛͘ͅ";
+    //     print::out("width of '{}': {}\n", "🇺🇦", utf8::computeWidth("🇺🇦"));
+    //     int i = 0;
+    //     print::out("({}) glyphs...\n", sv);
+    //     for (const wchar_t& g : StringWCharIt(sv))
+    //     {
+    //         print::out("({}): '{}' ({}), width: {}\n", i++, g, u32(g), wcWidth(g));
+    //     }
+    // }
 
     print::out("\n");
 

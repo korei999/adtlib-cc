@@ -37,7 +37,7 @@ ADT_SOA_GEN_STRUCT_ZERO(Entity, Bind, ENTITY_FIELDS);
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -58,7 +58,7 @@ main()
 
         Entity acc {};
 
-        time::Clock timer {INIT};
+        auto timer = time::now();
         for (Entity::Bind en : v0)
         {
             acc.pos += en.pos;
@@ -67,7 +67,7 @@ main()
             acc.assetI += en.assetI;
         }
 
-        auto t1 = timer.elapsedMSec();
+        auto t1 = time::diffMSec(time::now(), timer);
         LogDebug("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LogInfo("SOA time: {:.3} ms\n\n", t1);
@@ -93,7 +93,7 @@ main()
         auto* pVel = &v0[0].vel;
         auto* pAsset = &v0[0].assetI;
 
-        time::Clock timer {INIT};
+        auto timer = time::now();
         for (isize i = 0; i < v0.size(); ++i)
         {
             acc.pos += pPos[i];
@@ -102,7 +102,7 @@ main()
             acc.assetI += pAsset[i];
         }
 
-        auto t1 = timer.elapsedMSec();
+        auto t1 = time::diffMSec(time::now(), timer);
         LogDebug("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LogInfo("SOA(offsets) time: {:.3} ms\n\n", t1);
@@ -120,7 +120,7 @@ main()
 
         Entity acc {};
 
-        time::Clock timer {INIT};
+        auto timer = time::now();
         for (isize i = 0; i < v0.size(); ++i)
         {
             acc.pos += v0[i].pos;
@@ -129,7 +129,7 @@ main()
             acc.assetI += v0[i].assetI;
         }
 
-        auto t1 = timer.elapsedMSec();
+        auto t1 = time::diffMSec(time::now(), timer);
         LogDebug("acc: {:.3}, {:.3}, {:.3}, {:.3}\n", acc.pos, acc.scale, acc.vel, acc.assetI);
 
         LogInfo("AOS time: {:.3} ms\n\n", t1);

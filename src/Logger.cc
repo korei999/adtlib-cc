@@ -45,7 +45,7 @@ main(int, char**)
 #endif
 
     {
-        new(&s_logger) Logger{stderr, ILogger::LEVEL::DEBUG, 1 << 10};
+        new(&s_logger) Logger{2, ILogger::LEVEL::DEBUG, 1 << 10};
         ILogger::setGlobal(&s_logger);
         defer( s_logger.destroy() );
 

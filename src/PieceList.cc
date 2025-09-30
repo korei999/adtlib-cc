@@ -17,6 +17,16 @@ test()
     PieceList pl {rcp};
     defer( pl.destroy() );
 
+    pl.remove(0, 1);
+
+    {
+        ArenaScope sg {&arena};
+        VString s = pl.toString(&arena);
+        LogDebug("s: '{}'\n", s);
+        ADT_ASSERT_ALWAYS(StringView(s) == "elloWorld", "s(size: {}, cap: {}): '{}'", s.size(), s.cap(), s);
+    }
+
+    pl.insert(0, "H");
     pl.insert(5, "|INSERT|");
     pl.insert(9, "<--->");
     pl.insert(0, "(+)");
@@ -76,13 +86,13 @@ test()
         ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(|%rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
     }
 
-    pl.remove(1, pl.size() - 2);
+    pl.remove(0, 1);
 
     {
         ArenaScope sg {&arena};
         VString s = pl.toString(&arena);
         LogInfo("({}): s: '{}'\n", s.size(), s);
-        ADT_ASSERT_ALWAYS(StringView(s) == "(]", "s: '{}'", s);
+        ADT_ASSERT_ALWAYS(StringView(s) == "|%rld|%|[{^}*]", "s: '{}'", s);
     }
 
     pl.remove(0, pl.size());
@@ -97,7 +107,7 @@ main()
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, 1 << 12, true};
+    Logger logger {2, ILogger::LEVEL::DEBUG, 1 << 12, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 

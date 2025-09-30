@@ -27,7 +27,7 @@ main()
     IThreadPool::setGlobal(&tp);
     defer( tp.destroy() );
 
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, 1024, true};
+    Logger logger {2, ILogger::LEVEL::DEBUG, 1024, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 

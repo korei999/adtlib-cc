@@ -67,7 +67,7 @@ quick2(void* pArray, isize l, isize r, void* pSpace, void* pSwap, isize mSize, i
 int
 main()
 {
-    Logger logger {stderr, ILogger::LEVEL::DEBUG, SIZE_1K*4};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
@@ -99,39 +99,39 @@ main()
             auto v1 = v0.clone();
             defer( v1.destroy() );
             {
-                time::Clock timer {INIT};
+                auto timer = time::now();
                 std::sort(v1.data(), v1.data() + v1.size());
-                LogDebug("std::sort(StringM): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("std::sort(StringM): {} items in {} ms\n", v1.size(), time::diffSec(time::now(), timer) * 1000.0);
             }
 
             auto v2 = v0.clone();
             defer( v2.destroy() );
             {
-                time::Clock timer {INIT};
+                auto timer = time::now();
                 sort::quick(&v2);
-                LogDebug("sort::quick(StringM): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("sort::quick(StringM): {} items in {} ms\n", v2.size(), time::diffSec(time::now(), timer) * 1000.0);
             }
 
             auto v3 = v0.clone();
             defer( v3.destroy() );
             {
-                time::Clock timer {INIT};
+                auto timer = time::now();
                 qsort(v3.data(), v3.size(), sizeof(*v3.data()), [](const void* pl, const void* pr) -> int {
                     return utils::compare(*(StringM*)pl, *(StringM*)pr);
                 });
-                LogDebug("qsort(StringM): {} items in {} ms\n", v3.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("qsort(StringM): {} items in {} ms\n", v3.size(), time::diffSec(time::now(), timer) * 1000.0);
             }
 
             auto v4 = v0.clone();
             defer( v4.destroy() );
             {
-                time::Clock timer {INIT};
+                auto timer = time::now();
                 u8 aBuff0[sizeof(*v4.data())] {};
                 u8 aBuff1[sizeof(*v4.data())] {};
                 quick2(v4.data(), 0, v4.size() - 1, aBuff0, aBuff1, sizeof(aBuff0), [](const void* pl, const void* pr) {
                     return utils::compare(*(StringM*)pl, *(StringM*)pr);
                 });
-                LogDebug("quick2(StringM): {} items in {} ms\n", v4.size(), timer.elapsedSec() * 1000.0);
+                LogDebug("quick2(StringM): {} items in {} ms\n", v4.size(), time::diffSec(time::now(), timer) * 1000.0);
             }
 
             ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");
@@ -161,21 +161,21 @@ main()
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
 #if defined __APPLE__ || defined __OpenBSD__
             std::sort(v1.data(), v1.data() + v1.size());
 #else
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
 #endif
-            LogDebug("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), time::diffSec(time::now(), timer) * 1000.0);
         }
 
         auto v2 = v0.clone();
         defer( v2.destroy() );
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             sort::quickParallel(&tp, &v2);
-            LogDebug("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("sort::quickParallel(i64): {} items in {} ms\n", v2.size(), time::diffSec(time::now(), timer) * 1000.0);
         }
 
         ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");
@@ -196,17 +196,17 @@ main()
         auto v1 = v0.clone();
         defer( v1.destroy() );
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             std::sort(v1.data(), v1.data() + v1.size());
-            LogDebug("std::sort(u32): {} items in {} ms\n", v1.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("std::sort(u32): {} items in {} ms\n", v1.size(), time::diffSec(time::now(), timer) * 1000.0);
         }
 
         auto v2 = v0.clone();
         defer( v2.destroy() );
         {
-            time::Clock timer {INIT};
+            auto timer = time::now();
             sort::quick(&v2);
-            LogDebug("sort::quick(u32): {} items in {} ms\n", v2.size(), timer.elapsedSec() * 1000.0);
+            LogDebug("sort::quick(u32): {} items in {} ms\n", v2.size(), time::diffSec(time::now(), timer) * 1000.0);
         }
 
         ADT_ASSERT_ALWAYS(v1.size() == v2.size(), "");

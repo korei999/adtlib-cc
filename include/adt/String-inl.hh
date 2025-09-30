@@ -235,6 +235,7 @@ struct VString
     /* */
 
     void destroy(IAllocator* pAlloc) noexcept;
+    bool steal(String* pStr) noexcept;
 
     char* data() noexcept;
     const char* data() const noexcept;
