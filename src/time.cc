@@ -14,12 +14,13 @@ main()
         LogDebug{"time test...\n"};
 
         auto timer = time::now();
-        for (isize i = 0; i < 1000000; ++i)
+        for (isize i = 0; i < 2000000; ++i)
         {
             char aBuff[512] {};
             print::toSpan(aBuff, "{}, {}, {}", i, float(i), double(i));
         }
-        LogInfo{"elapsed: {:.3} sec\n", time::diffSec(time::now(), timer)};
+        auto now = time::now();
+        LogInfo{"elapsed: {:.3} sec (raw: {})\n", time::diffSec(now, timer), time::diff(now, timer)};
 
         LogDebug{"time test passed\n"};
     }

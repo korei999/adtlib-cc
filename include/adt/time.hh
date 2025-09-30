@@ -93,48 +93,19 @@ frequency() noexcept
 diff(Type time, Type startTime) noexcept
 {
     const Type diff = time - startTime;
-
-#ifdef _MSC_VER
-
-    return diff / frequency();
-
-#elif __has_include(<unistd.h>)
-
-    return diff / 1000ll;
-
-#endif
+    return diff;
 }
 
 [[nodiscard]] inline f64
 diffSec(Type time, Type startTime) noexcept
 {
-    const Type diff = time - startTime;
-
-#ifdef _MSC_VER
-
-    return (f64)diff / (f64)frequency();
-
-#elif __has_include(<unistd.h>)
-
-    return diff / 1000ll;
-
-#endif
+    return (f64)(time - startTime) / (f64)frequency();
 }
 
 [[nodiscard]] inline f64
 diffMSec(Type time, Type startTime) noexcept
 {
-    const Type diff = time - startTime;
-
-#ifdef _MSC_VER
-
-    return (f64)diff * (1000.0 / (f64)frequency());
-
-#elif __has_include(<unistd.h>)
-
-    return diff / 1000ll;
-
-#endif
+    return (f64)(time - startTime) * (1000.0 / (f64)frequency());
 }
 
 [[nodiscard]] inline Type
