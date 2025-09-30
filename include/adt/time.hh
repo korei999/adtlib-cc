@@ -90,10 +90,19 @@ frequency() noexcept
 }
 
 [[nodiscard]] inline Type
-diff(Type time, Type startTime) noexcept
+diff(Type time, Type startTime) noexcept /* Unified to microseconds. */
 {
     const Type diff = time - startTime;
-    return diff;
+
+#ifdef _MSC_VER
+
+    return (diff * 1000000ll) / frequency();
+
+#elif __has_include(<unistd.h>)
+
+    return diff / 1000ll;
+
+#endif
 }
 
 [[nodiscard]] inline f64
