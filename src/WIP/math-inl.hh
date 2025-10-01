@@ -1,7 +1,8 @@
 #pragma once
 
-#include "adt/print-inl.hh"
+#include "adt/assert.hh"
 
+#include <concepts>
 #include <limits>
 
 namespace adt::math
@@ -22,386 +23,445 @@ constexpr inline f64 toDeg(i64 x);
 constexpr inline f32 toRad(i32 x);
 constexpr inline f32 toDeg(i32 x);
 
-template<typename T> inline bool eq(const T& l, const T& r);
-template<> inline bool eq(const f64& l, const f64& r);
-template<> inline bool eq(const f32& l, const f32& r);
+inline bool eq(const f64 l, const f64 r);
+inline bool eq(const f32 l, const f32 r);
 
 constexpr inline auto sq(const auto& x);
 constexpr inline auto cube(const auto& x);
 
 constexpr inline i64 sign(i64 x);
 
+union IV2;
+
+union V2
+{
+    f32 e[2];
+    struct { f32 x, y; };
+    struct { f32 u, v; };
+
+    constexpr explicit operator IV2() const;
+
+    f32& operator[](int i) { ADT_ASSERT(i >= 0 && i < 2, "i: {}", i); return e[i]; }
+    const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 2, "i: {}", i); return e[i]; }
+
+    V2 operator-();
+    V2 operator+(const V2& r) const;
+    V2 operator-(const V2& r) const;
+    V2 operator*(f32 s) const;
+    friend V2 operator*(f32 s, const V2& v) { return v * s; }
+    V2 operator*(const V2& r) const;
+    V2& operator*=(const V2& r);
+    V2 operator/(f32 s) const;
+    V2& operator+=(const V2& r);
+    V2& operator-=(const V2& r);
+    V2& operator*=(f32 r);
+    V2& operator/=(f32 r);
+};
+
+union IV2
+{
+    int e[2];
+    struct { int x, y; };
+    struct { int u, v; };
+
+    constexpr explicit operator V2() const
+    {
+        return {
+            static_cast<f32>(x),
+            static_cast<f32>(y),
+        };
+    }
+
+    int& operator[](int i) { ADT_ASSERT(i >= 0 && i < 2, "i: {}", i); return e[i]; }
+    const int& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 2, "i: {}", i); return e[i]; }
+
+    IV2 operator-(const IV2& r) const;
+    IV2& operator+=(const IV2& r);
+    IV2& operator-=(const IV2& r);
+};
+
+constexpr inline
+V2::operator IV2() const
+{
+    return {
+        static_cast<int>(x),
+        static_cast<int>(y),
+    };
+}
+
+union V3
+{
+    f32 e[3];
+    struct { V2 xy; f32 _v2pad; };
+    struct { f32 x, y, z; };
+    struct { f32 r, g, b; };
+
+    f32& operator[](int i) { ADT_ASSERT(i >= 0 && i < 3, "i: {}", i); return e[i]; }
+    const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 3, "i: {}", i); return e[i]; }
+
+    bool operator==(const V3& r) const;
+
+    V3 operator+(const V3& r) const;
+    V3 operator-(const V3& r) const;
+    V3 operator-() const;
+    V3 operator*(f32 s) const;
+    friend V3 operator*(f32 s, const V3& v) { return v * s; }
+    V3 operator*(const V3& r) const;
+    V3 operator/(f32 s) const;
+    V3 operator+(f32 b) const;
+    V3& operator+=(f32 b);
+    V3& operator+=(const V3& r);
+    V3& operator-=(const V3& r);
+    V3& operator*=(f32 s);
+    V3& operator/=(f32 s);
+};
+
+union IV3
+{
+    int e[3];
+    struct { IV2 xy; int _v2pad; };
+    struct { int x, y, z; };
+    struct { int r, g, b; };
+
+    int& operator[](int i) { ADT_ASSERT(i >= 0 && i < 3, "i: {}", i); return e[i]; }
+    const int& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 3, "i: {}", i); return e[i]; }
+};
+
+union IV4;
+union Qt;
+
+union V4
+{
+    f32 e[4];
+    struct { V3 xyz; f32 _v3pad; };
+    struct { V2 xy; V2 zw; };
+    struct { f32 x, y, z, w; };
+    struct { f32 r, g, b, a; };
+
+    /* */
+
+    constexpr explicit operator IV4() const;
+    explicit operator Qt() const;
+
+    f32& operator[](int i) { ADT_ASSERT(i >= 0 && i < 4, "i: {}", i); return e[i]; }
+    const f32& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "i: {}", i); return e[i]; }
+
+    bool operator==(const V4& r) const;
+
+    V4 operator+(const V4& r) const;
+    V4 operator-() const;
+    V4 operator-(const V4& r) const;
+    V4 operator*(f32 r) const;
+    friend V4 operator*(f32 l, const V4& r) { return r * l; }
+    V4 operator*(const V4& r) const;
+    V4& operator*=(const V4& r);
+    V4 operator/(f32 r) const;
+    friend V4 operator/(f32 l, const V4& r) { return r * l; }
+    V4& operator+=(const V4& r);
+    V4& operator-=(const V4& r);
+    V4& operator*=(f32 r);
+    V4& operator/=(f32 r);
+};
+
+union IV4
+{
+    i32 e[4];
+    struct { IV3 xyz; i32 _v3pad; };
+    struct { IV2 xy; IV2 zw; };
+    struct { i32 x, y, z, w; };
+    struct { i32 r, g, b, a; };
+
+    /* */
+
+    constexpr explicit operator V4() const
+    {
+        return {
+            static_cast<f32>(x),
+            static_cast<f32>(y),
+            static_cast<f32>(z),
+            static_cast<f32>(w),
+        };
+    }
+
+    int& operator[](int i) { ADT_ASSERT(i >= 0 && i < 4, "i: {}", i); return e[i]; }
+    const int& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "i: {}", i); return e[i]; }
+};
+
+union M2
+{
+    f32 d[4];
+    f32 e[2][2];
+    V2 v[2];
+};
+
+union M4;
+
+union M3
+{
+    f32 d[9];
+    f32 e[3][3];
+    V3 v[3];
+
+    /* */
+
+    constexpr explicit operator M4() const;
+
+    bool operator==(const M3& r) const;
+
+    M3 operator*(const f32 r) const;
+    M3& operator*=(const f32 r);
+    friend M3 operator*(const f32 l, const M3& r) { return r * l; }
+    V3 operator*(const V3& r) const;
+    M3 operator*(const M3& r) const;
+    M3& operator*=(const M3& r);
+};
+
+union M4
+{
+    f32 d[16];
+    f32 e[4][4];
+    V4 v[4];
+
+    constexpr explicit operator M3() const
+    {
+        return {
+            e[0][0], e[0][1], e[0][2],
+            e[1][0], e[1][1], e[1][2],
+            e[2][0], e[2][1], e[2][2]
+        };
+    };
+
+    V4& operator[](int i) { ADT_ASSERT(i >= 0 && i < 4, "i: {}", i); return v[i]; }
+    const V4& operator[](int i) const { ADT_ASSERT(i >= 0 && i < 4, "i: {}", i); return v[i]; }
+
+    bool operator==(const M4& r) const;
+
+    M4 operator*(const f32 r) const;
+    M4 operator*(bool) = delete;
+    M4& operator*=(const f32 r);
+    M4& operator*=(bool) = delete;
+    friend M4 operator*(const f32 l, const M4& r) { return r * l; }
+    V4 operator*(const V4& r) const;
+    M4 operator*(const M4& r) const;
+    M4& operator*=(const M4& r);
+};
+
+union Qt
+{
+    V4 base;
+    f32 e[4];
+    struct { f32 x, y, z, w; };
+
+    /* */
+
+    Qt operator-() const;
+    Qt operator*(const Qt& r) const;
+    Qt operator*(const V4& r) const;
+    Qt operator*=(const Qt& r);
+    Qt operator*=(const V4& r);
+    bool operator==(const Qt& b) const;
+
+    Qt
+    getSwapped()
+    {
+        Qt ret {.x = w, .y = z, .z = y, .w = x};
+        return ret;
+    }
+};
+
+constexpr V2 V2From(const f32 x, const f32 y);
+
+constexpr V3 V3From(V2 xy, f32 z);
+
+constexpr V3 V3From(f32 x, V2 yz);
+
+constexpr V3 V3From(f32 x, f32 y, f32 z);
+
+constexpr V3 V3From(const V3& v);
+
+constexpr V3 V3From(const V4& v);
+
+constexpr V4 V4From(const V4& v);
+
+constexpr V4 V4From(const V3& xyz, f32 w);
+
+constexpr V4 V4From(const V2& xy, const V2& zw);
+
+constexpr V4 V4From(f32 x, const V3& yzw);
+
+constexpr V4 V4From(f32 x, f32 y, f32 z, f32 w);
+
+constexpr V4 V4From(f32 x);
+
+inline IV2 IV2_F24_8(const V2 v);
+
+constexpr M2 M2Iden();
+
+constexpr M3 M3Iden();
+
+constexpr M4 M4Iden();
+
+constexpr Qt QtIden();
+
+inline f32 M2Det(const M2& s);
+
+inline f32 M3Det(const M3& s);
+
+inline f32 M4Det(const M4& s);
+
+inline M3 M3Minors(const M3& s);
+
+inline M4 M4Minors(const M4& s);
+
+inline M3 M3Cofactors(const M3& s);
+
+inline M4 M4Cofactors(const M4& s);
+
+inline M3 M3Transpose(const M3& s);
+
+inline M4 M4Transpose(const M4& s);
+
+inline M3 M3Adj(const M3& s);
+
+inline M4 M4Adj(const M4& s);
+
+inline M3 M3Inv(const M3& s);
+
+inline M4 M4Inv(const M4& s);
+
+inline M3 M3Normal(const M3& m);
+
+inline f32 V2Length(const V2& s);
+
+inline f32 V3Length(const V3& s);
+
+inline f32 V4Length(const V4& s);
+
+inline V2 V2Norm(const V2& s);
+
+inline V3 V3Norm(const V3& s, const f32 len);
+
+inline V3 V3Norm(const V3& s);
+
+inline V4 V4Norm(const V4& s);
+
+inline V2 V2Clamp(const V2& x, const V2& min, const V2& max);
+
+inline f32 V2Dot(const V2& l, const V2& r);
+
+inline f32 V3Dot(const V3& l, const V3& r);
+
+inline f32 V4Dot(const V4& l, const V4& r);
+
+inline f32 V3Rad(const V3& l, const V3& r);
+
+inline f32 V2Dist(const V2& l, const V2& r);
+
+inline f32 V3Dist(const V3& l, const V3& r);
+
+constexpr M4 M4TranslationFrom(const V3& tv);
+
+constexpr M4 M4TranslationFrom(const f32 x, const f32 y, const f32 z);
+
+inline M4 M4Translate(const M4& m, const V3& tv);
+
+inline M3 M3Scale(const M3& m, const f32 s);
+
+constexpr M4 M4ScaleFrom(const f32 s);
+
+constexpr M4 M4ScaleFrom(const V3& v);
+
+constexpr M4 M4ScaleFrom(f32 x, f32 y, f32 z);
+
+inline M4 M4Scale(const M4& m, const f32 s);
+
+inline M3 M3Scale(const M3& m, const V2& s);
+
+inline M4 M4Scale(const M4& m, const V3& s);
+
+inline M4 M4Pers(const f32 fov, const f32 asp, const f32 n, const f32 f);
+
+inline M4 M4Ortho(const f32 l, const f32 r, const f32 b, const f32 t, const f32 n, const f32 f);
+
+inline f32 V2Cross(const V2& l, const V2& r);
+
+inline i64 IV2Cross(const IV2& l, const IV2& r);
+
+inline V3 V3Cross(const V3& l, const V3& r);
+
+inline M4 M4LookAt(const V3& R, const V3& U, const V3& D, const V3& P);
+
+inline M4 M4RotFrom(const f32 th, const V3& ax);
+
+inline M4 M4Rot(const M4& m, const f32 th, const V3& ax);
+
+inline M4 M4RotXFrom(const f32 th);
+
+inline M4 M4RotX(const M4& m, const f32 th);
+
+inline M4 M4RotYFrom(const f32 th);
+
+inline M4 M4RotY(const M4& m, const f32 th);
+
+inline M4 M4RotZFrom(const f32 th);
+
+inline M4 M4RotZ(const M4& m, const f32 th);
+
+inline M4 M4RotFrom(const f32 x, const f32 y, const f32 z);
+
+inline M4 M4LookAt(const V3& eyeV, const V3& centerV, const V3& upV);
+
+inline Qt QtAxisAngle(const V3& axis, f32 th);
+
+inline M4 QtRot(const Qt& q);
+
+inline M4 QtRot2(const Qt& q);
+
+inline Qt QtConj(const Qt& q);
+
+inline Qt QtNorm(Qt a);
+
+inline V2 normalize(const V2& v);
+
+inline V3 normalize(const V3& v);
+
+inline V4 normalize(const V4& v);
+
 constexpr inline auto lerp(const auto& a, const auto& b, const auto& t);
 
-template<typename T, std::floating_point F>
+inline Qt slerp(const Qt& q1, const Qt& q2, f32 t);
+
+template<typename T>
+constexpr T
+bezier(
+    const T& p0,
+    const T& p1,
+    const T& p2, const std::floating_point auto t);
+
+template<typename T>
 constexpr T
 bezier(
     const T& p0,
     const T& p1,
     const T& p2,
-    const F t
-);
+    const T& p3, const std::floating_point auto t);
 
-template<typename T, std::floating_point F>
-constexpr T
-bezier(
-    const T& p0,
-    const T& p1,
-    const T& p2,
-    const T& p3,
-    const F t
-);
+inline M4 transformation(const V3& translation, const Qt& rot, const V3& scale);
 
-template<typename T>
-struct V2Base
-{
-    T m_a[2];
-
-    /* */
-
-    constexpr V2Base() noexcept : m_a{} {}
-    constexpr explicit V2Base(UninitFlag) noexcept {}
-    constexpr V2Base(T _x, T _y) noexcept : m_a{_x, _y} {}
-    constexpr V2Base(T(&a)[2]) noexcept : m_a{a[0], a[1]} {}
-
-    /* */
-
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[2])(s); }
-
-    template<typename B> explicit operator V2Base<B>() const noexcept { return {static_cast<B>(x()), static_cast<B>(y())}; }
-
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return s.m_a[i]; }
-
-    template<typename S> constexpr decltype(auto) x(this S&& s) noexcept { return s.m_a[0]; }
-    template<typename S> constexpr decltype(auto) y(this S&& s) noexcept { return s.m_a[1]; }
-
-    template<typename S> constexpr decltype(auto) r(this S&& s) noexcept { return s.m_a[0]; }
-    template<typename S> constexpr decltype(auto) g(this S&& s) noexcept { return s.m_a[1]; }
-
-    template<typename S> constexpr decltype(auto) u(this S&& s) noexcept { return s.m_a[0]; }
-    template<typename S> constexpr decltype(auto) v(this S&& s) noexcept { return s.m_a[1]; }
-
-    bool operator==(const V2Base& r) const noexcept;
-    V2Base operator-() const noexcept;
-    V2Base operator+(const V2Base& r) const noexcept;
-    V2Base operator-(const V2Base& r) const noexcept;
-    V2Base operator*(f32 s) const noexcept;
-    friend V2Base operator*(f32 s, const V2Base& v) noexcept { return v * s; }
-    V2Base operator*(const V2Base& r) const noexcept;
-    V2Base& operator*=(const V2Base& r) noexcept;
-    V2Base operator/(f32 s) const noexcept;
-    V2Base& operator+=(const V2Base& r) noexcept;
-    V2Base& operator-=(const V2Base& r) noexcept;
-    V2Base& operator*=(f32 r) noexcept;
-    V2Base& operator/=(f32 r) noexcept;
-
-    T length() const noexcept;
-    V2Base normalized() const noexcept;
-    V2Base clamped(const V2Base& min, const V2Base& max) const noexcept;
-    T dot(const V2Base& r) const noexcept;
-    T dist(const V2Base& r) const noexcept;
-    T cross(const V2Base& r) const noexcept;
-};
-
-using V2 = V2Base<f32>;
-using IV2 = V2Base<i32>;
-
-template<typename T>
-struct V3Base : V2Base<T>
-{
-    using V2B = V2Base<T>;
-    using V2B::x;
-    using V2B::y;
-
-    /* */
-
-    T m_z;
-
-    /* */
-
-    constexpr V3Base() noexcept : m_z {} {}
-    constexpr explicit V3Base(UninitFlag) noexcept {}
-    constexpr V3Base(T _x, T _y, T _z) noexcept : V2B{_x, _y}, m_z{_z} {}
-    constexpr V3Base(V2B _xy, T _z) noexcept : V2B{_xy}, m_z{_z} {}
-    constexpr V3Base(T _x, V2B _yz) noexcept : V2B{_x, _yz.x()}, m_z{_yz.y()} {}
-    constexpr V3Base(T(&a)[3]) noexcept : V2B{a[0], a[1]}, m_z{a[2]} {}
-
-    /* */
-
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[3])(s); }
-
-    template<typename B> explicit operator V3Base<B>() const noexcept
-    { return {static_cast<B>(x()), static_cast<B>(y()), static_cast<B>(z())}; }
-
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[3])(s))[i]; }
-    constexpr T& z() noexcept { return m_z; }
-    constexpr const T& z() const noexcept { return m_z; }
-
-    constexpr T& b() noexcept { return m_z; }
-    constexpr const T& b() const noexcept { return m_z; }
-
-    V2B xy() const noexcept { return *static_cast<const V2B*>(this); }
-    V2B yz() const noexcept { return {y(), z()}; }
-
-    bool operator==(const V3Base& r) const noexcept;
-
-    V3Base operator+(const V3Base& r) const noexcept;
-    V3Base operator-(const V3Base& r) const noexcept;
-    V3Base operator-() const noexcept;
-    V3Base operator*(f32 s) const noexcept;
-    friend V3Base operator*(f32 s, const V3Base& v) noexcept { return v * s; }
-    V3Base operator*(const V3Base& r) const noexcept;
-    V3Base operator/(f32 s) const noexcept;
-    V3Base operator+(f32 b) const noexcept;
-    V3Base& operator+=(f32 b) noexcept;
-    V3Base& operator+=(const V3Base& r) noexcept;
-    V3Base& operator-=(const V3Base& r) noexcept;
-    V3Base& operator*=(f32 s) noexcept;
-    V3Base& operator/=(f32 s) noexcept;
-
-    T length() const noexcept;
-    V3Base normalized(const f32 len) const noexcept;
-    V3Base normalized() const noexcept;
-    T dot(const V3Base& r) const noexcept;
-    T rad(const V3Base& r) const noexcept;
-    T dist(const V3Base& r) const noexcept;
-    V3Base cross(const V3Base& r) const noexcept;
-};
-
-using V3 = V3Base<f32>;
-using IV3 = V3Base<i32>;
-
-template<typename T>
-struct V4Base : V3Base<T>
-{
-    using V3B = V3Base<T>;
-    using V2B = V2Base<T>;
-    using V3B::x;
-    using V3B::y;
-    using V3B::z;
-    using V3B::xy;
-    using V3B::yz;
-
-    /* */
-
-    T m_w {};
-
-    /* */
-
-    constexpr V4Base() = default;
-    constexpr V4Base(T _x, T _y, T _z, T _w) noexcept : V3B{_x, _y, _z}, m_w{_w} {}
-    constexpr V4Base(V3B _xyz, T _w) noexcept : V3B{_xyz}, m_w{_w} {}
-    constexpr V4Base(T _x, V3B _yzw) noexcept : V3B{_x, _yzw.x(), _yzw.y()}, m_w{_yzw.z()} {}
-    constexpr V4Base(V2B _xy, T _z, T _w) noexcept : V3B{_xy, _z}, m_w{_w} {}
-    constexpr V4Base(T _x, T _y, V2B _zw) noexcept : V3B{_x, _y, _zw.x()}, m_w{_zw.y()} {}
-    constexpr V4Base(V2B _xy, V2B _zw) noexcept : V3B{_xy, _zw.x()}, m_w{_zw.y()} {}
-    constexpr V4Base(T _x, V2B _yz, T _w) noexcept : V3B{_x, _yz}, m_w{_w} {}
-    constexpr V4Base(T(&a)[4]) noexcept : V3B{a[0], a[1], a[2]}, m_w{a[3]} {}
-
-    /* */
-
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return (T(&)[4])(s); }
-
-    constexpr T& w() noexcept { return m_w; }
-    constexpr const T& w() const noexcept { return m_w; }
-
-    constexpr T& a() noexcept { return m_w; }
-    constexpr const T& a() const noexcept { return m_w; }
-
-    V3B& xyz() noexcept { return *static_cast<V3B*>(this); }
-    const V3B& xyz() const noexcept { return *static_cast<const V3B*>(this); }
-
-    V2B zw() const noexcept { return {y(), z()}; }
-    V3B yzw() const noexcept { return {y(), z(), w()}; }
-
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((T(&)[4])(s))[i]; }
-
-    template<typename B> explicit operator V4Base<B>() const noexcept
-    { return {static_cast<B>(x()), static_cast<B>(y()), static_cast<B>(z()), static_cast<B>(w())}; }
-
-    bool operator==(const V4Base& r) const noexcept;
-
-    V4Base operator+(const V4Base& r) const noexcept;
-    V4Base operator-() const noexcept;
-    V4Base operator-(const V4Base& r) const noexcept;
-    V4Base operator*(f32 r) const noexcept;
-    friend V4Base operator*(f32 l, const V4Base& r) noexcept { return r * l; }
-    V4Base operator*(const V4Base& r) const noexcept;
-    V4Base& operator*=(const V4Base& r) noexcept;
-    V4Base operator/(f32 r) const noexcept;
-    friend V4Base operator/(f32 l, const V4Base& r) noexcept { return r * l; }
-    V4Base& operator+=(const V4Base& r) noexcept;
-    V4Base& operator-=(const V4Base& r) noexcept;
-    V4Base& operator*=(f32 r) noexcept;
-    V4Base& operator/=(f32 r) noexcept;
-
-    T length() const noexcept;
-    V4Base normalized() const noexcept;
-    T dot(const V4Base& r) const noexcept;
-};
-
-using V4 = V4Base<f32>;
-using IV4 = V4Base<f32>;
-
-struct M2
-{
-    f32 m_a[2][2];
-
-    /* */
-
-    M2() noexcept : m_a{} {}
-    explicit M2(UninitFlag) noexcept {}
-    explicit M2(int) noexcept;
-    M2(f32 _0, f32 _1, f32 _2, f32 _3) noexcept : m_a{_0, _1, _2, _3} {}
-
-    /* */
-
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((V2(&)[2])(s))[i]; }
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return (f32(&)[2*2])(s); }
-
-    f32 det() const noexcept;
-};
-
-struct M3
-{
-    f32 m_a[3][3];
-
-    /* */
-
-    constexpr M3() noexcept : m_a{} {}
-    explicit constexpr M3(int) noexcept;
-    explicit constexpr M3(UninitFlag) noexcept {}
-    constexpr M3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8) noexcept;
-    constexpr M3(const V3& _0, const V3& _1, const V3& _2) noexcept;
-
-    /* */
-
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((V3(&)[3])(s))[i]; }
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return (f32(&)[3*3])(s); }
-
-    f32 det() const noexcept;
-    M3 minors() const noexcept;
-    M3 cofactors() const noexcept;
-    M3 transposed() const noexcept;
-    M3 adj() const noexcept;
-    M3 inv() const noexcept;
-    M3 normal() const noexcept;
-    M3 scaled(const f32 s) const noexcept;
-    M3 scaled(const V2 s) const noexcept;
-
-    bool operator==(const M3& r) const noexcept;
-
-    M3 operator*(const f32 r) const noexcept;
-    M3& operator*=(const f32 r) noexcept;
-    friend M3 operator*(const f32 l, const M3& r) noexcept { return r * l; }
-    V3 operator*(const V3& r) const noexcept;
-    M3 operator*(const M3& r) const noexcept;
-    M3& operator*=(const M3& r) noexcept;
-};
-
-struct M4
-{
-    f32 m_a[4][4];
-
-    /* */
-
-    constexpr M4() noexcept : m_a{} {}
-    explicit constexpr M4(UninitFlag) noexcept {};
-    explicit constexpr M4(int) noexcept;
-    constexpr M4(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8, f32 _9, f32 _10, f32 _11, f32 _12, f32 _13, f32 _14, f32 _15) noexcept;
-    constexpr M4(const V4& _0, const V4& _1, const V4& _2, const V4& _3) noexcept;
-
-    /* */
-
-    template<typename S> decltype(auto) operator[](this S&& s, int i) noexcept { return ((V4(&)[4])(s))[i]; }
-    template<typename S> decltype(auto) data(this S&& s) noexcept { return ((f32(&)[4*4])(s)); }
-
-    bool operator==(const M4& r) const noexcept;
-
-    M4 operator*(const f32 r) const noexcept;
-    M4 operator*(bool) = delete;
-    M4& operator*=(const f32 r) noexcept;
-    M4& operator*=(bool) = delete;
-    friend M4 operator*(const f32 l, const M4& r) noexcept { return r * l; }
-    V4 operator*(const V4& r) const noexcept;
-    M4 operator*(const M4& r) const noexcept;
-    M4& operator*=(const M4& r) noexcept;
-
-    f32 det() const noexcept;
-    M4 minors() const noexcept;
-    M4 cofactors() const noexcept;
-    M4 transposed() const noexcept;
-    M4 adj() const noexcept;
-    M4 inv() const noexcept;
-    M4 translated(const V3& tv) const noexcept;
-    M4 scaled(const f32 s) const noexcept;
-    M4 scaled(const V3& s) const noexcept;
-    M4 rotated(const f32 th, const V3& ax) const noexcept;
-    M4 rotatedX(const f32 th) const noexcept;
-    M4 rotatedY(const f32 th) const noexcept;
-    M4 rotatedZ(const f32 th) const noexcept;
-
-    static M4 translationFrom(const V3& tv) noexcept;
-    static M4 translationFrom(const f32 x, const f32 y, const f32 z) noexcept;
-    static M4 scaledFrom(const f32 s) noexcept;
-    static M4 scaledFrom(const V3& v) noexcept;
-    static M4 scaledFrom(f32 x, f32 y, f32 z) noexcept;
-    static M4 persFrom(const f32 fov, const f32 asp, const f32 n, const f32 f) noexcept;
-    static M4 orthoFrom(const f32 l, const f32 r, const f32 b, const f32 t, const f32 n, const f32 f) noexcept;
-    static M4 lookAtFrom(const V3& R, const V3& U, const V3& D, const V3& P) noexcept;
-    static M4 lookAtFrom(const V3& eyeV, const V3& centerV, const V3& upV) noexcept;
-    static M4 rotFrom(const f32 th, const V3& ax) noexcept;
-    static M4 rotXFrom(const f32 th) noexcept;
-    static M4 rotYFrom(const f32 th) noexcept;
-    static M4 rotZFrom(const f32 th) noexcept;
-    static M4 rotFrom(const f32 x, const f32 y, const f32 z) noexcept;
-};
-
-struct Qt : V4
-{
-    using V4::V4Base;
-
-    /* */
-
-    Qt() = default;
-    Qt(int) noexcept;
-    explicit Qt(V4 v4) noexcept;
-    explicit Qt(UninitFlag) noexcept {}
-
-    /* */
-
-    Qt operator-() const noexcept;
-    Qt operator*(const Qt& r) const noexcept;
-    Qt operator*(const V4& r) const noexcept;
-    Qt operator*=(const Qt& r) noexcept;
-    Qt operator*=(const V4& r) noexcept;
-
-    Qt flipped() const noexcept { return {w(), z(), y(), x()}; }
-
-    M4 rot() const noexcept;
-    M4 rot2() const noexcept;
-    Qt conj() const noexcept;
-    Qt normalized() const noexcept;
-
-    static Qt axisAngleFrom(const V3& axis, f32 th) noexcept;
-};
-
-inline Qt slerp(const Qt& q1, const Qt& q2, f32 t) noexcept;
-
-inline M4 transformation(const V3& translation, const Qt& rot, const V3& scale) noexcept;
-inline M4 transformation(const V3& translation, const V3& scale) noexcept;
+inline M4 transformation(const V3& translation, const V3& scale);
 
 } /* namespace adt::math */
 
 namespace adt::print
 {
 
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V2Base<T>& x);
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V3Base<T>& x);
-template<typename T> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V4Base<T>& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V2& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V3& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::V4& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::IV4& x);
+template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::Qt& x);
 template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::M2& x);
 template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::M3& x);
 template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::M4& x);
-template<> inline isize format(Context* pCtx, FormatArgs fmtArgs, const math::Qt& x);
 
-} /* namespace adt::print */
+} /* namespace adt::math */

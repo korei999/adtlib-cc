@@ -6,7 +6,6 @@
 #include "adt/Vec.hh"    /* IWYU pragma: keep */
 #include "adt/defer.hh"  /* IWYU pragma: keep */
 #include "adt/time.hh"
-#include "adt/math.hh"   /* IWYU pragma: keep */
 #include "adt/Logger.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh"
 
@@ -18,6 +17,8 @@
     #define FMT_HEADER_ONLY
     #include <fmt/format.h>
 #endif
+
+#include "WIP/math.hh"   /* IWYU pragma: keep */
 
 using namespace adt;
 

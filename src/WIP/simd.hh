@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "Span.hh" /* IWYU pragma: keep */
+#include "adt/Span.hh" /* IWYU pragma: keep */
 #include "math-inl.hh"
 
 #ifdef ADT_SSE4_2

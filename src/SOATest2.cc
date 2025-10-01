@@ -2,8 +2,9 @@
 #include "adt/ReverseIt.hh"
 #include "adt/VecSOA.hh"
 #include "adt/defer.hh"
-#include "adt/math.hh"
 #include "adt/Logger.hh"
+
+#include "WIP/math.hh"
 
 using namespace adt;
 
