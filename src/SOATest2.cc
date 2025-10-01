@@ -34,10 +34,10 @@ main()
 
     VecSOA<Entity, Entity::Bind, &Entity::pos, &Entity::scale, &Entity::assetI> vec(&arena);
 
-    Entity en0 {.pos = {-0.1f, -0.1f, -0.1f}, .scale = {0.1f, 0.1f, 0.1f}, .assetI = -1};
-    Entity en1 {.pos = {-1.0f, -1.0f, -1.0f}, .scale = {1.0f, 1.0f, 1.0f}, .assetI = 11};
-    Entity en2 {.pos = {-2.0f, -2.0f, -2.0f}, .scale = {2.0f, 2.0f, 2.0f}, .assetI = 22};
-    Entity en3 {.pos = {-3.0f, -3.0f, -3.0f}, .scale = {3.0f, 3.0f, 3.0f}, .assetI = 33};
+    Entity en0 {.pos = {{-0.1f, -0.1f, -0.1f}}, .scale = {{0.1f, 0.1f, 0.1f}}, .assetI = -1};
+    Entity en1 {.pos = {{-1.0f, -1.0f, -1.0f}}, .scale = {{1.0f, 1.0f, 1.0f}}, .assetI = 11};
+    Entity en2 {.pos = {{-2.0f, -2.0f, -2.0f}}, .scale = {{2.0f, 2.0f, 2.0f}}, .assetI = 22};
+    Entity en3 {.pos = {{-3.0f, -3.0f, -3.0f}}, .scale = {{3.0f, 3.0f, 3.0f}}, .assetI = 33};
 
     vec.push(&arena, en0);
     vec.push(&arena, en1);

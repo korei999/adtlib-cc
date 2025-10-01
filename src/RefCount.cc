@@ -68,7 +68,7 @@ main()
     }
 
     {
-        RefCountedPtr<math::V3> rcp = Gpa::inst()->alloc<math::V3>(math::V3{1.1f, 2.2f, 3.3f});
+        RefCountedPtr<math::V3> rcp = Gpa::inst()->alloc<math::V3>(math::V3{{1.1f, 2.2f, 3.3f}});
         defer( rcp.unref() );
 
         auto rcp2 = rcp.ref();
@@ -76,7 +76,7 @@ main()
 
         show(rcp);
 
-        *rcp = math::V3{6.6f, 7.7f, 8.8f};
+        *rcp = math::V3{{6.6f, 7.7f, 8.8f}};
         ADT_ASSERT_ALWAYS(*rcp2 == *rcp, "{}, {}", *rcp2, *rcp);
 
         show(rcp2);
