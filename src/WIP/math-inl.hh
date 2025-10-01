@@ -31,6 +31,11 @@ constexpr inline auto cube(const auto& x);
 
 constexpr inline i64 sign(i64 x);
 
+#if defined __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wmissing-braces"
+#endif
+
 union IV2;
 
 union V2
@@ -268,6 +273,10 @@ union Qt
         return ret;
     }
 };
+
+#if defined __clang__
+    #pragma clang diagnostic pop
+#endif
 
 constexpr V2 V2From(const f32 x, const f32 y);
 

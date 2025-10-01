@@ -59,7 +59,7 @@ main(int, char**)
         for (isize i = 0; i < BIG; ++i)
         {
             tp.addRetry([i] {
-                LogInfo{"hello: {}, {}\n", i, math::V3{(f32)i + 0, (f32)i + 1, (f32)i + 2}};
+                LogInfo{"hello: {}, {}\n", i, math::V3{{(f32)i + 0, (f32)i + 1, (f32)i + 2}}};
                 s_i.fetchAdd(1, atomic::ORDER::RELAXED);
                 pluginThreadLocalThing();
             });

@@ -13,6 +13,11 @@
 namespace adt::math
 {
 
+#if defined __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wmissing-braces"
+#endif
+
 constexpr inline f64 toDeg(f64 x) { return x * 180.0 / PI64; }
 constexpr inline f64 toRad(f64 x) { return x * PI64 / 180.0; }
 constexpr inline f32 toDeg(f32 x) { return x * 180.0f / PI32; }
@@ -42,6 +47,7 @@ constexpr inline i64
 sign(i64 x)
 {
     return (x > 0) - (x < 0);
+
 }
 
 constexpr inline
@@ -1542,3 +1548,7 @@ format(Context* ctx, FormatArgs fmtArgs, const math::M4& x)
 }
 
 } /* namespace adt::print */
+
+#if defined __clang__
+    #pragma clang diagnostic pop
+#endif
