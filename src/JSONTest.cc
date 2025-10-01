@@ -7,6 +7,7 @@
 #include "json/Parser.hh"
 #include "adt/Arena.hh"
 #include "adt/Logger.hh"
+#include "adt/time.hh"
 
 // #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
@@ -65,10 +66,12 @@ main(int argc, char* argv[])
 
         // defer( sJson.destroy(&al) );
 
+        auto t0 = time::now();
         ADT_ALLOCA(json::Parser, p);
         bool eRes = p.parse(&al, sJson);
         if (!eRes) LogWarn("json::Parser::parse() failed\n");
         // defer( p.destroy() );
+        LogDebug{"parsed in: {:.5} ms\n", time::diffMSec(time::now(), t0)};
 
         if (argc >= 3 && "-p" == StringView(argv[2]))
             p.print(Gpa::inst(), stdout);
