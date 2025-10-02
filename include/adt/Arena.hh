@@ -155,6 +155,7 @@ struct ArenaScope
     /* */
 
     ArenaScope(Arena* p) noexcept;
+
     ~ArenaScope() noexcept;
 };
 

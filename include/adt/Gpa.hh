@@ -11,8 +11,7 @@
 namespace adt
 {
 
-/* default os allocator (aka malloc() / calloc() / realloc() / free()).
- * freeAll() method is not supported. */
+/* Libc allocator (aka malloc() / calloc() / realloc() / free()). */
 struct Gpa : IAllocator
 {
     [[nodiscard]] static Gpa* inst(); /* nonnull */

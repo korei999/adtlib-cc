@@ -53,6 +53,7 @@ main(int argc, char* argv[])
         // FreeList al {SIZE_1G};
         // Gpa al;
         // MiMalloc al;
+        // ArenaList al {SIZE_8G};
         Arena al {SIZE_8G};
         // MiHeap al(0);
         defer(

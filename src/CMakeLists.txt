@@ -205,3 +205,7 @@ add_executable(Runtime
 add_executable(String2
     String2.cc
 )
+
+add_executable(ArenaList
+    ArenaList.cc
+)

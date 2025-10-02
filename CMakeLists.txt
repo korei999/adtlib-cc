@@ -157,21 +157,23 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     link_directories(${TBB_LIBRARY_DIRS})
     link_libraries(${TBB_LIBRARIES})
 
-    add_link_options(-lmimalloc)
+    # add_link_options(-lmimalloc)
 endif()
 
 # include(FetchContent)
 # FetchContent_Declare(
 #     MIMALLOC
 #     GIT_REPOSITORY https://github.com/microsoft/mimalloc.git
-#     GIT_TAG master
+#     GIT_TAG dev3
 # )
 # FetchContent_MakeAvailable(MIMALLOC)
 # FetchContent_GetProperties(MIMALLOC
 #     SOURCE_DIR MIMALLOC_SOURCE_DIR
 # )
 # 
-# include_directories(${MIMALLOC_SOURCE_DIR}/include)
-# message(STATUS "MIMALLOC_SOURCE_DIR: '${MIMALLOC_SOURCE_DIR}'")
+# link_libraries(mimalloc-static)
+
+include_directories(${MIMALLOC_SOURCE_DIR}/include)
+message(STATUS "MIMALLOC_SOURCE_DIR: '${MIMALLOC_SOURCE_DIR}'")
 
 add_subdirectory(src)

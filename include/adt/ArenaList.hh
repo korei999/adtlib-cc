@@ -1,15 +1,19 @@
 #pragma once
 
-#include "Gpa.hh"
-#include "utils.hh"
+#include "SList.hh"
 
 #include <cstring>
 
 namespace adt
 {
 
+struct ArenaListScope;
+
+/* Like Arena, but uses list chained memory blocks allocated with backing allocator. */
 struct ArenaList : public IArena
 {
+    friend ArenaListScope;
+
     struct Block
     {
         Block* pNext {};
@@ -20,6 +24,16 @@ struct ArenaList : public IArena
         u8 pMem[];
     };
 
+    using PfnDeleter = void(*)(void**);
+
+    struct DeleterNode
+    {
+        void** ppObj {};
+        PfnDeleter pfnDelete {};
+    };
+
+    using ListNodeType = SList<DeleterNode>::Node;
+
     /* */
 
     usize m_defaultCapacity {};
@@ -28,6 +42,8 @@ struct ArenaList : public IArena
     std::source_location m_loc {};
 #endif
     Block* m_pBlocks {};
+    SList<DeleterNode> m_lDeleters {}; /* Run deleters on reset()/freeAll() or state restorations. */
+    SList<DeleterNode>* m_pLCurrentDeleters {};
 
     /* */
 
@@ -45,7 +61,8 @@ struct ArenaList : public IArena
 #ifndef NDEBUG
           m_loc {_DONT_USE_loc},
 #endif
-          m_pBlocks(allocBlock(m_defaultCapacity))
+          m_pBlocks(allocBlock(m_defaultCapacity)),
+          m_pLCurrentDeleters{&m_lDeleters}
     {}
 
     /* */
@@ -62,16 +79,144 @@ struct ArenaList : public IArena
 
     void reset() noexcept;
     void shrinkToFirstBlock() noexcept;
-    isize nBytesOccupied() const noexcept;
+    isize memoryUsed() const noexcept;
 
     /* */
+
+    template<typename T>
+    struct Ptr : protected ListNodeType
+    {
+        T* m_pData {};
+
+        /* */
+
+        Ptr() noexcept = default;
+
+        template<typename ...ARGS>
+        Ptr(ArenaList* pArena, ARGS&&... args)
+            : ListNodeType{nullptr, {(void**)this, (PfnDeleter)nullptrDeleter}},
+              m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
+        {
+            pArena->m_pLCurrentDeleters->insert(static_cast<ListNodeType*>(this));
+        }
+
+        template<typename ...ARGS>
+        Ptr(void (*pfn)(Ptr*), ArenaList* pArena, ARGS&&... args)
+            : ListNodeType{nullptr, {(void**)this, (PfnDeleter)pfn}},
+              m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
+        {
+            pArena->m_pLCurrentDeleters->insert(static_cast<ListNodeType*>(this));
+        }
+
+        /* */
+
+        static void
+        nullptrDeleter(Ptr* pPtr) noexcept
+        {
+            utils::destruct(pPtr->m_pData);
+            pPtr->m_pData = nullptr;
+        };
+
+        static void
+        simpleDeleter(Ptr* pPtr) noexcept
+        {
+            utils::destruct(pPtr->m_pData);
+        };
+
+        /* */
+
+        explicit operator bool() const noexcept { return m_pData != nullptr; }
+
+        T& operator*() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
+        const T& operator*() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
+
+        T* operator->() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
+        const T* operator->() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
+    };
 
 protected:
     [[nodiscard]] inline Block* allocBlock(usize size);
     [[nodiscard]] inline Block* prependBlock(usize size);
     [[nodiscard]] inline Block* findFittingBlock(usize size);
     [[nodiscard]] inline Block* findBlockFromPtr(u8* ptr);
+
+    ADT_NO_UB void runDeleters() noexcept;
 };
+
+/* We track only last block, and free() all new blocks if they were created. */
+struct ArenaListState
+{
+    ArenaList* m_pArena {};
+    ArenaList::Block* m_pLastBlock {};
+    usize m_nBytesOccupied {};
+    u8* m_pLastAlloc {};
+    usize m_lastAllocSize {};
+
+    /* */
+
+    ArenaListState() = default;
+    ArenaListState(ArenaList* pArena) noexcept;
+
+    /* */
+
+    void restore() noexcept;
+};
+
+struct ArenaListScope
+{
+    ArenaListState m_state {};
+    SList<ArenaList::DeleterNode> m_lDeleters {};
+
+    /* */
+
+    ArenaListScope(ArenaList* p) noexcept : m_state{p} {}
+
+    ~ArenaListScope() noexcept;
+};
+
+inline
+ArenaListScope::~ArenaListScope() noexcept
+{
+    m_state.m_pArena->runDeleters();
+    m_state.restore();
+}
+
+inline
+ArenaListState::ArenaListState(ArenaList* pArena) noexcept
+    : m_pArena{pArena},
+      m_pLastBlock{pArena->m_pBlocks},
+      m_nBytesOccupied{m_pLastBlock->nBytesOccupied},
+      m_pLastAlloc{m_pLastBlock->pLastAlloc},
+      m_lastAllocSize{m_pLastBlock->lastAllocSize}
+{
+}
+
+inline void
+ArenaListState::restore() noexcept
+{
+    m_pLastBlock->nBytesOccupied = m_nBytesOccupied;
+    m_pLastBlock->pLastAlloc = m_pLastAlloc;
+    m_pLastBlock->lastAllocSize = m_lastAllocSize;
+
+    auto* it = m_pArena->m_pBlocks;
+    while (it != m_pLastBlock)
+    {
+#if defined ADT_DBG_MEMORY && !defined NDEBUG
+        LogDebug("[Arena: {}, {}, {}]: deallocating block of size {} on state restoration\n",
+            print::shorterSourcePath(m_pArena->m_loc.file_name()),
+            m_pArena->m_loc.function_name(),
+            m_pArena->m_loc.line(),
+            it->size
+        );
+#endif
+        auto* next = it->pNext;
+        m_pArena->m_pBackAlloc->free(it);
+        it = next;
+    }
+
+    m_pLastBlock->pNext = nullptr;
+    m_pArena->m_pBlocks = m_pLastBlock;
+}
 
 inline ArenaList::Block*
 ArenaList::findBlockFromPtr(u8* ptr)
@@ -86,6 +231,15 @@ ArenaList::findBlockFromPtr(u8* ptr)
     }
 
     return nullptr;
+}
+
+inline void
+ArenaList::runDeleters() noexcept
+{
+    for (auto e : *m_pLCurrentDeleters)
+        e.pfnDelete(e.ppObj);
+
+    m_pLCurrentDeleters->m_pHead = nullptr;
 }
 
 inline ArenaList::Block*
@@ -251,7 +405,7 @@ ArenaList::shrinkToFirstBlock() noexcept
 }
 
 inline isize
-ArenaList::nBytesOccupied() const noexcept
+ArenaList::memoryUsed() const noexcept
 {
     isize total = 0;
     auto* it = m_pBlocks;
