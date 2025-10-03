@@ -1,18 +1,16 @@
 #pragma once
 
-#include "SList.hh"
-
-#include <cstring>
+#include "ArenaDeleterCRTP.hh"
 
 namespace adt
 {
 
 struct ArenaListScope;
 
-/* Like Arena, but uses list chained memory blocks allocated with backing allocator. */
-struct ArenaList : public IArena
+/* Like Arena, but uses list chained memory blocks instead of reserve/commit. */
+struct ArenaList : public IArena, public ArenaDeleterCRTP<ArenaList>
 {
-    friend ArenaListScope;
+    using Deleter = ArenaDeleterCRTP<ArenaList>;
 
     struct Block
     {
@@ -24,16 +22,6 @@ struct ArenaList : public IArena
         u8 pMem[];
     };
 
-    using PfnDeleter = void(*)(void**);
-
-    struct DeleterNode
-    {
-        void** ppObj {};
-        PfnDeleter pfnDelete {};
-    };
-
-    using ListNodeType = SList<DeleterNode>::Node;
-
     /* */
 
     usize m_defaultCapacity {};
@@ -42,13 +30,10 @@ struct ArenaList : public IArena
     std::source_location m_loc {};
 #endif
     Block* m_pBlocks {};
-    SList<DeleterNode> m_lDeleters {}; /* Run deleters on reset()/freeAll() or state restorations. */
-    SList<DeleterNode>* m_pLCurrentDeleters {};
 
     /* */
 
     ArenaList() = default;
-
     ArenaList(
         usize capacity,
         IAllocator* pBackingAlloc = Gpa::inst()
@@ -56,91 +41,38 @@ struct ArenaList : public IArena
         , std::source_location _DONT_USE_loc = std::source_location::current()
 #endif
     ) noexcept(false)
-        : m_defaultCapacity(alignUp8(capacity)),
+        : Deleter{INIT},
+          m_defaultCapacity(alignUp8PO2(capacity)),
           m_pBackAlloc(pBackingAlloc),
 #ifndef NDEBUG
           m_loc {_DONT_USE_loc},
 #endif
-          m_pBlocks(allocBlock(m_defaultCapacity)),
-          m_pLCurrentDeleters{&m_lDeleters}
+          m_pBlocks(allocBlock(m_defaultCapacity))
     {}
 
     /* */
 
-    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
-    virtual void free(void* ptr) noexcept override final;
-    virtual void freeAll() noexcept override final;
-    [[nodiscard]] virtual constexpr bool doesFree() const noexcept override final { return false; }
-    [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override final { return true; }
+    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override;
+    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override;
+    [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override;
+    virtual void free(void* ptr) noexcept override;
+    virtual void freeAll() noexcept override;
+    [[nodiscard]] virtual constexpr bool doesFree() const noexcept override { return false; }
+    [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override { return true; }
 
     /* */
 
     void reset() noexcept;
     void shrinkToFirstBlock() noexcept;
-    isize memoryUsed() const noexcept;
+    usize memoryUsed() const noexcept;
 
     /* */
-
-    template<typename T>
-    struct Ptr : protected ListNodeType
-    {
-        T* m_pData {};
-
-        /* */
-
-        Ptr() noexcept = default;
-
-        template<typename ...ARGS>
-        Ptr(ArenaList* pArena, ARGS&&... args)
-            : ListNodeType{nullptr, {(void**)this, (PfnDeleter)nullptrDeleter}},
-              m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
-        {
-            pArena->m_pLCurrentDeleters->insert(static_cast<ListNodeType*>(this));
-        }
-
-        template<typename ...ARGS>
-        Ptr(void (*pfn)(Ptr*), ArenaList* pArena, ARGS&&... args)
-            : ListNodeType{nullptr, {(void**)this, (PfnDeleter)pfn}},
-              m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
-        {
-            pArena->m_pLCurrentDeleters->insert(static_cast<ListNodeType*>(this));
-        }
-
-        /* */
-
-        static void
-        nullptrDeleter(Ptr* pPtr) noexcept
-        {
-            utils::destruct(pPtr->m_pData);
-            pPtr->m_pData = nullptr;
-        };
-
-        static void
-        simpleDeleter(Ptr* pPtr) noexcept
-        {
-            utils::destruct(pPtr->m_pData);
-        };
-
-        /* */
-
-        explicit operator bool() const noexcept { return m_pData != nullptr; }
-
-        T& operator*() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
-        const T& operator*() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
-
-        T* operator->() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
-        const T* operator->() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
-    };
 
 protected:
     [[nodiscard]] inline Block* allocBlock(usize size);
     [[nodiscard]] inline Block* prependBlock(usize size);
     [[nodiscard]] inline Block* findFittingBlock(usize size);
     [[nodiscard]] inline Block* findBlockFromPtr(u8* ptr);
-
-    ADT_NO_UB void runDeleters() noexcept;
 };
 
 /* We track only last block, and free() all new blocks if they were created. */
@@ -233,15 +165,6 @@ ArenaList::findBlockFromPtr(u8* ptr)
     return nullptr;
 }
 
-inline void
-ArenaList::runDeleters() noexcept
-{
-    for (auto e : *m_pLCurrentDeleters)
-        e.pfnDelete(e.ppObj);
-
-    m_pLCurrentDeleters->m_pHead = nullptr;
-}
-
 inline ArenaList::Block*
 ArenaList::findFittingBlock(usize size)
 {
@@ -290,7 +213,7 @@ ArenaList::prependBlock(usize size)
 inline void*
 ArenaList::malloc(usize mCount, usize mSize)
 {
-    usize realSize = alignUp8(mCount * mSize);
+    usize realSize = alignUp8PO2(mCount * mSize);
     auto* pBlock = findFittingBlock(realSize);
 
 #if defined ADT_DBG_MEMORY && !defined NDEBUG
@@ -316,7 +239,7 @@ inline void*
 ArenaList::zalloc(usize mCount, usize mSize)
 {
     auto* p = malloc(mCount, mSize);
-    memset(p, 0, alignUp8(mCount * mSize));
+    memset(p, 0, alignUp8PO2(mCount * mSize));
     return p;
 }
 
@@ -326,7 +249,7 @@ ArenaList::realloc(void* ptr, usize oldCount, usize mCount, usize mSize)
     if (!ptr) return malloc(mCount, mSize);
 
     const usize requested = mSize * mCount;
-    const usize realSize = alignUp8(requested);
+    const usize realSize = alignUp8PO2(requested);
 
     auto* pBlock = findBlockFromPtr(static_cast<u8*>(ptr));
     if (!pBlock) throw AllocException("pointer doesn't belong to this arena");
@@ -404,7 +327,7 @@ ArenaList::shrinkToFirstBlock() noexcept
     m_pBlocks = it;
 }
 
-inline isize
+inline usize
 ArenaList::memoryUsed() const noexcept
 {
     isize total = 0;

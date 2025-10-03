@@ -1,9 +1,6 @@
 #pragma once
 
-#include "IAllocator.hh"
-#include "assert.hh"
-#include "utils.hh"
-#include "SList.hh"
+#include "ArenaDeleterCRTP.hh"
 
 #if __has_include(<sys/mman.h>)
     #define ADT_ARENA_MMAP
@@ -19,70 +16,10 @@ namespace adt
 
 struct ArenaScope;
 
-struct Arena : IArena
+/* Reserve/commit style linear allocator. */
+struct Arena : IArena, public ArenaDeleterCRTP<Arena>
 {
-    friend ArenaScope;
-
-    using PfnDeleter = void(*)(void**);
-
-    struct DeleterNode
-    {
-        void** ppObj {};
-        PfnDeleter pfnDelete {};
-    };
-
-    using ListNodeType = SList<DeleterNode>::Node;
-
-    template<typename T>
-    struct Ptr : protected ListNodeType
-    {
-        T* m_pData {};
-
-        /* */
-
-        Ptr() noexcept = default;
-
-        template<typename ...ARGS>
-        Ptr(Arena* pArena, ARGS&&... args)
-            : ListNodeType{nullptr, {(void**)this, (PfnDeleter)nullptrDeleter}},
-              m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
-        {
-            pArena->m_pLCurrentDeleters->insert(static_cast<ListNodeType*>(this));
-        }
-
-        template<typename ...ARGS>
-        Ptr(void (*pfn)(Ptr*), Arena* pArena, ARGS&&... args)
-            : ListNodeType{nullptr, {(void**)this, (PfnDeleter)pfn}},
-              m_pData {pArena->alloc<T>(std::forward<ARGS>(args)...)}
-        {
-            pArena->m_pLCurrentDeleters->insert(static_cast<ListNodeType*>(this));
-        }
-
-        /* */
-
-        static void
-        nullptrDeleter(Ptr* pPtr) noexcept
-        {
-            utils::destruct(pPtr->m_pData);
-            pPtr->m_pData = nullptr;
-        };
-
-        static void
-        simpleDeleter(Ptr* pPtr) noexcept
-        {
-            utils::destruct(pPtr->m_pData);
-        };
-
-        /* */
-
-        explicit operator bool() const noexcept { return m_pData != nullptr; }
-
-        T& operator*() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
-        const T& operator*() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return *m_pData; }
-
-        T* operator->() noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
-        const T* operator->() const noexcept { ADT_ASSERT(m_pData != nullptr, ""); return m_pData; }
-    };
+    using Deleter = ArenaDeleterCRTP<Arena>;
 
     static constexpr u64 INVALID_PTR = ~0llu;
 
@@ -94,8 +31,6 @@ struct Arena : IArena
     isize m_commited {};
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
-    SList<DeleterNode> m_lDeleters {}; /* Run deleters on reset()/freeAll() or state restorations. */
-    SList<DeleterNode>* m_pLCurrentDeleters {}; /* Switch and restore current list on ArenaScope changes. */
 
     /* */
 
@@ -125,9 +60,6 @@ struct Arena : IArena
     isize memoryCommited() const noexcept { return m_commited; }
 
 protected:
-    /* BUG: asan sees it as stack-use-after-scope when running a deleter after variable's scope closes (its fine just ignore). */
-    ADT_NO_UB void runDeleters() noexcept;
-
     void growIfNeeded(isize newPos);
     void commit(void* p, isize size);
     void decommit(void* p, isize size);
@@ -191,7 +123,7 @@ ArenaScope::~ArenaScope() noexcept
 
 inline
 Arena::Arena(isize reserveSize, isize commitSize)
-    : m_pLCurrentDeleters{&m_lDeleters}
+    : Deleter{INIT}
 {
     [[maybe_unused]] int err = 0;
 
@@ -223,7 +155,7 @@ Arena::Arena(isize reserveSize, isize commitSize)
 inline void*
 Arena::malloc(usize mCount, usize mSize)
 {
-    const isize realSize = alignUp8(mCount * mSize);
+    const isize realSize = alignUp8PO2(mCount * mSize);
     void* pRet = (void*)((u8*)m_pData + m_pos);
 
     growIfNeeded(m_pos + realSize);
@@ -250,7 +182,7 @@ Arena::realloc(void* p, usize oldCount, usize newCount, usize mSize)
     /* bump case */
     if (p == m_pLastAlloc)
     {
-        const isize realSize = alignUp8(newCount * mSize);
+        const isize realSize = alignUp8PO2(newCount * mSize);
         const isize newPos = (m_pos - m_lastAllocSize) + realSize;
         growIfNeeded(newPos);
         m_lastAllocSize = realSize;
@@ -359,15 +291,6 @@ Arena::resetToPage(isize nthPage)
     m_commited = commitSize;
     m_pLastAlloc = (void*)INVALID_PTR;
     m_lastAllocSize = 0;
-}
-
-inline void
-Arena::runDeleters() noexcept
-{
-    for (auto e : *m_pLCurrentDeleters)
-        e.pfnDelete(e.ppObj);
-
-    m_pLCurrentDeleters->m_pHead = nullptr;
 }
 
 inline void

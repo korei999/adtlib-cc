@@ -1,17 +1,19 @@
 #pragma once
 
-#include "IAllocator.hh"
-#include "Span.hh" /* IWYU pragma: keep */
-#include "print.hh" /* IWYU pragma: keep */
-
-#include <cstring>
+#include "ArenaDeleterCRTP.hh"
 
 namespace adt
 {
 
+struct BufferAllocatorState;
+
 /* Bump allocator, using fixed size memory buffer. */
-struct BufferAllocator : public IArena
+struct BufferAllocator : public IArena, public ArenaDeleterCRTP<BufferAllocator>
 {
+    using Deleter = ArenaDeleterCRTP<BufferAllocator>;
+
+    /* */
+
     u8* m_pMemBuffer = nullptr;
     usize m_size = 0;
     usize m_cap = 0;
@@ -23,17 +25,22 @@ struct BufferAllocator : public IArena
     BufferAllocator() = default;
 
     BufferAllocator(u8* pMemory, usize capacity) noexcept
-        : m_pMemBuffer {pMemory},
-          m_cap {capacity} {}
+        : Deleter{INIT},
+          m_pMemBuffer{pMemory},
+          m_cap{capacity}
+    {}
 
-    template<typename T, isize N>
+    template<typename T, usize N>
     BufferAllocator(T (&aMem)[N]) noexcept
-        : m_pMemBuffer {reinterpret_cast<u8*>(aMem)},
-          m_cap {N * sizeof(T)} {}
+        : Deleter{INIT},
+          m_pMemBuffer{reinterpret_cast<u8*>(aMem)},
+          m_cap{N * sizeof(T)}
+    {}
 
     template<typename T>
     BufferAllocator(Span<T> sp) noexcept
-        : BufferAllocator {reinterpret_cast<u8*>(sp.data()), sp.size() * sizeof(T)} {}
+        : BufferAllocator{reinterpret_cast<u8*>(sp.data()), sp.size() * sizeof(T)}
+    {}
 
     /* */
 
@@ -48,10 +55,11 @@ struct BufferAllocator : public IArena
     /* */
 
     void reset() noexcept;
-    isize realCap() const noexcept;
+    usize realCap() const noexcept;
+    usize memoryUsed() const noexcept;
 };
 
-struct BufferOffsets
+struct BufferAllocatorState
 {
     usize m_size {};
     void* m_pLastAlloc {};
@@ -62,31 +70,33 @@ struct BufferOffsets
     void restore(BufferAllocator* pAlloc) noexcept;
 };
 
-struct BufferPushScope
+struct BufferAllocatorScope
 {
     BufferAllocator* m_pAlloc {};
-    BufferOffsets m_offsets {};
+    BufferAllocatorState m_offsets {};
 
     /* */
 
-    BufferPushScope(BufferAllocator* pAlloc) noexcept;
-    ~BufferPushScope() noexcept;
+    BufferAllocatorScope(BufferAllocator* pAlloc) noexcept;
+    ~BufferAllocatorScope() noexcept;
 };
 
 inline void
-BufferOffsets::restore(BufferAllocator* pAlloc) noexcept
+BufferAllocatorState::restore(BufferAllocator* pAlloc) noexcept
 {
+    pAlloc->runDeleters();
+
     pAlloc->m_size = m_size;
     pAlloc->m_pLastAlloc = m_pLastAlloc;
     pAlloc->m_lastAllocSize = m_lastAllocSize;
 }
 
 inline
-BufferPushScope::BufferPushScope(BufferAllocator* pAlloc) noexcept
+BufferAllocatorScope::BufferAllocatorScope(BufferAllocator* pAlloc) noexcept
     : m_pAlloc{pAlloc}, m_offsets{.m_size = pAlloc->m_size, .m_pLastAlloc = pAlloc->m_pLastAlloc, .m_lastAllocSize = pAlloc->m_lastAllocSize} {}
 
 inline
-BufferPushScope::~BufferPushScope() noexcept
+BufferAllocatorScope::~BufferAllocatorScope() noexcept
 {
     m_offsets.restore(m_pAlloc);
 }
@@ -94,7 +104,7 @@ BufferPushScope::~BufferPushScope() noexcept
 inline void*
 BufferAllocator::malloc(usize mCount, usize mSize)
 {
-    usize realSize = alignUp8(mCount * mSize);
+    usize realSize = alignUp8PO2(mCount * mSize);
 
     if (m_size + realSize > m_cap)
     {
@@ -125,7 +135,7 @@ BufferAllocator::realloc(void* p, usize oldCount, usize newCount, usize mSize)
 
     ADT_ASSERT(p >= m_pMemBuffer && p < m_pMemBuffer + m_cap, "invalid pointer");
 
-    const usize realSize = alignUp8(newCount * mSize);
+    const usize realSize = alignUp8PO2(newCount * mSize);
 
     if ((m_size + realSize - m_lastAllocSize) > m_cap)
     {
@@ -161,14 +171,21 @@ BufferAllocator::freeAll() noexcept
 inline void
 BufferAllocator::reset() noexcept
 {
+    runDeleters();
     m_size = 0;
     m_pLastAlloc = nullptr;
 }
 
-inline isize
+inline usize
 BufferAllocator::realCap() const noexcept
 {
-    return alignDown8(m_cap);
+    return alignDown8PO2(m_cap);
+}
+
+inline usize
+BufferAllocator::memoryUsed() const noexcept
+{
+    return m_size;
 }
 
 } /* namespace adt */

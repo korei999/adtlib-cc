@@ -88,7 +88,7 @@ main()
     }
 
     {
-        auto a = alignUp8(123);
+        auto a = alignUp8PO2(123);
         print::err("a: {}\n", a);
 
         ArenaList arena(SIZE_1K);
