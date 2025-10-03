@@ -110,13 +110,11 @@ struct AllocatorHelperCRTP
         else
         {
             T* pNew = mallocV<T>(newCount);
-            if (!p) return pNew;
 
             for (usize i = 0; i < oldCount; ++i)
             {
                 new(pNew + i) T {std::move(p[i])};
-                if constexpr (!std::is_trivially_destructible_v<T>)
-                    p[i].~T();
+                p[i].~T();
             }
 
             static_cast<BASE*>(this)->free(p, oldCount * sizeof(T));

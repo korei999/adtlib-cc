@@ -96,7 +96,7 @@ Builder::push(char c)
     {
         if (!m_pAlloc) return -1;
 
-        grow((m_cap+1) * 2);
+        grow(utils::max(8ll, m_cap * 2));
     }
 
     m_pData[m_size++] = c;
