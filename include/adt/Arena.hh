@@ -157,8 +157,6 @@ inline void*
 Arena::malloc(usize nBytes)
 {
     const isize realSize = alignUp8(nBytes);
-    const isize idx = sizeClass8(realSize) - 1;
-
     void* pRet = (void*)((u8*)m_pData + m_pos);
 
     growIfNeeded(m_pos + realSize);
@@ -195,16 +193,12 @@ Arena::realloc(void* p, usize oldNBytes, usize newNBytes)
     if (newNBytes <= oldNBytes) return p;
 
     void* pMem = malloc(newNBytes);
-    if (p)
-    {
-        ::memcpy(pMem, p, oldNBytes);
-        free(p, oldNBytes);
-    }
+    if (p) ::memcpy(pMem, p, oldNBytes);
     return pMem;
 }
 
 inline void
-Arena::free(void* ptr, usize nBytes) noexcept
+Arena::free(void*, usize) noexcept
 {
     /* noop */
 }
@@ -299,7 +293,13 @@ Arena::growIfNeeded(isize newPos)
         m_commited = newCommited;
     }
 
-    ADT_ASAN_UNPOISON((u8*)m_pData + m_pos, newPos - m_pos);
+#if ADT_ASAN
+    if (newPos > m_pos)
+        ADT_ASAN_UNPOISON((u8*)m_pData + m_pos, newPos - m_pos);
+    else if (newPos < m_pos)
+        ADT_ASAN_POISON((u8*)m_pData + newPos, m_pos - newPos);
+#endif
+
     m_pos = newPos;
 }
 
