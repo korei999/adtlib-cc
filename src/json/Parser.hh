@@ -57,7 +57,8 @@ struct Node
     void
     freeData(adt::IAllocator* pAlloc)
     {
-        pAlloc->free(tagVal.val.a.m_pData);
+        ADT_ASSERT(tagVal.eTag == TAG::ARRAY || tagVal.eTag == TAG::OBJECT, "tag: {}", tagVal.eTag);
+        pAlloc->free(tagVal.val.o.m_pData, tagVal.val.a.m_capacity);
     }
 
     Node&

@@ -14,7 +14,7 @@ void
 throws()
 {
     Gpa osAl {};
-    auto* ptr = osAl.zalloc(1, SIZE_8G * 1024);
+    auto* ptr = osAl.zalloc(SIZE_8G * 1024);
     defer( osAl.free(ptr) );
 }
 
@@ -24,7 +24,7 @@ reallocZero()
     Gpa os {};
 
     errno = {};
-    auto* what = os.realloc((void*)0, 0, 0, 0);
+    auto* what = os.realloc((void*)0, 0, 0);
     os.free(what);
     LogError("what: {}\n", what);
 }
@@ -45,7 +45,7 @@ struct ArenaSTD
     T*
     allocate(std::size_t size)
     {
-        return static_cast<T*>(m_pArena->malloc(size, sizeof(T)));
+        return static_cast<T*>(m_pArena->malloc(size * sizeof(T)));
     }
 
     void

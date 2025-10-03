@@ -403,7 +403,7 @@ Rope::printTree(
         }
 
         String sCat = StringCat(pAlloc, svPrefix, bHasRightSibling && bLeft ? "│   " : "    ");
-        ADT_DEFER( pAlloc->free(sCat.m_pData) );
+        ADT_DEFER( sCat.destroy(pAlloc) );
 
         printTree(pAlloc, pF, pNode->m_left, sCat, true, pNode->m_right);
         printTree(pAlloc, pF, pNode->m_right, sCat, false, false);

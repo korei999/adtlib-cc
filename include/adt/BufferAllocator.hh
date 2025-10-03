@@ -5,8 +5,6 @@
 namespace adt
 {
 
-struct BufferAllocatorState;
-
 /* Bump allocator, using fixed size memory buffer. */
 struct BufferAllocator : public IArena, public ArenaDeleterCRTP<BufferAllocator>
 {
@@ -44,10 +42,10 @@ struct BufferAllocator : public IArena, public ArenaDeleterCRTP<BufferAllocator>
 
     /* */
 
-    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override final;
-    [[nodiscard]] virtual void* realloc(void* ptr, usize oldCount, usize newCount, usize mSize) noexcept(false) override final;
-    [[deprecated("noop")]] virtual void free(void*) noexcept override final { /* noop */ }
+    [[nodiscard]] virtual void* malloc(usize nBytes) noexcept(false) override final;
+    [[nodiscard]] virtual void* zalloc(usize nBytes) noexcept(false) override final;
+    [[nodiscard]] virtual void* realloc(void* ptr, usize oldNBytes, usize newNBytes) noexcept(false) override final;
+    [[deprecated("noop")]] virtual void free(void*, usize) noexcept override final { /* noop */ }
     virtual void freeAll() noexcept override final; /* same as reset */
     [[nodiscard]] virtual bool doesFree() const noexcept override final { return false; }
     [[nodiscard]] virtual bool doesRealloc() const noexcept override final { return true; }
@@ -102,9 +100,9 @@ BufferAllocatorScope::~BufferAllocatorScope() noexcept
 }
 
 inline void*
-BufferAllocator::malloc(usize mCount, usize mSize)
+BufferAllocator::malloc(usize nBytes)
 {
-    usize realSize = alignUp8PO2(mCount * mSize);
+    usize realSize = alignUp8(nBytes);
 
     if (m_size + realSize > m_cap)
     {
@@ -121,21 +119,21 @@ BufferAllocator::malloc(usize mCount, usize mSize)
 }
 
 inline void*
-BufferAllocator::zalloc(usize mCount, usize mSize)
+BufferAllocator::zalloc(usize nBytes)
 {
-    auto* p = malloc(mCount, mSize);
-    memset(p, 0, mCount*mSize);
+    auto* p = malloc(nBytes);
+    memset(p, 0, nBytes);
     return p;
 }
 
 inline void*
-BufferAllocator::realloc(void* p, usize oldCount, usize newCount, usize mSize)
+BufferAllocator::realloc(void* p, usize oldNBytes, usize newNBytes)
 {
-    if (!p) return malloc(newCount, mSize);
+    if (!p) return malloc(newNBytes);
 
     ADT_ASSERT(p >= m_pMemBuffer && p < m_pMemBuffer + m_cap, "invalid pointer");
 
-    const usize realSize = alignUp8PO2(newCount * mSize);
+    const usize realSize = alignUp8(newNBytes);
 
     if ((m_size + realSize - m_lastAllocSize) > m_cap)
     {
@@ -153,10 +151,10 @@ BufferAllocator::realloc(void* p, usize oldCount, usize newCount, usize mSize)
     }
     else
     {
-        if (newCount <= oldCount) return p;
+        if (newNBytes <= oldNBytes) return p;
 
-        auto* ret = malloc(newCount, mSize);
-        memcpy(ret, p, oldCount);
+        auto* ret = malloc(newNBytes);
+        memcpy(ret, p, oldNBytes);
 
         return ret;
     }
@@ -179,7 +177,7 @@ BufferAllocator::reset() noexcept
 inline usize
 BufferAllocator::realCap() const noexcept
 {
-    return alignDown8PO2(m_cap);
+    return alignDown8(m_cap);
 }
 
 inline usize
@@ -187,5 +185,18 @@ BufferAllocator::memoryUsed() const noexcept
 {
     return m_size;
 }
+
+namespace print
+{
+
+template<typename T>
+inline isize
+format(Context* pCtx, FormatArgs fmtArgs, const BufferAllocator::Ptr<T>& x)
+{
+    if (x) return format(pCtx, fmtArgs, *x);
+    else return format(pCtx, fmtArgs, "null");
+}
+
+} /* namespace print */
 
 } /* namespace adt */

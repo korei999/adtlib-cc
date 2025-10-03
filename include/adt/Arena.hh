@@ -8,7 +8,7 @@
 #elif defined _WIN32
     #define ADT_ARENA_WIN32
 #else
-    #warning "Arena in not implemented"
+    #warning "Arena is not implemented"
 #endif
 
 namespace adt
@@ -31,6 +31,8 @@ struct Arena : IArena, public ArenaDeleterCRTP<Arena>
     isize m_commited {};
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
+    ArenaScope* m_pCurrentScope {};
+    usize* m_aFreeLists[128] {};
 
     /* */
 
@@ -39,10 +41,10 @@ struct Arena : IArena, public ArenaDeleterCRTP<Arena>
 
     /* */
 
-    [[nodiscard]] virtual void* malloc(usize mCount, usize mSize) noexcept(false) override; /* AllocException */
-    [[nodiscard]] virtual void* zalloc(usize mCount, usize mSize) noexcept(false) override; /* AllocException */
-    [[nodiscard]] virtual void* realloc(void* p, usize oldCount, usize newCount, usize mSize) noexcept(false) override; /* AllocException */
-    virtual void free(void* ptr) noexcept override;
+    [[nodiscard]] virtual void* malloc(usize nBytes) noexcept(false) override; /* AllocException */
+    [[nodiscard]] virtual void* zalloc(usize nBytes) noexcept(false) override; /* AllocException */
+    [[nodiscard]] virtual void* realloc(void* p, usize oldNBytes, usize newNBytes) noexcept(false) override; /* AllocException */
+    virtual void free(void* ptr, usize nBytes) noexcept override;
     [[nodiscard]] virtual constexpr bool doesFree() const noexcept override;
     [[nodiscard]] virtual constexpr bool doesRealloc() const noexcept override;
     virtual void freeAll() noexcept override;
@@ -71,6 +73,7 @@ struct ArenaState
     isize m_pos {};
     void* m_pLastAlloc {};
     isize m_lastAllocSize {};
+    ArenaScope* m_pCurrentScope {};
     SList<Arena::DeleterNode>* m_pLCurrentDeleters {};
 
     /* */
@@ -98,6 +101,7 @@ ArenaState::restore(Arena* pArena) noexcept
     pArena->m_pos = m_pos;
     pArena->m_pLastAlloc = m_pLastAlloc;
     pArena->m_lastAllocSize = m_lastAllocSize;
+    pArena->m_pCurrentScope = m_pCurrentScope;
     pArena->m_pLCurrentDeleters = m_pLCurrentDeleters;
 }
 
@@ -108,10 +112,12 @@ ArenaScope::ArenaScope(Arena* p) noexcept
           .m_pos = p->m_pos,
           .m_pLastAlloc = p->m_pLastAlloc,
           .m_lastAllocSize = p->m_lastAllocSize,
+          .m_pCurrentScope = p->m_pCurrentScope,
           .m_pLCurrentDeleters = p->m_pLCurrentDeleters
       }
 {
     m_pArena->m_pLCurrentDeleters = &m_lDeleters;
+    m_pArena->m_pCurrentScope = this;
 }
 
 inline
@@ -153,59 +159,89 @@ Arena::Arena(isize reserveSize, isize commitSize)
 }
 
 inline void*
-Arena::malloc(usize mCount, usize mSize)
+Arena::malloc(usize nBytes)
 {
-    const isize realSize = alignUp8PO2(mCount * mSize);
-    void* pRet = (void*)((u8*)m_pData + m_pos);
+    const isize realSize = alignUp8(nBytes);
+    const isize idx = sizeClass8(realSize) - 1;
 
-    growIfNeeded(m_pos + realSize);
+    if (idx < utils::size(m_aFreeLists) && m_aFreeLists[idx])
+    {
+        usize* pRet = m_aFreeLists[idx];
+        usize* pNext = (usize*)*pRet;
+        m_aFreeLists[idx] = pNext;
 
-    m_pLastAlloc = pRet;
-    m_lastAllocSize = realSize;
+        return pRet;
+    }
+    else
+    {
+        void* pRet = (void*)((u8*)m_pData + m_pos);
 
-    return pRet;
+        growIfNeeded(m_pos + realSize);
+
+        m_pLastAlloc = pRet;
+        m_lastAllocSize = realSize;
+
+        return pRet;
+    }
 }
 
 inline void*
-Arena::zalloc(usize mCount, usize mSize)
+Arena::zalloc(usize nBytes)
 {
-    void* pMem = malloc(mCount, mSize);
-    ::memset(pMem, 0, mCount * mSize);
+    void* pMem = malloc(nBytes);
+    ::memset(pMem, 0, nBytes);
     return pMem;
 }
 
 inline void*
-Arena::realloc(void* p, usize oldCount, usize newCount, usize mSize)
+Arena::realloc(void* p, usize oldNBytes, usize newNBytes)
 {
-    if (!p) return malloc(newCount, mSize);
+    if (!p) return malloc(newNBytes);
 
     /* bump case */
     if (p == m_pLastAlloc)
     {
-        const isize realSize = alignUp8PO2(newCount * mSize);
+        const isize realSize = alignUp8(newNBytes);
         const isize newPos = (m_pos - m_lastAllocSize) + realSize;
         growIfNeeded(newPos);
         m_lastAllocSize = realSize;
         return p;
     }
 
-    if (newCount <= oldCount) return p;
+    if (newNBytes <= oldNBytes) return p;
 
-    void* pMem = malloc(newCount, mSize);
-    if (p) ::memcpy(pMem, p, oldCount * mSize);
+    void* pMem = malloc(newNBytes);
+    if (p)
+    {
+        ::memcpy(pMem, p, oldNBytes);
+        free(p, oldNBytes);
+    }
     return pMem;
 }
 
 inline void
-Arena::free(void*) noexcept
+Arena::free(void* ptr, usize nBytes) noexcept
 {
-    /* noop */
+    if (!ptr || nBytes >= sizeof(m_aFreeLists) ||
+        /* Dont insert pointers placed after stored position. */
+        (m_pCurrentScope && (u8*)ptr >= (u8*)m_pData + m_pCurrentScope->m_state.m_pos)
+    )
+    {
+        return;
+    }
+
+    const usize size = alignUp8(nBytes);
+    const usize idx = sizeClass8(size) - 1;
+    usize* pNext = m_aFreeLists[idx];
+
+    *(usize**)ptr = pNext;
+    m_aFreeLists[idx] = (usize*)ptr;
 }
 
 inline constexpr bool
 Arena::doesFree() const noexcept
 {
-    return false;
+    return true;
 }
 
 inline constexpr bool

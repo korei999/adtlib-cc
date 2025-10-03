@@ -23,6 +23,29 @@ main()
         Arena& arena = *IThreadPool::inst()->arena();
 
         {
+            defer( arena.reset() );
+
+            isize* p0 = arena.alloc<isize>(0);
+            isize* p1 = arena.alloc<isize>(1);
+            isize* p2 = arena.alloc<isize>(2);
+            isize* p3 = arena.alloc<isize>(3);
+
+            arena.free(p0, sizeof(*p0));
+            arena.free(p3, sizeof(*p3));
+
+            const isize used = arena.memoryUsed();
+
+            p0 = arena.alloc<isize>(8);
+            p3 = arena.alloc<isize>(11);
+
+            ADT_ASSERT_ALWAYS((*p0 = 8) && (*p1 == 1) && (*p2 == 2) && (*p3 == 11), "{}, {}, {}, {}", *p0, *p1, *p2, *p3);
+            ADT_ASSERT_ALWAYS(used == arena.memoryUsed(), "used: {}, arena.memoryUsed(): {}", used, arena.memoryUsed());
+
+            [[maybe_unused]] isize* p4 = arena.alloc<isize>(999);
+            ADT_ASSERT_ALWAYS(used == arena.memoryUsed() - 8, "used: {}, arena.memoryUsed(): {}", used, arena.memoryUsed());
+        }
+
+        {
             ArenaScope pushedTop {&arena};
 
             LogInfo{"start off: {}\n", arena.memoryUsed()};

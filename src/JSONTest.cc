@@ -58,6 +58,7 @@ main(int argc, char* argv[])
         // MiHeap al(0);
         defer(
             // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
+            LogDebug{"memoryUsed: {}\n", al.memoryUsed()};
             al.freeAll()
         );
 
@@ -72,7 +73,7 @@ main(int argc, char* argv[])
         bool eRes = p.parse(&al, sJson);
         if (!eRes) LogWarn("json::Parser::parse() failed\n");
         // defer( p.destroy() );
-        LogDebug{"parsed in: {:.5} ms\n", time::diffMSec(time::now(), t0)};
+        LogInfo{"parsed in: {:.5} ms\n", time::diffMSec(time::now(), t0)};
 
         if (argc >= 3 && "-p" == StringView(argv[2]))
             p.print(Gpa::inst(), stdout);

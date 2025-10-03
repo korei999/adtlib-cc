@@ -86,7 +86,7 @@ inline void
 Builder::destroy() noexcept
 {
     if (m_pAlloc && m_bDataAllocated)
-        m_pAlloc->free(m_pData);
+        m_pAlloc->free(m_pData, m_cap);
 }
 
 inline isize
@@ -787,7 +787,8 @@ toFILE(IAllocator* pAlloc, FILE* fp, const StringView fmt, const ARGS_T&... tArg
 #endif
     }
 
-    if (pAlloc && buff.m_pData != aPreallocated) pAlloc->free(buff.m_pData);
+    if (pAlloc && buff.m_pData != aPreallocated)
+        pAlloc->free(buff.m_pData, buff.m_cap);
 
     return buff.m_size;
 }

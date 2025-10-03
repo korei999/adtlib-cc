@@ -66,7 +66,7 @@ protected:
     virtual void*
     do_allocate(size_t __bytes, size_t __alignment) override
     {
-        return m_arena.malloc(1, __bytes);
+        return m_arena.malloc(__bytes);
     }
 
     virtual void
