@@ -1,8 +1,9 @@
-#include "adt/SplayTree.hh"
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/BufferAllocator.hh"
 #include "adt/Logger.hh"
+
+#include "WIP/SplayTree.hh"
 
 using namespace adt;
 

@@ -3,6 +3,8 @@
 #include "adt/Vec.hh"
 #include "adt/ThreadPool.hh"
 
+#include <typeinfo>
+
 using namespace adt;
 
 int

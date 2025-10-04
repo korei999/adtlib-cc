@@ -27,10 +27,9 @@
 
 #pragma once
 
-#include "IAllocator.hh"
-#include "defer.hh"
-#include "print-inl.hh"
-#include "String.hh"
+#include "adt/defer.hh"
+#include "adt/print-inl.hh"
+#include "adt/String.hh"
 
 namespace adt
 {
