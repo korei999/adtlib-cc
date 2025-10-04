@@ -44,7 +44,6 @@ set(ADT_PRECOMPILED_HEADERS
     sort.hh
     Span2D.hh
     Span.hh
-    SplayTree.hh
     String.hh
     Thread.hh
     ThreadPool.hh

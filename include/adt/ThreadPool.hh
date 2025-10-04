@@ -72,7 +72,7 @@ struct ThreadPool : IThreadPool
     /* */
 
     static inline thread_local int gtl_threadId {};
-    static inline thread_local Arena* gtl_pArena {};
+    static inline thread_local Arena gtl_arena {};
 
     /* */
 
@@ -158,11 +158,8 @@ ThreadPool::loop()
     if (m_pfnLoopStart) m_pfnLoopStart(m_pLoopStartArg);
     ADT_DEFER( if (m_pfnLoopEnd) m_pfnLoopEnd(m_pLoopEndArg) );
 
-    gtl_pArena = Gpa::inst()->alloc<Arena>(m_arenaReserved);
-    ADT_DEFER(
-        gtl_pArena->freeAll();
-        Gpa::inst()->free(gtl_pArena);
-    );
+    new(&gtl_arena) Arena{m_arenaReserved};
+    ADT_DEFER( gtl_arena.freeAll() );
 
     gtl_threadId = m_atomIdCounter.fetchAdd(1, atomic::ORDER::RELAXED);
 
@@ -209,7 +206,7 @@ ThreadPool::start()
         );
     }
 
-    gtl_pArena = Gpa::inst()->alloc<Arena>(m_arenaReserved);
+    new(&gtl_arena) Arena{m_arenaReserved};
 
     m_bStarted = true;
 
@@ -269,8 +266,7 @@ ThreadPool::destroy() noexcept
         m_cndWait.destroy();
     }
 
-    gtl_pArena->freeAll();
-    Gpa::inst()->free(gtl_pArena);
+    gtl_arena.freeAll();
 }
 
 inline bool
@@ -315,7 +311,7 @@ ThreadPool::threadId() noexcept
 inline Arena*
 ThreadPool::arena() noexcept
 {
-    return gtl_pArena;
+    return &gtl_arena;
 }
 
 /* Usage example:
