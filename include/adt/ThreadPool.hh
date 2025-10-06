@@ -217,6 +217,8 @@ ThreadPool::start()
 inline void
 ThreadPool::wait(bool bHelp) noexcept
 {
+    if (m_spThreads.size() <= 0) return;
+
     if (bHelp)
     {
 again:
