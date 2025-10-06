@@ -330,7 +330,8 @@ Logger::formatHeader(LEVEL eLevel, std::source_location loc, void*, Span<char> s
 #ifdef _WIN32
     tm* pTm = ::localtime(&now);
 #else
-    tm* pTm = ::localtime(&now);
+    tm timeStruct {};
+    tm* pTm = ::localtime_r(&now, &timeStruct);
 #endif
 
     const isize n = strftime(aTimeBuff, sizeof(aTimeBuff), "%Y-%m-%d %I:%M:%S%p", pTm);
