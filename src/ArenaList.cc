@@ -14,7 +14,7 @@ go()
     ADT_ASSERT_ALWAYS(arena.memoryUsed() == 0, "{}", arena.memoryUsed());
 
     {
-        ArenaListScope arenaScope {&arena};
+        IArena::Scope arenaScope = arena.restoreAfterScope();
 
         Vec<int> v {&arena};
         for (isize i = 0; i < 5; ++i)
@@ -24,7 +24,7 @@ go()
     ADT_ASSERT_ALWAYS(arena.memoryUsed() == 0, "{}", arena.memoryUsed());
 
     {
-        ArenaListScope arenaScope {&arena};
+        IArena::Scope arenaScope = arena.restoreAfterScope();
         char* pMem = arena.mallocV<char>(SIZE_1M*2);
         ::memset(pMem, 0, 123);
     }
@@ -35,7 +35,7 @@ go()
 int
 main()
 {
-    ThreadPool ztp {SIZE_1M * 64};
+    ThreadPool ztp {ArenaList{}, SIZE_1M * 64};
     defer( ztp.destroy() );
     IThreadPool::setGlobal(&ztp);
 

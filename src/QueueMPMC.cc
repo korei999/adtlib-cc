@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/defer.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/Logger.hh"
@@ -14,14 +15,15 @@ static atomic::Int s_atomCounter {};
 int
 main()
 {
+    ThreadPool tp {Arena{}, 128, SIZE_8G};
+    IThreadPool::setGlobal(&tp);
+    defer( tp.destroy() );
+
     Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
     LogInfo("QueueMPMC test...\n");
-
-    ThreadPool tp {128, SIZE_8G};
-    defer( tp.destroy() );
 
     auto clEnqueue = [&]
     {

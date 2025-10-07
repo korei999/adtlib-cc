@@ -2,6 +2,7 @@
 #include <execution>
 
 #include "adt/sort.hh"
+#include "adt/Arena.hh"
 #include "adt/ArenaList.hh" /* IWYU pragma: keep */
 #include "adt/Vec.hh"
 #include "adt/defer.hh"
@@ -148,7 +149,7 @@ main()
     {
         constexpr isize QSIZE = 2048;
         static_assert(isPowerOf2(QSIZE));
-        ThreadPool tp {QSIZE, SIZE_8G};
+        ThreadPool tp {Arena{}, QSIZE, SIZE_8G};
         defer( tp.destroy() );
 
         VecM<i64> v0 {BIG * 100};

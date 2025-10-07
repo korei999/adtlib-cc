@@ -1,4 +1,5 @@
 #include "adt/Logger.hh"
+#include "adt/Arena.hh"
 #include "adt/ThreadPool.hh"
 
 #ifdef _MSC_VER
@@ -46,7 +47,7 @@ main(int, char**)
 #endif
 
     {
-        ThreadPool tp {1024, SIZE_1M * 64};
+        ThreadPool tp {Arena{}, 1024, SIZE_1M * 64};
         IThreadPool::setGlobal(&tp);
         defer( tp.destroy() );
 

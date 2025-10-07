@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/ArenaList.hh"
 #include "adt/defer.hh"
 #include "adt/Gpa.hh"
@@ -64,7 +65,7 @@ bool operator!=(const ArenaSTD<T>&, const ArenaSTD<U>&) { return false; }
 int
 main()
 {
-    ThreadPool ztp {SIZE_1G};
+    ThreadPool ztp {Arena{}, SIZE_1G};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 

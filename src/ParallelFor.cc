@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/Vec.hh"
 #include "adt/ArenaList.hh"
 #include "adt/ThreadPool.hh"
@@ -19,7 +20,7 @@ main()
     ArenaList arena {SIZE_1K * 3};
     defer( arena.freeAll() );
 
-    ThreadPool tp {128, SIZE_8G};
+    ThreadPool tp {Arena{}, 128, SIZE_8G};
     defer( tp.destroy() );
 
     Vec<f32> v;

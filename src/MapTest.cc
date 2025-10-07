@@ -43,7 +43,7 @@ genRandomString(IAllocator* pAlloc)
 static void
 microBench()
 {
-    Arena& arena = *IThreadPool::inst()->arena();
+    IArena& arena = *IThreadPool::inst()->arena();
 
     constexpr isize BIG = 1000000;
 
@@ -179,7 +179,7 @@ microBench()
 int
 main()
 {
-    ThreadPool ztp {SIZE_1G};
+    ThreadPool ztp {Arena{}, SIZE_1G};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
@@ -187,7 +187,7 @@ main()
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
-    Arena& arena = *ztp.arena();
+    IArena& arena = *ztp.arena();
 
     ADT_ASSERT_ALWAYS(hash::func("]e") == hash::func(StringView("]e")), "");
 
@@ -203,7 +203,7 @@ main()
     }
 
     {
-        ArenaScope arenaScope {&arena};
+        IArena::Scope arenaScope = arena.restoreAfterScope();
         Map<std::string, int> map {&arena};
         defer( map.destroy(&arena) );
 
@@ -216,7 +216,7 @@ main()
     }
 
     {
-        ArenaScope astate {&arena};
+        IArena::Scope astate = arena.restoreAfterScope();
         Map<StringView, u32> mapWithInitializerList {&arena,{
             {"one", 1},
             {"two", 2},
@@ -239,7 +239,7 @@ main()
     }
 
     {
-        ArenaScope arenaScope {&arena};
+        IArena::Scope arenaScope = arena.restoreAfterScope();
         Map<char const*, int, hash::nullTermStringFunc> mapNtsToInt {&arena, {
             {"one", 1},
             {"two", 2},
@@ -299,7 +299,7 @@ main()
     }
 
     {
-        ArenaScope arenaScope {&arena};
+        IArena::Scope arenaScope = arena.restoreAfterScope();
 
         print::Builder pb {&arena};
         for (auto& [k, v] : map) pb.print("('{}', {}), ", k, v);

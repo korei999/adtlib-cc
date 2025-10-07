@@ -4,6 +4,7 @@
 #include "adt/BufferAllocator.hh" /* IWYU pragma: keep */
 #include "adt/rng.hh" /* IWYU pragma: keep */
 #include "adt/Logger.hh"
+#include "adt/Arena.hh"
 
 using namespace adt;
 
@@ -33,7 +34,7 @@ main()
 
     LogInfo("ThreadPool test...\n");
 
-    ThreadPool tp {512, SIZE_1G};
+    ThreadPool tp {Arena{}, 512, SIZE_1G};
     defer( tp.destroy() );
 
     auto inc = [&] {

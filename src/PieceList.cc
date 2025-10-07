@@ -9,7 +9,7 @@ using namespace adt;
 static void
 test()
 {
-    Arena& arena = *IThreadPool::inst()->arena();
+    IArena& arena = *IThreadPool::inst()->arena();
 
     auto rcp = RefCountedPtr<VStringM>::allocWithDeleter([](VStringM* p) { p->destroy(); }, "HelloWorld");
     defer( rcp.unref() );
@@ -20,7 +20,7 @@ test()
     pl.remove(0, 1);
 
     {
-        ArenaScope sg {&arena};
+        IArena::Scope sg = arena.restoreAfterScope();
         VString s = pl.toString(&arena);
         LogDebug("s: '{}'\n", s);
         ADT_ASSERT_ALWAYS(StringView(s) == "elloWorld", "s(size: {}, cap: {}): '{}'", s.size(), s.cap(), s);
@@ -34,7 +34,7 @@ test()
     pl.insert(pl.size() - 2, "{^}");
 
     {
-        ArenaScope sg {&arena};
+        IArena::Scope sg = arena.restoreAfterScope();
         VString s = pl.toString(&arena);
         LogDebug("s: '{}'\n", s);
         ADT_ASSERT_ALWAYS(StringView(s) == "(+)Hello|INS<--->ERT|World[{^}*]", "s(size: {}, cap: {}): '{}'", s.size(), s.cap(), s);
@@ -64,7 +64,7 @@ test()
         LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
-        ArenaScope sg {&arena};
+        IArena::Scope sg = arena.restoreAfterScope();
         VString sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
         ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(rld[{^}*]", "");
@@ -80,7 +80,7 @@ test()
         LogInfo("(4, |%|: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
-        ArenaScope sg {&arena};
+        IArena::Scope sg = arena.restoreAfterScope();
         VString sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
         ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(|%rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
@@ -89,7 +89,7 @@ test()
     pl.remove(0, 1);
 
     {
-        ArenaScope sg {&arena};
+        IArena::Scope sg = arena.restoreAfterScope();
         VString s = pl.toString(&arena);
         LogInfo("({}): s: '{}'\n", s.size(), s);
         ADT_ASSERT_ALWAYS(StringView(s) == "|%rld|%|[{^}*]", "s: '{}'", s);
@@ -103,7 +103,7 @@ test()
 int
 main()
 {
-    ThreadPool ztp {SIZE_1M * 64};
+    ThreadPool ztp {Arena{}, SIZE_1M * 64};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 

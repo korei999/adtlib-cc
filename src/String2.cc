@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/ThreadPool.hh"
 #include "adt/Logger.hh"
 
@@ -42,7 +43,7 @@ test()
 int
 main()
 {
-    ThreadPool ztp {SIZE_1M * 64};
+    ThreadPool ztp {Arena{}, SIZE_1M * 64};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 

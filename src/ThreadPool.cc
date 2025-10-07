@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/Logger.hh"
 #include "adt/ThreadPool.hh"
 
@@ -6,8 +7,8 @@ using namespace adt;
 static void
 usesThreadLocalArena()
 {
-    Arena* pArena = IThreadPool::inst()->arena();
-    ArenaScope arenaScope {pArena};
+    IArena* pArena = IThreadPool::inst()->arena();
+    IArena::Scope arenaScope = pArena->restoreAfterScope();
 
     Vec<StringView> v {};
     for (isize i = 0; i < 10000; ++i)
@@ -23,7 +24,7 @@ usesThreadLocalArena()
 int
 main()
 {
-    ThreadPool tp {1 << 11, SIZE_8G};
+    ThreadPool tp {Arena{}, 1 << 11, SIZE_8G};
     IThreadPool::setGlobal(&tp);
     defer( tp.destroy() );
 

@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/ArenaList.hh"
 #include "adt/PoolAllocator.hh"
 #include "adt/RBTree.hh"
@@ -17,7 +18,7 @@ using namespace adt;
 int
 main()
 {
-    ThreadPool ztp {SIZE_1G};
+    ThreadPool ztp {Arena{}, SIZE_1G};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
@@ -25,7 +26,7 @@ main()
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
-    Arena& arena = *ztp.arena();
+    IArena& arena = *ztp.arena();
 
     {
         PoolAllocator pool {sizeof(RBTree<long>::Node), 200};
@@ -109,7 +110,7 @@ main()
 
         LogDebug("t0: {}\n", t0);
         for (auto& e : ReverseIt(t0))
-            LogDebug("{}, ", e);
+            print::out("{}, ", e);
         LogDebug("\n\n");
     }
 

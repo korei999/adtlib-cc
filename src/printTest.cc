@@ -1,3 +1,4 @@
+#include "adt/Arena.hh"
 #include "adt/ArenaList.hh" /* IWYU pragma: keep */
 #include "adt/Array.hh"
 #include "adt/BufferAllocator.hh"
@@ -57,7 +58,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const Hello& x)
 int
 main()
 {
-    ThreadPool ztp {SIZE_1G};
+    ThreadPool ztp {Arena{}, SIZE_1G};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 

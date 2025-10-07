@@ -2,15 +2,50 @@
 #include "adt/Logger.hh"
 #include "adt/Vec.hh"
 #include "adt/ThreadPool.hh"
+#include "adt/time.hh"
 
-#include <typeinfo>
+#include <cmath>
 
 using namespace adt;
+
+static void
+lilBenchmark()
+{
+    constexpr isize BIG = 9999999;
+
+    LogInfo{"lil bench...\n"};
+    {
+        {
+            IArena& arena = *IThreadPool::inst()->arena();
+            time::Type t0 = time::now();
+            for (isize i = 0; i < BIG; ++i)
+            {
+                IArena::Scope arenaScope = arena.restoreAfterScope();
+                char* pBuff = arena.mallocV<char>(300);
+                print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
+            }
+            LogInfo{"IArena: {:.3} ms\n", time::diffMSec(time::now(), t0)};
+        }
+
+        {
+            Arena& arena = *static_cast<Arena*>(IThreadPool::inst()->arena());
+            time::Type t0 = time::now();
+            for (isize i = 0; i < BIG; ++i)
+            {
+                ArenaScope arenaScope {&arena};
+                char* pBuff = arena.mallocV<char>(300);
+                print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
+            }
+            LogInfo{"Arena: {:.3} ms\n", time::diffMSec(time::now(), t0)};
+        }
+    }
+    LogInfo{"lil bench finished\n"};
+}
 
 int
 main()
 {
-    ThreadPool ztp {SIZE_1M * 64};
+    ThreadPool ztp {Arena{}, SIZE_1M * 64};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
@@ -22,10 +57,10 @@ main()
 
     try
     {
-        Arena& arena = *IThreadPool::inst()->arena();
+        Arena& arena = static_cast<Arena&>(*IThreadPool::inst()->arena());
 
         {
-            ArenaScope pushedTop {&arena};
+            IArena::Scope topScope = arena.restoreAfterScope();
 
             LogInfo{"start off: {}\n", arena.memoryUsed()};
 
@@ -77,7 +112,7 @@ main()
             Arena::Ptr<Destructive> p;
 
             {
-                ArenaScope pushed {&arena};
+                IArena::Scope pushed = arena.restoreAfterScope();
 
                 arena.initPtr(&p, "p");
 
@@ -111,6 +146,8 @@ main()
 
             ADT_ASSERT_ALWAYS(s_magic == 666, "{}", s_magic);
         }
+
+        lilBenchmark();
     }
     catch (const std::exception& ex)
     {
