@@ -13,8 +13,11 @@ lilBenchmark()
 {
     constexpr isize BIG = 9999999;
 
-    LogInfo{"lil bench...\n"};
+    LogInfo{"lil bench (allocating in hot loop {} times)...\n", BIG};
     {
+        time::Type timeIArena {};
+        time::Type timeArena {};
+
         {
             IArena& arena = *IThreadPool::inst()->arena();
             time::Type t0 = time::now();
@@ -24,7 +27,8 @@ lilBenchmark()
                 char* pBuff = arena.mallocV<char>(300);
                 print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
             }
-            LogInfo{"IArena: {:.3} ms\n", time::diffMSec(time::now(), t0)};
+            timeIArena = time::diffMSec(time::now(), t0);
+            LogInfo{"virtual IArena + virtual IArena::IScope: {:.3} ms\n", timeIArena};
         }
 
         {
@@ -36,8 +40,14 @@ lilBenchmark()
                 char* pBuff = arena.mallocV<char>(300);
                 print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
             }
-            LogInfo{"Arena: {:.3} ms\n", time::diffMSec(time::now(), t0)};
+            timeArena = time::diffMSec(time::now(), t0);
+            LogInfo{"Non virtual Arena + non virtual ArenaScope: {:.3} ms\n", timeArena};
         }
+
+        LogInfo{"Non virtual Arena + non virtual ArenaScope is {:.2}% {}\n",
+            (1.0 - ((f64)timeArena / (f64)timeIArena)) * 100.0,
+            timeArena < timeIArena ? "faster" : "slower"
+        };
     }
     LogInfo{"lil bench finished\n"};
 }
