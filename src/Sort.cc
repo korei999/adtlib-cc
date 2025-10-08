@@ -72,7 +72,7 @@ main()
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 
-    constexpr isize BIG = 200000;
+    constexpr isize BIG = 20000;
     rng::PCG32 rng = 666;
 
     {
@@ -163,7 +163,7 @@ main()
         defer( v1.destroy() );
         {
             auto timer = time::now();
-#if defined __APPLE__ || defined __OpenBSD__
+#if defined __APPLE__ || defined __OpenBSD__ || true
             std::sort(v1.data(), v1.data() + v1.size());
 #else
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());

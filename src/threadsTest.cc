@@ -29,7 +29,15 @@ main()
 
     int one = 1;
 
+    auto what = [] {
+        static int s_whatCount = 0;
+        LogDebug("what: {}\n", ++s_whatCount);
+    };
+
     {
+        Thread thrd0(what);
+        defer( thrd0.join() );
+
         Thread thrd1(thread, &one);
         defer( thrd1.join() );
 
@@ -37,13 +45,9 @@ main()
         defer( thrd2.join() );
     }
 
-    auto what = [] {
-        LogDebug("what\n");
-    };
-
     Thread thrd(what, Thread::ATTR::DETACHED);
-    auto err = thrd.detach();
-    LogDebug("err: {}\n", err);
+    // auto err = thrd.detach();
+    // LogDebug("err: {}\n", err);
 
     utils::sleepMS(100.0);
 

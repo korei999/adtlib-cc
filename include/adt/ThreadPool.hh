@@ -289,6 +289,7 @@ ThreadPool::destroy() noexcept
     }
 
     gtl_pArena->freeAll();
+    Gpa::inst()->free(gtl_pArena);
     gtl_pArena = nullptr;
 }
 
@@ -343,6 +344,7 @@ ThreadPool::destroyArenaForThisThread() noexcept
 {
     ADT_ASSERT(gtl_pArena != nullptr, "createArenaForThisThread() was not called before");
     gtl_pArena->freeAll();
+    Gpa::inst()->free(gtl_pArena);
     gtl_pArena = nullptr;
 }
 

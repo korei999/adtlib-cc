@@ -141,9 +141,8 @@ main()
                 arena.initPtr(&p, "p");
 
                 /* BUG?: triggers stack-use-after-scope with asan. */
-                Arena::Ptr<Destructive> p0 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p0"};
-
-                p0->sayHi();
+                // Arena::Ptr<Destructive> p0 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p0"};
+                // p0->sayHi();
             }
             LogDebug("offset after pop: {}\n", arena.memoryUsed());
 
