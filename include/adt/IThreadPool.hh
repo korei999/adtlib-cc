@@ -11,10 +11,10 @@ struct IArena;
 
 struct IThreadPool
 {
-#if !defined ADT_THREAD_PULL_ARENA_TYPE
+#if !defined ADT_THREAD_POOL_ARENA_TYPE
     using ThreadLocalArena = IArena;
 #else
-    using ThreadLocalArena = ADT_THREAD_PULL_ARENA_TYPE;
+    using ThreadLocalArena = ADT_THREAD_POOL_ARENA_TYPE;
 #endif
 
     /* TODO: buffer size can be moved to implementation. */
