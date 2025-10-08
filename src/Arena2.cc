@@ -24,7 +24,7 @@ lilBenchmark()
             time::Type t0 = time::now();
             for (isize i = 0; i < BIG; ++i)
             {
-                IArena::IScope arenaScope = arena.restoreAfterScope();
+                IArena::Scope arenaScope {&arena};
                 char* pBuff = arena.mallocV<char>(300);
                 print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
             }
