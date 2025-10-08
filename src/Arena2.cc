@@ -114,6 +114,14 @@ main()
         }
 
         {
+            IArena::Scope arenaScope {&arena};
+
+            IArena::Ptr<i64> pNum {&arena, 999};
+
+            LogInfo{"printing IArena::Ptr: '{}'\n", pNum};
+        }
+
+        {
             static int s_i = 0;
             static int s_magic = 0;
 
