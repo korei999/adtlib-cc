@@ -8,7 +8,7 @@ static void
 usesThreadLocalArena()
 {
     IArena* pArena = IThreadPool::inst()->arena();
-    IArena::Scope arenaScope = pArena->restoreAfterScope();
+    IArena::IScope arenaScope = pArena->restoreAfterScope();
 
     Vec<StringView> v {};
     for (isize i = 0; i < 10000; ++i)

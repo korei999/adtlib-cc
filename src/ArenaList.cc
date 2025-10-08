@@ -14,7 +14,7 @@ go()
     ADT_ASSERT_ALWAYS(arena.memoryUsed() == 0, "{}", arena.memoryUsed());
 
     {
-        IArena::Scope arenaScope = arena.restoreAfterScope();
+        IArena::IScope arenaScope = arena.restoreAfterScope();
 
         Vec<int> v {&arena};
         for (isize i = 0; i < 5; ++i)
@@ -24,7 +24,7 @@ go()
     ADT_ASSERT_ALWAYS(arena.memoryUsed() == 0, "{}", arena.memoryUsed());
 
     {
-        IArena::Scope arenaScope = arena.restoreAfterScope();
+        IArena::Scope arenaScope {&arena};
         char* pMem = arena.mallocV<char>(SIZE_1M*2);
         ::memset(pMem, 0, 123);
     }

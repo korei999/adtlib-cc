@@ -203,7 +203,7 @@ main()
     }
 
     {
-        IArena::Scope arenaScope = arena.restoreAfterScope();
+        IArena::IScope arenaScope = arena.restoreAfterScope();
         Map<std::string, int> map {&arena};
         defer( map.destroy(&arena) );
 
@@ -216,7 +216,7 @@ main()
     }
 
     {
-        IArena::Scope astate = arena.restoreAfterScope();
+        IArena::IScope astate = arena.restoreAfterScope();
         Map<StringView, u32> mapWithInitializerList {&arena,{
             {"one", 1},
             {"two", 2},
@@ -239,7 +239,7 @@ main()
     }
 
     {
-        IArena::Scope arenaScope = arena.restoreAfterScope();
+        IArena::IScope arenaScope = arena.restoreAfterScope();
         Map<char const*, int, hash::nullTermStringFunc> mapNtsToInt {&arena, {
             {"one", 1},
             {"two", 2},
@@ -299,7 +299,7 @@ main()
     }
 
     {
-        IArena::Scope arenaScope = arena.restoreAfterScope();
+        IArena::IScope arenaScope = arena.restoreAfterScope();
 
         print::Builder pb {&arena};
         for (auto& [k, v] : map) pb.print("('{}', {}), ", k, v);

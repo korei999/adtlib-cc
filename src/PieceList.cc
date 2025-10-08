@@ -20,7 +20,7 @@ test()
     pl.remove(0, 1);
 
     {
-        IArena::Scope sg = arena.restoreAfterScope();
+        IArena::IScope sg = arena.restoreAfterScope();
         VString s = pl.toString(&arena);
         LogDebug("s: '{}'\n", s);
         ADT_ASSERT_ALWAYS(StringView(s) == "elloWorld", "s(size: {}, cap: {}): '{}'", s.size(), s.cap(), s);
@@ -34,7 +34,7 @@ test()
     pl.insert(pl.size() - 2, "{^}");
 
     {
-        IArena::Scope sg = arena.restoreAfterScope();
+        IArena::IScope sg = arena.restoreAfterScope();
         VString s = pl.toString(&arena);
         LogDebug("s: '{}'\n", s);
         ADT_ASSERT_ALWAYS(StringView(s) == "(+)Hello|INS<--->ERT|World[{^}*]", "s(size: {}, cap: {}): '{}'", s.size(), s.cap(), s);
@@ -64,7 +64,7 @@ test()
         LogInfo("defragmented: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
-        IArena::Scope sg = arena.restoreAfterScope();
+        IArena::IScope sg = arena.restoreAfterScope();
         VString sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
         ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(rld[{^}*]", "");
@@ -80,7 +80,7 @@ test()
         LogInfo("(4, |%|: ({}, {}): '{}'\n", i++, e.m_size, e.view());
 
     {
-        IArena::Scope sg = arena.restoreAfterScope();
+        IArena::IScope sg = arena.restoreAfterScope();
         VString sDefragmented = pl.toString(&arena);
         LogInfo("({}): sDefragmented: '{}'\n", sDefragmented.size(), sDefragmented);
         ADT_ASSERT_ALWAYS(StringView(sDefragmented) == "(|%rld|%|[{^}*]", "sDefragmented: '{}'", sDefragmented);
@@ -89,7 +89,7 @@ test()
     pl.remove(0, 1);
 
     {
-        IArena::Scope sg = arena.restoreAfterScope();
+        IArena::IScope sg = arena.restoreAfterScope();
         VString s = pl.toString(&arena);
         LogInfo("({}): s: '{}'\n", s.size(), s);
         ADT_ASSERT_ALWAYS(StringView(s) == "|%rld|%|[{^}*]", "s: '{}'", s);

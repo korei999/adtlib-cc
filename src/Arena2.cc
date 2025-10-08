@@ -11,7 +11,7 @@ using namespace adt;
 static void
 lilBenchmark()
 {
-    constexpr isize BIG = 9999999;
+    constexpr isize BIG = 999999;
 
     LogInfo{"lil bench (allocating in hot loop {} times)...\n", BIG};
     {
@@ -20,11 +20,11 @@ lilBenchmark()
         time::Type timeArena {};
 
         {
-            IArena& arena = *IThreadPool::inst()->arena();
+            auto& arena = *IThreadPool::inst()->arena();
             time::Type t0 = time::now();
             for (isize i = 0; i < BIG; ++i)
             {
-                IArena::Scope arenaScope = arena.restoreAfterScope();
+                IArena::IScope arenaScope = arena.restoreAfterScope();
                 char* pBuff = arena.mallocV<char>(300);
                 print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
             }
@@ -50,7 +50,7 @@ lilBenchmark()
             time::Type t0 = time::now();
             for (isize i = 0; i < BIG; ++i)
             {
-                ArenaScope arenaScope {&arena};
+                IArena::Scope arenaScope {&arena};
                 char* pBuff = arena.mallocV<char>(300);
                 print::toSpan({pBuff, 300}, "{}, {}, {}", i, std::pow(i, 2), BIG - i);
             }
@@ -84,7 +84,7 @@ main()
         Arena& arena = static_cast<Arena&>(*IThreadPool::inst()->arena());
 
         {
-            IArena::Scope topScope = arena.restoreAfterScope();
+            IArena::IScope topScope = arena.restoreAfterScope();
 
             LogInfo{"start off: {}\n", arena.memoryUsed()};
 
@@ -136,7 +136,7 @@ main()
             Arena::Ptr<Destructive> p;
 
             {
-                IArena::Scope pushed = arena.restoreAfterScope();
+                IArena::IScope pushed = arena.restoreAfterScope();
 
                 arena.initPtr(&p, "p");
 
