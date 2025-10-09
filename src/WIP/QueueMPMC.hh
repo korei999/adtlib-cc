@@ -28,11 +28,9 @@
 namespace adt
 {
 
-template<typename T, int CAP>
+template<typename T>
 struct QueueMPMC
 {
-    static_assert(CAP >= 0 && isPowerOf2(CAP));
-
     static constexpr isize CACHELINE_SIZE = 64;
     using CacheLinePad = char[CACHELINE_SIZE];
 
@@ -46,6 +44,7 @@ struct QueueMPMC
 
     CacheLinePad m_pad0 {};
     Cell* m_pBuff {};
+    isize m_cap {};
     CacheLinePad m_pad1 {};
     atomic::Int m_enqueuePos {};
     CacheLinePad m_pad2 {};
@@ -59,7 +58,7 @@ struct QueueMPMC
 
     QueueMPMC() = default;
 
-    QueueMPMC(InitFlag);
+    QueueMPMC(isize capPO2);
 
     /* */
 
@@ -71,16 +70,17 @@ struct QueueMPMC
     bool push(T&& x) { return emplace(std::move(x)); }
 
     [[nodiscard]] Opt<T> pop();
-    int cap() const noexcept { return CAP; }
+    int cap() const noexcept { return m_cap; }
     bool empty() const noexcept;
 };
 
-template<typename T, int CAP>
+template<typename T>
 inline
-QueueMPMC<T, CAP>::QueueMPMC(InitFlag)
+QueueMPMC<T>::QueueMPMC(isize capPO2)
+    : m_cap{nextPowerOf2(capPO2)}
 {
-    m_pBuff = Gpa::inst()->zallocV<Cell>(CAP);
-    for (int i = 0; i < CAP; ++i)
+    m_pBuff = Gpa::inst()->zallocV<Cell>(m_cap);
+    for (int i = 0; i < m_cap; ++i)
         m_pBuff[i].sequence = atomic::Int(i);
 
 #ifndef NDEBUG
@@ -88,20 +88,20 @@ QueueMPMC<T, CAP>::QueueMPMC(InitFlag)
 #endif
 }
 
-template<typename T, int CAP>
+template<typename T>
 inline void
-QueueMPMC<T, CAP>::destroy() noexcept
+QueueMPMC<T>::destroy() noexcept
 {
-    for (isize i = 0; i < CAP; ++i)
+    for (isize i = 0; i < m_cap; ++i)
         m_pBuff[i].data.~T();
 
     Gpa::inst()->free(m_pBuff);
 }
 
-template<typename T, int CAP>
+template<typename T>
 template<typename ...ARGS>
 inline bool
-QueueMPMC<T, CAP>::emplace(ARGS&&... args)
+QueueMPMC<T>::emplace(ARGS&&... args)
 {
     ADT_ASSERT(m_bInitialized != false, "forgot to {INIT}");
 
@@ -110,7 +110,7 @@ QueueMPMC<T, CAP>::emplace(ARGS&&... args)
 
     while (true)
     {
-        pCell = &m_pBuff[pos & (CAP - 1)];
+        pCell = &m_pBuff[pos & (m_cap - 1)];
         int seq = pCell->sequence.load(atomic::ORDER::ACQUIRE);
         int diff = seq - pos;
         if (diff == 0)
@@ -139,16 +139,16 @@ QueueMPMC<T, CAP>::emplace(ARGS&&... args)
     return true;
 }
 
-template<typename T, int CAP>
+template<typename T>
 inline Opt<T>
-QueueMPMC<T, CAP>::pop()
+QueueMPMC<T>::pop()
 {
     Cell* pCell;
     atomic::Int::Type pos = m_dequeuePos.load(atomic::ORDER::RELAXED);
 
     while (true)
     {
-        pCell = &m_pBuff[pos & (CAP - 1)];
+        pCell = &m_pBuff[pos & (m_cap - 1)];
         int seq = pCell->sequence.load(atomic::ORDER::ACQUIRE);
         int diff = seq - (pos + 1);
         if (diff == 0)
@@ -174,14 +174,14 @@ QueueMPMC<T, CAP>::pop()
     Opt<T> ret = std::move(pCell->data);
     if constexpr (!std::is_trivially_destructible_v<T>)
         pCell->data.~T();
-    pCell->sequence.store(pos + (CAP - 1) + 1, atomic::ORDER::RELEASE);
+    pCell->sequence.store(pos + (m_cap - 1) + 1, atomic::ORDER::RELEASE);
 
     return ret;
 }
 
-template<typename T, int CAP>
+template<typename T>
 inline bool
-QueueMPMC<T, CAP>::empty() const noexcept
+QueueMPMC<T>::empty() const noexcept
 {
     return m_dequeuePos.load(atomic::ORDER::ACQUIRE) == m_enqueuePos.load(atomic::ORDER::ACQUIRE);
 }
