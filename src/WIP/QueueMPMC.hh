@@ -23,6 +23,7 @@
 
 #include "adt/Opt.hh"
 #include "adt/atomic.hh"
+#include "adt/Gpa.hh"
 
 namespace adt
 {
@@ -44,7 +45,7 @@ struct QueueMPMC
     /* */
 
     CacheLinePad m_pad0 {};
-    Cell m_aBuff[CAP] {};
+    Cell* m_pBuff {};
     CacheLinePad m_pad1 {};
     atomic::Int m_enqueuePos {};
     CacheLinePad m_pad2 {};
@@ -62,6 +63,8 @@ struct QueueMPMC
 
     /* */
 
+    void destroy() noexcept;
+
     template<typename ...ARGS> bool emplace(ARGS&&... x);
 
     bool push(const T& x) { return emplace(x); }
@@ -76,12 +79,23 @@ template<typename T, int CAP>
 inline
 QueueMPMC<T, CAP>::QueueMPMC(InitFlag)
 {
+    m_pBuff = Gpa::inst()->zallocV<Cell>(CAP);
     for (int i = 0; i < CAP; ++i)
-        m_aBuff[i].sequence = atomic::Int(i);
+        m_pBuff[i].sequence = atomic::Int(i);
 
 #ifndef NDEBUG
     m_bInitialized = true;
 #endif
+}
+
+template<typename T, int CAP>
+inline void
+QueueMPMC<T, CAP>::destroy() noexcept
+{
+    for (isize i = 0; i < CAP; ++i)
+        m_pBuff[i].data.~T();
+
+    Gpa::inst()->free(m_pBuff);
 }
 
 template<typename T, int CAP>
@@ -96,7 +110,7 @@ QueueMPMC<T, CAP>::emplace(ARGS&&... args)
 
     while (true)
     {
-        pCell = &m_aBuff[pos & (CAP - 1)];
+        pCell = &m_pBuff[pos & (CAP - 1)];
         int seq = pCell->sequence.load(atomic::ORDER::ACQUIRE);
         int diff = seq - pos;
         if (diff == 0)
@@ -134,7 +148,7 @@ QueueMPMC<T, CAP>::pop()
 
     while (true)
     {
-        pCell = &m_aBuff[pos & (CAP - 1)];
+        pCell = &m_pBuff[pos & (CAP - 1)];
         int seq = pCell->sequence.load(atomic::ORDER::ACQUIRE);
         int diff = seq - (pos + 1);
         if (diff == 0)

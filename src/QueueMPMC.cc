@@ -15,6 +15,8 @@ static atomic::Int s_atomCounter {};
 int
 main()
 {
+    defer( s_q.destroy() );
+
     ThreadPool tp {Arena{}, 128, SIZE_8G};
     IThreadPool::setGlobal(&tp);
     defer( tp.destroy() );
