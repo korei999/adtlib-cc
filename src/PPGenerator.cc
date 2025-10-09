@@ -9,14 +9,14 @@ R"(/* NOTE: MSVC needs '/Zc:preprocessor'. */
  * #define ENTITY_PP_BIND_I(TYPE, NAME) , &Entity::NAME
  * #define ENTITY_PP_BIND(TUPLE) ENTITY_PP_BIND_I TUPLE
  * #define ENTITY_FIELDS \
- *     (adt::StringFixed<128>, sfName),
- *     (adt::math::V4, color),
- *     (adt::math::V3, pos),
- *     (adt::math::Qt, rot),
- *     (adt::math::V3, scale),
- *     (adt::math::V3, vel),
- *     (adt::i16, assetI),
- *     (adt::i16, modelI),
+ *     (StringFixed<128>, sfName),\
+ *     (math::V4, color),\
+ *     (math::V3, pos),\
+ *     (math::Qt, rot),\
+ *     (math::V3, scale),\
+ *     (math::V3, vel),\
+ *     (i16, assetI),\
+ *     (i16, modelI),\
  *     (bool, bNoDraw)
  * ADT_SOA_GEN_STRUCT_ZERO(Entity, Bind, ENTITY_FIELDS);
  *
@@ -24,24 +24,24 @@ R"(/* NOTE: MSVC needs '/Zc:preprocessor'. */
  *
  * struct Entity {
  *   struct Bind {
- *     adt::StringFixed<128>& sfName;
- *     adt::math::V4& color;
- *     adt::math::V3& pos;
- *     adt::math::Qt& rot;
- *     adt::math::V3& scale;
- *     adt::math::V3& vel;
- *     adt::i16& assetI;
- *     adt::i16& modelI;
+ *     StringFixed<128>& sfName;
+ *     math::V4& color;
+ *     math::V3& pos;
+ *     math::Qt& rot;
+ *     math::V3& scale;
+ *     math::V3& vel;
+ *     i16& assetI;
+ *     i16& modelI;
  *     bool& bNoDraw;
  *   };
- *   adt::StringFixed<128> sfName;
- *   adt::math::V4 color;
- *   adt::math::V3 pos;
- *   adt::math::Qt rot;
- *   adt::math::V3 scale;
- *   adt::math::V3 vel;
- *   adt::i16 assetI;
- *   adt::i16 modelI;
+ *   StringFixed<128> sfName;
+ *   math::V4 color;
+ *   math::V3 pos;
+ *   math::Qt rot;
+ *   math::V3 scale;
+ *   math::V3 vel;
+ *   i16 assetI;
+ *   i16 modelI;
  *   bool bNoDraw;
  * }; */
 )";
@@ -103,58 +103,65 @@ parseArgs(const int argc, const char** argv)
     }
 }
 
+
+template<typename ...ARGS>
+static isize
+out(const StringView fmt, const ARGS&... args)
+{
+    return print::toFILE(Gpa::inst(), stdout, fmt, args...);
+}
+
 int
 main(const int argc, const char** argv)
 {
     parseArgs(argc, argv);
 
-    printf("#pragma once\n");
-    printf("/* Generated with PPGenerator.cc. */\n\n");
-    printf("%s\n", ntsExample);
+    out("#pragma once\n");
+    out("/* Generated with PPGenerator.cc. */\n\n");
+    out("{}\n", ntsExample);
 
-    printf("#define ADT_PP_RSEQ_N() %d", s_max);
+    out("#define ADT_PP_RSEQ_N() {}", s_max);
     for (int i = s_max - 1; i >= 0; --i)
-        printf(",%d", i);
+        out(",{}", i);
 
-    printf("\n");
+    out("\n");
 
-    printf("#define ADT_PP_ARG_N(");
+    out("#define ADT_PP_ARG_N(");
     for (int i = 1; i <= s_max; ++i)
-        printf("_%d,", i);
-    printf("N,...) N\n");
+        out("_{},", i);
+    out("N,...) N\n");
 
-    printf("#define ADT_PP_NARG_(...) ADT_PP_ARG_N(__VA_ARGS__)\n");
-    printf("#define ADT_PP_NARG(...) ADT_PP_NARG_(__VA_ARGS__, ADT_PP_RSEQ_N())\n");
-    printf("\n");
-    printf("#define ADT_PP_CONCAT(A, B) ADT_PP_CONCAT_I(A, B)\n");
-    printf("#define ADT_PP_CONCAT_I(A, B) A##B\n");
-    printf("\n");
-    printf("#define ADT_PP_FOR_EACH(MACRO, ...) ADT_PP_CONCAT(ADT_PP_FOR_EACH_, ADT_PP_NARG(__VA_ARGS__))(MACRO, __VA_ARGS__)\n");
-    printf("\n");
+    out("#define ADT_PP_NARG_(...) ADT_PP_ARG_N(__VA_ARGS__)\n");
+    out("#define ADT_PP_NARG(...) ADT_PP_NARG_(__VA_ARGS__, ADT_PP_RSEQ_N())\n");
+    out("\n");
+    out("#define ADT_PP_CONCAT(A, B) ADT_PP_CONCAT_I(A, B)\n");
+    out("#define ADT_PP_CONCAT_I(A, B) A##B\n");
+    out("\n");
+    out("#define ADT_PP_FOR_EACH(MACRO, ...) ADT_PP_CONCAT(ADT_PP_FOR_EACH_, ADT_PP_NARG(__VA_ARGS__))(MACRO, __VA_ARGS__)\n");
+    out("\n");
 
     for (int i = 1; i <= s_max; ++i)
     {
-        printf("#define ADT_PP_FOR_EACH_%d(m", i);
+        out("#define ADT_PP_FOR_EACH_{}(m", i);
         for (int j = 1; j <= i; ++j)
-            printf(", x%d", j);
-        printf(") \\\n");
-        printf("\t");
-        printf("m(x1)");
+            out(", x{}", j);
+        out(") \\\n");
+        out("\t");
+        out("m(x1)");
         for (int j = 2; j <= i; ++j)
-            printf(" m(x%d)", j);
-        printf("\n");
+            out(" m(x{})", j);
+        out("\n");
     }
 
-    printf("\n");
-    printf("#define ADT_DECL_FIELD_ZERO(TUPLE) ADT_DECL_FIELD_ZERO_I TUPLE;\n");
-    printf("#define ADT_DECL_FIELD_ZERO_I(TYPE, NAME) TYPE NAME {}\n");
-    printf("\n");
-    printf("#define ADT_DECL_FIELD(TUPLE) ADT_DECL_FIELD_I TUPLE;\n");
-    printf("#define ADT_DECL_FIELD_I(TYPE, NAME) TYPE NAME\n");
-    printf("\n");
-    printf("#define ADT_DECL_FIELD_REF(TUPLE) ADT_DECL_FIELD_REF_I TUPLE;\n");
-    printf("#define ADT_DECL_FIELD_REF_I(TYPE, NAME) TYPE& NAME\n");
-    printf("%s", ntsADT_SOA_GEN_STRUCT);
-    printf("%s", ntsADT_SOA_GEN_STRUCT_ZERO);
-    
+    out("\n");
+    out("#define ADT_DECL_FIELD_ZERO(TUPLE) ADT_DECL_FIELD_ZERO_I TUPLE;\n");
+    out("#define ADT_DECL_FIELD_ZERO_I(TYPE, NAME) TYPE NAME {}\n");
+    out("\n");
+    out("#define ADT_DECL_FIELD(TUPLE) ADT_DECL_FIELD_I TUPLE;\n");
+    out("#define ADT_DECL_FIELD_I(TYPE, NAME) TYPE NAME\n");
+    out("\n");
+    out("#define ADT_DECL_FIELD_REF(TUPLE) ADT_DECL_FIELD_REF_I TUPLE;\n");
+    out("#define ADT_DECL_FIELD_REF_I(TYPE, NAME) TYPE& NAME\n");
+    out("{}", ntsADT_SOA_GEN_STRUCT);
+    out("{}", ntsADT_SOA_GEN_STRUCT_ZERO);
 }
