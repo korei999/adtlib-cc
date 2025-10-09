@@ -4,8 +4,6 @@
 #include "adt/ThreadPool.hh"
 #include "adt/time.hh"
 
-#include <cmath>
-
 using namespace adt;
 
 static void
@@ -33,7 +31,7 @@ lilBenchmark()
         }
 
         {
-            Arena& arena = *static_cast<Arena*>(IThreadPool::inst()->arena());
+            Arena& arena = *dynamic_cast<Arena*>(IThreadPool::inst()->arena());
             time::Type t0 = time::now();
             for (isize i = 0; i < BIG; ++i)
             {
@@ -46,7 +44,7 @@ lilBenchmark()
         }
 
         {
-            Arena& arena = *static_cast<Arena*>(IThreadPool::inst()->arena());
+            Arena& arena = *dynamic_cast<Arena*>(IThreadPool::inst()->arena());
             time::Type t0 = time::now();
             for (isize i = 0; i < BIG; ++i)
             {
@@ -148,7 +146,7 @@ main()
 
                 arena.initPtr(&p, "p");
 
-                /* BUG?: triggers stack-use-after-scope with asan. */
+                /* NOTE: triggers stack-use-after-scope with asan. */
                 // Arena::Ptr<Destructive> p0 {Arena::Ptr<Destructive>::simpleDeleter, &arena, "p0"};
                 // p0->sayHi();
             }
