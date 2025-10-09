@@ -165,10 +165,11 @@ main()
             auto timer = time::now();
 #if defined __APPLE__ || defined __OpenBSD__ || true
             std::sort(v1.data(), v1.data() + v1.size());
+            LogDebug("std::sort(i64): {} items in {} ms\n", v1.size(), time::diffSec(time::now(), timer) * 1000.0);
 #else
             std::sort(std::execution::par, v1.data(), v1.data() + v1.size());
-#endif
             LogDebug("std::sort(i64)(std::execution::par): {} items in {} ms\n", v1.size(), time::diffSec(time::now(), timer) * 1000.0);
+#endif
         }
 
         auto v2 = v0.clone();
