@@ -8,7 +8,6 @@
 
 #include "adt/Logger.hh"
 #include "adt/ThreadPool.hh"
-#include "adt/BufferAllocator.hh"
 
 using namespace adt;
 
