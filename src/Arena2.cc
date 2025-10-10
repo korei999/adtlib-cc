@@ -9,7 +9,7 @@ using namespace adt;
 static void
 lilBenchmark()
 {
-    constexpr isize BIG = 999999;
+    constexpr isize BIG = 9999999;
 
     LogInfo{"lil bench (allocating in hot loop {} times)...\n", BIG};
     {
@@ -67,7 +67,7 @@ lilBenchmark()
 int
 main()
 {
-    ThreadPool ztp {Arena{}, SIZE_1M * 64};
+    ThreadPool ztp {Arena{}, SIZE_1G*16};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
@@ -80,6 +80,8 @@ main()
     try
     {
         Arena& arena = static_cast<Arena&>(*IThreadPool::inst()->arena());
+        lilBenchmark();
+        arena.reset();
 
         {
             IArena::IScope topScope = arena.restoreAfterScope();
@@ -175,8 +177,6 @@ main()
 
             ADT_ASSERT_ALWAYS(s_magic == 666, "{}", s_magic);
         }
-
-        lilBenchmark();
     }
     catch (const std::exception& ex)
     {

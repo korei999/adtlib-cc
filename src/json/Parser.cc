@@ -39,7 +39,7 @@ bool
 Parser::printNodeError()
 {
     const auto& tok = m_token;
-    print::err("json::Parser: ({}, {}): unexpected token: '{}'\n",
+    LogError("json::Parser: ({}, {}): unexpected token: '{}'\n",
         tok.row, tok.column, m_token.eType
     );
     return false;
@@ -56,7 +56,7 @@ Parser::expect(TOKEN_TYPE t)
     }
     else
     {
-        print::err("json::Parser: ({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
+        LogError("json::Parser: ({}, {}): unexpected token: expected: '{}', got '{}' ('{}')\n",
              tok.row, tok.column, t, m_token.eType, m_token.svLiteral
         );
         return false;
@@ -70,7 +70,7 @@ Parser::expectNot(TOKEN_TYPE t)
 
     if (bool(tok.eType & t))
     {
-        print::err("json::Parser: ({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
+        LogError("json::Parser: ({}, {}): unexpected token: not expected: '{}', got '{}' ('{}')\n",
              tok.row, tok.column, t, m_token.eType, m_token.svLiteral
         );
         return false;

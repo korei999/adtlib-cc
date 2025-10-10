@@ -11,6 +11,10 @@
 
 // #include "adt/MiMalloc.hh" /* IWYU pragma: keep */
 
+// #include "yyjson/yyjson.h"
+// 
+// #include "rapidjson/document.h"
+
 using namespace adt;
 
 // [[maybe_unused]] static u8 s_aMem[SIZE_1G] {};
@@ -50,33 +54,54 @@ main(int argc, char* argv[])
 
     try
     {
-        // FreeList al {SIZE_1G};
-        // Gpa al;
-        // MiMalloc al;
-        // ArenaList al {SIZE_8G};
-        Arena al {SIZE_8G};
-        // MiHeap al(0);
-        defer(
-            // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
-            LogDebug{"memoryUsed: {}\n", al.memoryUsed()};
-            al.freeAll()
-        );
+        {
+            // Gpa al;
+            // MiMalloc al;
+            // ArenaList al {SIZE_1M*100};
+            Arena al {SIZE_8G};
+            // MiHeap al(0);
+            defer(
+                // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());
+                // LogDebug{"memoryUsed: {}\n", al.memoryUsed()};
+                al.freeAll()
+            );
 
-        String sJson = file::load(&al, argv[1]);
+            String sJson = file::load(&al, argv[1]);
 
-        if (!sJson) return 1;
+            if (!sJson) return 1;
+            // defer( sJson.destroy(&al) );
 
-        // defer( sJson.destroy(&al) );
+            auto t0 = time::now();
+            ADT_ALLOCA(json::Parser, p);
+            bool eRes = p.parse(&al, sJson);
+            if (!eRes) LogWarn("json::Parser::parse() failed\n");
 
-        auto t0 = time::now();
-        ADT_ALLOCA(json::Parser, p);
-        bool eRes = p.parse(&al, sJson);
-        if (!eRes) LogWarn("json::Parser::parse() failed\n");
-        // defer( p.destroy() );
-        LogInfo{"parsed in: {:.5} ms\n", time::diffMSec(time::now(), t0)};
+            if (argc >= 3 && "-p" == StringView(argv[2]))
+                p.print(Gpa::inst(), stdout);
 
-        if (argc >= 3 && "-p" == StringView(argv[2]))
-            p.print(Gpa::inst(), stdout);
+            // p.destroy();
+            LogInfo{"MyJson: {:.5} ms\n", time::diffMSec(time::now(), t0)};
+
+            // {
+            //     time::Type t0 = time::now();
+            //     yyjson_doc *doc = yyjson_read(sJson.data(), sJson.size(), 0);
+            //     yyjson_doc_free(doc);
+            //     LogDebug{"yyjson: {:.5} ms\n", time::diffMSec(time::now(), t0)};
+            // }
+
+            // {
+            //     time::Type t0 = time::now();
+
+            //     namespace rj = rapidjson;
+            //     rj::Document d;
+            //     [[maybe_unused]] const auto& parsed = d.Parse(sJson.data(), sJson.size());
+
+            //     rj::GenericValue<rj::UTF8<>> value {};
+            //     // sizeof(rj::GenericValue<rj::UTF8<>>::ObjectData);
+
+            //     LogDebug{"rapidjson: {:.5} ms\n", time::diffMSec(time::now(), t0)};
+            // }
+        }
     }
     catch (const std::exception& ex)
     {

@@ -63,6 +63,8 @@ add_executable(
     JSONTest.cc
     json/Parser.cc
     json/Lexer.cc
+
+    yyjson/yyjson.c
 )
 
 add_executable(
