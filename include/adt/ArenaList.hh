@@ -6,7 +6,7 @@ namespace adt
 {
 
 /* Like Arena, but uses list chained memory blocks instead of reserve/commit. */
-struct ArenaList : public IArena
+struct ArenaList final : public IArena
 {
     struct Block
     {
@@ -105,7 +105,7 @@ struct ArenaListScope : IArena::IScopeDestructor
 };
 
 template<>
-struct IArena::Scope<ArenaList> : ArenaListScope
+struct IArena::Scope<ArenaList> final : ArenaListScope
 {
     using ArenaListScope::ArenaListScope;
 };
