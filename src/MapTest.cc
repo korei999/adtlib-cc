@@ -203,7 +203,7 @@ main()
     }
 
     {
-        IArena::IScope arenaScope = arena.restoreAfterScope();
+        IArena::Scope arenaScope {&arena};
         Map<std::string, int> map {&arena};
         defer( map.destroy(&arena) );
 
