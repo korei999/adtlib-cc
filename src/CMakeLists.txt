@@ -211,3 +211,7 @@ add_executable(String2
 add_executable(ArenaList
     ArenaList.cc
 )
+
+add_executable(Print2
+    Print2.cc
+)
