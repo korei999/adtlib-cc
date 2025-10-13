@@ -64,7 +64,7 @@ add_executable(
     json/Parser.cc
     json/Lexer.cc
 
-    yyjson/yyjson.c
+    # yyjson/yyjson.c
 )
 
 add_executable(
