@@ -3,68 +3,36 @@
 #include "adt/Logger.hh"
 #include "adt/ThreadPool.hh"
 
+#include "WIP/print2.hh"
+
 using namespace adt;
-
-template<isize N>
-struct TypeErasedArray
-{
-    using PfnDispatch = isize (*)(print::Context* pCtx, print::FormatArgs fmtArgs, void* p);
-
-    struct Formatter
-    {
-        PfnDispatch pfn;
-        void* ptr;
-    };
-
-    /* */
-
-    Array<Formatter, N> m_aData {};
-
-    /* */
-
-    template<typename ...ARGS>
-    constexpr TypeErasedArray(const ARGS&... args)
-        : m_aData{makeFormatterHelper<ARGS>(args)...}
-    {
-        for (auto& e : m_aData)
-            e.pfn({}, {}, e.ptr);
-    }
-
-    template<typename T>
-    static constexpr Formatter
-    makeFormatterHelper(const T& v)
-    {
-        constexpr PfnDispatch fn = [](print::Context* pCtx, print::FormatArgs fmtArgs, void* pArg) {
-            auto* p = static_cast<T*>(pArg);
-            return print::out("what: {}\n", *p);
-        };
-
-        return Formatter{ fn, const_cast<void*>(static_cast<const void*>(&v)) };
-    }
-};
-
-template<typename ...ARGS>
-static constexpr void
-TypeErasedArrayPrint(const ARGS&... args)
-{
-    TypeErasedArray<sizeof...(ARGS)>{args...};
-}
 
 static void
 go()
 {
-    TypeErasedArrayPrint("hello", 2, 3, std::initializer_list{7, 7, 7, 7});
+    char aBuff[20]; memset(aBuff, '&', sizeof(aBuff));
+    isize n = 0;
+    n = print2::toSpan(aBuff,
+        // "sv: '{:{} >{} f{}}'",
+        // 4, 13, '+', StringView{"HELLO BIDEN"}
+        "float: '{:15 .{} < f{}}'",
+        5, '^', 12.12
+    );
+    // ADT_ASSERT(aBuff[n] == '\0', "{}", aBuff[n]);
+
+    print::out("{}", aBuff);
+    print::out("\nn: {}\n", n);
 }
 
 int
 main()
 {
 
-    ThreadPool ztp {Arena{}, SIZE_1G*16};
+    ThreadPool ztp {Arena{}, SIZE_1M * 64};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );
 
-    Logger logger {2, ILogger::LEVEL::DEBUG, 1024, true};
+    Logger logger {2, ILogger::LEVEL::DEBUG, SIZE_1K*4, true};
     ILogger::setGlobal(&logger);
     defer( logger.destroy() );
 

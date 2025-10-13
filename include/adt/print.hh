@@ -326,13 +326,13 @@ intToBuffer(T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
         spBuff[i++] = x;                                                                                               \
     else                                                                                                               \
         return i;
- 
+
     if (x == 0)
     {
         PUSH_OR_RET('0');
         return i;
     }
- 
+
     if (x < 0 && fmtArgs.eBase != BASE::TEN)
     {
         x = -x;
@@ -358,7 +358,7 @@ intToBuffer(T x, Span<char> spBuff, FormatArgs fmtArgs) noexcept
     else if (fmtArgs.eBase == BASE::TWO) { _ITOA_(2); }
 
 #undef _ITOA_
- 
+
     if (bool(fmtArgs.eFmtFlags & FormatArgs::FLAGS::ALWAYS_SHOW_SIGN))
     {
         if (bNegative)
