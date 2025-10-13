@@ -202,8 +202,6 @@ main()
         printf("(adt::print) formatted %lld in %g ms\n", BIG, t1);
     }
 
-    LogDebug("\n");
-
     {
         auto timer = time::now();
 
@@ -218,8 +216,6 @@ main()
         printf("(snprintf) formatted %lld in %g ms\n", BIG, t1);
     }
 
-    LogDebug("\n");
-
     {
         auto timer = time::now();
 
@@ -232,8 +228,6 @@ main()
         print::out("aBuff: {}\n", aBuff);
         printf("(std::format_to) formatted %lld in %g ms\n", BIG, t1);
     }
-
-    LogDebug("\n");
 
 #ifdef GOT_FMT
     {

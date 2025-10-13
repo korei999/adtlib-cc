@@ -24,7 +24,8 @@ go()
 
     char aBuff[128]; memset(aBuff, '&', sizeof(aBuff));
     [[maybe_unused]] isize n = 0;
-    n = print::toFILE(pArena, isize(0), stdout, "hello im toxic: '{:1 >10 f+}', initList: {:3 f&}, lInts: {}, std::string_view: '{}'\n",
+    n = print::toFILE(pArena, isize(0), stdout,
+        "hello im toxic: '{:1 >10 f+}', initList: {:3 f&}, lInts: {}, std::string_view: '{}'\n",
         999, std::initializer_list{1, 2, 3, 4}, lInts, std::string_view{"std string view"}
     );
 }
