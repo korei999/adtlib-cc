@@ -319,10 +319,10 @@ namespace print
 
 template<typename T>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const SplayNode<T>* const x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const SplayNode<T>* const x)
 {
-    if (x) return format(pCtx, fmtArgs, x->m_data);
-    else return format(pCtx, fmtArgs, nullptr);
+    if (x) return format(pCtx, pFmtArgs, x->m_data);
+    else return format(pCtx, pFmtArgs, nullptr);
 }
 
 } /* namespace format */

@@ -1477,73 +1477,78 @@ namespace adt::print
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::V2& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::V2& x)
 {
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-    return formatVariadic(ctx, fmtArgs, x.x, x.y);
+    return pCtx->pBuilder->pushFmt(pFmtArgs, "({}, {})", x.x, x.y);
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::V3& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::V3& x)
 {
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-    return formatVariadic(ctx, fmtArgs, x.x, x.y, x.z);
+    return pCtx->pBuilder->pushFmt(pFmtArgs, "({}, {}, {})", x.x, x.y, x.z);
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::V4& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::V4& x)
 {
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-    return formatVariadic(ctx, fmtArgs, x.x, x.y, x.z, x.w);
+    return pCtx->pBuilder->pushFmt(pFmtArgs, "({}, {}, {}, {})", x.x, x.y, x.z, x.w);
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::IV4& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::IV4& x)
 {
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-    return formatVariadic(ctx, fmtArgs, x.x, x.y, x.z, x.w);
+    return pCtx->pBuilder->pushFmt(pFmtArgs, "({}, {}, {}, {})", x.x, x.y, x.z, x.w);
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::Qt& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::Qt& x)
 {
-    return format(ctx, fmtArgs, x.base);
+    return format(pCtx, pFmtArgs, x.base);
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::M2& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::M2& x)
 {
-    return formatVariadicStacked(ctx, fmtArgs,
-        "\n\t(", x.d[0], ", ", x.d[1],
-        "\n\t ", x.d[2], ", ", x.d[3], ")"
+    return pCtx->pBuilder->pushFmt(pFmtArgs,
+        "\n\t({}, {}"
+        "\n\t {}, {})",
+        x.d[0], x.d[1],
+        x.d[2], x.d[3]
     );
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::M3& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::M3& x)
 {
-    return formatVariadicStacked(ctx, fmtArgs,
-        "\n\t(", x.d[0], ", ", x.d[1], ", ", x.d[2],
-        "\n\t ", x.d[3], ", ", x.d[4], ", ", x.d[5],
-        "\n\t ", x.d[6], ", ", x.d[7], ", ", x.d[8], ")"
+    return pCtx->pBuilder->pushFmt(pFmtArgs,
+        "\n\t({}, {}, {}"
+        "\n\t {}, {}, {}"
+        "\n\t {}, {}, {})",
+        x.d[0], x.d[1], x.d[2],
+        x.d[3], x.d[4], x.d[5],
+        x.d[6], x.d[7], x.d[8]
     );
 }
 
 template<>
 inline isize
-format(Context* ctx, FormatArgs fmtArgs, const math::M4& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const math::M4& x)
 {
-    return formatVariadicStacked(ctx, fmtArgs,
-        "\n\t(", x.d[0], ", ", x.d[1], ", ", x.d[2], ", ", x.d[3],
-        "\n\t ", x.d[4], ", ", x.d[5], ", ", x.d[6], ", ", x.d[7],
-        "\n\t ", x.d[8], ", ", x.d[9], ", ", x.d[10], ", ", x.d[11],
-        "\n\t ", x.d[12], ", ", x.d[13], ", ", x.d[14], ", ", x.d[15], ")"
+    return pCtx->pBuilder->pushFmt(pFmtArgs,
+        "\n\t({}, {}, {}, {}"
+        "\n\t {}, {}, {}, {}"
+        "\n\t {}, {}, {}, {}"
+        "\n\t {}, {}, {}, {})",
+        x.d[0], x.d[1], x.d[2], x.d[3],
+        x.d[5], x.d[6], x.d[6], x.d[7],
+        x.d[8], x.d[9], x.d[10], x.d[11],
+        x.d[12], x.d[13], x.d[14], x.d[15]
     );
 }
 

@@ -68,7 +68,7 @@ namespace adt::print
 
 template<>
 inline isize
-format(Context* pCtx, FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
+format(Context* pCtx, FmtArgs* pFmtArgs, const json::TOKEN_TYPE& x)
 {
     char aBuff[256] {};
     isize n = 0;
@@ -98,7 +98,7 @@ format(Context* pCtx, FormatArgs fmtArgs, const json::TOKEN_TYPE& x)
     if (bool(x & json::TOKEN_TYPE::FLOAT))
         n += print::toBuffer(aBuff + n, sizeof(aBuff) - n - 1, n > 0 ? " | FLOAT" : "FLOAT");
 
-    return format(pCtx, fmtArgs, StringView(aBuff, n));
+    return format(pCtx, pFmtArgs, StringView(aBuff, n));
 }
 
 } /* namespace adt::print */

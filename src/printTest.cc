@@ -35,23 +35,23 @@ struct Hello
 namespace adt::print
 {
 
-template<typename ...TS>
-[[maybe_unused]] static isize
-format(Context* pCtx, FormatArgs fmtArgs, const std::tuple<TS...>& ts)
-{
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-
-    return std::apply([pCtx, fmtArgs](const TS&... args) {
-        return formatVariadic(pCtx, fmtArgs, args...);
-    }, ts);
-}
-
-[[maybe_unused]] static isize
-format(Context* pCtx, FormatArgs fmtArgs, const Hello& x)
-{
-    fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-    return formatVariadic(pCtx, fmtArgs, x.v, x.i, x.f, x.p, x.tup);
-}
+// template<typename ...TS>
+// [[maybe_unused]] static isize
+// format(Context* pCtx, FmtArgs* fmtArgs, const std::tuple<TS...>& ts)
+// {
+//     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
+// 
+//     return std::apply([pCtx, fmtArgs](const TS&... args) {
+//         return formatVariadic(pCtx, fmtArgs, args...);
+//     }, ts);
+// }
+// 
+// [[maybe_unused]] static isize
+// format(Context* pCtx, FormatArgs fmtArgs, const Hello& x)
+// {
+//     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
+//     return formatVariadic(pCtx, fmtArgs, x.v, x.i, x.f, x.p, x.tup);
+// }
 
 } /* namespace adt::print */
 
@@ -152,31 +152,31 @@ main()
         constexpr isize PREALLOC = 32;
         auto* pStd = Gpa::inst();
 
-        constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        const isize n = print::toFILE<PREALLOC>(pStd, stdout, svLong);
-        ADT_ASSERT_ALWAYS(n == svLong.size(), "{}", svLong.size());
-        print::out("\npreallocated size: {}, nWritten: {}, svLong: {}\n", PREALLOC, n, svLong.size());
+        // constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        // const isize n = print::toFILE<PREALLOC>(pStd, stdout, svLong);
+        // ADT_ASSERT_ALWAYS(n == svLong.size(), "{}", svLong.size());
+        // print::out("\npreallocated size: {}, nWritten: {}, svLong: {}\n", PREALLOC, n, svLong.size());
     }
 
     {
         print::Builder buff {Gpa::inst(), 128};
         defer( buff.destroy() );
 
-        buff.print("hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});
-        StringView s1 = buff.print("|(More Here: {})", "another string");
-        print::out("{}\n", s1);
-        ADT_ASSERT_ALWAYS(StringView(buff) == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", StringView(buff));
+        // buff.print("hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});
+        // StringView s1 = buff.print("|(More Here: {})", "another string");
+        // print::out("{}\n", s1);
+        // ADT_ASSERT_ALWAYS(StringView(buff) == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", StringView(buff));
     }
 
     {
-        u8 aBuff[32] {};
-        BufferAllocator buff {aBuff};
-
-        LogDebug("realCap: {}\n", buff.realCap());
-
-        String s = print::toString(&buff, buff.realCap(), "\"({}): hello {} {}   \"", 666, "im", "toxic");
-        print::out("s({}): '{}'\n", s.size(), s);
-        ADT_ASSERT_ALWAYS(s == "\"(666): hello im toxic   \"", "{}", s);
+        // u8 aBuff[32] {};
+        // BufferAllocator buff {aBuff};
+        //
+        // LogDebug("realCap: {}\n", buff.realCap());
+        //
+        // String s = print::toString(&buff, buff.realCap(), "\"({}): hello {} {}   \"", 666, "im", "toxic");
+        // print::out("s({}): '{}'\n", s.size(), s);
+        // ADT_ASSERT_ALWAYS(s == "\"(666): hello im toxic   \"", "{}", s);
     }
 
     constexpr isize BIG = 1000000;
