@@ -2,6 +2,7 @@
 
 #include "print2-inl.hh"
 
+#include "adt/defer.hh"
 #include "adt/assert.hh"
 #include "adt/Array.hh"
 
@@ -11,19 +12,52 @@
 namespace adt::print2
 {
 
+namespace details
+{
+
+template<typename T>
+inline TypeErasedArg createTypeErasedArg(const T& arg);
+
+inline isize parseNumber(Context* pCtx, FmtArgs* pFmtArgs);
+
+inline isize parseChar(Context* pCtx, FmtArgs* pFmtArgs);
+
+inline isize parseColon(Context* pCtx, FmtArgs* pFmtArgs);
+
+inline isize parseArg(Context* pCtx, FmtArgs* pFmtArgs);
+
+inline isize parseArgs(Context* pCtx, FmtArgs* pFmtArgs);
+
+} /* namespace details */
+
 inline
 Builder::Builder(IAllocator* pAlloc, isize prealloc)
     : m_pAlloc{pAlloc},
-      m_pData{pAlloc->mallocV<char>(prealloc + 1)},
-      m_cap{prealloc + 1},
-      m_bAllocated{true}
+      m_size{}
 {
+    const isize minSize = utils::min(8ll, prealloc + 1);
+    m_pData = pAlloc->mallocV<char>(minSize);
+    m_cap = minSize;
+    m_bAllocated = true;
 }
 
 inline
 Builder::Builder(Span<char> spBuff)
-    : m_pData{spBuff.data()},
-      m_cap{spBuff.size()}
+    : m_pAlloc{},
+      m_pData{spBuff.data()},
+      m_size{},
+      m_cap{spBuff.size()},
+      m_bAllocated{}
+{
+}
+
+inline
+Builder::Builder(IAllocator* pAlloc, Span<char> spBuff)
+    : m_pAlloc{pAlloc},
+      m_pData{spBuff.m_pData},
+      m_size{},
+      m_cap{spBuff.m_size},
+      m_bAllocated{}
 {
 }
 
@@ -70,7 +104,7 @@ Builder::push(const StringView sv)
 }
 
 inline isize
-Builder::push(StringView sv, FmtArgs* pFmtArgs)
+Builder::push(FmtArgs* pFmtArgs, StringView sv)
 {
     if (sv.m_size <= 0) return 0;
 
@@ -160,6 +194,25 @@ done:
     return nWritten;
 }
 
+template<typename ...ARGS>
+inline isize
+Builder::print(const StringView svFmt, const ARGS&... args)
+{
+    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
+    Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = this};
+    FmtArgs fmtArgs {};
+    return details::parseArgs(&ctx, &fmtArgs);
+}
+
+template<typename ...ARGS>
+inline isize
+Builder::print(FmtArgs* pFmtArgs, const StringView svFmt, const ARGS&... args)
+{
+    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
+    Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = this};
+    return details::parseArgs(&ctx, pFmtArgs);
+}
+
 inline bool
 Builder::growIfNeeded(isize newCap)
 {
@@ -212,13 +265,12 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
 
     const StringView svSub = "T = ";
     const isize atI = sv.subStringAt(svSub);
-    const StringView svDemangled = [&]
-    {
+    const StringView svDemangled = [&] {
         if (atI != NPOS)
         {
             return StringView {
                 const_cast<char*>(sv.data() + atI + svSub.size()),
-                    sv.size() - atI - svSub.size() - 1
+                sv.size() - atI - svSub.size() - 1
             };
         }
         else
@@ -231,13 +283,12 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
 
     const StringView svSub = "typeName<";
     const isize atI = sv.subStringAt(svSub);
-    const StringView svDemangled = [&]
-    {
+    const StringView svDemangled = [&] {
         if (atI != NPOS)
         {
             return StringView {
                 const_cast<char*>(sv.data() + atI + svSub.size()),
-                    sv.size() - atI - svSub.size() - 1
+                sv.size() - atI - svSub.size() - 1
             };
         }
         else
@@ -254,24 +305,6 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
 
     return pCtx->pBuilder->push(svDemangled);
 }
-
-namespace details
-{
-
-template<typename T>
-inline TypeErasedArg createTypeErasedArg(const T& arg);
-
-inline isize parseNumber(Context* pCtx, FmtArgs* pFmtArgs);
-
-inline isize parseChar(Context* pCtx, FmtArgs* pFmtArgs);
-
-inline isize parseColon(Context* pCtx, FmtArgs* pFmtArgs);
-
-inline isize parseArg(Context* pCtx, FmtArgs* pFmtArgs);
-
-inline isize parseArgs(Context* pCtx, FmtArgs* pFmtArgs);
-
-} /* namespace details */
 
 namespace details
 {
@@ -391,6 +424,7 @@ parseColon(Context* pCtx, FmtArgs* pFmtArgs)
     {
         if (pCtx->svFmt[pCtx->fmtI] == '{')
         {
+            ++pCtx->fmtI;
             parseArg(pCtx, pFmtArgs);
             continue;
         }
@@ -426,6 +460,22 @@ parseColon(Context* pCtx, FmtArgs* pFmtArgs)
             parseNumber(pCtx, pFmtArgs);
             continue;
         }
+        else if (pCtx->svFmt[pCtx->fmtI] == '#')
+        {
+            pFmtArgs->eFlags |= FmtArgs::FLAGS::HASH;
+        }
+        else if (pCtx->svFmt[pCtx->fmtI] == 'b')
+        {
+            pFmtArgs->eBase = FmtArgs::BASE::TWO;
+        }
+        else if (pCtx->svFmt[pCtx->fmtI] == 'o')
+        {
+            pFmtArgs->eBase = FmtArgs::BASE::EIGHT;
+        }
+        else if (pCtx->svFmt[pCtx->fmtI] == 'x')
+        {
+            pFmtArgs->eBase = FmtArgs::BASE::SIXTEEN;
+        }
 
         ++pCtx->fmtI;
     }
@@ -446,6 +496,7 @@ parseArg(Context* pCtx, FmtArgs* pFmtArgs)
             ++pCtx->fmtI;
             isize n = parseColon(pCtx, pFmtArgs);
             if (n > 0) nWritten += n;
+            pFmtArgs->eFlags &= ~FmtArgs::FLAGS::COLON;
             continue;
         }
 
@@ -516,7 +567,7 @@ template<std::integral T>
 inline isize
 format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
 {
-    char aBuff[128];
+    char aBuff[256];
     isize nWritten = 0;
 
     static const char s_aCharSet[] = "0123456789abcdef";
@@ -524,6 +575,8 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
 #define _ITOA_(x, base)                                                                                                \
     do                                                                                                                 \
     {                                                                                                                  \
+        if (nWritten >= (isize)sizeof(aBuff))                                                                          \
+            goto done;                                                                                                 \
         aBuff[nWritten++] = s_aCharSet[x % base];                                                                      \
         x /= base;                                                                                                     \
     } while (x > 0)
@@ -532,18 +585,45 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
     if constexpr (!std::is_unsigned_v<T>)
         if (arg < 0) num = -num;
 
-    _ITOA_(num, 10);
+    if (pFmtArgs->eBase == FmtArgs::BASE::TEN) { _ITOA_(num, 10); }
+    else if (pFmtArgs->eBase == FmtArgs::BASE::TWO) { _ITOA_(num, 2); }
+    else if (pFmtArgs->eBase == FmtArgs::BASE::EIGHT) { _ITOA_(num, 8); }
+    else if (pFmtArgs->eBase == FmtArgs::BASE::SIXTEEN) { _ITOA_(num, 16); }
 #undef _ITOA_
 
-    if constexpr (!std::is_unsigned_v<T>)
-        if (arg < 0) aBuff[nWritten++] = '-';
+    if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::HASH) && pFmtArgs->eBase != FmtArgs::BASE::TEN)
+    {
+        if (pFmtArgs->eBase == FmtArgs::BASE::TWO)
+        {
+            if (nWritten + 2 <= (isize)sizeof(aBuff))
+            {
+                aBuff[nWritten++] = 'b';
+                aBuff[nWritten++] = '0';
+            }
+        }
+        else if (pFmtArgs->eBase == FmtArgs::BASE::EIGHT)
+        {
+            if (nWritten + 1 <= (isize)sizeof(aBuff))
+                aBuff[nWritten++] = 'o';
+        }
+        else if (pFmtArgs->eBase == FmtArgs::BASE::SIXTEEN)
+        {
+            if (nWritten + 2 <= (isize)sizeof(aBuff))
+            {
+                aBuff[nWritten++] = 'x';
+                aBuff[nWritten++] = '0';
+            }
+        }
+    }
 
+    if constexpr (!std::is_unsigned_v<T>)
+        if (arg < 0 && nWritten < (isize)sizeof(aBuff)) aBuff[nWritten++] = '-';
+
+done:
     for (isize i = 0; i < nWritten >> 1; ++i)
         utils::swap(&aBuff[i], &aBuff[nWritten - 1 - i]);
 
-    const isize n = pCtx->pBuilder->push({aBuff, nWritten});
-    if (n <= -1) return 0;
-    return n;
+    return pCtx->pBuilder->push(pFmtArgs, {aBuff, nWritten});
 }
 
 template<std::floating_point T>
@@ -558,10 +638,9 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
     else res = std::to_chars(aBuff, aBuff + sizeof(aBuff), arg, std::chars_format::fixed, pFmtArgs->floatPrecision);
 
     isize n = 0;
-    if (res.ptr) n = pCtx->pBuilder->push({aBuff, res.ptr - aBuff}, pFmtArgs);
-    else n = pCtx->pBuilder->push({aBuff}, pFmtArgs);
+    if (res.ptr) n = pCtx->pBuilder->push(pFmtArgs, {aBuff, res.ptr - aBuff});
+    else n = pCtx->pBuilder->push(pFmtArgs, {aBuff});
 
-    if (n <= -1) return 0;
     return n;
 }
 
@@ -576,17 +655,87 @@ template<>
 inline isize
 format(Context* pCtx, FmtArgs* pFmtArgs, const StringView& sv)
 {
-    const isize n = pCtx->pBuilder->push(sv, pFmtArgs);
-    if (n <= -1) return 0;
-    return n;
+    return pCtx->pBuilder->push(pFmtArgs, sv);
+}
+
+template<typename T>
+requires (HasSizeMethod<T> && !ConvertsToStringView<T>)
+inline isize
+format(Context* pCtx, FmtArgs* pFmtArgs, const T& x)
+{
+    isize nWritten = 0;
+    const isize size = x.size();
+
+    if (pCtx->pBuilder->push('[') <= -1) return nWritten;
+    else ++nWritten;
+
+    if (size > 0)
+    {
+        auto it = x.begin();
+        const isize nn = format(pCtx, pFmtArgs, *it);
+        if (nn <= -1) return nWritten;
+        nWritten += nn;
+        ++it;
+
+        for (; it != x.end(); ++it)
+        {
+            isize nn = pCtx->pBuilder->push(", ");
+            if (nn <= -1) return nWritten;
+            nn = format(pCtx, pFmtArgs, *it);
+            if (nn <= -1) return nWritten;
+            nWritten += nn;
+        }
+    }
+
+    if (pCtx->pBuilder->push(']') <= -1) return nWritten;
+    else ++nWritten;
+
+    return nWritten;
+}
+
+template<typename T>
+requires (ConvertsToStringView<T>)
+inline isize format(Context* pCtx, FmtArgs* pFmtArgs, const T& x)
+{
+    return format(pCtx, pFmtArgs, StringView{const_cast<char*>(x.data()), (isize)x.size()});
+}
+
+template<typename T>
+requires HasNextIt<T>
+inline isize
+format(Context* pCtx, FmtArgs* pFmtArgs, const T& x)
+{
+    isize nWritten = 0;
+
+    if (pCtx->pBuilder->push('[') <= -1) return nWritten;
+    else ++nWritten;
+
+    auto end = x.end();
+    for (auto it = x.begin(); it != end; ++it)
+    {
+        isize nn = format(pCtx, pFmtArgs, *it);
+        if (nn <= -1) return nWritten;
+
+        if (it.next() != end)
+        {
+            nn = pCtx->pBuilder->push(", ");
+            if (nn <= -1) return nWritten;
+        }
+
+        nWritten += nn;
+    }
+
+    if (pCtx->pBuilder->push(']') <= -1) return nWritten;
+    else ++nWritten;
+
+    return nWritten;
 }
 
 template<typename ...ARGS>
 inline isize
 toSpan(Span<char> spBuff, const StringView svFmt, const ARGS&... args)
 {
-    Array<TypeErasedArg, sizeof...(ARGS)> aArgs = {details::createTypeErasedArg(args)...};
-
+    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
     Builder builder {spBuff};
     Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = &builder};
     FmtArgs fmtArgs {};
@@ -597,12 +746,44 @@ template<typename ...ARGS>
 inline isize
 toBuffer(char* pBuff, isize buffSize, const StringView svFmt, const ARGS&... args)
 {
-    Array<TypeErasedArg, sizeof...(ARGS)> aArgs = {details::createTypeErasedArg(args)...};
-
-    Builder builder {{pBuff, buffSize}};
+    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
+    Builder builder {Span{pBuff, buffSize}};
     Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = &builder};
     FmtArgs fmtArgs {};
     return details::parseArgs(&ctx, &fmtArgs);
+}
+
+template<typename ...ARGS>
+inline isize
+toFILE(FILE* pFile, IAllocator* pAlloc, const StringView svFmt, const ARGS&... args)
+{
+    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
+    char aBuff[128];
+    Builder builder {pAlloc, Span{aBuff}};
+    ADT_DEFER( builder.destroy() );
+
+    Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = &builder};
+    FmtArgs fmtArgs {};
+    const isize n = details::parseArgs(&ctx, &fmtArgs);
+    fwrite(builder.m_pData, builder.m_size, 1, pFile);
+
+    return n;
+}
+
+template<typename ...ARGS>
+inline isize
+toFILE(FILE* pFile, IAllocator* pAlloc, isize prealloc, const StringView svFmt, const ARGS&... args)
+{
+    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
+    Builder builder {pAlloc, prealloc};
+    ADT_DEFER( builder.destroy() );
+
+    Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = &builder};
+    FmtArgs fmtArgs {};
+    const isize n = details::parseArgs(&ctx, &fmtArgs);
+    fwrite(builder.m_pData, builder.m_size, 1, pFile);
+
+    return n;
 }
 
 } /* namespace adt::print2 */

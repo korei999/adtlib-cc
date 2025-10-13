@@ -64,6 +64,10 @@ StringView::StringView(const char* nts)
     : m_pData(const_cast<char*>(nts)), m_size(ntsSize(nts)) {}
 
 inline constexpr
+StringView::StringView(char* nts)
+    : m_pData{nts}, m_size{ntsSize(nts)} {}
+
+inline constexpr
 StringView::StringView(char* pStr, isize len)
     : m_pData(pStr), m_size(len) {}
 

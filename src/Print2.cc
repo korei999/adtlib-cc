@@ -2,32 +2,38 @@
 #include "adt/Array.hh"
 #include "adt/Logger.hh"
 #include "adt/ThreadPool.hh"
+#include "adt/SList.hh"
 
 #include "WIP/print2.hh"
+
+#include <string_view>
 
 using namespace adt;
 
 static void
 go()
 {
-    char aBuff[20]; memset(aBuff, '&', sizeof(aBuff));
-    isize n = 0;
-    n = print2::toSpan(aBuff,
-        // "sv: '{:{} >{} f{}}'",
-        // 4, 13, '+', StringView{"HELLO BIDEN"}
-        "float: '{:15 .{} < f{}}'",
-        5, '^', 12.12
-    );
-    // ADT_ASSERT(aBuff[n] == '\0', "{}", aBuff[n]);
+    Arena* pArena = dynamic_cast<Arena*>(IThreadPool::inst()->arena());
+    ADT_ASSERT_ALWAYS(pArena != nullptr, "");
 
-    print::out("{}", aBuff);
-    print::out("\nn: {}\n", n);
+    IArena::Scope arenaScope {pArena};
+
+    SListM<i64> lInts;
+    lInts.insert(1);
+    lInts.insert(2);
+    lInts.insert(3);
+    lInts.insert(4);
+
+    char aBuff[128]; memset(aBuff, '&', sizeof(aBuff));
+    isize n = 0;
+    n = print2::toFILE(stdout, pArena, isize(0), "hello im toxic: '{:1 >10 f+}', initList: {:3 f&}, lInts: {}, std::string_view: '{}'\n",
+        999, std::initializer_list{1, 2, 3, 4}, lInts, std::string_view{"std string view"}
+    );
 }
 
 int
 main()
 {
-
     ThreadPool ztp {Arena{}, SIZE_1M * 64};
     IThreadPool::setGlobal(&ztp);
     defer( ztp.destroy() );

@@ -9,24 +9,31 @@ struct FmtArgs;
 
 struct Builder
 {
-    IAllocator* m_pAlloc {};
-    char* m_pData {};
-    isize m_size {};
-    isize m_cap {};
-    bool m_bAllocated {};
+    IAllocator* m_pAlloc;
+    char* m_pData;
+    isize m_size;
+    isize m_cap;
+    bool m_bAllocated;
 
     /* */
 
-    Builder() = default;
+    Builder() noexcept : m_pAlloc{}, m_pData{}, m_size{}, m_cap{}, m_bAllocated{} {}
     Builder(IAllocator* pAlloc, isize prealloc);
-    Builder(Span<char> spBuff);
+    explicit Builder(Span<char> spBuff);
+    Builder(IAllocator* pAlloc, Span<char> spBuff);
 
     /* */
 
     void destroy() noexcept;
     isize push(char c);
     isize push(const StringView sv);
-    isize push(StringView sv, FmtArgs* pFmtArgs);
+    isize push(FmtArgs* pFmtArgs, StringView sv);
+
+    template<typename ...ARGS>
+    isize print(const StringView svFmt, const ARGS&... args);
+
+    template<typename ...ARGS>
+    isize print(FmtArgs* pFmtArgs, const StringView svFmt, const ARGS&... args);
 
 protected:
     bool growIfNeeded(isize newCap);
@@ -99,10 +106,28 @@ inline isize format(Context* pCtx, FmtArgs* pFmtArgs, const char(&arg)[N]);
 template<>
 inline isize format(Context* pCtx, FmtArgs* pFmtArgs, const StringView& sv);
 
+template<typename T>
+requires (HasSizeMethod<T> && !ConvertsToStringView<T>)
+inline isize format(Context* pCtx, FmtArgs* pFmtArgs, const T& x);
+
+template<typename T>
+requires (ConvertsToStringView<T>)
+inline isize format(Context* pCtx, FmtArgs* pFmtArgs, const T& x);
+
+template<typename T>
+requires HasNextIt<T>
+inline isize format(Context* pCtx, FmtArgs* pFmtArgs, const T& x);
+
 template<typename ...ARGS>
 inline isize toSpan(Span<char> spBuff, const StringView svFmt, const ARGS&... args);
 
 template<typename ...ARGS>
 inline isize toBuffer(char* pBuff, isize buffSize, const StringView svFmt, const ARGS&... args);
+
+template<typename ...ARGS>
+inline isize toFILE(FILE* pFile, IAllocator* pAlloc, const StringView svFmt, const ARGS&... args);
+
+template<typename ...ARGS>
+inline isize toFILE(FILE* pFile, IAllocator* pAlloc, isize prealloc, const StringView svFmt, const ARGS&... args);
 
 } /* namespace adt::print2 */
