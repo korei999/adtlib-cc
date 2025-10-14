@@ -17,6 +17,9 @@ namespace details
 {
 
 template<typename T>
+inline void eatFmtArg(T r, FmtArgs* pFmtArgs) noexcept;
+
+template<typename T>
 inline TypeErasedArg createTypeErasedArg(const T& arg);
 
 inline isize parseNumber(Context* pCtx, FmtArgs* pFmtArgs);
@@ -349,6 +352,34 @@ namespace details
 {
 
 template<typename T>
+inline void
+eatFmtArg(T r, FmtArgs* pFmtArgs) noexcept
+{
+    if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::FLOAT_PRECISION))
+    {
+        pFmtArgs->eFlags &= ~FmtArgs::FLAGS::FLOAT_PRECISION;
+        pFmtArgs->floatPrecision = r;
+    }
+    else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::FILLER))
+    {
+        pFmtArgs->eFlags &= ~FmtArgs::FLAGS::FILLER;
+        pFmtArgs->filler = r;
+    }
+    else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::JUSTIFY_LEFT))
+    {
+        pFmtArgs->padding = r;
+    }
+    else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::JUSTIFY_RIGHT))
+    {
+        pFmtArgs->padding = r;
+    }
+    else
+    {
+        pFmtArgs->maxLen = r;
+    }
+}
+
+template<typename T>
 inline TypeErasedArg
 createTypeErasedArg(const T& arg)
 {
@@ -359,29 +390,8 @@ createTypeErasedArg(const T& arg)
         {
             if constexpr (std::is_integral_v<T>)
             {
-                if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::FLOAT_PRECISION))
-                {
-                    pFmtArgs->eFlags &= ~FmtArgs::FLAGS::FLOAT_PRECISION;
-                    pFmtArgs->floatPrecision = r;
-                }
-                else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::FILLER))
-                {
-                    pFmtArgs->eFlags &= ~FmtArgs::FLAGS::FILLER;
-                    pFmtArgs->filler = r;
-                }
-                else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::JUSTIFY_LEFT))
-                {
-                    pFmtArgs->padding = r;
-                }
-                else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::JUSTIFY_RIGHT))
-                {
-                    pFmtArgs->padding = r;
-                }
-                else
-                {
-                    pFmtArgs->maxLen = r;
-                }
-
+                if constexpr (std::is_unsigned_v<T>) eatFmtArg((usize)r, pFmtArgs);
+                else eatFmtArg((isize)r, pFmtArgs);
                 return FMT_ARG_SET;
             }
         }
