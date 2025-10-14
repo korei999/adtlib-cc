@@ -683,6 +683,15 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
     return n;
 }
 
+template<>
+inline isize
+format(Context* pCtx, FmtArgs* pFmtArgs, const char& c)
+{
+    static const char s_aCharSet[] = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    const isize idx = (c >= 32 && c <= 126) ? c - 32 : 0;
+    return pCtx->pBuilder->push(pFmtArgs, StringView{const_cast<char*>(s_aCharSet + idx), 1});
+}
+
 template<isize N>
 inline isize
 format(Context* pCtx, FmtArgs* pFmtArgs, const char(&arg)[N])
@@ -876,14 +885,14 @@ template<typename ...ARGS>
 inline isize
 out(const StringView svFmt, const ARGS&... args)
 {
-    return toFILE(stdout, nullptr, svFmt, args...);
+    return toFILE(stdout, svFmt, args...);
 }
 
 template<typename ...ARGS>
 inline isize
 err(const StringView svFmt, const ARGS&... args)
 {
-    return toFILE(stderr, nullptr, svFmt, args...);
+    return toFILE(stderr, svFmt, args...);
 }
 
 } /* namespace adt::print2 */
