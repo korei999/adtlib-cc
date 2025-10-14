@@ -16,6 +16,12 @@ namespace adt::math
 #if defined __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wmissing-braces"
+    #pragma clang diagnostic ignored "-Wpedantic"
+#endif
+
+#if defined __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 constexpr inline f64 toDeg(f64 x) { return x * 180.0 / PI64; }
@@ -1556,4 +1562,8 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const math::M4& x)
 
 #if defined __clang__
     #pragma clang diagnostic pop
+#endif
+
+#if defined __GNUC__
+    #pragma GCC diagnostic pop
 #endif

@@ -12,9 +12,9 @@ template<class T>
 struct Mallocator
 {
     using value_type = T;
- 
+
     Mallocator() = default;
- 
+
     template<class U>
     constexpr Mallocator(const Mallocator <U>&) noexcept {}
 
@@ -22,16 +22,16 @@ struct Mallocator
     {
         if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
             throw std::bad_array_new_length();
- 
+
         if (auto p = static_cast<T*>(std::malloc(n * sizeof(T))))
         {
             report(p, n);
             return p;
         }
- 
+
         throw std::bad_alloc();
     }
- 
+
     void deallocate(T* p, std::size_t n) noexcept
     {
         report(p, n, 0);
@@ -64,7 +64,7 @@ public:
 
 protected:
     virtual void*
-    do_allocate(size_t __bytes, size_t __alignment) override
+    do_allocate(size_t __bytes, [[maybe_unused]] size_t __alignment) override
     {
         return m_arena.malloc(__bytes);
     }

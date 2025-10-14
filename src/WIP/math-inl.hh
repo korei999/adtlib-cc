@@ -34,6 +34,12 @@ constexpr inline i64 sign(i64 x);
 #if defined __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wmissing-braces"
+    #pragma clang diagnostic ignored "-Wpedantic"
+#endif
+
+#if defined __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 union IV2;
@@ -276,6 +282,10 @@ union Qt
 
 #if defined __clang__
     #pragma clang diagnostic pop
+#endif
+
+#if defined __GNUC__
+    #pragma GCC diagnostic pop
 #endif
 
 constexpr V2 V2From(const f32 x, const f32 y);
