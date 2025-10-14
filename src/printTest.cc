@@ -35,23 +35,42 @@ struct Hello
 namespace adt::print
 {
 
-// template<typename ...TS>
-// [[maybe_unused]] static isize
-// format(Context* pCtx, FmtArgs* fmtArgs, const std::tuple<TS...>& ts)
-// {
-//     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-// 
-//     return std::apply([pCtx, fmtArgs](const TS&... args) {
-//         return formatVariadic(pCtx, fmtArgs, args...);
-//     }, ts);
-// }
-// 
-// [[maybe_unused]] static isize
-// format(Context* pCtx, FormatArgs fmtArgs, const Hello& x)
-// {
-//     fmtArgs.eFmtFlags |= FormatArgs::FLAGS::PARENTHESES;
-//     return formatVariadic(pCtx, fmtArgs, x.v, x.i, x.f, x.p, x.tup);
-// }
+template<typename ...TS>
+[[maybe_unused]] static isize
+format(Context* pCtx, FmtArgs* pFmtArgs, const std::tuple<TS...>& ts)
+{
+    isize n = 0;
+
+    if (pCtx->pBuilder->push('(') <= -1) return n;
+    ++n;
+
+    std::apply([&n, pCtx, pFmtArgs](const TS&... args) {
+        isize i = 0;
+        isize nn = 0;
+        constexpr isize size = sizeof...(args);
+
+        (
+            (
+                nn = format(pCtx, pFmtArgs, args), nn > 0 ? n += nn : 0,
+                i != size - 1 ? (nn = pCtx->pBuilder->push(", "), nn > 0 ? n += nn : 0) : 0,
+                ++i
+            ),
+        ...);
+
+        return n;
+    }, ts);
+
+    if (pCtx->pBuilder->push(')') <= -1) return n;
+    ++n;
+
+    return n;
+}
+
+[[maybe_unused]] static isize
+format(Context* pCtx, FmtArgs* pFmtArgs, const Hello& x)
+{
+    return pCtx->pBuilder->pushFmt(pFmtArgs, "({}, {}, {}, {})", x.v, x.i, x.p, x.tup);
+}
 
 } /* namespace adt::print */
 
@@ -79,7 +98,7 @@ main()
         h.p = {"Hi", 123};
         h.tup = {123.123f, "Hello", {"one", "two", "three"}, {1, 2, 3}};
 
-        print::out("Hello: '{}'\n", h);
+        LogDebug("Hello: '{}'\n", h);
     }
 
     {
@@ -88,9 +107,9 @@ main()
         M3 m3 = M3Iden();
         M4 m4 = M4Iden() * M4RotXFrom(3*PI32/4);;
 
-        print::out("m2: {:.1}\n", m2);
-        print::out("m3: {}\n", m3);
-        print::out("m4: {:.3}\n", m4);
+        LogDebug("m2: {:.1}\n", m2);
+        LogDebug("m3: {}\n", m3);
+        LogDebug("m4: {:.3}\n", m4);
     }
 
     {
@@ -152,20 +171,20 @@ main()
         constexpr isize PREALLOC = 32;
         auto* pStd = Gpa::inst();
 
-        // constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        // const isize n = print::toFILE<PREALLOC>(pStd, stdout, svLong);
-        // ADT_ASSERT_ALWAYS(n == svLong.size(), "{}", svLong.size());
-        // print::out("\npreallocated size: {}, nWritten: {}, svLong: {}\n", PREALLOC, n, svLong.size());
+        constexpr StringView svLong = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        const isize n = print::toFILE<PREALLOC>(pStd, stdout, "{}\n", svLong) - 1;
+        ADT_ASSERT_ALWAYS(n == svLong.size(), "{}", svLong.size());
+        LogDebug("\npreallocated size: {}, nWritten: {}, svLong: {}\n", PREALLOC, n, svLong.size());
     }
 
     {
         print::Builder buff {Gpa::inst(), 128};
         defer( buff.destroy() );
 
-        // buff.print("hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});
-        // StringView s1 = buff.print("|(More Here: {})", "another string");
-        // print::out("{}\n", s1);
-        // ADT_ASSERT_ALWAYS(StringView(buff) == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", StringView(buff));
+        buff.print("hello: {}, {}, {}, {}", "hello", 1, 2.2, Pair{"hello", 3.3f});
+        StringView s1 = buff.print("|(More Here: {})", "another string");
+        print::out("{}\n", s1);
+        ADT_ASSERT_ALWAYS(StringView(buff) == "hello: hello, 1, 2.2, (hello, 3.3)|(More Here: another string)", "s: '{}'", StringView(buff));
     }
 
     {
