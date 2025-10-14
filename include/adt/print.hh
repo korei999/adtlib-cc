@@ -236,7 +236,7 @@ template<typename ...ARGS>
 inline StringView
 Builder::print(FmtArgs* pFmtArgs, const StringView svFmt, const ARGS&... args)
 {
-    Array<TypeErasedArg, sizeof...(ARGS)> aArgs {details::createTypeErasedArg(args)...};
+    auto aArgs = details::createArgs(args...);
     Context ctx {.spArgs = aArgs, .svFmt = svFmt, .pBuilder = this};
     const isize startI = m_size;
     const isize n = details::parseArgs(&ctx, *pFmtArgs);
