@@ -121,7 +121,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Tsan")
 endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    add_compile_definitions("-DADT_DBG_MEMORY")
+    add_definitions("-DADT_DBG_MEMORY")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         add_compile_options(/wd4267 /wd4101 /wd4200 /wd4244)

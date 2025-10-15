@@ -55,7 +55,7 @@ struct SplayNode
         new(&p->m_data) T (std::forward<ARGS>(args)...);
         p->m_pLeft = p->m_pRight = nullptr;
         return p;
-    };
+    }
 
     /* */
 

@@ -10,8 +10,12 @@
 #include "adt/Logger.hh" /* IWYU pragma: keep */
 #include "adt/ThreadPool.hh"
 
-#include <format>
 #include <tuple>
+
+#if __has_include(<format>)
+    #define GOT_STD_FORMAT
+    #include <format>
+#endif
 
 #if __has_include(<fmt/core.h>)
     #define GOT_FMT
@@ -235,6 +239,7 @@ main()
         printf("(snprintf) formatted %lld in %g ms\n", BIG, t1);
     }
 
+#ifdef GOT_STD_FORMAT
     {
         auto timer = time::now();
 
@@ -247,6 +252,7 @@ main()
         print::out("aBuff: {}\n", aBuff);
         printf("(std::format_to) formatted %lld in %g ms\n", BIG, t1);
     }
+#endif
 
 #ifdef GOT_FMT
     {
