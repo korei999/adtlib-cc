@@ -36,6 +36,14 @@ go()
             print::out("{}", (char)i);
         print::out("\n");
     }
+
+    {
+        int i = 0;
+        int* pI = &i;
+        int* pNull = nullptr;
+        void* ptr = (void*)0xCafeBabe;
+        print::out("i: {:#x}, pI: {:#x}, pNull: {:#x}, nullptr: {}, void: {:#x}\n", i, pI, pNull, nullptr, ptr);
+    }
 }
 
 int

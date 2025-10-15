@@ -773,6 +773,20 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const bool& b)
 }
 
 template<typename T>
+inline isize
+format(Context* pCtx, FmtArgs* pFmtArgs, T* const& ptr)
+{
+    return format(pCtx, pFmtArgs, (usize)ptr);
+}
+
+template<>
+inline isize
+format(Context* pCtx, FmtArgs* pFmtArgs, const std::nullptr_t& null)
+{
+    return format(pCtx, pFmtArgs, "(null)");
+}
+
+template<typename T>
 requires (HasSizeMethod<T> && !ConvertsToStringView<T>)
 inline isize
 format(Context* pCtx, FmtArgs* pFmtArgs, const T& x)
