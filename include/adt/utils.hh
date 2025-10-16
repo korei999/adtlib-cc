@@ -229,20 +229,6 @@ reverse(auto* a)
     reverse(a->data(), a->size());
 }
 
-template<typename LAMBDA>
-[[nodiscard]] inline isize
-searchI(const auto& a, LAMBDA cl)
-{
-    isize i = 0;
-    for (const auto& e : a)
-    {
-        if (cl(e)) return i;
-        ++i;
-    }
-
-    return NPOS;
-}
-
 template<typename T, typename B>
 [[nodiscard]] inline isize
 binarySearchI(const T& array, const B& x)
@@ -265,38 +251,6 @@ binarySearchI(const T& array, const B& x)
         return lo;
 
     return NPOS;
-}
-
-template<typename T> requires(std::is_integral_v<T>)
-[[nodiscard]] inline T
-cycleForward(const T& idx, isize size)
-{
-    ADT_ASSERT(size > 0, "size: {}", size);
-    return (idx + 1) % size;
-}
-
-template<typename T> requires(std::is_integral_v<T>)
-[[nodiscard]] inline T
-cycleBackward(const T& idx, isize size)
-{
-    ADT_ASSERT(size > 0, "size: {}", size);
-    return (idx + (size - 1)) % size;
-}
-
-template<typename T> requires(std::is_integral_v<T>)
-[[nodiscard]] inline T
-cycleForwardPowerOf2(const T& i, isize size)
-{
-    ADT_ASSERT(isPowerOf2(size) && size > 0, "size: {}", size);
-    return (i + 1) & (size - 1);
-}
-
-template<typename T> requires(std::is_integral_v<T>)
-[[nodiscard]] inline T
-cycleBackwardPowerOf2(const T& i, isize size)
-{
-    ADT_ASSERT(isPowerOf2(size) && size > 0, "size: {}", size);
-    return (i - 1) & (size - 1);
 }
 
 inline constexpr void
