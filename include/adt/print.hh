@@ -781,7 +781,7 @@ format(Context* pCtx, FmtArgs* pFmtArgs, T* const& ptr)
 
 template<>
 inline isize
-format(Context* pCtx, FmtArgs* pFmtArgs, const std::nullptr_t& null)
+format(Context* pCtx, FmtArgs* pFmtArgs, const std::nullptr_t&)
 {
     return format(pCtx, pFmtArgs, "(null)");
 }
