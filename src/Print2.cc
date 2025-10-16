@@ -44,6 +44,12 @@ go()
         void* ptr = (void*)0xCafeBabe;
         print::out("i: {:#x}, pI: {:#x}, pNull: {:#x}, nullptr: {}, void: {:#x}\n", i, pI, pNull, nullptr, ptr);
     }
+
+    {
+        f32 f = 32.32f;
+        int i = 7123;
+        print::out("f: {:+}, i: {:+}\n", f, i);
+    }
 }
 
 int
