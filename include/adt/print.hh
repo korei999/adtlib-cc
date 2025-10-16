@@ -430,24 +430,7 @@ parseNumber(Context* pCtx, FmtArgs* pFmtArgs)
             ++pCtx->fmtI;
 
         const StringView svNum = pCtx->svFmt.subString(startI, pCtx->fmtI - startI);
-
-        if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::JUSTIFY_LEFT))
-        {
-            pFmtArgs->padding = svNum.toI64();
-        }
-        else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::JUSTIFY_RIGHT))
-        {
-            pFmtArgs->padding = svNum.toI64();
-        }
-        else if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::FLOAT_PRECISION))
-        {
-            pFmtArgs->eFlags &= ~FmtArgs::FLAGS::FLOAT_PRECISION;
-            pFmtArgs->floatPrecision = svNum.toI64();
-        }
-        else
-        {
-            pFmtArgs->maxLen = svNum.toI64();
-        }
+        eatFmtArg(svNum.toI64(), pFmtArgs);
     }
 
     return nWritten;
