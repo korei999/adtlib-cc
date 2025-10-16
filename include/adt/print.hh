@@ -662,9 +662,11 @@ format(Context* pCtx, FmtArgs* pFmtArgs, const T& arg)
 
     if (bool(pFmtArgs->eFlags & FmtArgs::FLAGS::SHOW_SIGN) || arg < 0)
     {
-        if (arg < 0 && nWritten < (isize)sizeof(aBuff))
-            aBuff[nWritten++] = '-';
-        else aBuff[nWritten++] = '+';
+        if (nWritten < (isize)sizeof(aBuff))
+        {
+            if (arg < 0) aBuff[nWritten++] = '-';
+            else aBuff[nWritten++] = '+';
+        }
     }
 
 done:
