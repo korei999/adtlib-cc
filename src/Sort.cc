@@ -149,7 +149,7 @@ main()
     {
         constexpr isize QSIZE = 2048;
         static_assert(isPowerOf2(QSIZE));
-        ThreadPool tp {Arena{}, QSIZE, SIZE_8G};
+        ThreadPool tp {Arena{}, QSIZE, SIZE_1G*8};
         defer( tp.destroy() );
 
         VecM<i64> v0 {BIG * 100};

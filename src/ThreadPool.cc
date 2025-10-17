@@ -24,7 +24,7 @@ usesThreadLocalArena()
 int
 main()
 {
-    ThreadPool tp {Arena{}, 1 << 11, SIZE_8G};
+    ThreadPool tp {Arena{}, 1 << 11, SIZE_1G*8};
     IThreadPool::setGlobal(&tp);
     defer( tp.destroy() );
 

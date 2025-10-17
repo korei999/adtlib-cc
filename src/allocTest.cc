@@ -15,7 +15,7 @@ void
 throws()
 {
     Gpa osAl {};
-    auto* ptr = osAl.zalloc(SIZE_8G * 1024);
+    auto* ptr = osAl.zalloc(SIZE_1G*8 * 1024);
     defer( osAl.free(ptr) );
 }
 

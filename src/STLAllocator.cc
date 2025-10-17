@@ -88,7 +88,7 @@ main()
 {
     try
     {
-        ArenaPmr arena {adt::SIZE_8G};
+        ArenaPmr arena {adt::SIZE_1G*8};
 
         std::pmr::vector<adt::Pair<short, short>> v {&arena};
 

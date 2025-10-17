@@ -58,7 +58,7 @@ main(int argc, char* argv[])
             // Gpa al;
             // MiMalloc al;
             // ArenaList al {SIZE_1M*100};
-            Arena al {SIZE_8G};
+            Arena al {SIZE_1G*8};
             // MiHeap al(0);
             defer(
                 // LOG_GOOD("arena: totalBytes: {}\n", al.nBytesOccupied());

@@ -215,3 +215,7 @@ add_executable(ArenaList
 add_executable(Print2
     Print2.cc
 )
+
+add_executable(Raii
+    Raii.cc
+)

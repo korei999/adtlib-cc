@@ -17,7 +17,7 @@ main()
 {
     defer( s_q.destroy() );
 
-    ThreadPool tp {Arena{}, 128, SIZE_8G};
+    ThreadPool tp {Arena{}, 128, SIZE_1G*8};
     IThreadPool::setGlobal(&tp);
     defer( tp.destroy() );
 
