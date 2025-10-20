@@ -10,6 +10,10 @@
 #include <cctype>
 #include <charconv>
 
+#ifdef _WIN32
+    #include <direct.h> /* _getcwd */
+#endif
+
 namespace adt::print
 {
 
@@ -289,7 +293,11 @@ inline const char*
 currentWorkingDirectory()
 {
     static char aBuff[300] {};
+#if defined _WIN32
+    return _getcwd(aBuff, sizeof(aBuff) - 1);
+#elif defined __unix__
     return getcwd(aBuff, sizeof(aBuff) - 1);
+#endif
 }
 
 inline const char*
