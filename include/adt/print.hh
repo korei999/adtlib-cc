@@ -94,7 +94,6 @@ Builder::push(char c)
     if (m_size + 1 >= m_cap) if (!growIfNeeded((m_cap + 1) * 2)) return -1;
 
     m_pData[m_size++] = c;
-    m_pData[m_size] = '\0';
     return 1;
 }
 
@@ -109,7 +108,6 @@ Builder::push(const StringView sv)
             if (maxPossbile <= 0) return -1;
             ::memcpy(m_pData + m_size, sv.m_pData, maxPossbile);
             m_size += maxPossbile;
-            m_pData[m_cap - 1] = '\0';
             return maxPossbile;
         }
 
@@ -118,7 +116,6 @@ Builder::push(const StringView sv)
 
     ::memcpy(m_pData + m_size, sv.m_pData, sv.m_size);
     m_size += sv.m_size;
-    m_pData[m_size] = '\0';
     return sv.m_size;
 }
 
@@ -207,7 +204,6 @@ Builder::push(FmtArgs* pFmtArgs, StringView sv)
     }
 
 done:
-    m_pData[m_size] = '\0';
     return nWritten;
 }
 
@@ -610,6 +606,8 @@ parseArgs(Context* pCtx, const FmtArgs& fmtArgs)
         if (n > 0) nWritten += n;
     }
 
+    if (pCtx->pBuilder->size() < pCtx->pBuilder->cap())
+        pCtx->pBuilder->m_pData[pCtx->pBuilder->size()] = '\0';
     return nWritten;
 }
 
