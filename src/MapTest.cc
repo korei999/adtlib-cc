@@ -101,16 +101,19 @@ microBench()
     }
 
     {
-        Map<StringView, int> map(&arena);
+        MapManaged<StringView, int> map {};
         VecManaged<StringView> vNotFoundStrings {};
-        defer( vNotFoundStrings.destroy() );
+        defer(
+            map.destroy();
+            vNotFoundStrings.destroy()
+        );
 
         {
             auto timer = time::now();
 
             for (isize i = 0; i < BIG; ++i)
             {
-                auto res = map.tryInsert(&arena, vStrings[i], i);
+                auto res = map.tryInsert(vStrings[i], i);
                 if (res.eStatus == MAP_RESULT_STATUS::FOUND)
                 {
                     vNotFoundStrings.push(vStrings[i]);
@@ -209,6 +212,63 @@ microBench()
             for (auto& sv : vNotFoundStrings)
             {
                 ADT_ASSERT_ALWAYS(map.find(sv) != map.end(), "failed to find: '{}'", sv);
+            }
+        }
+    }
+
+    LogDebug("\n");
+
+    {
+        MapManaged<StringView, int, somethingHash> map {};
+        VecManaged<StringView> vNotFoundStrings {};
+        defer(
+            map.destroy();
+            vNotFoundStrings.destroy()
+        );
+
+        {
+            auto timer = time::now();
+
+            for (isize i = 0; i < BIG; ++i)
+            {
+                auto res = map.tryInsert(vStrings[i], i);
+                if (res.eStatus == MAP_RESULT_STATUS::FOUND)
+                {
+                    vNotFoundStrings.push(vStrings[i]);
+                }
+            }
+
+            LogDebug("(somethingHash) tryInsert {} items in {:.3} ms\n", BIG, time::diffMSec(time::now(), timer));
+        }
+
+        {
+            auto timer = time::now();
+
+            for (isize i = 0; i < BIG; ++i)
+            {
+                [[maybe_unused]] auto f = map.search(vStrings[i]);
+                if (!f)
+                {
+                    auto onceMore = map.search(vStrings[i]);
+
+                    bool bFound = false;
+                    for (auto& bucket : map.m_vBuckets)
+                    {
+                        if (bucket.key == vStrings[i])
+                        {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    LogWarn("bFound: {}, '{}': str: '{}', onceMore: {}\n", bFound, f.eStatus, vStrings[i], onceMore.eStatus);
+                }
+            }
+
+            LogDebug("(somethingHash) search {} items in {:.3} ms\n", BIG, time::diffMSec(time::now(), timer));
+
+            for (auto& sv : vNotFoundStrings)
+            {
+                ADT_ASSERT_ALWAYS(map.search(sv), "failed to find: '{}'", sv);
             }
         }
     }
