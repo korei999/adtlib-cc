@@ -31,16 +31,20 @@ somethingHash(const StringView& sv)
     isize i = 0;
     usize hash = 0;
     constexpr u64 randomGiantNumber = 0xf9135213895caf14LLU;
-    for (; i + 7 < sv.m_size; i += 8)
-    {
-        u64 x = sv.reinterpret<u64>(i);
-        hash += (x * randomGiantNumber) ^ x;
-    }
 
     if (sv.m_size >= 8)
     {
-        u64 x = sv.reinterpret<u64>(sv.m_size - 8);
-        hash += (x * randomGiantNumber) ^ x;
+        for (; i + 7 < sv.m_size; i += 8)
+        {
+            u64 x = sv.reinterpret<u64>(i);
+            hash += (x * randomGiantNumber) ^ x;
+        }
+
+        if (i < sv.m_size)
+        {
+            u64 x = sv.reinterpret<u64>(sv.m_size - 8);
+            hash += (x * randomGiantNumber) ^ x;
+        }
     }
     else
     {
